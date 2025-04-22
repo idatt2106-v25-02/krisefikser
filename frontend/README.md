@@ -62,3 +62,52 @@ pnpm test:e2e --debug
 ```sh
 pnpm lint
 ```
+
+## Project Structure
+```
+🗂️ Project Structure
+src/
+├── assets/
+├── components/
+│   ├── common/               # Footer, CTA buttons, etc.
+│   ├── household/            # Shared between roles
+│   ├── inventory/            # Item and category management
+│   ├── map/                  # Map logic (used across user roles)
+│   ├── modals/               # Invite, ReCaptcha, Confirm dialogs
+│   ├── notifications/        # Event notification display
+│   └── privacy/              # Consent & policy components
+├── views/
+│   ├── nonRegistered/
+│   │   ├── HomeView.vue
+│   │   ├── RegisterView.vue
+│   │   ├── MapView.vue
+│   │   └── JoinOrCreateHouseholdView.vue
+│   ├── registered/
+│   │   ├── DashboardView.vue
+│   │   ├── InventoryView.vue
+│   │   ├── AddItemView.vue
+│   │   ├── HouseholdView.vue
+│   │   ├── InviteView.vue
+│   │   └── SearchView.vue
+│   ├── admin/
+│   │   ├── AdminLoginView.vue
+│   │   ├── AdminDashboardView.vue
+│   │   ├── AdminMapView.vue
+│   │   ├── AdminEventsView.vue
+│   │   └── AdminSearchView.vue
+│   ├── superAdmin/
+│   │   ├── SuperAdminDashboardView.vue
+│   │   └── ManageAdminsView.vue
+│   ├── auth/
+│   │   ├── LoginView.vue
+│   │   ├── ForgotPasswordView.vue
+│   │   └── ResetPasswordView.vue
+│   └── errors/
+│       └── NotFoundView.vue
+├── router/
+│   └── index.js              # Route guards, roles, redirects
+├── store/
+│   └── index.js              # Auth, user role, inventory, etc.
+├── App.vue
+└── main.js
+```
