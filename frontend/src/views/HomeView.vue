@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import {Button} from "@/components/ui/button";
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <h1>Home</h1>
+  <Button>Touch me vro</Button>
 </template>
