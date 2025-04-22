@@ -44,7 +44,7 @@ function onUserLocationStatus(available: boolean) {
 </script>
 
 <template>
-  <div class="map-container">
+  <div class="relative w-full h-screen">
     <MapComponent ref="mapRef" @map-created="onMapCreated" />
     
     <ShelterLayer 
@@ -75,9 +75,5 @@ function onUserLocationStatus(available: boolean) {
 </template>
 
 <style scoped>
-.map-container {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-}
+/* No styles needed as we're using Tailwind classes */
 </style>
