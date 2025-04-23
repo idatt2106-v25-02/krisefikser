@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
+    "lucide-vue-next": "^0.503.0",
     "pinia": "^3.0.1",
     "reka-ui": "^2.2.0",
     "tailwind-merge": "^3.2.0",
