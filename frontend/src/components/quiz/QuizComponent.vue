@@ -1,5 +1,5 @@
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref, computed } from 'vue';
 import type { PropType } from 'vue';
 import { CheckCircle, XCircle, Info, ChevronLeft, Trophy, Award, ThumbsUp } from 'lucide-vue-next';
 
@@ -13,195 +13,192 @@ interface Question {
 
 type ColorTheme = 'blue' | 'yellow' | 'green';
 
-export default defineComponent({
-  name: 'QuizComponent',
-  components: {
-    CheckCircle,
-    XCircle,
-    Info,
-    ChevronLeft,
-    Trophy,
-    Award,
-    ThumbsUp
+const props = defineProps({
+  title: {
+    type: String as PropType<string>,
+    default: 'Test din kunnskap'
   },
-  props: {
-    title: {
-      type: String as PropType<string>,
-      default: 'Test din kunnskap'
-    },
-    description: {
-      type: String as PropType<string>,
-      default: 'Svar på spørsmålene for å teste din kunnskap om krisehåndtering.'
-    },
-    questions: {
-      type: Array as PropType<Question[]>,
-      required: true
-    },
-    colorTheme: {
-      type: String as PropType<ColorTheme>,
-      default: 'blue',
-      validator: (value: string): boolean => ['blue', 'yellow', 'green'].includes(value as ColorTheme)
-    }
+  description: {
+    type: String as PropType<string>,
+    default: 'Svar på spørsmålene for å teste din kunnskap om krisehåndtering.'
   },
-  data() {
-    return {
-      currentState: 'intro' as 'intro' | 'question' | 'results' | 'review',
-      currentQuestionIndex: 1,
-      userAnswers: Array(this.questions.length).fill(null) as (number | null)[],
-      selectedAnswerIndex: null as number | null,
-      score: 0,
-      answerSubmitted: false,
-      answeredQuestions: Array(this.questions.length).fill(false) as boolean[]
-    }
+  questions: {
+    type: Array as PropType<Question[]>,
+    required: true
   },
-  computed: {
-    currentQuestion(): Question {
-      return this.questions[this.currentQuestionIndex - 1];
-    },
-    isLastQuestion(): boolean {
-      return this.currentQuestionIndex === this.questions.length;
-    },
-    buttonColorClass(): string {
-      const colors: Record<ColorTheme, string> = {
-        blue: 'bg-blue-600 hover:bg-blue-700',
-        yellow: 'bg-yellow-600 hover:bg-yellow-700',
-        green: 'bg-green-600 hover:bg-green-700'
-      };
-      return colors[this.colorTheme as ColorTheme];
-    },
-    progressBarColorClass(): string {
-      const colors: Record<ColorTheme, string> = {
-        blue: 'bg-blue-600',
-        yellow: 'bg-yellow-600',
-        green: 'bg-green-600'
-      };
-      return colors[this.colorTheme as ColorTheme];
-    },
-    resultCircleColorClass(): string {
-      const colors: Record<ColorTheme, string> = {
-        blue: 'bg-blue-600',
-        yellow: 'bg-yellow-600',
-        green: 'bg-green-600'
-      };
-      return colors[this.colorTheme as ColorTheme];
-    },
-    resultFeedback(): string {
-      const percentage = (this.score / this.questions.length) * 100;
-
-      if (percentage === 100) {
-        return 'Fantastisk! Du har full kontroll på dette temaet.';
-      } else if (percentage >= 75) {
-        return 'Veldig bra! Du har god kunnskap om dette temaet.';
-      } else if (percentage >= 50) {
-        return 'Bra! Du har grunnleggende kunnskap, men det er rom for forbedring.';
-      } else {
-        return 'Du har tatt et godt første steg. Les mer om temaet for å øke kunnskapen din.';
-      }
-    }
-  },
-  methods: {
-    startQuiz(): void {
-      this.currentState = 'question';
-    },
-    resetQuiz(): void {
-      this.currentState = 'intro';
-      this.currentQuestionIndex = 1;
-      this.userAnswers = Array(this.questions.length).fill(null);
-      this.selectedAnswerIndex = null;
-      this.score = 0;
-      this.answerSubmitted = false;
-      this.answeredQuestions = Array(this.questions.length).fill(false);
-    },
-    selectAnswer(index: number): void {
-      // Only allow selection if answer hasn't been submitted yet
-      if (!this.answerSubmitted) {
-        this.selectedAnswerIndex = index;
-      }
-    },
-    submitAnswer(): void {
-      if (this.selectedAnswerIndex !== null) {
-        this.answerSubmitted = true;
-        this.answeredQuestions[this.currentQuestionIndex - 1] = true;
-
-        // Save the answer
-        this.userAnswers[this.currentQuestionIndex - 1] = this.selectedAnswerIndex;
-
-        // Update score if correct
-        if (this.selectedAnswerIndex === this.currentQuestion.correctAnswer) {
-          this.score++;
-        }
-      }
-    },
-    previousQuestion(): void {
-      if (this.currentQuestionIndex > 1) {
-        this.currentQuestionIndex--;
-        this.selectedAnswerIndex = this.userAnswers[this.currentQuestionIndex - 1];
-        this.answerSubmitted = this.answeredQuestions[this.currentQuestionIndex - 1];
-      }
-    },
-    nextQuestion(): void {
-      if (this.answerSubmitted) {
-        if (this.isLastQuestion) {
-          this.calculateResults();
-        } else {
-          // Move to next question
-          this.currentQuestionIndex++;
-          // Set selected answer to the previously saved answer (if any)
-          this.selectedAnswerIndex = this.userAnswers[this.currentQuestionIndex - 1];
-          // Reset submission status for the new question
-          this.answerSubmitted = this.answeredQuestions[this.currentQuestionIndex - 1];
-        }
-      }
-    },
-    calculateResults(): void {
-      this.currentState = 'results';
-    },
-    viewAnswers(): void {
-      this.currentState = 'review';
-    },
-    getOptionClass(index: number): string {
-      if (!this.answerSubmitted) {
-        // Before answer submission
-        return this.selectedAnswerIndex === index
-          ? `bg-${this.colorTheme}-50 border-${this.colorTheme}-300`
-          : 'border-gray-200 hover:border-gray-300 bg-white';
-      } else {
-        // After answer submission
-        if (index === this.currentQuestion.correctAnswer) {
-          // Correct answer
-          return 'bg-green-50 border-green-500';
-        } else if (index === this.selectedAnswerIndex) {
-          // Selected but wrong answer
-          return 'bg-red-50 border-red-500';
-        } else {
-          // Unselected and wrong
-          return 'border-gray-200 bg-white';
-        }
-      }
-    },
-    getOptionIconClass(index: number): string {
-      if (!this.answerSubmitted) {
-        // Before answer submission
-        return this.selectedAnswerIndex === index
-          ? `border-${this.colorTheme}-500 bg-${this.colorTheme}-500`
-          : 'border-gray-300';
-      } else {
-        // After answer submission
-        if (index === this.currentQuestion.correctAnswer) {
-          // Correct answer
-          return 'border-green-500 bg-green-500';
-        } else if (index === this.selectedAnswerIndex) {
-          // Selected but wrong answer
-          return 'border-red-500 bg-red-500';
-        } else {
-          // Unselected and wrong
-          return 'border-gray-300';
-        }
-      }
-    }
+  colorTheme: {
+    type: String as PropType<ColorTheme>,
+    default: 'blue',
+    validator: (value: string): boolean => ['blue', 'yellow', 'green'].includes(value as ColorTheme)
   }
 });
+
+// State management
+const currentState = ref<'intro' | 'question' | 'results' | 'review'>('intro');
+const currentQuestionIndex = ref(1);
+const userAnswers = ref<(number | null)[]>(Array(props.questions.length).fill(null));
+const selectedAnswerIndex = ref<number | null>(null);
+const score = ref(0);
+const answerSubmitted = ref(false);
+const answeredQuestions = ref<boolean[]>(Array(props.questions.length).fill(false));
+
+// Computed properties
+const currentQuestion = computed(() => props.questions[currentQuestionIndex.value - 1]);
+const isLastQuestion = computed(() => currentQuestionIndex.value === props.questions.length);
+const progressValue = computed(() => (currentQuestionIndex.value / props.questions.length) * 100);
+
+const buttonColorClass = computed(() => {
+  const colors: Record<ColorTheme, string> = {
+    blue: 'bg-blue-600 hover:bg-blue-700',
+    yellow: 'bg-yellow-600 hover:bg-yellow-700',
+    green: 'bg-green-600 hover:bg-green-700'
+  };
+  return colors[props.colorTheme as ColorTheme];
+});
+
+const progressBarColorClass = computed(() => {
+  const colors: Record<ColorTheme, string> = {
+    blue: 'bg-blue-600',
+    yellow: 'bg-yellow-600',
+    green: 'bg-green-600'
+  };
+  return colors[props.colorTheme as ColorTheme];
+});
+
+const resultCircleColorClass = computed(() => {
+  const colors: Record<ColorTheme, string> = {
+    blue: 'bg-blue-600',
+    yellow: 'bg-yellow-600',
+    green: 'bg-green-600'
+  };
+  return colors[props.colorTheme as ColorTheme];
+});
+
+const resultFeedback = computed(() => {
+  const percentage = (score.value / props.questions.length) * 100;
+
+  if (percentage === 100) {
+    return 'Fantastisk! Du har full kontroll på dette temaet.';
+  } else if (percentage >= 75) {
+    return 'Veldig bra! Du har god kunnskap om dette temaet.';
+  } else if (percentage >= 50) {
+    return 'Bra! Du har grunnleggende kunnskap, men det er rom for forbedring.';
+  } else {
+    return 'Du har tatt et godt første steg. Les mer om temaet for å øke kunnskapen din.';
+  }
+});
+
+// Methods
+const startQuiz = () => {
+  currentState.value = 'question';
+};
+
+const resetQuiz = () => {
+  currentState.value = 'intro';
+  currentQuestionIndex.value = 1;
+  userAnswers.value = Array(props.questions.length).fill(null);
+  selectedAnswerIndex.value = null;
+  score.value = 0;
+  answerSubmitted.value = false;
+  answeredQuestions.value = Array(props.questions.length).fill(false);
+};
+
+const selectAnswer = (index: number) => {
+  // Only allow selection if answer hasn't been submitted yet
+  if (!answerSubmitted.value) {
+    selectedAnswerIndex.value = index;
+  }
+};
+
+const submitAnswer = () => {
+  if (selectedAnswerIndex.value !== null) {
+    answerSubmitted.value = true;
+    answeredQuestions.value[currentQuestionIndex.value - 1] = true;
+
+    // Save the answer
+    userAnswers.value[currentQuestionIndex.value - 1] = selectedAnswerIndex.value;
+
+    // Update score if correct
+    if (selectedAnswerIndex.value === currentQuestion.value.correctAnswer) {
+      score.value++;
+    }
+  }
+};
+
+const previousQuestion = () => {
+  if (currentQuestionIndex.value > 1) {
+    currentQuestionIndex.value--;
+    selectedAnswerIndex.value = userAnswers.value[currentQuestionIndex.value - 1];
+    answerSubmitted.value = answeredQuestions.value[currentQuestionIndex.value - 1];
+  }
+};
+
+const nextQuestion = () => {
+  if (answerSubmitted.value) {
+    if (isLastQuestion.value) {
+      calculateResults();
+    } else {
+      // Move to next question
+      currentQuestionIndex.value++;
+      // Set selected answer to the previously saved answer (if any)
+      selectedAnswerIndex.value = userAnswers.value[currentQuestionIndex.value - 1];
+      // Reset submission status for the new question
+      answerSubmitted.value = answeredQuestions.value[currentQuestionIndex.value - 1];
+    }
+  }
+};
+
+const calculateResults = () => {
+  currentState.value = 'results';
+};
+
+const viewAnswers = () => {
+  currentState.value = 'review';
+};
+
+const getOptionClass = (index: number) => {
+  if (!answerSubmitted.value) {
+    // Before answer submission
+    return selectedAnswerIndex.value === index
+      ? `bg-${props.colorTheme}-50 border-${props.colorTheme}-300`
+      : 'border-gray-200 hover:border-gray-300 bg-white';
+  } else {
+    // After answer submission
+    if (index === currentQuestion.value.correctAnswer) {
+      // Correct answer
+      return 'bg-green-50 border-green-500';
+    } else if (index === selectedAnswerIndex.value) {
+      // Selected but wrong answer
+      return 'bg-red-50 border-red-500';
+    } else {
+      // Unselected and wrong
+      return 'border-gray-200 bg-white';
+    }
+  }
+};
+
+const getOptionIconClass = (index: number) => {
+  if (!answerSubmitted.value) {
+    // Before answer submission
+    return selectedAnswerIndex.value === index
+      ? `border-${props.colorTheme}-500 bg-${props.colorTheme}-500`
+      : 'border-gray-300';
+  } else {
+    // After answer submission
+    if (index === currentQuestion.value.correctAnswer) {
+      // Correct answer
+      return 'border-green-500 bg-green-500';
+    } else if (index === selectedAnswerIndex.value) {
+      // Selected but wrong answer
+      return 'border-red-500 bg-red-500';
+    } else {
+      // Unselected and wrong
+      return 'border-gray-300';
+    }
+  }
+};
 </script>
+
 <template>
   <div class="quiz-container">
     <!-- Quiz intro -->
@@ -219,18 +216,17 @@ export default defineComponent({
 
     <!-- Question display -->
     <div v-else-if="currentState === 'question'" class="quiz-content">
-      <!-- Progress bar -->
       <div class="mb-6">
         <div class="w-full h-2 bg-gray-200 rounded-full">
           <div
             class="h-2 rounded-full transition-all duration-300"
             :class="progressBarColorClass"
-            :style="{ width: `${(currentQuestionIndex / questions.length) * 100}%` }"
+            :style="{ width: `${progressValue}%` }"
           ></div>
         </div>
         <div class="flex justify-between text-sm text-gray-500 mt-1">
           <span>Spørsmål {{ currentQuestionIndex }} av {{ questions.length }}</span>
-          <span>{{ Math.round((currentQuestionIndex / questions.length) * 100) }}% fullført</span>
+          <span>{{ Math.round(progressValue) }}% fullført</span>
         </div>
       </div>
 
@@ -425,5 +421,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-
-
