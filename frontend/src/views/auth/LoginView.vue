@@ -5,21 +5,22 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useAuthModeStore } from '@/stores/useAuthModeStore'
 
+// UI components
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-// Set up store
+// === Store logic ===
 const authStore = useAuthModeStore()
 
-// Toggle between 'user' and 'admin'
+// Computed value to check if login mode is admin
 const isAdmin = computed(() => authStore.isAdmin)
 
-// Conditional form schema
-const formSchema = computed(() => {
-  return toTypedSchema(
+// === Schema logic ===
+// Dynamically set schema based on isAdmin
+const formSchema = computed(() =>
+  toTypedSchema(
     z.object({
-      // Use either email or username depending on login type
       identifier: isAdmin.value
         ? z.string().min(3, 'Username must be at least 3 characters')
         : z.string().email('Invalid email').min(5, 'Email too short'),
@@ -31,30 +32,29 @@ const formSchema = computed(() => {
         .regex(/[a-z]/, 'Password must include at least one lowercase letter')
         .regex(/[0-9]/, 'Password must include at least one number')
         .regex(/[^A-Za-z0-9]/, 'Password must include at least one special character'),
-    }),
+    })
   )
-})
+)
 
-// Const to decide the schema
-const form = useForm({
+// === Form logic ===
+// useForm returns handleSubmit, meta, and resetForm for tracking state
+const { handleSubmit, meta, resetForm } = useForm({
   validationSchema: formSchema,
 })
 
-// Handles the submission of the form
-const onSubmit = form.handleSubmit((values) => {
+// Submit handler
+const onSubmit = handleSubmit((values) => {
   console.log(isAdmin.value ? 'Admin login' : 'User login', values)
 })
 
-// Toggle between the login auth role types
+// Toggle between user/admin mode and reset the form
 function toggleLoginType() {
   authStore.toggle()
-  form.resetForm()
+  resetForm()
 }
 
-// Stores the show password state
+// Show/hide password
 const showPassword = ref(false)
-
-// Toggle the visibility of the password
 function toggleShowPassword() {
   showPassword.value = !showPassword.value
 }
@@ -66,9 +66,11 @@ function toggleShowPassword() {
       @submit="onSubmit"
       class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
     >
-      <h1 class="text-3xl font-bold text-center">{{ isAdmin ? 'Admin Login' : 'Login' }}</h1>
+      <h1 class="text-3xl font-bold text-center">
+        {{ isAdmin ? 'Admin Login' : 'Login' }}
+      </h1>
 
-      <!-- Identifier field (email or username) -->
+      <!-- Email or Username Field -->
       <FormField v-slot="{ componentField }" name="identifier">
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">
@@ -86,7 +88,7 @@ function toggleShowPassword() {
         </FormItem>
       </FormField>
 
-      <!-- Password field -->
+      <!-- Password Field -->
       <FormField v-slot="{ componentField }" name="password">
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Password</FormLabel>
@@ -112,15 +114,16 @@ function toggleShowPassword() {
         </FormItem>
       </FormField>
 
-      <!-- Submit button -->
+      <!-- Submit Button (disabled unless form is valid and touched) -->
       <Button
         type="submit"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium"
+        :disabled="!meta.valid || !meta.dirty"
+        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
         {{ isAdmin ? 'Login as Admin' : 'Login' }}
       </Button>
 
-      <!-- Conditional CTAs below -->
+      <!-- Bottom links -->
       <div class="text-sm text-center space-y-2">
         <div v-if="!isAdmin">
           <span class="text-gray-600">Don't have an account?</span>

@@ -29,13 +29,12 @@ const rawSchema = z
     path: ['confirmPassword'], // This will attach the error to the confirmPassword field
   })
 
-// The validation shcmea to use
-const form = useForm({
+// Set up consts for submit button deactivation
+const { handleSubmit, meta } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
-// Handles the submission of the form
-const onSubmit = form.handleSubmit((values) => {
+const onSubmit = handleSubmit((values) => {
   console.log(values)
 })
 
@@ -169,11 +168,13 @@ function toggleShowConfirmPassword() {
 
       <!-- Submit button -->
       <Button
-        type="submit"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium"
-      >
-        Register
-      </Button>
+  type="submit"
+  :disabled="!meta.valid"
+  class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
+>
+  Register
+</Button>
+
 
       <!-- Conditional CTAs below -->
       <div class="text-sm text-center space-y-2">

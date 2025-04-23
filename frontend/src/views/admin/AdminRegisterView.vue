@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 
+// UI components
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-const username = 'admin_username_example' // Replace with actual value from route/query
+// Simulated username value – can be replaced with route param or props
+const username = 'admin_username_example'
 
-// Schema for the registeration form
+// === Schema definition for password and confirmation ===
 const rawSchema = z
   .object({
     password: z
@@ -25,31 +27,26 @@ const rawSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ['confirmPassword'], // This will attach the error to the confirmPassword field
+    path: ['confirmPassword'],
   })
 
-// The validation shcmea to use
-const form = useForm({
+// === Form setup with validation ===
+const { handleSubmit, meta } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
-// Handles the submission of the form
-const onSubmit = form.handleSubmit((values) => {
-  console.log(values)
+// === Form submission logic ===
+const onSubmit = handleSubmit((values) => {
+  console.log('Admin registration submitted:', values)
 })
 
-// Stores the show password state
+// === UI state for password visibility toggles ===
 const showPassword = ref(false)
-
-// Toggle the visibility of the password
 function toggleShowPassword() {
   showPassword.value = !showPassword.value
 }
 
-// Stores the show password state for confirmed password
 const showConfirmPassword = ref(false)
-
-// Toggle the visibility of the confirm password field
 function toggleShowConfirmPassword() {
   showConfirmPassword.value = !showConfirmPassword.value
 }
@@ -63,7 +60,7 @@ function toggleShowConfirmPassword() {
     >
       <h1 class="text-3xl font-bold text-center">Admin Registration</h1>
 
-      <!-- Display the username (read-only) -->
+      <!-- Display read-only username -->
       <div class="space-y-1">
         <label class="block text-sm font-medium text-gray-700">Username</label>
         <input
@@ -74,7 +71,7 @@ function toggleShowConfirmPassword() {
         />
       </div>
 
-      <!-- Password field -->
+      <!-- Password Field -->
       <FormField v-slot="{ componentField }" name="password">
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Password</FormLabel>
@@ -100,12 +97,10 @@ function toggleShowConfirmPassword() {
         </FormItem>
       </FormField>
 
-      <!-- Confirm Password -->
+      <!-- Confirm Password Field -->
       <FormField v-slot="{ componentField }" name="confirmPassword">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1"
-            >Confirm Password</FormLabel
-          >
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</FormLabel>
           <FormControl>
             <div class="relative">
               <Input
@@ -128,10 +123,11 @@ function toggleShowConfirmPassword() {
         </FormItem>
       </FormField>
 
-      <!-- Submit button -->
+      <!-- Submit Button: disabled unless form is valid and touched -->
       <Button
         type="submit"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium"
+        :disabled="!meta.valid || !meta.dirty"
+        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
         Register
       </Button>
