@@ -24,7 +24,7 @@ import ManageAdminsView from "@/views/superAdmin/ManageAdminsView.vue";
 import DashboardView from "@/views/registered/DashboardView.vue";
 import AddItemView from "@/views/registered/AddItemView.vue";
 import HouseholdView from "@/views/registered/HouseholdView.vue";
-import InventoryView from "@/views/registered/InventoryView.vue";
+import HouseholdDetailsView from "@/views/registered/HouseholdDetailsView.vue";
 import InviteView from "@/views/registered/InviteView.vue";
 import SearchView from "@/views/registered/SearchView.vue";
 
@@ -119,10 +119,11 @@ const router = createRouter({
       component: HouseholdView,
     },
     {
-      path: '/inventar',
-      name: 'inventory',
-      component: InventoryView,
+      path: '/husstand/:id',
+      name: 'household-details',
+      component: HouseholdDetailsView,
     },
+
     {
       path: '/inviter-medlemmer',
       name: 'invite',
