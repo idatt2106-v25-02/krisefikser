@@ -14,7 +14,6 @@ import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
 import AdminEventsView from "@/views/admin/AdminEventsView.vue";
 import AdminMapView from "@/views/admin/AdminMapView.vue";
 import AdminSearchView from "@/views/admin/AdminSearchView.vue";
-import AdminLoginView from "@/views/admin/AdminRegisterView.vue";
 
 // Super Admin views
 import SuperAdminDashboardView from "@/views/superAdmin/SuperAdminDashboardView.vue";
@@ -33,6 +32,7 @@ import NonRegisteredHomeView from "@/views/nonRegistered/HomeView.vue";
 import JoinOrCreateHouseholdView from "@/views/nonRegistered/JoinOrCreateHouseholdView.vue";
 import MapView from "@/views/nonRegistered/MapView.vue";
 import RegisterView from "@/views/nonRegistered/RegisterView.vue";
+import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -66,9 +66,9 @@ const router = createRouter({
       component: AdminDashboardView,
     },
     {
-      path: '/admin/login',
-      name: 'admin-login',
-      component: AdminLoginView,
+      path: '/admin/register',
+      name: 'admin-register',
+      component: AdminRegisterView,
     },
     {
       path: '/admin/events',
