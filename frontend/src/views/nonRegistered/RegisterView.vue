@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
+import VueTurnstile from 'vue-turnstile'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -23,6 +24,7 @@ const rawSchema = z
       .regex(/[0-9]/, 'Must include a number')
       .regex(/[^A-Za-z0-9]/, 'Must include a special character'),
     confirmPassword: z.string(),
+    turnstileToken: z.string().min(1, 'Please complete the CAPTCHA verification')
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -30,12 +32,57 @@ const rawSchema = z
   })
 
 // Set up consts for submit button deactivation
-const { handleSubmit, meta } = useForm({
+const { handleSubmit, meta, setFieldValue } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
-const onSubmit = handleSubmit((values) => {
-  console.log(values)
+// Store the Turnstile token
+const turnstileToken = ref('')
+
+// Handle Turnstile verification success
+const onTurnstileSuccess = (token: string) => {
+  turnstileToken.value = token
+  setFieldValue('turnstileToken', token)
+}
+
+// Handle Turnstile verification error
+const onTurnstileError = () => {
+  turnstileToken.value = ''
+  setFieldValue('turnstileToken', '')
+}
+
+// Handle Turnstile verification expiry
+const onTurnstileExpire = () => {
+  turnstileToken.value = ''
+  setFieldValue('turnstileToken', '')
+}
+
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    // Send the form data along with the Turnstile token to the server
+    const response = await fetch('http://localhost:3000/verify-turnstile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token: turnstileToken.value }),
+    })
+
+    const data = await response.json()
+
+    if (data.success) {
+      // If Turnstile verification succeeds, proceed with registration
+      console.log('Registration form submitted successfully', values)
+      // Here you would typically call your registration API
+    } else {
+      console.error('Turnstile verification failed', data.error)
+      // Reset the Turnstile widget
+      turnstileToken.value = ''
+      setFieldValue('turnstileToken', '')
+    }
+  } catch (error) {
+    console.error('Error during form submission:', error)
+  }
 })
 
 // Stores the show password state
@@ -138,7 +185,6 @@ function toggleShowConfirmPassword() {
       </FormField>
 
       <!-- Confirm Password -->
-      <!-- Confirm Password -->
       <FormField v-slot="{ componentField }" name="confirmPassword">
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1"
@@ -166,15 +212,31 @@ function toggleShowConfirmPassword() {
         </FormItem>
       </FormField>
 
+      <!-- Cloudflare Turnstile -->
+      <FormField v-slot="{ componentField }" name="turnstileToken">
+        <FormItem>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Verify you're human</FormLabel>
+          <FormControl>
+            <div class="flex justify-center">
+              <VueTurnstile
+                site-key="1x00000000000000000000AA"
+                v-model="turnstileToken"
+                theme="light"
+              />
+            </div>
+          </FormControl>
+          <FormMessage class="text-sm text-red-500" />
+        </FormItem>
+      </FormField>
+
       <!-- Submit button -->
       <Button
-  type="submit"
-  :disabled="!meta.valid"
-  class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
->
-  Register
-</Button>
-
+        type="submit"
+        :disabled="!meta.valid"
+        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
+      >
+        Register
+      </Button>
 
       <!-- Conditional CTAs below -->
       <div class="text-sm text-center space-y-2">
