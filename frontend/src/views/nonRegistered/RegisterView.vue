@@ -219,7 +219,7 @@ function toggleShowConfirmPassword() {
           <FormControl>
             <div class="flex justify-center">
               <VueTurnstile
-                site-key="1x00000000000000000000AA"
+                site-key="0x4AAAAAABSTiPNZwrBLQkgr"
                 v-model="turnstileToken"
                 theme="light"
               />
