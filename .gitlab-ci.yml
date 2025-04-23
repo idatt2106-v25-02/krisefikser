@@ -3,6 +3,7 @@
 stages:
   - build
   - test
+  - lint
   - package
   - deploy
 
@@ -83,7 +84,7 @@ build-frontend:
     - develop
 
 lint-frontend:
-  stage: test
+  stage: lint
   image: node:${NODE_VERSION}
   script:
     - cd frontend
