@@ -2,20 +2,21 @@ package stud.ntnu.krisefikser.household.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import java.time.LocalDateTime;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.locationtech.jts.geom.Point;
+import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.user.entity.User;
 
 @Entity
@@ -23,24 +24,18 @@ import stud.ntnu.krisefikser.user.entity.User;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Household {
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "household_id"})})
+public class HouseholdMember {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
-
-  @Column(nullable = false)
-  private String name;
-
-  @Column(columnDefinition = "POINT", nullable = false)
-  private Point location;
-
   @ManyToOne(optional = false)
-  @JoinColumn(name = "owner_id")
-  private User owner;
-
-  @CreationTimestamp
-  private LocalDateTime createdAt;
-
-  @UpdateTimestamp
-  private LocalDateTime updatedAt;
+  @JoinColumn(name = "user_id")
+  private User user;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "household_id")
+  private Household household;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private HouseholdMemberStatus status;
 }
