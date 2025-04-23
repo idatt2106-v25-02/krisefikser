@@ -1,32 +1,33 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
-import L from 'leaflet';
+import { onMounted, watch } from 'vue'
+import L from 'leaflet'
 
 // Define props
 const props = defineProps<{
-  map: any; // Using any to avoid Leaflet type issues
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  map: any
   crisisAreas: Array<{
-    id: number;
-    name: string;
-    center: [number, number];
-    radius: number;
-    severity: number;
-    color: string;
-    description: string;
-  }>;
-}>();
+    id: number
+    name: string
+    center: [number, number]
+    radius: number
+    severity: number
+    color: string
+    description: string
+  }>
+}>()
 
-const circles: L.Circle[] = [];
+const circles: L.Circle[] = []
 
 // Add crisis areas to map
 function addCrisisAreas() {
-  if (!props.map) return;
+  if (!props.map) return
 
   // Clear previous circles
   for (const circle of circles) {
-    circle.remove();
+    circle.remove()
   }
-  circles.length = 0;
+  circles.length = 0
 
   // Add crisis areas
   for (const area of props.crisisAreas) {
@@ -34,35 +35,38 @@ function addCrisisAreas() {
       radius: area.radius,
       color: area.color,
       fillColor: area.color,
-      fillOpacity: 0.2
-    }).addTo(props.map)
-      .bindPopup(`
+      fillOpacity: 0.2,
+    }).addTo(props.map).bindPopup(`
         <strong>${area.name}</strong><br>
         <span style="color:${area.color}">Severity Level: ${area.severity}</span><br>
         ${area.description}
-      `);
-    
-    circles.push(circle);
+      `)
+
+    circles.push(circle)
   }
 }
 
 onMounted(() => {
   if (props.map) {
-    addCrisisAreas();
+    addCrisisAreas()
   }
-});
+})
 
-watch(() => props.map, (newMap) => {
-  if (newMap) {
-    addCrisisAreas();
-  }
-});
+watch(
+  () => props.map,
+  (newMap) => {
+    if (newMap) {
+      addCrisisAreas()
+    }
+  },
+)
 </script>
 
 <template>
   <!-- This component doesn't have a visual template as it's just adding layers to the map -->
+  <template></template>
 </template>
 
 <style scoped>
 /* No specific styles needed */
-</style> 
+</style>
