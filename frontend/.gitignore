@@ -27,6 +27,11 @@ coverage
 *.sln
 *.sw?
 
+# Hehe
+.cursor/*
+.cursorignore
+.cursorrules
+
 *.tsbuildinfo
 
 test-results/
