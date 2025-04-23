@@ -1,52 +1,86 @@
 <template>
-  <div class="news-container">
-    <h1>Nyheter</h1>
-    
-    <div class="news-list">
-      <article class="news-item">
-        <div class="news-date">15. Mai 2023</div>
-        <h2>Ny funksjonalitet for beredskapslagring lansert</h2>
-        <p>
-          Vi har lansert en ny funksjonalitet som gjør det enklere å holde oversikt over ditt beredskapslager.
-          Nå kan du enkelt kategorisere matvarer, medisiner, og annet utstyr for å sikre at du er forberedt på krisesituasjoner.
-        </p>
-        <a href="#" class="read-more">Les mer</a>
-      </article>
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold mb-8 text-gray-800">Nyheter</h1>
 
-      <article class="news-item">
-        <div class="news-date">2. April 2023</div>
-        <h2>Samarbeid med lokale beredskapsgrupper</h2>
-        <p>
-          Vi har inngått samarbeid med flere lokale beredskapsgrupper for å forbedre beredskapen i lokalsamfunnet.
-          Dette samarbeidet vil gi våre brukere tilgang til lokale ressurser og informasjon i krisesituasjoner.
+    <div class="space-y-8">
+      <article
+        v-for="article in sortedArticles"
+        :key="article.id"
+        class="border-b border-gray-200 pb-6 cursor-pointer hover:bg-gray-50 transition-colors p-4 rounded"
+        @click="navigateToArticle(article.id)"
+      >
+        <div class="text-sm text-gray-500 mb-2">{{ formatDate(article.date) }}</div>
+        <h2 class="text-2xl font-semibold mb-3 text-gray-700">{{ article.title }}</h2>
+        <p class="text-gray-600 mb-3">
+          {{ article.excerpt }}
         </p>
-        <a href="#" class="read-more">Les mer</a>
-      </article>
-
-      <article class="news-item">
-        <div class="news-date">15. Mars 2023</div>
-        <h2>Ny versjon av appen er nå tilgjengelig</h2>
-        <p>
-          Vi har lansert en oppdatert versjon av vår app med forbedret brukergrensesnitt og nye funksjoner.
-          Oppdateringen inkluderer forbedringer for inventarregistrering og deling med husstandsmedlemmer.
-        </p>
-        <a href="#" class="read-more">Les mer</a>
-      </article>
-
-      <article class="news-item">
-        <div class="news-date">20. Februar 2023</div>
-        <h2>Tips for å forberede seg på strømbrudd</h2>
-        <p>
-          Med økende forekomst av ekstremvær, har vi samlet noen nyttige tips for å forberede seg på strømbrudd.
-          Artikkelen inkluderer en sjekkliste over nødvendige artikler og forslag til alternative energikilder.
-        </p>
-        <a href="#" class="read-more">Les mer</a>
+        <router-link
+          :to="{ name: 'article', params: { id: article.id }}"
+          class="text-blue-600 hover:text-blue-800"
+        >
+          Les mer
+        </router-link>
       </article>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+interface NewsArticle {
+  id: string;
+  date: string;
+  title: string;
+  excerpt: string;
+}
+
+const articles: NewsArticle[] = [
+  {
+    id: '1',
+    date: '2025-01-15',
+    title: 'Lansering av KriseFikser studentprosjekt',
+    excerpt: 'Vi er glade for å kunne presentere KriseFikser, et innovativt studentprosjekt ved NTNU. Plattformen er designet for å hjelpe norske husholdninger med beredskapsplanlegging og krisehåndtering.'
+  },
+  {
+    id: '2',
+    date: '2025-01-10',
+    title: 'Samarbeid med beredskapsetaten',
+    excerpt: 'Som del av vårt studentprosjekt har vi etablert dialog med beredskapsetaten for å sikre at vår løsning følger gjeldende retningslinjer og beste praksis for beredskapsplanlegging.'
+  },
+  {
+    id: '3',
+    date: '2025-01-05',
+    title: 'Teknologivalg og utvikling',
+    excerpt: 'Vi har valgt moderne webutviklingsteknologier for å bygge KriseFikser. Vue.js og Tailwind CSS gir oss muligheten til å skape en brukervennlig og responsiv løsning.'
+  },
+  {
+    id: '4',
+    date: '2025-01-01',
+    title: 'Prosjektstart og målsetting',
+    excerpt: 'KriseFikser starter som et ambisiøst studentprosjekt med mål om å gjøre beredskap mer tilgjengelig for alle. Vi ser frem til å dele vår reise med dere.'
+  }
+]
+
+const sortedArticles = computed(() => {
+  return [...articles].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+})
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('no-NO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+const navigateToArticle = (id: string) => {
+  router.push({ name: 'article', params: { id } })
+}
 </script>
 
 <style scoped>
@@ -87,4 +121,4 @@ h2 {
 .read-more:hover {
   text-decoration: underline;
 }
-</style> 
+</style>

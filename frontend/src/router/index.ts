@@ -35,6 +35,7 @@ import MapView from "@/views/nonRegistered/MapView.vue";
 import RegisterView from "@/views/nonRegistered/RegisterView.vue";
 import PrivacyPolicyView from '@/views/nonRegistered/PrivacyPolicyView.vue';
 import NewsView from '@/views/nonRegistered/NewsView.vue';
+import ArticleView from '@/views/nonRegistered/ArticleView.vue';
 import AboutUsView from '@/views/nonRegistered/AboutUsView.vue';
 
 const router = createRouter({
@@ -163,6 +164,11 @@ const router = createRouter({
       path: '/nyheter',
       name: 'news',
       component: NewsView,
+    },
+    {
+      path: '/nyheter/:id',
+      name: 'article',
+      component: ArticleView,
     },
     {
       path: '/om-oss',
