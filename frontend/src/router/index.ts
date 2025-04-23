@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from "@/views/HomeView.vue";
+import HomeView from "@/views/nonRegistered/HomeView.vue";
 
 // Auth views
 import LoginView from "@/views/auth/LoginView.vue";
@@ -58,7 +58,7 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPasswordView,
     },
-    
+
     // Admin routes
     {
       path: '/admin',
@@ -85,7 +85,7 @@ const router = createRouter({
       name: 'admin-search',
       component: AdminSearchView,
     },
-    
+
     // Super Admin routes
     {
       path: '/super-admin',
@@ -97,7 +97,7 @@ const router = createRouter({
       name: 'manage-admins',
       component: ManageAdminsView,
     },
-    
+
     // Registered User routes
     {
       path: '/dashboard',
@@ -129,7 +129,7 @@ const router = createRouter({
       name: 'search',
       component: SearchView,
     },
-    
+
     // Non-Registered User routes
     {
       path: '/welcome',
@@ -151,7 +151,7 @@ const router = createRouter({
       name: 'register',
       component: RegisterView,
     },
-    
+
     // Error routes - must be last
     {
       path: '/:pathMatch(.*)*',
