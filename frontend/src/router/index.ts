@@ -38,6 +38,11 @@ import NewsView from "@/views/nonRegistered/NewsView.vue";
 import ArticleView from "@/views/nonRegistered/ArticleView.vue";
 import AboutUsView from "@/views/nonRegistered/AboutUsView.vue";
 
+// Crisis Information views
+import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
+import DuringCrisisView from "@/views/nonRegistered/info/DuringCrisisView.vue";
+import AfterCrisisView from "@/views/nonRegistered/info/AfterCrisisView.vue";
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -174,6 +179,23 @@ const router = createRouter({
       path: '/om-oss',
       name: 'about-us',
       component: AboutUsView,
+    },
+
+    // Crisis Information routes
+    {
+      path: '/info/for-krisen',
+      name: 'before-crisis',
+      component: BeforeCrisisView,
+    },
+    {
+      path: '/info/under-krisen',
+      name: 'during-crisis',
+      component: DuringCrisisView,
+    },
+    {
+      path: '/info/etter-krisen',
+      name: 'after-crisis',
+      component: AfterCrisisView,
     },
 
     // Error routes - must be last
