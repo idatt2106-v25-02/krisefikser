@@ -1,5 +1,4 @@
 <script lang="ts">
-import AppFooter from '@/components/layout/Footer.vue';
 import HeroSection from '@/components/home/HeroSection.vue';
 import CrisisInfoSection from '@/components/home/CrisisInfoSection.vue';
 import FeaturesSection from '@/components/home/FeaturesSection.vue';
@@ -8,7 +7,6 @@ import NewsSection from '@/components/home/NewsSection.vue';
 export default {
   name: 'HomeView',
   components: {
-    AppFooter,
     HeroSection,
     CrisisInfoSection,
     FeaturesSection,
@@ -30,7 +28,6 @@ export default {
       <NewsSection />
     </main>
 
-    <AppFooter />
   </div>
 </template>
 
