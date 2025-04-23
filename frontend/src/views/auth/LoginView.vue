@@ -3,13 +3,17 @@ import { ref, computed } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
+import { useAuthModeStore } from '@/stores/useAuthModeStore'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
+// Set up store
+const authStore = useAuthModeStore()
+
 // Toggle between 'user' and 'admin'
-const isAdmin = ref(false)
+const isAdmin = computed(() => authStore.isAdmin)
 
 const formSchema = computed(() => {
   return toTypedSchema(
@@ -39,8 +43,8 @@ const onSubmit = form.handleSubmit((values) => {
 })
 
 function toggleLoginType() {
-  isAdmin.value = !isAdmin.value
-  form.resetForm() // Clear form when toggling
+  authStore.toggle()
+  form.resetForm()
 }
 
 // Stores the show password state
