@@ -50,7 +50,7 @@ function toggleLoginType() {
       @submit="onSubmit"
       class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
     >
-      <h1 class="text-3xl font-bold text-center">{{isAdmin ? 'Admin Login' : 'Login'}}</h1>
+      <h1 class="text-3xl font-bold text-center">{{ isAdmin ? 'Admin Login' : 'Login' }}</h1>
 
       <!-- Identifier field (email or username) -->
       <FormField v-slot="{ componentField }" name="identifier">
@@ -96,24 +96,24 @@ function toggleLoginType() {
 
       <!-- Conditional CTAs below -->
       <div class="text-sm text-center space-y-2">
-  <div v-if="!isAdmin">
-    <span class="text-gray-600">Don't have an account?</span>
-    <a href="/register" class="ml-1 text-blue-600 hover:underline">Register</a>
-  </div>
+        <div v-if="!isAdmin">
+          <span class="text-gray-600">Don't have an account?</span>
+          <a href="/register" class="ml-1 text-blue-600 hover:underline">Register</a>
+        </div>
 
-  <a href="/forgot-password" class="block text-blue-500 hover:underline">
-    Forgot your password?
-  </a>
+        <a href="/forgot-password" class="block text-blue-500 hover:underline">
+          Forgot your password?
+        </a>
 
-  <button
-    type="button"
-    @click="toggleLoginType"
-    class="text-blue-400 hover:text-blue-500 hover:underline transition-colors"
-  >
-    {{ isAdmin ? 'Switch to user login' : 'Switch to admin login' }}
-  </button>
-</div>
-
+        <Button
+          type="button"
+          variant="link"
+          @click="toggleLoginType"
+          class="text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+        >
+          {{ isAdmin ? 'Switch to user login' : 'Switch to admin login' }}
+        </Button>
+      </div>
     </form>
   </div>
 </template>
