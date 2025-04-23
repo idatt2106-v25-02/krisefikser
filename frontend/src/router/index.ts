@@ -33,6 +33,9 @@ import NonRegisteredHomeView from "@/views/nonRegistered/HomeView.vue";
 import JoinOrCreateHouseholdView from "@/views/nonRegistered/JoinOrCreateHouseholdView.vue";
 import MapView from "@/views/nonRegistered/MapView.vue";
 import RegisterView from "@/views/nonRegistered/RegisterView.vue";
+import PrivacyPolicyView from '@/views/nonRegistered/PrivacyPolicyView.vue';
+import NewsView from '@/views/nonRegistered/NewsView.vue';
+import AboutUsView from '@/views/nonRegistered/AboutUsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -58,7 +61,7 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPasswordView,
     },
-    
+
     // Admin routes
     {
       path: '/admin',
@@ -85,7 +88,7 @@ const router = createRouter({
       name: 'admin-search',
       component: AdminSearchView,
     },
-    
+
     // Super Admin routes
     {
       path: '/super-admin',
@@ -97,7 +100,7 @@ const router = createRouter({
       name: 'manage-admins',
       component: ManageAdminsView,
     },
-    
+
     // Registered User routes
     {
       path: '/dashboard',
@@ -129,7 +132,7 @@ const router = createRouter({
       name: 'search',
       component: SearchView,
     },
-    
+
     // Non-Registered User routes
     {
       path: '/welcome',
@@ -151,7 +154,22 @@ const router = createRouter({
       name: 'register',
       component: RegisterView,
     },
-    
+    {
+      path: '/personvern',
+      name: 'privacy-policy',
+      component: PrivacyPolicyView,
+    },
+    {
+      path: '/nyheter',
+      name: 'news',
+      component: NewsView,
+    },
+    {
+      path: '/om-oss',
+      name: 'about-us',
+      component: AboutUsView,
+    },
+
     // Error routes - must be last
     {
       path: '/:pathMatch(.*)*',
