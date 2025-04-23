@@ -15,6 +15,7 @@ const authStore = useAuthModeStore()
 // Toggle between 'user' and 'admin'
 const isAdmin = computed(() => authStore.isAdmin)
 
+// Conditional form schema
 const formSchema = computed(() => {
   return toTypedSchema(
     z.object({
@@ -34,14 +35,17 @@ const formSchema = computed(() => {
   )
 })
 
+// Const to decide the schema
 const form = useForm({
   validationSchema: formSchema,
 })
 
+// Handles the submission of the form
 const onSubmit = form.handleSubmit((values) => {
   console.log(isAdmin.value ? 'Admin login' : 'User login', values)
 })
 
+// Toggle between the login auth role types
 function toggleLoginType() {
   authStore.toggle()
   form.resetForm()
