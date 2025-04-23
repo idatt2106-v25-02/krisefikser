@@ -12,16 +12,22 @@ variables:
   MAVEN_CLI_OPTS: '--batch-mode --errors --fail-at-end --show-version'
   NODE_VERSION: '22'
   PNPM_VERSION: '10.8.0'
+  GIT_CLEAN_FLAGS: -ffdx
 
-cache:
-  paths:
-    - .m2/repository/
-    - frontend/node_modules/
-    - frontend/.pnpm-store/
+# cache:
+#   paths:
+#     - .m2/repository/
+#     - frontend/node_modules/
+#     - frontend/.pnpm-store/
 
 build-backend:
   stage: build
   image: maven:3.9.9-eclipse-temurin-21
+  cache:
+    key: maven-cache
+    paths:
+      - .m2/repository/
+    policy: pull-push
   script:
     - cd backend
     - mvn $MAVEN_CLI_OPTS clean compile
@@ -37,6 +43,11 @@ build-backend:
 test-backend:
   stage: test
   image: maven:3.9.9-eclipse-temurin-21
+  cache:
+    key: maven-cache
+    paths:
+      - .m2/repository/
+    policy: pull
   script:
     - cd backend
     - mvn $MAVEN_CLI_OPTS test -Dspring.profiles.active=test
@@ -55,6 +66,11 @@ test-backend:
 package-backend:
   stage: package
   image: maven:3.9.9-eclipse-temurin-21
+  cache:
+    key: maven-cache
+    paths:
+      - .m2/repository/
+    policy: pull
   script:
     - cd backend
     - mvn $MAVEN_CLI_OPTS package -DskipTests
@@ -69,6 +85,12 @@ package-backend:
 build-frontend:
   stage: build
   image: node:${NODE_VERSION}
+  cache:
+    key: frontend-cache
+    paths:
+      - frontend/node_modules/
+      - frontend/.pnpm-store/
+    policy: pull-push
   script:
     - cd frontend
     - npm install -g pnpm@${PNPM_VERSION}
@@ -86,6 +108,12 @@ build-frontend:
 lint-frontend:
   stage: lint
   image: node:${NODE_VERSION}
+  cache:
+    key: frontend-cache
+    paths:
+      - frontend/node_modules/
+      - frontend/.pnpm-store/
+    policy: pull
   script:
     - cd frontend
     - npm install -g pnpm@${PNPM_VERSION}
@@ -99,6 +127,12 @@ lint-frontend:
 test-frontend:
   stage: test
   image: node:${NODE_VERSION}
+  cache:
+    key: frontend-cache
+    paths:
+      - frontend/node_modules/
+      - frontend/.pnpm-store/
+    policy: pull
   script:
     - cd frontend
     - npm install -g pnpm@${PNPM_VERSION}
