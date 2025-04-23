@@ -5,8 +5,9 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import LoginView from './views/auth/LoginView.vue'
 
-const app = createApp(App)
+const app = createApp(LoginView)
 
 app.use(createPinia())
 app.use(router)
