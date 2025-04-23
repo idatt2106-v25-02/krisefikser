@@ -1,20 +1,3 @@
-<template>
-  <div class="min-h-screen flex flex-col bg-slate-50 overflow-hidden">
-
-
-    <HeroSection />
-
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-12 border-t-0">
-      <CrisisInfoSection />
-      <FeaturesSection />
-      <NewsSection />
-    </main>
-
-    <AppFooter />
-  </div>
-</template>
-
 <script lang="ts">
 import AppFooter from '@/components/layout/Footer.vue';
 import HeroSection from '@/components/home/HeroSection.vue';
@@ -34,3 +17,21 @@ export default {
 }
 
 </script>
+<template>
+  <div class="min-h-screen flex flex-col bg-slate-50 overflow-hidden">
+
+
+    <HeroSection />
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-12 border-t-0">
+      <CrisisInfoSection />
+      <FeaturesSection />
+      <NewsSection />
+    </main>
+
+    <AppFooter />
+  </div>
+</template>
+
+

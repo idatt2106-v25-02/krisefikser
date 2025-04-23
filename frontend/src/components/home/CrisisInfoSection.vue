@@ -1,3 +1,8 @@
+<script  lang="ts">
+export default {
+  name: 'CrisisInfoSection'
+}
+</script>
 <template>
   <section class="mb-16">
     <div class="text-center mb-12">
@@ -15,7 +20,7 @@
         </div>
         <h3 class="text-xl font-semibold text-gray-800 mb-2">Før krisen</h3>
         <p class="text-gray-600 mb-4">Lær hvordan du kan forberede deg selv og din husstand før en krise inntreffer. Opprett beredskapslager og lær om viktige forhåndsregler.</p>
-        <router-link to="/info/before" class="text-blue-600 font-medium hover:underline inline-flex items-center">
+        <router-link to="/info/for-krisen" class="text-blue-600 font-medium hover:underline inline-flex items-center">
           Les mer
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -32,7 +37,7 @@
         </div>
         <h3 class="text-xl font-semibold text-gray-800 mb-2">Under krisen</h3>
         <p class="text-gray-600 mb-4">Få tilgang til kritisk informasjon og råd om hvordan du bør handle når en krise oppstår. Finn nærmeste tilfluktsrom og hjelperessurser.</p>
-        <router-link to="/info/during" class="text-blue-600 font-medium hover:underline inline-flex items-center">
+        <router-link to="/info/under-krisen" class="text-blue-600 font-medium hover:underline inline-flex items-center">
           Les mer
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -49,7 +54,7 @@
         </div>
         <h3 class="text-xl font-semibold text-gray-800 mb-2">Etter krisen</h3>
         <p class="text-gray-600 mb-4">Veiledning for gjenoppbygging og normalisering etter en krise. Lær om hvordan du kan evaluere og forbedre din beredskap for fremtiden.</p>
-        <router-link to="/info/after" class="text-blue-600 font-medium hover:underline inline-flex items-center">
+        <router-link to="/info/etter-krisen" class="text-blue-600 font-medium hover:underline inline-flex items-center">
           Les mer
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -60,8 +65,4 @@
   </section>
 </template>
 
-<script  lang="ts">
-export default {
-  name: 'CrisisInfoSection'
-}
-</script>
+

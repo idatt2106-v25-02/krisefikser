@@ -1,3 +1,9 @@
+<script lang="ts">
+export default {
+  name: 'HeroSection'
+}
+</script>
+
 <template>
   <header class="relative bg-blue-900 text-white border-b-0">
     <div class="container mx-auto px-4 py-16 md:py-24">
@@ -19,8 +25,3 @@
   </header>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'HeroSection'
-}
-</script>
