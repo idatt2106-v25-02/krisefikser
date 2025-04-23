@@ -14,7 +14,7 @@ import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
 import AdminEventsView from "@/views/admin/AdminEventsView.vue";
 import AdminMapView from "@/views/admin/AdminMapView.vue";
 import AdminSearchView from "@/views/admin/AdminSearchView.vue";
-import AdminLoginView from "@/views/admin/AdminLoginView.vue";
+import AdminLoginView from "@/views/admin/AdminRegisterView.vue";
 
 // Super Admin views
 import SuperAdminDashboardView from "@/views/superAdmin/SuperAdminDashboardView.vue";
@@ -58,7 +58,7 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPasswordView,
     },
-    
+
     // Admin routes
     {
       path: '/admin',
@@ -85,7 +85,7 @@ const router = createRouter({
       name: 'admin-search',
       component: AdminSearchView,
     },
-    
+
     // Super Admin routes
     {
       path: '/super-admin',
@@ -97,7 +97,7 @@ const router = createRouter({
       name: 'manage-admins',
       component: ManageAdminsView,
     },
-    
+
     // Registered User routes
     {
       path: '/dashboard',
@@ -129,7 +129,7 @@ const router = createRouter({
       name: 'search',
       component: SearchView,
     },
-    
+
     // Non-Registered User routes
     {
       path: '/welcome',
@@ -151,7 +151,7 @@ const router = createRouter({
       name: 'register',
       component: RegisterView,
     },
-    
+
     // Error routes - must be last
     {
       path: '/:pathMatch(.*)*',
