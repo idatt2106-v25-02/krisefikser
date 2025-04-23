@@ -38,7 +38,7 @@ function addShelters() {
     const marker = L.marker(shelter.position, { icon: shelterIcon }).addTo(props.map).bindPopup(`
         <strong>${shelter.name}</strong><br>
         Capacity: ${shelter.capacity} people<br>
-        <button class="directions-btn" data-lat="${shelter.position[0]}" data-lng="${shelter.position[1]}">
+        <button class="directions-btn bg-[#4CAF50] text-white border-none py-1 px-2.5 mt-1 rounded cursor-pointer hover:bg-[#45a049]" data-lat="${shelter.position[0]}" data-lng="${shelter.position[1]}">
           Get Directions
         </button>
       `)
@@ -89,18 +89,5 @@ watch(
 </template>
 
 <style scoped>
-/* Popup styling */
-:deep(.leaflet-popup-content button) {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  margin-top: 5px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-:deep(.leaflet-popup-content button:hover) {
-  background-color: #45a049;
-}
-</style>
+/* No styles needed as we're using inline Tailwind classes */
+</style> 

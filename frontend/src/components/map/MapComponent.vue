@@ -77,13 +77,9 @@ defineExpose({
 </script>
 
 <template>
-  <div id="map"></div>
+  <div id="map" class="w-full h-full z-[1]"></div>
 </template>
 
 <style scoped>
-#map {
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-</style>
+/* No styles needed as we're using Tailwind classes */
+</style> 

@@ -163,43 +163,9 @@ defineExpose({
 </template>
 
 <style scoped>
+/* We'll keep some custom CSS for the animation */
 .user-location-marker {
-  position: relative;
+  @apply relative;
 }
 
-.pulse {
-  width: 20px;
-  height: 20px;
-  background-color: #2196f3;
-  border-radius: 50%;
-  position: relative;
-}
-
-.pulse::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-color: #2196f3;
-  opacity: 0.7;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  70% {
-    transform: scale(3);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0;
-  }
-}
-</style>
+</style> 
