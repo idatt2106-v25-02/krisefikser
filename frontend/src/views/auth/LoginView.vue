@@ -95,19 +95,25 @@ function toggleLoginType() {
       </Button>
 
       <!-- Conditional CTAs below -->
-      <div class="text-sm text-center space-y-1">
-        <div v-if="!isAdmin">
-          <span class="text-gray-600">Don't have an account?</span>
-          <a href="/register" class="ml-1 text-blue-600 hover:underline">Register</a>
-        </div>
-        <button
-          type="button"
-          @click="toggleLoginType"
-          class="text-blue-400 hover:text-blue-500 hover:underline transition-colors"
-        >
-          {{ isAdmin ? 'Switch to user login' : 'Switch to admin login' }}
-        </button>
-      </div>
+      <div class="text-sm text-center space-y-2">
+  <div v-if="!isAdmin">
+    <span class="text-gray-600">Don't have an account?</span>
+    <a href="/register" class="ml-1 text-blue-600 hover:underline">Register</a>
+  </div>
+
+  <a href="/forgot-password" class="block text-blue-500 hover:underline">
+    Forgot your password?
+  </a>
+
+  <button
+    type="button"
+    @click="toggleLoginType"
+    class="text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+  >
+    {{ isAdmin ? 'Switch to user login' : 'Switch to admin login' }}
+  </button>
+</div>
+
     </form>
   </div>
 </template>
