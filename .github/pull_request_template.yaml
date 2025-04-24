@@ -21,17 +21,8 @@ body:
     id: story-points
     attributes:
       label: Story Points
-      description: How many story points were allocated to this task?
+      description: How many story points were allocated to this task(one story point is one hour)?
       placeholder: "e.g., 3"
-    validations:
-      required: true
-      
-  - type: input
-    id: hours-spent
-    attributes:
-      label: Hours Spent
-      description: How many hours did you spend on this task?
-      placeholder: "e.g., 4.5"
     validations:
       required: true
       
