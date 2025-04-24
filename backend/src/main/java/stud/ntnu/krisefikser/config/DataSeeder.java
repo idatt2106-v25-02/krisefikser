@@ -18,7 +18,7 @@ import stud.ntnu.krisefikser.map.repository.EventRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
-import stud.ntnu.krisefikser.user.repository.UserRepo;
+import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
-    private final UserRepo userRepo;
+    private final UserRepository userRepo;
     private final HouseholdRepo householdRepo;
     private final ArticleRepository articleRepository;
     private final MapPointTypeRepository mapPointTypeRepository;
