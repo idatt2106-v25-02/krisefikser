@@ -13,6 +13,8 @@ import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
 import AdminEventsView from "@/views/admin/AdminEventsView.vue";
 import AdminMapView from "@/views/admin/AdminMapView.vue";
 import AdminSearchView from "@/views/admin/AdminSearchView.vue";
+import AdminResetPasswordLink from "@/views/admin/AdminResetPasswordLink.vue";
+import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
 
 // Super Admin views
 import SuperAdminDashboardView from "@/views/superAdmin/SuperAdminDashboardView.vue";
@@ -41,7 +43,6 @@ import ForgotPasswordView from "@/views/auth/ForgotPasswordView.vue";
 import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
 import DuringCrisisView from "@/views/nonRegistered/info/DuringCrisisView.vue";
 import AfterCrisisView from "@/views/nonRegistered/info/AfterCrisisView.vue";
-import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -80,15 +81,16 @@ const router = createRouter({
       component: AdminRegisterView,
     },
     {
-      path: '/admin/hendelser',
-      name: 'admin-events',
-      component: AdminEventsView,
-    },
-    {
       path: '/admin/kart',
       name: 'admin-map',
       component: AdminMapView,
     },
+    {
+      path: '/admin/reset-passord-link',
+      name : 'admin-reset-passord-link',
+      component: AdminResetPasswordLink,
+    },
+
     {
       path: '/admin/sok',
       name: 'admin-search',

@@ -1,4 +1,4 @@
-<!-- EventsSection.vue -->
+<!-- EventSection.vue -->
 <script setup lang="ts">
 import { ref } from 'vue';
 import {
@@ -7,6 +7,9 @@ import {
   Edit,
   Trash2
 } from 'lucide-vue-next';
+
+// Import shadcn Button component
+import { Button } from '@/components/ui/button';
 
 // Mock data for events
 const events = ref([
@@ -39,12 +42,12 @@ const events = ref([
   }
 ]);
 
-const deleteItem = (id) => {
+const deleteItem = (id: string) => {
   console.log(`Deleting event with ID: ${id}`);
   // Implementation would connect to actual backend
 };
 
-const getLevelClass = (level) => {
+const getLevelClass = (level: string) => {
   switch(level.toLowerCase()) {
     case 'rød': return 'bg-red-100 text-red-800 border-red-200';
     case 'gul': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -58,10 +61,10 @@ const getLevelClass = (level) => {
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-800">Hendelser</h2>
-      <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+      <Button class="flex items-center bg-blue-600 hover:bg-blue-700 text-white">
         <PlusCircle class="h-4 w-4 mr-1" />
         Ny hendelse
-      </button>
+      </Button>
     </div>
 
     <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -118,12 +121,17 @@ const getLevelClass = (level) => {
           </td>
           <td class="px-4 py-3">
             <div class="flex justify-center space-x-2">
-              <button class="p-1 text-blue-600 hover:text-blue-800">
+              <Button variant="ghost" size="icon" class="text-blue-600 hover:text-blue-800 p-1 h-auto">
                 <Edit class="h-4 w-4" />
-              </button>
-              <button class="p-1 text-red-600 hover:text-red-800" @click="deleteItem(event.id)">
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                class="text-red-600 hover:text-red-800 p-1 h-auto"
+                @click="deleteItem(event.id)"
+              >
                 <Trash2 class="h-4 w-4" />
-              </button>
+              </Button>
             </div>
           </td>
         </tr>

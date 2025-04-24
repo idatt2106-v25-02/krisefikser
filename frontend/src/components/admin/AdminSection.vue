@@ -1,4 +1,4 @@
-<!-- AdminsSection.vue -->
+<!-- AdminSection.vue -->
 <script setup lang="ts">
 import { ref } from 'vue';
 import {
@@ -8,6 +8,9 @@ import {
   ShieldCheck,
   Key
 } from 'lucide-vue-next';
+
+// Import shadcn Button component
+import { Button } from '@/components/ui/button';
 
 const props = defineProps({
   isSuperAdmin: {
@@ -25,7 +28,7 @@ const admins = ref([
   { id: '3', name: 'Per Jensen', email: 'per@example.no', role: 'Admin', lastLogin: '2025-04-20' }
 ]);
 
-const deleteItem = (id) => {
+const deleteItem = (id: string) => {
   console.log(`Deleting admin with ID: ${id}`);
   // Implementation would connect to actual backend
 };
@@ -47,17 +50,18 @@ const sendPasswordResetLink = () => {
       </div>
 
       <div v-else class="flex space-x-3">
-        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+        <Button variant="default" class="flex items-center bg-blue-600 hover:bg-blue-700 text-white">
           <Mail class="h-4 w-4 mr-1" />
           Inviter ny admin
-        </button>
-        <button
-          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center"
+        </Button>
+        <Button
+          variant="default"
+          class="flex items-center bg-green-600 hover:bg-green-700"
           @click="sendPasswordResetLink"
         >
           <Key class="h-4 w-4 mr-1" />
           Send passord-link
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -96,21 +100,28 @@ const sendPasswordResetLink = () => {
           <td class="px-4 py-3">
             <div class="flex justify-center space-x-2">
               <!-- All admins can see details -->
-              <button class="p-1 text-gray-600 hover:text-gray-800">
+              <Button variant="ghost" size="icon" class="text-gray-600 hover:text-gray-800 p-1 h-auto">
                 <Edit class="h-4 w-4" />
-              </button>
+              </Button>
 
               <!-- Only Super Admin can send reset links and delete users -->
-              <button v-if="isSuperAdmin" class="p-1 text-blue-600 hover:text-blue-800">
+              <Button
+                v-if="isSuperAdmin"
+                variant="ghost"
+                size="icon"
+                class="text-blue-600 hover:text-blue-800 p-1 h-auto"
+              >
                 <Mail class="h-4 w-4" />
-              </button>
-              <button
+              </Button>
+              <Button
                 v-if="isSuperAdmin && admin.role !== 'Super Admin'"
-                class="p-1 text-red-600 hover:text-red-800"
+                variant="ghost"
+                size="icon"
+                class="text-red-600 hover:text-red-800 p-1 h-auto"
                 @click="deleteItem(admin.id)"
               >
                 <Trash2 class="h-4 w-4" />
-              </button>
+              </Button>
             </div>
           </td>
         </tr>

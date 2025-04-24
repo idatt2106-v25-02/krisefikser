@@ -1,7 +1,7 @@
 <!-- AdminDashboard.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import {
   Map,
   AlertTriangle,
@@ -11,7 +11,9 @@ import {
   ShieldCheck
 } from 'lucide-vue-next';
 
-// Import our new components
+import { Button } from '@/components/ui/button';
+
+// Import our component for the main dashboard view
 import DashboardSection from '@/components/admin/DashboardSection.vue';
 import EventsSection from '@/components/admin/EventSection.vue';
 import ScenariosSection from '@/components/admin/ScenariosSection.vue';
@@ -19,6 +21,7 @@ import GamificationSection from '@/components/admin/GamificationSection.vue';
 import AdminsSection from '@/components/admin/AdminSection.vue';
 
 const router = useRouter();
+const route = useRoute();
 const activeSection = ref('dashboard');
 
 // Set user role - in a real app, this would come from auth system
@@ -42,64 +45,70 @@ const navigateToMap = () => {
   <div class="flex h-screen bg-gray-50">
     <!-- Sidebar -->
     <div class="w-64 bg-white shadow-md">
-      <div class="p-4 border-b">
+      <div class="p-4 border-b mt-2">
         <h1 class="text-xl font-bold text-blue-600">Admin Dashboard</h1>
       </div>
       <nav class="mt-4">
-        <button
+        <Button
           @click="activeSection = 'dashboard'"
-          :class="['flex items-center w-full px-4 py-3 text-left hover:bg-blue-50',
+          variant="ghost"
+          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
                   activeSection === 'dashboard' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
         >
           <span class="flex-shrink-0 w-6">
             <i class="fas fa-home"></i>
           </span>
           <span class="ml-2">Dashboard</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
           @click="navigateToMap()"
-          class="flex items-center w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50"
+          variant="ghost"
+          class="flex items-center w-full px-4 py-3 text-left text-gray-700 justify-start rounded-none hover:bg-blue-50"
         >
           <Map class="h-5 w-5" />
           <span class="ml-2">Kart administrasjon</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
           @click="activeSection = 'events'"
-          :class="['flex items-center w-full px-4 py-3 text-left hover:bg-blue-50',
+          variant="ghost"
+          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
                   activeSection === 'events' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
         >
           <AlertTriangle class="h-5 w-5" />
           <span class="ml-2">Hendelser</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
           @click="activeSection = 'scenarios'"
-          :class="['flex items-center w-full px-4 py-3 text-left hover:bg-blue-50',
+          variant="ghost"
+          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
                   activeSection === 'scenarios' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
         >
           <BookOpen class="h-5 w-5" />
           <span class="ml-2">Scenarioer</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
           @click="activeSection = 'gamification'"
-          :class="['flex items-center w-full px-4 py-3 text-left hover:bg-blue-50',
+          variant="ghost"
+          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
                   activeSection === 'gamification' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
         >
           <Trophy class="h-5 w-5" />
           <span class="ml-2">Gamification</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
           @click="activeSection = 'admins'"
-          :class="['flex items-center w-full px-4 py-3 text-left hover:bg-blue-50',
+          variant="ghost"
+          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
                   activeSection === 'admins' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
         >
           <Users class="h-5 w-5" />
           <span class="ml-2">Admin brukere</span>
-        </button>
+        </Button>
       </nav>
     </div>
 
@@ -112,7 +121,11 @@ const navigateToMap = () => {
         </div>
 
         <!-- Admin role indicator with toggle capability (for demo only) -->
-        <button @click="toggleAdminRole" class="flex items-center p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+        <Button
+          @click="toggleAdminRole"
+          variant="ghost"
+          class="flex items-center p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+        >
           <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
             <ShieldCheck v-if="isSuperAdmin" class="h-4 w-4" />
             <span v-else>A</span>
@@ -121,7 +134,7 @@ const navigateToMap = () => {
             <span class="text-gray-700 font-medium block">{{ userRole }}</span>
             <span class="text-xs text-gray-500">Klikk for å bytte rolle (demo)</span>
           </div>
-        </button>
+        </Button>
       </div>
 
       <!-- Dynamic section content -->

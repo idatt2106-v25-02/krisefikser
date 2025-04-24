@@ -7,6 +7,9 @@ import {
   Trash2
 } from 'lucide-vue-next';
 
+// Import shadcn Button component
+import { Button } from '@/components/ui/button';
+
 // Mock data for gamification activities
 const activities = ref([
   { id: '1', title: 'Nødpakke Quiz', category: 'Forberedelse', points: 100 },
@@ -14,7 +17,7 @@ const activities = ref([
   { id: '3', title: 'Førstehjelpskurs', category: 'Medisinsk', points: 200 }
 ]);
 
-const deleteItem = (id) => {
+const deleteItem = (id: string) => {
   console.log(`Deleting activity with ID: ${id}`);
   // Implementation would connect to actual backend
 };
@@ -24,10 +27,10 @@ const deleteItem = (id) => {
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-800">Gamification aktiviteter</h2>
-      <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
-        <PlusCircle class="h-4 w-4 mr-1" />
+      <Button class="flex items-center bg-blue-600 hover:bg-blue-700 text-white">
+        <PlusCircle class="h-4 w-4 mr-1 " />
         Ny aktivitet
-      </button>
+      </Button>
     </div>
 
     <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -47,12 +50,17 @@ const deleteItem = (id) => {
           <td class="px-4 py-3 text-gray-700">{{ activity.points }}</td>
           <td class="px-4 py-3">
             <div class="flex justify-center space-x-2">
-              <button class="p-1 text-blue-600 hover:text-blue-800">
+              <Button variant="ghost" size="icon" class="text-blue-600 hover:text-blue-800 p-1 h-auto">
                 <Edit class="h-4 w-4" />
-              </button>
-              <button class="p-1 text-red-600 hover:text-red-800" @click="deleteItem(activity.id)">
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                class="text-red-600 hover:text-red-800 p-1 h-auto"
+                @click="deleteItem(activity.id)"
+              >
                 <Trash2 class="h-4 w-4" />
-              </button>
+              </Button>
             </div>
           </td>
         </tr>

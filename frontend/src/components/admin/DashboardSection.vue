@@ -9,6 +9,9 @@ import {
   Mail
 } from 'lucide-vue-next';
 
+// Import shadcn Button component
+import { Button } from '@/components/ui/button';
+
 defineEmits(['navigateToMap', 'switchSection']);
 
 // Stats for dashboard
@@ -41,7 +44,7 @@ const events = ref([
   }
 ]);
 
-const getLevelClass = (level) => {
+const getLevelClass = (level: string) => {
   switch(level.toLowerCase()) {
     case 'rød': return 'bg-red-100 text-red-800 border-red-200';
     case 'gul': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -74,7 +77,13 @@ const getLevelClass = (level) => {
     <div class="bg-white rounded-lg shadow mb-6">
       <div class="p-4 border-b flex justify-between items-center">
         <h3 class="text-lg font-medium text-gray-800">Nylige hendelser</h3>
-        <button @click="$emit('switchSection', 'events')" class="text-blue-600 hover:text-blue-800 text-sm">Se alle</button>
+        <Button
+          @click="$emit('switchSection', 'events')"
+          variant="link"
+          class="text-blue-600 hover:text-blue-800 text-sm p-0 h-auto"
+        >
+          Se alle
+        </Button>
       </div>
       <div class="p-4">
         <div v-for="event in events" :key="event.id" class="mb-4 last:mb-0 p-3 border rounded-lg">
@@ -99,18 +108,32 @@ const getLevelClass = (level) => {
         <h3 class="text-lg font-medium text-gray-800">Hurtighandlinger</h3>
       </div>
       <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button @click="$emit('navigateToMap')" class="flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors">
+        <Button
+          @click="$emit('navigateToMap')"
+          variant="outline"
+          class="flex items-center p-3 justify-start h-auto"
+        >
           <Map class="h-5 w-5 text-blue-600" />
           <span class="ml-2 text-gray-700">Legg til kartposisjon</span>
-        </button>
-        <button @click="$emit('switchSection', 'events')" class="flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors">
+        </Button>
+
+        <Button
+          @click="$emit('switchSection', 'events')"
+          variant="outline"
+          class="flex items-center p-3 justify-start h-auto"
+        >
           <AlertTriangle class="h-5 w-5 text-orange-600" />
           <span class="ml-2 text-gray-700">Registrer hendelse</span>
-        </button>
-        <button @click="$emit('switchSection', 'admins')" class="flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors">
+        </Button>
+
+        <Button
+          @click="$emit('switchSection', 'admins')"
+          variant="outline"
+          class="flex items-center p-3 justify-start h-auto"
+        >
           <Mail class="h-5 w-5 text-green-600" />
           <span class="ml-2 text-gray-700">Inviter admin</span>
-        </button>
+        </Button>
       </div>
     </div>
   </div>
