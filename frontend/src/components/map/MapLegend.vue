@@ -18,35 +18,35 @@ function toggleUserLocation() {
 <template>
   <div class="absolute top-5 right-5 z-10 flex flex-col gap-2.5">
     <div class="bg-white p-2.5 rounded-md shadow-md max-w-[280px]">
-      <h3 class="mt-0 mb-2.5 text-base font-bold">Legend</h3>
+      <h3 class="mt-0 mb-2.5 text-base font-bold">Tegnforklaring</h3>
 
       <div class="mb-2">
-        <div class="font-semibold mb-1">Map Points:</div>
+        <div class="font-semibold mb-1">Kartpunkter:</div>
         <div class="flex items-center mb-2">
           <div class="w-5 h-5 mr-2.5 bg-contain bg-no-repeat shelter-icon"></div>
-          <span>Emergency Shelter</span>
+          <span>Nødskjul</span>
         </div>
       </div>
 
       <div class="mb-2">
-        <div class="font-semibold mb-1">Events:</div>
+        <div class="font-semibold mb-1">Hendelser:</div>
         <div class="flex items-center mb-1">
           <div class="w-5 h-5 mr-2.5 bg-[#4CAF50] rounded-full opacity-60"></div>
-          <span>Green Level (Informational)</span>
+          <span>Grønt nivå (Informasjon)</span>
         </div>
         <div class="flex items-center mb-1">
           <div class="w-5 h-5 mr-2.5 bg-[#FFC107] rounded-full opacity-60"></div>
-          <span>Yellow Level (Warning)</span>
+          <span>Gult nivå (Advarsel)</span>
         </div>
         <div class="flex items-center mb-1">
           <div class="w-5 h-5 mr-2.5 bg-[#F44336] rounded-full opacity-60"></div>
-          <span>Red Level (Danger)</span>
+          <span>Rødt nivå (Fare)</span>
         </div>
       </div>
 
       <div class="text-xs text-gray-600 mt-2">
-        <div>Event opacity indicates status:</div>
-        <div>Low = Upcoming, High = Ongoing, Faded = Finished</div>
+        <div>Hendelsens gjennomsiktighet indikerer status:</div>
+        <div>Lav = Kommende, Høy = Pågående, Svak = Avsluttet</div>
       </div>
     </div>
 
@@ -55,11 +55,11 @@ function toggleUserLocation() {
       class="py-2.5 px-4 bg-[#4CAF50] text-white border-none rounded-md cursor-pointer font-bold hover:bg-[#45a049]"
       @click="toggleUserLocation"
     >
-      {{ showUserLocation ? 'Hide My Location' : 'Show My Location' }}
+      {{ showUserLocation ? 'Skjul min posisjon' : 'Vis min posisjon' }}
     </button>
 
     <div v-if="userInCrisisZone" class="bg-[#F44336] text-white p-2.5 rounded-md font-bold text-center animate-blink">
-      ⚠️ Warning: You are in a crisis zone!
+      ⚠️ Advarsel: Du er i en krisesone!
     </div>
   </div>
 </template>

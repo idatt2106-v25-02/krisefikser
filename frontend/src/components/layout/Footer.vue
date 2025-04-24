@@ -16,9 +16,9 @@
           <h3 class="text-lg font-semibold mb-4">Navigasjon</h3>
           <ul class="space-y-2">
             <li><router-link to="/" class="text-blue-200 hover:text-white transition">Hjem</router-link></li>
-            <li><router-link to="/map" class="text-blue-200 hover:text-white transition">Kart</router-link></li>
+            <li><router-link to="/kart" class="text-blue-200 hover:text-white transition">Kart</router-link></li>
             <li><router-link to="/register" class="text-blue-200 hover:text-white transition">Registrer deg</router-link></li>
-            <li><router-link to="/login" class="text-blue-200 hover:text-white transition">Logg inn</router-link></li>
+            <li><router-link to="/logg-inn" class="text-blue-200 hover:text-white transition">Logg inn</router-link></li>
           </ul>
         </div>
 
@@ -26,10 +26,11 @@
         <div>
           <h3 class="text-lg font-semibold mb-4">Om oss</h3>
           <ul class="space-y-2">
-            <li><router-link to="/about" class="text-blue-200 hover:text-white transition">Om Krisefikser</router-link></li>
-            <li><router-link to="/privacy" class="text-blue-200 hover:text-white transition">Personvern</router-link></li>
-            <li><router-link to="/terms" class="text-blue-200 hover:text-white transition">Vilkår for bruk</router-link></li>
-            <li><router-link to="/contact" class="text-blue-200 hover:text-white transition">Kontakt oss</router-link></li>
+            <li><router-link to="/om-oss" class="text-blue-200 hover:text-white transition">Om Krisefikser</router-link></li>
+            <li><router-link to="/personvern" class="text-blue-200 hover:text-white transition">Personvern</router-link></li>
+            <li><router-link to="/info/for-krisen" class="text-blue-200 hover:text-white transition">Før krisen</router-link></li>
+            <li><router-link to="/info/under-krisen" class="text-blue-200 hover:text-white transition">Under krisen</router-link></li>
+            <li><router-link to="/info/etter-krisen" class="text-blue-200 hover:text-white transition">Etter krisen</router-link></li>
           </ul>
         </div>
 

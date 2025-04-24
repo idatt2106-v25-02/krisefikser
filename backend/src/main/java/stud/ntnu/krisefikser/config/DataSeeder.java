@@ -18,22 +18,26 @@ import stud.ntnu.krisefikser.map.repository.EventRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
-import stud.ntnu.krisefikser.user.repository.UserRepo;
-
+import stud.ntnu.krisefikser.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
-    private final UserRepo userRepo;
+    private final UserRepository userRepo;
     private final HouseholdRepo householdRepo;
     private final ArticleRepository articleRepository;
     private final MapPointTypeRepository mapPointTypeRepository;
@@ -45,6 +49,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private final Faker faker = new Faker();
     private final Random random = new Random();
+    private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override
     public void run(String... args) throws Exception {
@@ -133,6 +138,12 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedHouseholds() {
         List<Household> households = new ArrayList<>();
+        List<User> allUsers = userRepo.findAll();
+
+        if (allUsers.isEmpty()) {
+            System.out.println("Cannot seed households: no users found");
+            return;
+        }
 
         // Trondheim coordinates
         double minLat = 63.3900;
@@ -145,10 +156,13 @@ public class DataSeeder implements CommandLineRunner {
             double latitude = minLat + (maxLat - minLat) * random.nextDouble();
             double longitude = minLong + (maxLong - minLong) * random.nextDouble();
 
+            // Get a random user as owner
+            User randomOwner = allUsers.get(random.nextInt(allUsers.size()));
+
             Household household = Household.builder()
                     .name(faker.address().streetName() + " " + faker.address().buildingNumber())
-                    .latitude(latitude)
-                    .longitude(longitude)
+                    .location(geometryFactory.createPoint(new Coordinate(longitude, latitude)))
+                    .owner(randomOwner)
                     .build();
 
             households.add(household);
