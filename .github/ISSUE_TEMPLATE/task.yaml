@@ -1,5 +1,5 @@
 name: "Task"
-about: "Opprett en Task basert på visjonsdokumentet"
+description: "Opprett en Task basert på visjonsdokumentet"
 labels:
   - chore
   - needs-triage
@@ -17,6 +17,7 @@ body:
       label: "Tittel på Task"
       description: "Kort beskrivelse (eks: feat/backend/auth/add-login-endpoint)"
       placeholder: "feat/<scope>/<description>"
+    validations:
       required: true
   - type: textarea
     id: description
@@ -30,6 +31,30 @@ body:
       placeholder: |
         Som ... ønsker jeg ... slik at ...
   - type: dropdown
+    id: priority
+    attributes:
+      label: "Prioritet"
+      options:
+        - Lav
+        - Middels
+        - Høy
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: "Type"
+      options:
+        - feat
+        - fix
+        - refactor
+        - docs
+        - style
+        - test
+        - chore
+        - perf
+    validations:
+      required: true
     id: priority
     attributes:
       label: "Prioritet"
