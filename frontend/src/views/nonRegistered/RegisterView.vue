@@ -4,6 +4,7 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import VueTurnstile from 'vue-turnstile'
+import axios from 'axios'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -65,16 +66,13 @@ const onTurnstileExpire = () => {
 
 const onSubmit = handleSubmit(async (values) => {
   try {
+    // TODO: Change website link to the actual server
     // Send the form data along with the Turnstile token to the server
-    const response = await fetch('http://localhost:3000/verify-turnstile', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token: turnstileToken.value }),
+    const response = await axios.post('http://localhost:3000/verify-turnstile', {
+      token: turnstileToken.value
     })
 
-    const data = await response.json()
+    const data = response.data
 
     if (data.success) {
       // If Turnstile verification succeeds, proceed with registration

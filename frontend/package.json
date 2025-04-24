@@ -20,6 +20,7 @@
     "@vee-validate/zod": "^4.15.0",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "@vueuse/core": "^13.1.0",
+    "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
