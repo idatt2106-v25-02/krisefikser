@@ -5,6 +5,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import VueTurnstile from 'vue-turnstile'
 import axios from 'axios'
+import { User, Mail, Home, Lock, Shield, Eye, EyeOff } from 'lucide-vue-next'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -119,12 +120,15 @@ function toggleShowConfirmPassword() {
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">First Name</FormLabel>
           <FormControl>
-            <Input
-              type="text"
-              placeholder="John"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              v-bind="componentField"
-            />
+            <div class="relative">
+              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="John"
+                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                v-bind="componentField"
+              />
+            </div>
           </FormControl>
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
@@ -135,12 +139,15 @@ function toggleShowConfirmPassword() {
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Last Name</FormLabel>
           <FormControl>
-            <Input
-              type="text"
-              placeholder="Doe"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              v-bind="componentField"
-            />
+            <div class="relative">
+              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Doe"
+                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                v-bind="componentField"
+              />
+            </div>
           </FormControl>
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
@@ -151,12 +158,15 @@ function toggleShowConfirmPassword() {
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1"> Email </FormLabel>
           <FormControl>
-            <Input
-              type="email"
-              placeholder="name@example.org"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              v-bind="componentField"
-            />
+            <div class="relative">
+              <Mail class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Input
+                type="email"
+                placeholder="name@example.org"
+                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                v-bind="componentField"
+              />
+            </div>
           </FormControl>
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
@@ -167,13 +177,16 @@ function toggleShowConfirmPassword() {
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Household Code</FormLabel>
           <FormControl>
-            <Input
-              type="text"
-              placeholder="ABCDE"
-              maxlength="5"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              v-bind="componentField"
-            />
+            <div class="relative">
+              <Home class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="ABCDE"
+                maxlength="5"
+                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                v-bind="componentField"
+              />
+            </div>
           </FormControl>
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
@@ -185,10 +198,11 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Password</FormLabel>
           <FormControl>
             <div class="relative">
+              <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="********"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                class="w-full px-3 py-2 pl-8 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
               <button
@@ -197,7 +211,8 @@ function toggleShowConfirmPassword() {
                 class="absolute inset-y-0 right-2 flex items-center text-sm text-gray-600 focus:outline-none"
                 tabindex="-1"
               >
-                {{ showPassword ? 'Hide' : 'Show' }}
+                <Eye v-if="!showPassword" class="h-4 w-4" />
+                <EyeOff v-else class="h-4 w-4" />
               </button>
             </div>
           </FormControl>
@@ -213,10 +228,11 @@ function toggleShowConfirmPassword() {
           >
           <FormControl>
             <div class="relative">
+              <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 :type="showConfirmPassword ? 'text' : 'password'"
                 placeholder="********"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                class="w-full px-3 py-2 pl-8 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
               <button
@@ -225,7 +241,8 @@ function toggleShowConfirmPassword() {
                 class="absolute inset-y-0 right-2 flex items-center text-sm text-gray-600 focus:outline-none"
                 tabindex="-1"
               >
-                {{ showConfirmPassword ? 'Hide' : 'Show' }}
+                <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
+                <EyeOff v-else class="h-4 w-4" />
               </button>
             </div>
           </FormControl>
@@ -239,11 +256,14 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Verify you're human</FormLabel>
           <FormControl>
             <div class="flex justify-center">
-              <VueTurnstile
-                site-key="0x4AAAAAABSTiPNZwrBLQkgr"
-                v-model="turnstileToken"
-                theme="light"
-              />
+              <div class="relative w-full flex justify-center">
+                <Shield class="absolute left-2 top-0 text-gray-500 h-4 w-4" />
+                <VueTurnstile
+                  site-key="0x4AAAAAABSTiPNZwrBLQkgr"
+                  v-model="turnstileToken"
+                  theme="light"
+                />
+              </div>
             </div>
           </FormControl>
           <FormMessage class="text-sm text-red-500" />
