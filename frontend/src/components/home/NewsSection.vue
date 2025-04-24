@@ -1,3 +1,8 @@
+<script lang="ts">
+export default {
+  name: 'NewsSection'
+}
+</script>
 <template>
   <section>
     <div class="text-center mb-12">
@@ -36,12 +41,6 @@
     </div>
   </section>
 </template>
-
-<script lang="ts">
-export default {
-  name: 'NewsSection'
-}
-</script>
 
 <script setup lang="ts">
 import { computed } from 'vue'
