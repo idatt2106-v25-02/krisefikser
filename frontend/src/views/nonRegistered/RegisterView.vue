@@ -108,7 +108,7 @@ function toggleShowConfirmPassword() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-white">
+  <div class="min-h-screen flex items-center justify-center bg-white py-12">
     <form
       @submit="onSubmit"
       class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
