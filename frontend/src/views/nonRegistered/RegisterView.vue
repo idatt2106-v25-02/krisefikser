@@ -15,6 +15,12 @@ const rawSchema = z
     firstName: z.string().min(2, 'First name too short'),
     lastName: z.string().min(2, 'Last name too short'),
     email: z.string().email('Invalid email').min(5, 'Email too short'),
+    householdCode: z.string().refine(
+      (val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)),
+      {
+        message: 'Household code must be exactly 5 letters (no numbers)',
+      }
+    ).optional(),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
@@ -150,6 +156,23 @@ function toggleShowConfirmPassword() {
             <Input
               type="email"
               placeholder="name@example.org"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              v-bind="componentField"
+            />
+          </FormControl>
+          <FormMessage class="text-sm text-red-500" />
+        </FormItem>
+      </FormField>
+
+      <!-- Household Code field -->
+      <FormField v-slot="{ componentField }" name="householdCode">
+        <FormItem>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Household Code</FormLabel>
+          <FormControl>
+            <Input
+              type="text"
+              placeholder="ABCDE"
+              maxlength="5"
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               v-bind="componentField"
             />
