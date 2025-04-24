@@ -1,6 +1,6 @@
 <!-- AdminDashboard.vue -->
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import {
   Map,
@@ -107,7 +107,7 @@ const navigateToMap = () => {
                   activeSection === 'admins' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
         >
           <Users class="h-5 w-5" />
-          <span class="ml-2">Admin brukere</span>
+          <span class="ml-2">Brukere</span>
         </Button>
       </nav>
     </div>
