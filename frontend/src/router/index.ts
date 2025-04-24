@@ -14,7 +14,6 @@ import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
 import AdminEventsView from "@/views/admin/AdminEventsView.vue";
 import AdminMapView from "@/views/admin/AdminMapView.vue";
 import AdminSearchView from "@/views/admin/AdminSearchView.vue";
-import AdminLoginView from "@/views/admin/AdminLoginView.vue";
 
 // Super Admin views
 import SuperAdminDashboardView from "@/views/superAdmin/SuperAdminDashboardView.vue";
@@ -42,6 +41,7 @@ import AboutUsView from "@/views/nonRegistered/AboutUsView.vue";
 import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
 import DuringCrisisView from "@/views/nonRegistered/info/DuringCrisisView.vue";
 import AfterCrisisView from "@/views/nonRegistered/info/AfterCrisisView.vue";
+import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -75,9 +75,9 @@ const router = createRouter({
       component: AdminDashboardView,
     },
     {
-      path: '/admin/login',
-      name: 'admin-login',
-      component: AdminLoginView,
+      path: '/admin/register',
+      name: 'admin-register',
+      component: AdminRegisterView,
     },
     {
       path: '/admin/hendelser',
@@ -160,43 +160,6 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: RegisterView,
-    },
-    {
-      path: '/personvern',
-      name: 'privacy-policy',
-      component: PrivacyPolicyView,
-    },
-    {
-      path: '/nyheter',
-      name: 'news',
-      component: NewsView,
-    },
-    {
-      path: '/nyheter/:id',
-      name: 'article',
-      component: ArticleView,
-    },
-    {
-      path: '/om-oss',
-      name: 'about-us',
-      component: AboutUsView,
-    },
-
-    // Crisis Information routes
-    {
-      path: '/info/for-krisen',
-      name: 'before-crisis',
-      component: BeforeCrisisView,
-    },
-    {
-      path: '/info/under-krisen',
-      name: 'during-crisis',
-      component: DuringCrisisView,
-    },
-    {
-      path: '/info/etter-krisen',
-      name: 'after-crisis',
-      component: AfterCrisisView,
     },
 
     // Error routes - must be last
