@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils'
-import {
-  DropdownMenuSeparator,
-  type DropdownMenuSeparatorProps,
-} from 'reka-ui'
+import { DropdownMenuSeparator, type DropdownMenuSeparatorProps } from 'reka-ui'
 import { computed, type HTMLAttributes } from 'vue'
 
-const props = defineProps<DropdownMenuSeparatorProps & {
-  class?: HTMLAttributes['class']
-}>()
+const props = defineProps<
+  DropdownMenuSeparatorProps & {
+    class?: HTMLAttributes['class']
+  }
+>()
 
 const delegatedProps = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { class: _, ...delegated } = props
 
   return delegated

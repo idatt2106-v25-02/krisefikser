@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import stud.ntnu.krisefikser.map.config.TestSecurityConfig;
+import stud.ntnu.krisefikser.config.TestSecurityConfig;
 import stud.ntnu.krisefikser.map.entity.MapPointType;
 import stud.ntnu.krisefikser.map.service.MapPointTypeService;
 
