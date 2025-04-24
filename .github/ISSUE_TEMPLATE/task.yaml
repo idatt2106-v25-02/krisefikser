@@ -1,79 +1,77 @@
-name: "Task"
-description: "Opprett en Task basert på visjonsdokumentet"
+---
+name: "🛠️ Development Task"
+description: "Beskriv en utviklingsoppgave basert på visjonsdokumentet"
+title: "[Task] [Kort oppgave-navn]"
 labels:
   - chore
   - needs-triage
+assignees: []  # Legg til ansvarlige om ønskelig
+projects: []   # Legg til prosjektlenker om ønskelig
 
 body:
   - type: markdown
     attributes:
       value: |
-        <!--
-        Opprett en ny Task med utgangspunkt i funksjonelle/ikke-funksjonelle krav fra visjonsdokumentet.
-        -->
+        ### 🛠️ Utviklingsoppgave
+        *Beskriv oppgaven nedenfor. Vær så spesifikk som mulig!*
+
   - type: input
-    id: title
+    id: summary
     attributes:
-      label: "Tittel på Task"
-      description: "Kort beskrivelse (eks: feat/backend/auth/add-login-endpoint)"
-      placeholder: "feat/<scope>/<description>"
+      label: "Kort oppsummering"
+      description: "En setning som beskriver hovedformålet med oppgaven"
+      placeholder: "Eksempel: Implementer login-endepunkt i auth-tjenesten"
     validations:
       required: true
+
   - type: textarea
     id: description
     attributes:
       label: "Detaljert beskrivelse"
-      description: |
-        - Hvilken del av visjonsdokumentet gjelder denne Task? (bruk referanse som `5.1 Funksjonelle egenskaper`)
-        - Akseptansekriterier:
-          1.
-          2.
+      description: "Hva skal implementeres/endres? Hvorfor er dette nødvendig?"
       placeholder: |
-        Som ... ønsker jeg ... slik at ...
-  - type: dropdown
-    id: priority
-    attributes:
-      label: "Prioritet"
-      options:
-        - Lav
-        - Middels
-        - Høy
+        - Funksjon:
+        - Motivasjon:
     validations:
       required: true
-  - type: dropdown
-    id: type
+
+  - type: textarea
+    id: acceptance_criteria
     attributes:
-      label: "Type"
-      options:
-        - feat
-        - fix
-        - refactor
-        - docs
-        - style
-        - test
-        - chore
-        - perf
+      label: "Akseptansekriterier"
+      description: "Hvordan vet vi at oppgaven er fullført? List opp krav som sjekkliste."
+      placeholder: |
+        - [ ] Kriterium 1
+        - [ ] Kriterium 2
     validations:
       required: true
-    id: priority
+
+  - type: textarea
+    id: technical_details
     attributes:
-      label: "Prioritet"
-      options:
-        - Lav
-        - Middels
-        - Høy
-    required: true
+      label: "Tekniske detaljer"
+      description: "Teknologier, rammeverk eller avhengigheter"
+      placeholder: |
+        Eksempel: Bruk Redis for cache, Spring Boot 3.0, UUID for bruker-id
+
   - type: dropdown
-    id: type
+    id: complexity
     attributes:
-      label: "Type"
+      label: "Kompleksitet"
+      description: "Estimert arbeidsmengde"
       options:
-        - feat
-        - fix
-        - refactor
-        - docs
-        - style
-        - test
-        - chore
-        - perf
-    required: true
+        - "Liten (1-2 timer)"
+        - "Medium (0.5 dag)"
+        - "Høy (1+ dager)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: extras
+    attributes:
+      label: "Forhåndsvalg"
+      options:
+        - label: "Krever database-migrering"
+          required: false
+        - label: "Krever dokumentasjonsoppdatering"
+          required: false
