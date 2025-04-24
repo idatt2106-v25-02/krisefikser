@@ -25,11 +25,9 @@ const emit = defineEmits(['submit', 'cancel']);
 const formSchema = toTypedSchema(
   z.object({
     name: z.string()
-     .min(2, 'Husstandsnavnet må være minst 2 tegn')
-     .max(50, 'Husstandsnavnet må være mindre enn 50 tegn')
-     .refine((value) => /^[^\d]*$/.test(value), {
-       message: 'Husstandsnavnet kan ikke inneholde tall',
-     }), address: z.string()
+      .min(2, 'Husstandsnavnet må være minst 2 tegn')
+      .max(50, 'Husstandsnavnet må være mindre enn 50 tegn'),
+    address: z.string()
       .min(5, 'Adressen må være minst 5 tegn')
       .max(100, 'Adressen må være mindre enn 100 tegn'),
     postalCode: z.string()
