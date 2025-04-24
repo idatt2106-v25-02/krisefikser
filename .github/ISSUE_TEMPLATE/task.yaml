@@ -1,4 +1,3 @@
----
 name: "🛠️ Development Task"
 description: "Beskriv en utviklingsoppgave basert på visjonsdokumentet"
 title: "[Task] [Kort oppgave-navn]"
@@ -55,14 +54,20 @@ body:
         Eksempel: Bruk Redis for cache, Spring Boot 3.0, UUID for bruker-id
 
   - type: dropdown
-    id: complexity
+    id: estimated_hours
     attributes:
-      label: "Kompleksitet"
-      description: "Estimert arbeidsmengde"
+      label: "Estimert tidsbruk (story points)"
+      description: "1 story point = 1 time arbeid. Velg estimert varighet på oppgaven."
       options:
-        - "Liten (1-2 timer)"
-        - "Medium (0.5 dag)"
-        - "Høy (1+ dager)"
+        - "1 time (1 story point)"
+        - "2 timer"
+        - "3 timer"
+        - "4 timer"
+        - "5 timer"
+        - "6 timer"
+        - "8 timer"
+        - "10 timer"
+        - "12+ timer"
     validations:
       required: true
 
