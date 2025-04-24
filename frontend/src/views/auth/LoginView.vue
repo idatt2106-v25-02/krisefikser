@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useAuthModeStore } from '@/stores/useAuthModeStore'
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-vue-next'
+import { User, Mail } from 'lucide-vue-next'
 
 // UI components
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 // === Store logic ===
 const authStore = useAuthModeStore()
@@ -53,12 +54,6 @@ function toggleLoginType() {
   authStore.toggle()
   resetForm()
 }
-
-// Show/hide password
-const showPassword = ref(false)
-function toggleShowPassword() {
-  showPassword.value = !showPassword.value
-}
 </script>
 
 <template>
@@ -93,32 +88,16 @@ function toggleShowPassword() {
         </FormItem>
       </FormField>
 
-      <!-- Password Field -->
+      <!-- Password Field using component -->
       <FormField v-slot="{ componentField }" name="password">
-        <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Passord</FormLabel>
-          <FormControl>
-            <div class="relative">
-              <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-              <Input
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="********"
-                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                v-bind="componentField"
-              />
-              <button
-                type="button"
-                @click="toggleShowPassword"
-                class="absolute inset-y-0 right-2 flex items-center text-sm text-gray-600 focus:outline-none"
-                tabindex="-1"
-              >
-                <Eye v-if="!showPassword" class="h-4 w-4" />
-                <EyeOff v-else class="h-4 w-4" />
-              </button>
-            </div>
-          </FormControl>
-          <FormMessage class="text-sm text-red-500" />
-        </FormItem>
+        <PasswordInput
+          name="password"
+          label="Passord"
+          placeholder="********"
+          :componentField="componentField"
+          :showToggle="true"
+          :showIcon="true"
+        />
       </FormField>
 
       <!-- Submit Button (disabled unless form is valid and touched) -->

@@ -4,27 +4,27 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useRoute, useRouter } from 'vue-router'
-import { KeyRound, Eye, EyeOff, Lock } from 'lucide-vue-next'
+import { KeyRound } from 'lucide-vue-next'
 
 import { Button } from '@/components/ui/button'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import { FormField } from '@/components/ui/form'
+import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 // Schema for the reset password form with password requirements
 const resetPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
-      .max(50, 'Password must be at most 50 characters')
-      .regex(/[A-Z]/, 'Must include an uppercase letter')
-      .regex(/[a-z]/, 'Must include a lowercase letter')
-      .regex(/[0-9]/, 'Must include a number')
-      .regex(/[^A-Za-z0-9]/, 'Must include a special character'),
+      .min(8, 'Passord må være minst 8 tegn')
+      .max(50, 'Passord kan være maks 50 tegn')
+      .regex(/[A-Z]/, 'Må inneholde minst én stor bokstav')
+      .regex(/[a-z]/, 'Må inneholde minst én liten bokstav')
+      .regex(/[0-9]/, 'Må inneholde minst ett tall')
+      .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "Passordene stemmer ikke overens",
     path: ['confirmPassword'],
   })
 
@@ -37,18 +37,6 @@ const { handleSubmit, meta } = useForm({
 const isLoading = ref(false)
 const isSuccessful = ref(false)
 const isTokenValid = ref(true)
-
-// Password visibility toggles
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
-
-function toggleShowPassword() {
-  showPassword.value = !showPassword.value
-}
-
-function toggleShowConfirmPassword() {
-  showConfirmPassword.value = !showConfirmPassword.value
-}
 
 // Get token from URL
 const route = useRoute()
@@ -63,7 +51,7 @@ onMounted(() => {
   /*
   if (!token.value) {
     isTokenValid.value = false
-    errorMessage.value = 'Invalid or expired password reset link. Please request a new one.'
+    errorMessage.value = 'Ugyldig eller utløpt lenke for tilbakestilling av passord. Vennligst be om en ny.'
   }
   */
 
@@ -71,7 +59,7 @@ onMounted(() => {
   isTokenValid.value = true
 })
 
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit(() => {
   isLoading.value = true
 
   // Simulate API call to reset password
@@ -116,60 +104,28 @@ const goToLogin = () => {
 
       <!-- Form fields -->
       <div v-else class="space-y-5">
-        <!-- Password field -->
+        <!-- Password field using the component -->
         <FormField v-slot="{ componentField }" name="password">
-          <FormItem>
-            <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Nytt Passord</FormLabel>
-            <FormControl>
-              <div class="relative">
-                <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-                <Input
-                  :type="showPassword ? 'text' : 'password'"
-                  placeholder="********"
-                  class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                  v-bind="componentField"
-                />
-                <button
-                  type="button"
-                  @click="toggleShowPassword"
-                  class="absolute inset-y-0 right-2 flex items-center text-sm text-gray-600 focus:outline-none"
-                  tabindex="-1"
-                >
-                  <Eye v-if="!showPassword" class="h-4 w-4" />
-                  <EyeOff v-else class="h-4 w-4" />
-                </button>
-              </div>
-            </FormControl>
-            <FormMessage class="text-sm text-red-500" />
-          </FormItem>
+          <PasswordInput
+            name="password"
+            label="Nytt Passord"
+            placeholder="********"
+            :componentField="componentField"
+            :showToggle="true"
+            :showIcon="true"
+          />
         </FormField>
 
-        <!-- Confirm Password field -->
+        <!-- Confirm Password using the component -->
         <FormField v-slot="{ componentField }" name="confirmPassword">
-          <FormItem>
-            <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft Nytt Passord</FormLabel>
-            <FormControl>
-              <div class="relative">
-                <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-                <Input
-                  :type="showConfirmPassword ? 'text' : 'password'"
-                  placeholder="********"
-                  class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                  v-bind="componentField"
-                />
-                <button
-                  type="button"
-                  @click="toggleShowConfirmPassword"
-                  class="absolute inset-y-0 right-2 flex items-center text-sm text-gray-600 focus:outline-none"
-                  tabindex="-1"
-                >
-                  <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
-                  <EyeOff v-else class="h-4 w-4" />
-                </button>
-              </div>
-            </FormControl>
-            <FormMessage class="text-sm text-red-500" />
-          </FormItem>
+          <PasswordInput
+            name="confirmPassword"
+            label="Bekreft Nytt Passord"
+            placeholder="********"
+            :componentField="componentField"
+            :showToggle="true"
+            :showIcon="true"
+          />
         </FormField>
 
         <!-- Password requirements info -->
