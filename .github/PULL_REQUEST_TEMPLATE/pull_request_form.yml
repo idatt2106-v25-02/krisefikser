@@ -1,3 +1,4 @@
+---
 name: "🔀 Pull Request"
 description: "Opprett en PR for kodeendringer basert på en Task-issue"
 
@@ -14,8 +15,8 @@ body:
       label: "Scope"
       description: "Følg `<type>/<scope>`, f.eks. `feat/backend/auth`"
       placeholder: "<type>/<scope>"
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: input
     id: issue
@@ -23,8 +24,8 @@ body:
       label: "Issue #"
       description: "Referer den tilhørende Task-issue"
       placeholder: "#123"
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: summary
@@ -34,8 +35,8 @@ body:
       placeholder: |
         - Nye API-endepunkter for login
         - Oppdatering av UI-komponenter for dashboard
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: acceptance
@@ -45,8 +46,8 @@ body:
       placeholder: |
         - [ ] Kriterium 1
         - [ ] Kriterium 2
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: testing
@@ -56,8 +57,6 @@ body:
       placeholder: |
         1. `npm install && npm test`
         2. Kjør `curl` mot /login-endpoint
-      validations:
-        required: false
 
   - type: markdown
     attributes:
