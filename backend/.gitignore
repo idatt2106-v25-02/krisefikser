@@ -17,6 +17,7 @@ target/
 ### IntelliJ IDEA ###
 .idea/
 
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -29,3 +30,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Cursor ###
+.cursorignore
+.cursorrules
+.cursor/*
+
