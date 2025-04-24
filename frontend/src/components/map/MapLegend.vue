@@ -17,34 +17,47 @@ function toggleUserLocation() {
 
 <template>
   <div class="absolute top-5 right-5 z-10 flex flex-col gap-2.5">
-    <div class="bg-white p-2.5 rounded-md shadow-md max-w-[250px]">
-      <h3 class="mt-0 mb-2.5 text-base">Legend</h3>
-      <div class="flex items-center mb-2">
-        <div class="w-5 h-5 mr-2.5 bg-contain bg-no-repeat shelter-icon"></div>
-        <span>Emergency Shelter</span>
+    <div class="bg-white p-2.5 rounded-md shadow-md max-w-[280px]">
+      <h3 class="mt-0 mb-2.5 text-base font-bold">Legend</h3>
+
+      <div class="mb-2">
+        <div class="font-semibold mb-1">Map Points:</div>
+        <div class="flex items-center mb-2">
+          <div class="w-5 h-5 mr-2.5 bg-contain bg-no-repeat shelter-icon"></div>
+          <span>Emergency Shelter</span>
+        </div>
       </div>
-      <div class="flex items-center mb-2">
-        <div class="w-5 h-5 mr-2.5 bg-[#FFC107] rounded-full"></div>
-        <span>Low Severity (Level 1)</span>
+
+      <div class="mb-2">
+        <div class="font-semibold mb-1">Events:</div>
+        <div class="flex items-center mb-1">
+          <div class="w-5 h-5 mr-2.5 bg-[#4CAF50] rounded-full opacity-60"></div>
+          <span>Green Level (Informational)</span>
+        </div>
+        <div class="flex items-center mb-1">
+          <div class="w-5 h-5 mr-2.5 bg-[#FFC107] rounded-full opacity-60"></div>
+          <span>Yellow Level (Warning)</span>
+        </div>
+        <div class="flex items-center mb-1">
+          <div class="w-5 h-5 mr-2.5 bg-[#F44336] rounded-full opacity-60"></div>
+          <span>Red Level (Danger)</span>
+        </div>
       </div>
-      <div class="flex items-center mb-2">
-        <div class="w-5 h-5 mr-2.5 bg-[#FF9800] rounded-full"></div>
-        <span>Medium Severity (Level 2)</span>
-      </div>
-      <div class="flex items-center mb-2">
-        <div class="w-5 h-5 mr-2.5 bg-[#F44336] rounded-full"></div>
-        <span>High Severity (Level 3)</span>
+
+      <div class="text-xs text-gray-600 mt-2">
+        <div>Event opacity indicates status:</div>
+        <div>Low = Upcoming, High = Ongoing, Faded = Finished</div>
       </div>
     </div>
-    
-    <button 
-      v-if="userLocationAvailable" 
+
+    <button
+      v-if="userLocationAvailable"
       class="py-2.5 px-4 bg-[#4CAF50] text-white border-none rounded-md cursor-pointer font-bold hover:bg-[#45a049]"
       @click="toggleUserLocation"
     >
       {{ showUserLocation ? 'Hide My Location' : 'Show My Location' }}
     </button>
-    
+
     <div v-if="userInCrisisZone" class="bg-[#F44336] text-white p-2.5 rounded-md font-bold text-center animate-blink">
       ⚠️ Warning: You are in a crisis zone!
     </div>
@@ -65,4 +78,4 @@ function toggleUserLocation() {
 .animate-blink {
   animation: blink 1s infinite;
 }
-</style> 
+</style>
