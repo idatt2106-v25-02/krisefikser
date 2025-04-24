@@ -108,7 +108,7 @@ function onUserLocationStatus(available: boolean) {
     <MapComponent ref="mapRef" @map-created="onMapCreated" />
 
     <div v-if="isLoading" class="absolute top-0 left-0 right-0 bg-slate-700 text-white p-2 text-center">
-      Loading map data...
+      Laster kartdata...
     </div>
 
     <template v-if="!isLoading">
