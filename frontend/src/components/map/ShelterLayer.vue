@@ -37,9 +37,9 @@ function addShelters() {
   for (const shelter of props.shelters) {
     const marker = L.marker(shelter.position, { icon: shelterIcon }).addTo(props.map).bindPopup(`
         <strong>${shelter.name}</strong><br>
-        Capacity: ${shelter.capacity} people<br>
+        Kapasitet: ${shelter.capacity} personer<br>
         <button class="directions-btn bg-[#4CAF50] text-white border-none py-1 px-2.5 mt-1 rounded cursor-pointer hover:bg-[#45a049]" data-lat="${shelter.position[0]}" data-lng="${shelter.position[1]}">
-          Get Directions
+          Få veibeskrivelse
         </button>
       `)
 
@@ -90,4 +90,4 @@ watch(
 
 <style scoped>
 /* No styles needed as we're using inline Tailwind classes */
-</style> 
+</style>

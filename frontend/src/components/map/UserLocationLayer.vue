@@ -48,8 +48,8 @@ function checkUserInEventZone(position: GeolocationPosition) {
 
         // Show alert if newly entered a crisis zone
         if (!wasInCrisisZone) {
-          const levelText = event.level === EventLevel.RED ? 'HIGH ALERT' : 'WARNING'
-          alert(`${levelText}: You are in the "${event.title}" area.\n${event.description}`)
+          const levelText = event.level === EventLevel.RED ? 'HØYT VARSEL' : 'ADVARSEL'
+          alert(`${levelText}: Du er i "${event.title}"-området.\n${event.description}`)
         }
         return
       }
