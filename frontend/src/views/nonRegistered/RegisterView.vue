@@ -283,7 +283,7 @@ function toggleShowConfirmPassword() {
       <div class="text-sm text-center space-y-2">
         <div>
           <span class="text-gray-600">Already have an account?</span>
-          <a href="/login" class="ml-1 text-blue-600 hover:underline">Login</a>
+          <a href="/logg-inn" class="ml-1 text-blue-600 hover:underline">Login</a>
         </div>
       </div>
     </form>

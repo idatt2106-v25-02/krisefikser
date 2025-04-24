@@ -137,7 +137,7 @@ function toggleShowPassword() {
           <a href="/register" class="ml-1 text-blue-600 hover:underline">Register</a>
         </div>
 
-        <a href="/forgot-password" class="block text-blue-500 hover:underline">
+        <a href="/glemt-passord" class="block text-blue-500 hover:underline">
           Forgot your password?
         </a>
 

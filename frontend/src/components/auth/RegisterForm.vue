@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -7,7 +6,7 @@ import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import PasswordInput from '@/components/PasswordInput.vue'
+import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 // Schema for the registration form
 const rawSchema = z

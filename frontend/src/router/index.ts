@@ -3,7 +3,6 @@ import HomeView from "@/views/nonRegistered/HomeView.vue";
 
 // Auth views
 import LoginView from "@/views/auth/LoginView.vue";
-import ForgotPasswordView from "@/views/auth/ForgotPasswordView.vue";
 import ResetPasswordView from "@/views/auth/ResetPasswordView.vue";
 
 // Error views
@@ -36,6 +35,7 @@ import PrivacyPolicyView from "@/views/nonRegistered/PrivacyPolicyView.vue";
 import NewsView from "@/views/nonRegistered/NewsView.vue";
 import ArticleView from "@/views/nonRegistered/ArticleView.vue";
 import AboutUsView from "@/views/nonRegistered/AboutUsView.vue";
+import ForgotPasswordView from "@/views/auth/ForgotPasswordView.vue";
 
 // Crisis Information views
 import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
@@ -59,7 +59,7 @@ const router = createRouter({
     },
     {
       path: '/glemt-passord',
-      name: 'forgot-password',
+      name: 'glemt-passord',
       component: ForgotPasswordView,
     },
     {
@@ -160,6 +160,24 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: RegisterView,
+    },
+
+    {
+      path: '/info/under-krisen',
+      name: 'during-crisis',
+      component: DuringCrisisView,
+    },
+
+    {
+      path: '/info/for-krisen',
+      name: 'before-crisis',
+      component: BeforeCrisisView,
+    },
+
+    {
+      path: '/info/etter-krisen',
+      name: 'after-crisis',
+      component: AfterCrisisView,
     },
 
     // Error routes - must be last
