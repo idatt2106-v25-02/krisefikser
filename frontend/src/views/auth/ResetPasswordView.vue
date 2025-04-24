@@ -98,19 +98,19 @@ const goToLogin = () => {
         <div class="mx-auto bg-blue-100 p-2 rounded-full w-12 h-12 flex items-center justify-center mb-4">
           <KeyRound class="h-6 w-6 text-blue-600" />
         </div>
-        <h1 class="text-3xl font-bold">Reset Password</h1>
+        <h1 class="text-3xl font-bold">Tilbakestill Passord</h1>
         <p class="text-sm text-gray-500 mt-2" v-if="!isSuccessful">
-          Create a new password for your account
+          Opprett et nytt passord for kontoen din
         </p>
       </div>
 
       <!-- Success message -->
       <div v-if="isSuccessful" class="text-center">
-        <p class="text-green-600 font-medium">Your password has been successfully reset.</p>
-        <p class="text-gray-600 mt-2">You can now login with your new password.</p>
+        <p class="text-green-600 font-medium">Passordet ditt har blitt tilbakestilt.</p>
+        <p class="text-gray-600 mt-2">Du kan nå logge inn med ditt nye passord.</p>
 
         <Button class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700" @click="goToLogin">
-          Go to login
+          Gå til innlogging
         </Button>
       </div>
 
@@ -119,7 +119,7 @@ const goToLogin = () => {
         <!-- Password field -->
         <FormField v-slot="{ componentField }" name="password">
           <FormItem>
-            <FormLabel class="block text-sm font-medium text-gray-700 mb-1">New Password</FormLabel>
+            <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Nytt Passord</FormLabel>
             <FormControl>
               <div class="relative">
                 <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -147,7 +147,7 @@ const goToLogin = () => {
         <!-- Confirm Password field -->
         <FormField v-slot="{ componentField }" name="confirmPassword">
           <FormItem>
-            <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</FormLabel>
+            <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft Nytt Passord</FormLabel>
             <FormControl>
               <div class="relative">
                 <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -174,13 +174,13 @@ const goToLogin = () => {
 
         <!-- Password requirements info -->
         <div class="text-xs text-gray-500 space-y-1">
-          <p class="font-medium">Password requirements:</p>
+          <p class="font-medium">Passordkrav:</p>
           <ul class="space-y-1">
-            <li>• Minimum 8 characters</li>
-            <li>• At least one uppercase letter</li>
-            <li>• At least one lowercase letter</li>
-            <li>• At least one number</li>
-            <li>• At least one special character</li>
+            <li>• Minimum 8 tegn</li>
+            <li>• Minst én stor bokstav</li>
+            <li>• Minst én liten bokstav</li>
+            <li>• Minst ett tall</li>
+            <li>• Minst ett spesialtegn</li>
           </ul>
         </div>
 
@@ -189,20 +189,20 @@ const goToLogin = () => {
           class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
           :disabled="!meta.valid || isLoading"
         >
-          <span v-if="!isLoading">Reset Password</span>
+          <span v-if="!isLoading">Tilbakestill Passord</span>
           <span v-else class="flex items-center justify-center">
             <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Processing...
+            Behandler...
           </span>
         </Button>
 
         <!-- Login link -->
         <div class="text-sm text-center">
-          <span class="text-gray-600">Remember your password?</span>
-          <a href="/logg-inn" class="ml-1 text-blue-600 hover:underline">Back to login</a>
+          <span class="text-gray-600">Husker du passordet ditt?</span>
+          <a href="/logg-inn" class="ml-1 text-blue-600 hover:underline">Tilbake til innlogging</a>
         </div>
       </div>
     </form>
