@@ -8,7 +8,9 @@ import AppFooter from '@/components/layout/Footer.vue';
 <template>
   <div id="app">
     <AppNavbar />
-    <router-view />
+    <div class="min-h-screen">
+      <router-view />
+    </div>
     <AppFooter />
   </div>
 </template>

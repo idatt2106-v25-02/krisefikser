@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-3xl mx-auto px-4 py-8">
     <router-link
-      to="/news"
+      to="/nyheter"
       class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6"
     >
       ← Tilbake til nyheter

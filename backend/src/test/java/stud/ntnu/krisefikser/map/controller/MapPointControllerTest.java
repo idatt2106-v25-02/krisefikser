@@ -10,14 +10,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import stud.ntnu.krisefikser.map.config.TestSecurityConfig;
+
 import stud.ntnu.krisefikser.map.entity.MapPoint;
 import stud.ntnu.krisefikser.map.entity.MapPointType;
 import stud.ntnu.krisefikser.map.service.MapPointService;
 
 import java.util.Arrays;
 import java.util.List;
-
+import stud.ntnu.krisefikser.config.TestSecurityConfig;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
