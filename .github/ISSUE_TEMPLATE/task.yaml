@@ -1,0 +1,54 @@
+name: "Task"
+about: "Opprett en Task basert på visjonsdokumentet"
+labels:
+  - chore
+  - needs-triage
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <!--
+        Opprett en ny Task med utgangspunkt i funksjonelle/ikke-funksjonelle krav fra visjonsdokumentet.
+        -->
+  - type: input
+    id: title
+    attributes:
+      label: "Tittel på Task"
+      description: "Kort beskrivelse (eks: feat/backend/auth/add-login-endpoint)"
+      placeholder: "feat/<scope>/<description>"
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: "Detaljert beskrivelse"
+      description: |
+        - Hvilken del av visjonsdokumentet gjelder denne Task? (bruk referanse som `5.1 Funksjonelle egenskaper`)
+        - Akseptansekriterier:
+          1.
+          2.
+      placeholder: |
+        Som ... ønsker jeg ... slik at ...
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Prioritet"
+      options:
+        - Lav
+        - Middels
+        - Høy
+    required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: "Type"
+      options:
+        - feat
+        - fix
+        - refactor
+        - docs
+        - style
+        - test
+        - chore
+        - perf
+    required: true
