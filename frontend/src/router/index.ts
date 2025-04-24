@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from "@/views/HomeView.vue";
+import HomeView from "@/views/nonRegistered/HomeView.vue";
 
 // Auth views
 import LoginView from "@/views/auth/LoginView.vue";
@@ -23,7 +23,7 @@ import ManageAdminsView from "@/views/superAdmin/ManageAdminsView.vue";
 import DashboardView from "@/views/registered/DashboardView.vue";
 import AddItemView from "@/views/registered/AddItemView.vue";
 import HouseholdView from "@/views/registered/HouseholdView.vue";
-import InventoryView from "@/views/registered/InventoryView.vue";
+import HouseholdDetailsView from "@/views/registered/HouseholdDetailsView.vue";
 import InviteView from "@/views/registered/InviteView.vue";
 import SearchView from "@/views/registered/SearchView.vue";
 
@@ -32,6 +32,15 @@ import NonRegisteredHomeView from "@/views/nonRegistered/HomeView.vue";
 import JoinOrCreateHouseholdView from "@/views/nonRegistered/JoinOrCreateHouseholdView.vue";
 import MapView from "@/views/nonRegistered/MapView.vue";
 import RegisterView from "@/views/nonRegistered/RegisterView.vue";
+import PrivacyPolicyView from "@/views/nonRegistered/PrivacyPolicyView.vue";
+import NewsView from "@/views/nonRegistered/NewsView.vue";
+import ArticleView from "@/views/nonRegistered/ArticleView.vue";
+import AboutUsView from "@/views/nonRegistered/AboutUsView.vue";
+
+// Crisis Information views
+import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
+import DuringCrisisView from "@/views/nonRegistered/info/DuringCrisisView.vue";
+import AfterCrisisView from "@/views/nonRegistered/info/AfterCrisisView.vue";
 import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
 
 const router = createRouter({
@@ -44,17 +53,17 @@ const router = createRouter({
     },
     // Auth routes
     {
-      path: '/login',
+      path: '/logg-inn',
       name: 'login',
       component: LoginView,
     },
     {
-      path: '/forgot-password',
+      path: '/glemt-passord',
       name: 'forgot-password',
       component: ForgotPasswordView,
     },
     {
-      path: '/reset-password',
+      path: '/reset-passord',
       name: 'reset-password',
       component: ResetPasswordView,
     },
@@ -71,17 +80,17 @@ const router = createRouter({
       component: AdminRegisterView,
     },
     {
-      path: '/admin/events',
+      path: '/admin/hendelser',
       name: 'admin-events',
       component: AdminEventsView,
     },
     {
-      path: '/admin/map',
+      path: '/admin/kart',
       name: 'admin-map',
       component: AdminMapView,
     },
     {
-      path: '/admin/search',
+      path: '/admin/sok',
       name: 'admin-search',
       component: AdminSearchView,
     },
@@ -93,7 +102,7 @@ const router = createRouter({
       component: SuperAdminDashboardView,
     },
     {
-      path: '/super-admin/manage-admins',
+      path: '/super-admin/behandle-administratorer',
       name: 'manage-admins',
       component: ManageAdminsView,
     },
@@ -105,44 +114,45 @@ const router = createRouter({
       component: DashboardView,
     },
     {
-      path: '/add-item',
+      path: '/legg-til-vare',
       name: 'add-item',
       component: AddItemView,
     },
     {
-      path: '/household',
+      path: '/husstand',
       name: 'household',
       component: HouseholdView,
     },
     {
-      path: '/inventory',
-      name: 'inventory',
-      component: InventoryView,
+      path: '/husstand/:id',
+      name: 'household-details',
+      component: HouseholdDetailsView,
     },
+
     {
-      path: '/invite',
+      path: '/inviter-medlemmer',
       name: 'invite',
       component: InviteView,
     },
     {
-      path: '/search',
+      path: '/sok',
       name: 'search',
       component: SearchView,
     },
 
     // Non-Registered User routes
     {
-      path: '/welcome',
+      path: '/velkommen',
       name: 'non-registered-home',
       component: NonRegisteredHomeView,
     },
     {
-      path: '/join-create-household',
+      path: '/bli-med-eller-opprett-husstand',
       name: 'join-create-household',
       component: JoinOrCreateHouseholdView,
     },
     {
-      path: '/map',
+      path: '/kart',
       name: 'map',
       component: MapView,
     },

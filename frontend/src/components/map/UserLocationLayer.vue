@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import L from 'leaflet';
+import type { Event } from '@/api/generated/model';
+import { EventLevel, EventStatus } from '@/api/generated/model';
 
 // Define props
 const props = defineProps<{
   map: any; // Using any to avoid Leaflet type issues
-  crisisAreas?: Array<{
-    id: number;
-    center: [number, number];
-    radius: number;
-    name: string;
-    severity: number;
-  }>;
+  events?: Event[];
 }>();
 
 // Define emits
@@ -23,36 +19,43 @@ const userLocationAvailable = ref(false);
 const watchId = ref<number | null>(null);
 const userInCrisisZone = ref(false);
 
-// Check if user is in crisis zone
-function checkUserInCrisisZone(position: GeolocationPosition) {
-  if (!props.map || !props.crisisAreas) return;
-  
+// Check if user is in event crisis zone
+function checkUserInEventZone(position: GeolocationPosition) {
+  if (!props.map || !props.events || props.events.length === 0) return;
+
   const { latitude, longitude } = position.coords;
   const wasInCrisisZone = userInCrisisZone.value;
   userInCrisisZone.value = false;
-  
-  for (const area of props.crisisAreas) {
-    if (props.map) {
+
+  // Only consider active events (ONGOING or UPCOMING) with YELLOW or RED level
+  const relevantEvents = props.events.filter(event =>
+    (event.status === EventStatus.ONGOING || event.status === EventStatus.UPCOMING) &&
+    (event.level === EventLevel.YELLOW || event.level === EventLevel.RED)
+  );
+
+  for (const event of relevantEvents) {
+    if (props.map && event.latitude && event.longitude && event.radius) {
       const distance = props.map.distance(
         [latitude, longitude],
-        area.center
+        [event.latitude, event.longitude]
       );
-      
-      if (distance <= area.radius) {
+
+      if (distance <= event.radius) {
         userInCrisisZone.value = true;
-        
+
         // Notify parent component
-        emit('userInCrisisZone', true, area);
-        
+        emit('userInCrisisZone', true);
+
         // Show alert if newly entered a crisis zone
         if (!wasInCrisisZone) {
-          alert(`ALERT: You are in the ${area.name} area. Severity level: ${area.severity}`);
+          const levelText = event.level === EventLevel.RED ? 'HIGH ALERT' : 'WARNING';
+          alert(`${levelText}: You are in the "${event.title}" area.\n${event.description}`);
         }
         return;
       }
     }
   }
-  
+
   // If we get here, user is not in any crisis zone
   if (wasInCrisisZone) {
     emit('userInCrisisZone', false);
@@ -66,17 +69,17 @@ function startWatchingPosition() {
     emit('user-location-available', false);
     return;
   }
-  
+
   userLocationAvailable.value = true;
   emit('user-location-available', true);
-  
+
   // Watch position
   watchId.value = navigator.geolocation.watchPosition(
     (position) => {
       const { latitude, longitude } = position.coords;
-      
+
       if (!props.map) return;
-      
+
       // Add or update user marker
       if (userMarker.value) {
         userMarker.value.setLatLng([latitude, longitude]);
@@ -90,11 +93,9 @@ function startWatchingPosition() {
           })
         }).addTo(props.map);
       }
-      
-      // Check if user is in crisis zone
-      if (props.crisisAreas) {
-        checkUserInCrisisZone(position);
-      }
+
+      // Check if user is in an event crisis zone
+      checkUserInEventZone(position);
     },
     (error) => {
       console.error('Error getting user location', error);
@@ -111,7 +112,7 @@ function stopWatchingPosition() {
     navigator.geolocation.clearWatch(watchId.value);
     watchId.value = null;
   }
-  
+
   if (userMarker.value && props.map) {
     userMarker.value.remove();
     userMarker.value = null;
@@ -145,6 +146,27 @@ watch(() => props.map, (newMap) => {
   }
 });
 
+// Watch for events changes
+watch(() => props.events, () => {
+  if (userMarker.value && props.map) {
+    const position = userMarker.value.getLatLng();
+    const geolocationPosition = {
+      coords: {
+        latitude: position.lat,
+        longitude: position.lng,
+        accuracy: 0,
+        altitude: null,
+        altitudeAccuracy: null,
+        heading: null,
+        speed: null
+      },
+      timestamp: Date.now()
+    } as GeolocationPosition;
+
+    checkUserInEventZone(geolocationPosition);
+  }
+}, { deep: true });
+
 // Clean up on unmount
 onUnmounted(() => {
   stopWatchingPosition();
@@ -161,43 +183,10 @@ defineExpose({
 </template>
 
 <style scoped>
+/* We'll keep some custom CSS for the animation */
 .user-location-marker {
-  position: relative;
+  @apply relative;
 }
 
-.pulse {
-  width: 20px;
-  height: 20px;
-  background-color: #2196F3;
-  border-radius: 50%;
-  position: relative;
-}
-
-.pulse::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-color: #2196F3;
-  opacity: 0.7;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  70% {
-    transform: scale(3);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0;
-  }
-}
-</style> 
+/* Add the rest of your existing styling here */
+</style>

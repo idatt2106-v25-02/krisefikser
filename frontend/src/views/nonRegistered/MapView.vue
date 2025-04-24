@@ -2,11 +2,13 @@
 import { ref, onMounted } from 'vue';
 import MapComponent from '@/components/map/MapComponent.vue';
 import ShelterLayer from '@/components/map/ShelterLayer.vue';
-import CrisisLayer from '@/components/map/CrisisLayer.vue';
+import EventLayer from '@/components/map/EventLayer.vue';
 import UserLocationLayer from '@/components/map/UserLocationLayer.vue';
 import MapLegend from '@/components/map/MapLegend.vue';
-import { shelters, crisisAreas } from '@/components/map/mapData';
-import type { CrisisArea } from '@/components/map/mapData';
+import { useGetAllMapPoints, useGetAllMapPointTypes } from '@/api/generated/krisefikserAPI';
+import { useGetAllEvents } from '@/api/generated/event/event';
+import type { MapPoint, MapPointType } from '@/api/generated/model';
+import type { Event } from '@/api/generated/model';
 import L from 'leaflet';
 
 // Map and related refs
@@ -16,7 +18,66 @@ const mapInstance = ref<L.Map | null>(null);
 const userLocationAvailable = ref(false);
 const showUserLocation = ref(false);
 const userInCrisisZone = ref(false);
-const currentCrisisArea = ref<CrisisArea | null>(null);
+
+// Data fetching and state
+const isLoading = ref(true);
+const shelters = ref<any[]>([]);
+const events = ref<Event[]>([]);
+
+// Fetch map data from API
+const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints();
+const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes();
+const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents();
+
+// Process map data
+function processMapData() {
+  if (!mapPointsData.value?.data || !mapPointTypesData.value?.data) return;
+
+  // Get data arrays from the API response
+  const mapPoints = Array.isArray(mapPointsData.value.data)
+    ? mapPointsData.value.data
+    : [mapPointsData.value.data];
+
+  const mapPointTypes = Array.isArray(mapPointTypesData.value.data)
+    ? mapPointTypesData.value.data
+    : [mapPointTypesData.value.data];
+
+  // Find shelter type
+  const shelterType = mapPointTypes.find((type: MapPointType) =>
+    type.title?.toLowerCase().includes('shelter'));
+
+  // Process shelter points
+  shelters.value = mapPoints
+    .filter((point: MapPoint) => point.type?.id === shelterType?.id)
+    .map((point: MapPoint) => ({
+      id: point.id,
+      name: point.type?.title || 'Shelter',
+      position: [point.latitude || 0, point.longitude || 0],
+      capacity: 300, // Default capacity value
+    }));
+
+  // Process events if available
+  if (eventsData.value?.data) {
+    events.value = Array.isArray(eventsData.value.data)
+      ? eventsData.value.data
+      : [eventsData.value.data];
+  }
+
+  isLoading.value = false;
+}
+
+// Watch for data load completion
+onMounted(() => {
+  const checkDataLoaded = () => {
+    if (!isLoadingMapPoints.value && !isLoadingMapPointTypes.value && !isLoadingEvents.value) {
+      processMapData();
+    } else {
+      setTimeout(checkDataLoaded, 100);
+    }
+  };
+
+  checkDataLoaded();
+});
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
@@ -32,9 +93,8 @@ function toggleUserLocation(show: boolean) {
 }
 
 // Handle user entering/leaving crisis zone
-function handleUserCrisisZoneChange(inZone: boolean, area?: CrisisArea) {
+function handleUserCrisisZoneChange(inZone: boolean) {
   userInCrisisZone.value = inZone;
-  currentCrisisArea.value = area || null;
 }
 
 // Get user location availability status
@@ -44,28 +104,34 @@ function onUserLocationStatus(available: boolean) {
 </script>
 
 <template>
-  <div class="map-container">
+  <div class="relative w-full h-screen">
     <MapComponent ref="mapRef" @map-created="onMapCreated" />
-    
-    <ShelterLayer 
-      :map="mapInstance" 
-      :shelters="shelters" 
-    />
-    
-    <CrisisLayer 
-      :map="mapInstance" 
-      :crisis-areas="crisisAreas" 
-    />
-    
-    <UserLocationLayer 
-      ref="userLocationRef"
-      :map="mapInstance" 
-      :crisis-areas="crisisAreas"
-      @user-in-crisis-zone="handleUserCrisisZoneChange"
-      @user-location-available="onUserLocationStatus"
-    />
-    
-    <MapLegend 
+
+    <div v-if="isLoading" class="absolute top-0 left-0 right-0 bg-slate-700 text-white p-2 text-center">
+      Loading map data...
+    </div>
+
+    <template v-if="!isLoading">
+      <ShelterLayer
+        :map="mapInstance"
+        :shelters="shelters"
+      />
+
+      <EventLayer
+        :map="mapInstance"
+        :events="events"
+      />
+
+      <UserLocationLayer
+        ref="userLocationRef"
+        :map="mapInstance"
+        :events="events"
+        @user-in-crisis-zone="handleUserCrisisZoneChange"
+        @user-location-available="onUserLocationStatus"
+      />
+    </template>
+
+    <MapLegend
       :user-location-available="userLocationAvailable"
       :show-user-location="showUserLocation"
       :user-in-crisis-zone="userInCrisisZone"
@@ -75,9 +141,5 @@ function onUserLocationStatus(available: boolean) {
 </template>
 
 <style scoped>
-.map-container {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-}
+/* No styles needed as we're using Tailwind classes */
 </style>

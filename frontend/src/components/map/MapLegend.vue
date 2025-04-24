@@ -16,121 +16,57 @@ function toggleUserLocation() {
 </script>
 
 <template>
-  <div class="map-controls">
-    <div class="legend">
-      <h3>Legend</h3>
-      <div class="legend-item">
-        <div class="legend-icon shelter-icon"></div>
-        <span>Emergency Shelter</span>
+  <div class="absolute top-5 right-5 z-10 flex flex-col gap-2.5">
+    <div class="bg-white p-2.5 rounded-md shadow-md max-w-[280px]">
+      <h3 class="mt-0 mb-2.5 text-base font-bold">Legend</h3>
+
+      <div class="mb-2">
+        <div class="font-semibold mb-1">Map Points:</div>
+        <div class="flex items-center mb-2">
+          <div class="w-5 h-5 mr-2.5 bg-contain bg-no-repeat shelter-icon"></div>
+          <span>Emergency Shelter</span>
+        </div>
       </div>
-      <div class="legend-item">
-        <div class="legend-icon crisis-low"></div>
-        <span>Low Severity (Level 1)</span>
+
+      <div class="mb-2">
+        <div class="font-semibold mb-1">Events:</div>
+        <div class="flex items-center mb-1">
+          <div class="w-5 h-5 mr-2.5 bg-[#4CAF50] rounded-full opacity-60"></div>
+          <span>Green Level (Informational)</span>
+        </div>
+        <div class="flex items-center mb-1">
+          <div class="w-5 h-5 mr-2.5 bg-[#FFC107] rounded-full opacity-60"></div>
+          <span>Yellow Level (Warning)</span>
+        </div>
+        <div class="flex items-center mb-1">
+          <div class="w-5 h-5 mr-2.5 bg-[#F44336] rounded-full opacity-60"></div>
+          <span>Red Level (Danger)</span>
+        </div>
       </div>
-      <div class="legend-item">
-        <div class="legend-icon crisis-medium"></div>
-        <span>Medium Severity (Level 2)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-icon crisis-high"></div>
-        <span>High Severity (Level 3)</span>
+
+      <div class="text-xs text-gray-600 mt-2">
+        <div>Event opacity indicates status:</div>
+        <div>Low = Upcoming, High = Ongoing, Faded = Finished</div>
       </div>
     </div>
-    
-    <button 
-      v-if="userLocationAvailable" 
-      class="location-btn" 
+
+    <button
+      v-if="userLocationAvailable"
+      class="py-2.5 px-4 bg-[#4CAF50] text-white border-none rounded-md cursor-pointer font-bold hover:bg-[#45a049]"
       @click="toggleUserLocation"
     >
       {{ showUserLocation ? 'Hide My Location' : 'Show My Location' }}
     </button>
-    
-    <div v-if="userInCrisisZone" class="crisis-alert">
+
+    <div v-if="userInCrisisZone" class="bg-[#F44336] text-white p-2.5 rounded-md font-bold text-center animate-blink">
       ⚠️ Warning: You are in a crisis zone!
     </div>
   </div>
 </template>
 
 <style scoped>
-.map-controls {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.legend {
-  background-color: white;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-width: 250px;
-}
-
-.legend h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.legend-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-}
-
 .shelter-icon {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMyA5bDkgLTcgOSA3djExYTIgMiAwIDAgMSAtMiAyaC0xNGEyIDIgMCAwIDEgLTIgLTJ6Ij48L3BhdGg+PHBvbHlsaW5lIHBvaW50cz0iOSAyMiA5IDEyIDE1IDEyIDE1IDIyIj48L3BvbHlsaW5lPjwvc3ZnPg==');
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-.crisis-low {
-  background-color: #FFC107;
-  border-radius: 50%;
-}
-
-.crisis-medium {
-  background-color: #FF9800;
-  border-radius: 50%;
-}
-
-.crisis-high {
-  background-color: #F44336;
-  border-radius: 50%;
-}
-
-.location-btn {
-  padding: 10px 15px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.location-btn:hover {
-  background-color: #45a049;
-}
-
-.crisis-alert {
-  background-color: #F44336;
-  color: white;
-  padding: 10px;
-  border-radius: 5px;
-  font-weight: bold;
-  text-align: center;
-  animation: blink 1s infinite;
 }
 
 @keyframes blink {
@@ -138,4 +74,8 @@ function toggleUserLocation() {
   50% { opacity: 0.5; }
   100% { opacity: 1; }
 }
-</style> 
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+</style>
