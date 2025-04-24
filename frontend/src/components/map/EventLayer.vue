@@ -55,8 +55,8 @@ function addEvents() {
       const color = getEventColor(event.level);
       const opacity = getEventOpacity(event.status);
 
-      const startTime = event.startTime ? new Date(event.startTime).toLocaleString() : 'N/A';
-      const endTime = event.endTime ? new Date(event.endTime).toLocaleString() : 'N/A';
+      const startTime = event.startTime ? new Date(event.startTime).toLocaleString() : 'Ikke tilgjengelig';
+      const endTime = event.endTime ? new Date(event.endTime).toLocaleString() : 'Ikke tilgjengelig';
 
       const statusText = event.status ? `<span style="font-weight: bold; color: ${color}">Status: ${event.status}</span>` : '';
 
@@ -69,12 +69,12 @@ function addEvents() {
       }).addTo(props.map)
         .bindPopup(`
           <div style="min-width: 200px">
-            <h3 style="margin: 0 0 8px; color: ${color}">${event.title || 'Unnamed Event'}</h3>
+            <h3 style="margin: 0 0 8px; color: ${color}">${event.title || 'Hendelse uten navn'}</h3>
             ${statusText}<br>
-            <p style="margin: 8px 0">${event.description || 'No description available'}</p>
+            <p style="margin: 8px 0">${event.description || 'Ingen beskrivelse tilgjengelig'}</p>
             <div style="margin-top: 8px">
               <div><strong>Start:</strong> ${startTime}</div>
-              ${event.endTime ? `<div><strong>End:</strong> ${endTime}</div>` : ''}
+              ${event.endTime ? `<div><strong>Slutt:</strong> ${endTime}</div>` : ''}
             </div>
           </div>
         `);

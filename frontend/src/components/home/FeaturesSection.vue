@@ -1,3 +1,8 @@
+<script  lang="ts">
+export default {
+  name: 'FeaturesSection'
+}
+</script>
 <template>
   <section class="mb-16">
     <div class="text-center mb-12">
@@ -57,8 +62,4 @@
   </section>
 </template>
 
-<script  lang="ts">
-export default {
-  name: 'FeaturesSection'
-}
-</script>
+

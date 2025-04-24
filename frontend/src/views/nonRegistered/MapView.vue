@@ -81,14 +81,14 @@ onMounted(() => {
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
-  mapInstance.value = map;
+  mapInstance.value = map
 }
 
 // Handle user location toggle
 function toggleUserLocation(show: boolean) {
-  showUserLocation.value = show;
+  showUserLocation.value = show
   if (userLocationRef.value) {
-    userLocationRef.value.toggleUserLocation(show);
+    userLocationRef.value.toggleUserLocation(show)
   }
 }
 
@@ -99,7 +99,7 @@ function handleUserCrisisZoneChange(inZone: boolean) {
 
 // Get user location availability status
 function onUserLocationStatus(available: boolean) {
-  userLocationAvailable.value = available;
+  userLocationAvailable.value = available
 }
 </script>
 
@@ -108,7 +108,7 @@ function onUserLocationStatus(available: boolean) {
     <MapComponent ref="mapRef" @map-created="onMapCreated" />
 
     <div v-if="isLoading" class="absolute top-0 left-0 right-0 bg-slate-700 text-white p-2 text-center">
-      Loading map data...
+      Laster kartdata...
     </div>
 
     <template v-if="!isLoading">
