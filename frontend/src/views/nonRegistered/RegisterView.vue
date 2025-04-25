@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -17,12 +17,12 @@ const rawSchema = z
     firstName: z.string().min(2, 'First name too short'),
     lastName: z.string().min(2, 'Last name too short'),
     email: z.string().email('Invalid email').min(5, 'Email too short'),
-    householdCode: z.string().refine(
-      (val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)),
-      {
+    householdCode: z
+      .string()
+      .refine((val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)), {
         message: 'Household code must be exactly 5 letters (no numbers)',
-      }
-    ).optional(),
+      })
+      .optional(),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
@@ -32,7 +32,7 @@ const rawSchema = z
       .regex(/[0-9]/, 'Must include a number')
       .regex(/[^A-Za-z0-9]/, 'Must include a special character'),
     confirmPassword: z.string(),
-    turnstileToken: z.string().min(1, 'Please complete the CAPTCHA verification')
+    turnstileToken: z.string().min(1, 'Please complete the CAPTCHA verification'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -47,30 +47,30 @@ const { handleSubmit, meta, setFieldValue } = useForm({
 // Store the Turnstile token
 const turnstileToken = ref('')
 
-// Handle Turnstile verification success
-const onTurnstileSuccess = (token: string) => {
-  turnstileToken.value = token
-  setFieldValue('turnstileToken', token)
-}
+// // Handle Turnstile verification success
+// const onTurnstileSuccess = (token: string) => {
+//   turnstileToken.value = token
+//   setFieldValue('turnstileToken', token)
+// }
 
-// Handle Turnstile verification error
-const onTurnstileError = () => {
-  turnstileToken.value = ''
-  setFieldValue('turnstileToken', '')
-}
+// // Handle Turnstile verification error
+// const onTurnstileError = () => {
+//   turnstileToken.value = ''
+//   setFieldValue('turnstileToken', '')
+// }
 
-// Handle Turnstile verification expiry
-const onTurnstileExpire = () => {
-  turnstileToken.value = ''
-  setFieldValue('turnstileToken', '')
-}
+// // Handle Turnstile verification expiry
+// const onTurnstileExpire = () => {
+//   turnstileToken.value = ''
+//   setFieldValue('turnstileToken', '')
+// }
 
 const onSubmit = handleSubmit(async (values) => {
   try {
     // TODO: Change website link to the actual server
     // Send the form data along with the Turnstile token to the server
     const response = await axios.post('http://localhost:3000/verify-turnstile', {
-      token: turnstileToken.value
+      token: turnstileToken.value,
     })
 
     const data = response.data
@@ -121,7 +121,9 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">First Name</FormLabel>
           <FormControl>
             <div class="relative">
-              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <User
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="text"
                 placeholder="John"
@@ -140,7 +142,9 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Last Name</FormLabel>
           <FormControl>
             <div class="relative">
-              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <User
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="text"
                 placeholder="Doe"
@@ -159,7 +163,9 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1"> Email </FormLabel>
           <FormControl>
             <div class="relative">
-              <Mail class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Mail
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="email"
                 placeholder="name@example.org"
@@ -178,7 +184,9 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Household Code</FormLabel>
           <FormControl>
             <div class="relative">
-              <Home class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Home
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="text"
                 placeholder="ABCDE"
@@ -198,7 +206,9 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Password</FormLabel>
           <FormControl>
             <div class="relative">
-              <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Lock
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="********"
@@ -228,7 +238,9 @@ function toggleShowConfirmPassword() {
           >
           <FormControl>
             <div class="relative">
-              <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Lock
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 :type="showConfirmPassword ? 'text' : 'password'"
                 placeholder="********"
@@ -253,7 +265,9 @@ function toggleShowConfirmPassword() {
       <!-- Cloudflare Turnstile -->
       <FormField v-slot="{ componentField }" name="turnstileToken">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Verify you're human</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1"
+            >Verify you're human</FormLabel
+          >
           <FormControl>
             <div class="flex justify-center">
               <div class="relative w-full flex justify-center">
@@ -262,6 +276,7 @@ function toggleShowConfirmPassword() {
                   site-key="0x4AAAAAABSTiPNZwrBLQkgr"
                   v-model="turnstileToken"
                   theme="light"
+                  v-bind="componentField"
                 />
               </div>
             </div>

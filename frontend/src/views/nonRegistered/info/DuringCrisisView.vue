@@ -1,5 +1,5 @@
 <script lang="ts">
-/* eslint-disable vue/no-unused-components */
+ 
 import { AlertTriangle, Radio, Info, Shield, AlertCircle, Zap, Droplets, Cloud,
   Stethoscope, Heart, PhoneCall, Users } from 'lucide-vue-next';
 import QuizComponent from '@/components/quiz/QuizComponent.vue';

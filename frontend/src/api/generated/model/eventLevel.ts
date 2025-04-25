@@ -9,7 +9,7 @@
 export type EventLevel = typeof EventLevel[keyof typeof EventLevel];
 
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const EventLevel = {
   GREEN: 'GREEN',
   YELLOW: 'YELLOW',
