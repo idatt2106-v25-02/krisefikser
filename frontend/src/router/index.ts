@@ -10,7 +10,6 @@ import NotFoundView from '@/views/errors/NotFoundView.vue'
 
 // Admin views
 import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
-import AdminEventsView from '@/views/admin/AdminEventsView.vue'
 import AdminMapView from '@/views/admin/AdminMapView.vue'
 import AdminSearchView from '@/views/admin/AdminSearchView.vue'
 import AdminResetPasswordLink from '@/views/admin/AdminResetPasswordLink.vue'
@@ -34,10 +33,6 @@ import NonRegisteredHomeView from '@/views/nonRegistered/HomeView.vue'
 import JoinOrCreateHouseholdView from '@/views/nonRegistered/JoinOrCreateHouseholdView.vue'
 import MapView from '@/views/nonRegistered/MapView.vue'
 import RegisterView from '@/views/nonRegistered/RegisterView.vue'
-import PrivacyPolicyView from '@/views/nonRegistered/PrivacyPolicyView.vue'
-import NewsView from '@/views/nonRegistered/NewsView.vue'
-import ArticleView from '@/views/nonRegistered/ArticleView.vue'
-import AboutUsView from '@/views/nonRegistered/AboutUsView.vue'
 import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue'
 
 // Crisis Information views
