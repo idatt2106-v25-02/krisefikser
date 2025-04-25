@@ -3,7 +3,6 @@
 import { ref, computed } from 'vue';
 import {
   Mail,
-  Edit,
   Trash2,
   ShieldCheck,
   Key,
@@ -152,6 +151,22 @@ const groupedHouseholds = computed(() => {
 const deleteItem = (id: string) => {
   console.log(`Deleting user with ID: ${id}`);
   // Implementation would connect to actual backend
+  const index = allUsers.value.findIndex(user => user.id === id);
+  if (index !== -1) {
+    allUsers.value.splice(index, 1);
+  }
+};
+
+// Check if a user can be deleted based on current user role
+const canDeleteUser = (userRole: string) => {
+  // Super Admins can delete Admins and Users, but not other Super Admins
+  if (props.isSuperAdmin) {
+    return userRole !== 'Super Admin';
+  }
+  // Regular Admins can only delete Users
+  else {
+    return userRole === 'User';
+  }
 };
 
 const sendPasswordResetLink = () => {
@@ -283,11 +298,6 @@ const getRoleClass = (role: string) => {
             <td class="px-4 py-3 text-gray-700">{{ user.lastLogin }}</td>
             <td class="px-4 py-3">
               <div class="flex justify-center space-x-2">
-                <!-- View/edit user details -->
-                <Button variant="ghost" size="icon" class="text-gray-600 hover:text-gray-800 p-1 h-auto">
-                  <Edit class="h-4 w-4" />
-                </Button>
-
                 <!-- Only Super Admin can send reset links -->
                 <Button
                   v-if="isSuperAdmin"
@@ -298,9 +308,9 @@ const getRoleClass = (role: string) => {
                   <Mail class="h-4 w-4" />
                 </Button>
 
-                <!-- Only Super Admin can delete users that aren't Super Admin -->
+                <!-- Delete button with permission check -->
                 <Button
-                  v-if="isSuperAdmin && user.role !== 'Super Admin'"
+                  v-if="canDeleteUser(user.role)"
                   variant="ghost"
                   size="icon"
                   class="text-red-600 hover:text-red-800 p-1 h-auto"
