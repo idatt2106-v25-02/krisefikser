@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import AddressForm from '@/components/layout/AddressForm.vue';
+import { ref } from 'vue'
+import AddressForm from '@/components/layout/AddressForm.vue'
 
 // Props
 const props = defineProps({
   colorTheme: {
     type: String,
     default: 'blue',
-    validator: (value: string) => ['blue', 'yellow', 'green'].includes(value)
-  }
-});
+    validator: (value: string) => ['blue', 'yellow', 'green'].includes(value),
+  },
+})
 
 // Emits
-const emit = defineEmits(['submit', 'cancel']);
+const emit = defineEmits(['submit', 'cancel'])
 
 // Form handling
 const onSubmit = (values: any) => {
-  emit('submit', values);
-};
+  emit('submit', values)
+}
 
-const isFormVisible = ref(true);
+const isFormVisible = ref(true)
 </script>
 
 <template>
@@ -38,4 +38,3 @@ const isFormVisible = ref(true);
     </transition>
   </div>
 </template>
-
