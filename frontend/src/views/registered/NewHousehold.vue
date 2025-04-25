@@ -18,24 +18,23 @@ const emit = defineEmits(['submit', 'cancel'])
 const onSubmit = (values: any) => {
   emit('submit', values)
 }
+
+const isFormVisible = ref(true)
 </script>
 
 <template>
-  <div class="home-address-container my-10">
-    <AddressForm
-      :colorTheme="colorTheme"
-      :includeHouseholdName="false"
-      title="Adresse"
-      description="Fyll inn adresseinformasjon"
-      submitButtonText="Lagre adresse"
-      @submit="onSubmit"
-      @cancel="emit('cancel')"
-    />
+  <div class="new-household-container">
+    <transition name="fade">
+      <AddressForm
+        v-if="isFormVisible"
+        :colorTheme="colorTheme"
+        :includeHouseholdName="true"
+        title="Opprett ny husstand"
+        description="Fyll inn detaljene for din nye husstand"
+        submitButtonText="Opprett husstand"
+        @submit="onSubmit"
+        @cancel="emit('cancel')"
+      />
+    </transition>
   </div>
 </template>
-<style scoped>
-.home-address-container {
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-}
-</style>

@@ -1,0 +1,14 @@
+name: Sprint Backlog Item
+description: Create a new sprint backlog item (sub-issue of a product backlog item)
+title: "[Sprint Backlog]: "
+
+
+ - type: textarea
+    id: Description
+    attributes:
+      label: Description (optional)
+      description: Add more description if needed
+      placeholder: Create new frontend component, new API endpoint, etc.
+      
+    validations:
+      required: true

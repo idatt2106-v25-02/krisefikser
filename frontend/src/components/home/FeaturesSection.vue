@@ -20,7 +20,7 @@ export default {
         </div>
         <h3 class="text-lg font-semibold text-gray-800 mb-2">Interaktivt kart</h3>
         <p class="text-gray-600 mb-4">Finn tilfluktsrom, hjertestartere og andre viktige ressurser i nærheten av deg.</p>
-        <router-link to="/map" class="text-blue-600 font-medium hover:underline">Utforsk kartet</router-link>
+        <router-link to="/kart" class="text-blue-600 font-medium hover:underline">Utforsk kartet</router-link>
       </div>
 
       <!-- Feature 2: Inventory -->
@@ -32,7 +32,7 @@ export default {
         </div>
         <h3 class="text-lg font-semibold text-gray-800 mb-2">Beredskapslager</h3>
         <p class="text-gray-600 mb-4">Hold oversikt over ditt eget beredskapslager og få påminnelser om utløpsdatoer.</p>
-        <router-link to="/login" class="text-blue-600 font-medium hover:underline">Logg inn for å bruke</router-link>
+        <router-link to="/logg-inn" class="text-blue-600 font-medium hover:underline">Logg inn for å bruke</router-link>
       </div>
 
       <!-- Feature 3: Notifications -->
