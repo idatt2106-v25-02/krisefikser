@@ -32,7 +32,7 @@ import {
 import {
   Alert,
   AlertDescription,
-  AlertTitle
+  AlertTitle,
 } from '@/components/ui/alert';
 
 // Import Accordion components
@@ -156,12 +156,33 @@ const selectedUser = computed(() => {
   return allUsers.value.find(user => user.id === selectedUserId.value) || null;
 });
 
+// Filter households based on search query
+const filteredHouseholds = computed(() => {
+  let result = [...households.value];
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter(household =>
+      household.name.toLowerCase().includes(query) ||
+      household.address.toLowerCase().includes(query) ||
+      // Search for household members by name or email
+      allUsers.value.some(user =>
+        user.householdId === household.id &&
+        (user.name.toLowerCase().includes(query) ||
+          user.email.toLowerCase().includes(query))
+      )
+    );
+  }
+
+  return result;
+});
+
 // Group users by household for the household view
 const groupedHouseholds = computed(() => {
   const householdMap = new Map();
 
-  // Initialize with household data
-  households.value.forEach(household => {
+  // Initialize with household data from filtered households
+  filteredHouseholds.value.forEach(household => {
     householdMap.set(household.id, {
       ...household,
       users: []
@@ -442,7 +463,10 @@ const getRoleClass = (role: string) => {
 
       <!-- Household view with accordion -->
       <div v-else class="p-2">
-        <Accordion type="single" collapsible class="w-full">
+        <div v-if="groupedHouseholds.length === 0" class="text-center py-8 text-gray-500">
+          Ingen husstander funnet som matcher søket.
+        </div>
+        <Accordion v-else type="single" collapsible class="w-full">
           <AccordionItem
             v-for="household in groupedHouseholds"
             :key="household.id"
