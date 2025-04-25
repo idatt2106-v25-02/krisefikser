@@ -1,6 +1,3 @@
-## Description
-<!-- Provide a clear and concise description of your changes -->
-
 ## Checklist
 <!-- Mark completed items with an [x] -->
 - [ ] My code follows the project's style guidelines
