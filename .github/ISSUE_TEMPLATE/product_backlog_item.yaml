@@ -1,7 +1,7 @@
 name: Product Backlog Item
 description: Create a new product backlog item
 title: "[PBI]: "
-projects: ["Krisefikser"]
+projects: [4]
 
 body:
   - type: markdown
