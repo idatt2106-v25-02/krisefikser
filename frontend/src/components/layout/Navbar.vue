@@ -25,16 +25,14 @@
             <span>Husstand</span>
           </router-link>
 
-          <router-link to="/husstand/:id/beredskapslager" class="flex items-center text-gray-700 hover:text-blue-600 transition">
-          
           <router-link
-            to="/legg-til-vare"
+            to="/husstand/:id/beredskapslager"
             class="flex items-center text-gray-700 hover:text-blue-600 transition"
           >
-
             <Package class="h-5 w-5 mr-1" />
             <span>Beredskapslager</span>
           </router-link>
+
           <router-link
             to="/dashboard"
             class="flex items-center text-gray-700 hover:text-blue-600 transition"
@@ -45,8 +43,9 @@
           <router-link
             to="/logg-inn"
             class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2"
-            >Logg inn</router-link
           >
+            Logg inn
+          </router-link>
         </div>
 
         <!-- Mobile menu button -->
@@ -77,16 +76,14 @@
           <span>Husstand</span>
         </router-link>
 
-        <router-link to="/husstand/:id/beredskapslager" class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200">
-
         <router-link
-          to="/legg-til-vare"
+          to="/husstand/:id/beredskapslager"
           class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
         >
-
           <Package class="h-5 w-5 mr-2" />
           <span>Beredskapslager</span>
         </router-link>
+
         <router-link
           to="/profil"
           class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
@@ -105,7 +102,6 @@
     </div>
   </nav>
 </template>
-
 <script lang="ts">
 import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User } from 'lucide-vue-next'
 
