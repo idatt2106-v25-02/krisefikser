@@ -192,6 +192,18 @@ const router = createRouter({
       component: AfterCrisisView,
     },
 
+    {
+      path: '/om-oss',
+      name: 'om-oss',
+      component: AboutUsView,
+    },
+
+    {
+      path: '/personvern',
+      name: 'personvern',
+      component: PrivacyPolicyView,
+    },
+
     // Error routes - must be last
     {
       path: '/:pathMatch(.*)*',

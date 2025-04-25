@@ -12,7 +12,7 @@ export default {
         <p class="text-xl mb-8">Krisefikser.no hjelper deg å øke din egenberedskap og gir deg tilgang til viktig informasjon før, under og etter en krise.</p>
         <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
           <router-link to="/register" class="bg-white text-blue-900 font-bold py-3 px-6 rounded-md text-center hover:bg-blue-100 transition">Kom i gang nå</router-link>
-          <router-link to="/map" class="bg-transparent border-2 border-white py-3 px-6 rounded-md text-center hover:bg-blue-800 transition">Se kart</router-link>
+          <router-link to="/kart" class="bg-transparent border-2 border-white py-3 px-6 rounded-md text-center hover:bg-blue-800 transition">Se kart</router-link>
         </div>
       </div>
     </div>
