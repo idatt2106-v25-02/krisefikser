@@ -27,7 +27,7 @@ import HouseholdDetailsView from "@/views/registered/HouseholdDetailsView.vue";
 import InviteView from "@/views/registered/InviteView.vue";
 import SearchView from "@/views/registered/SearchView.vue";
 import HomeAddressView from "@/views/registered/HomeAddressView.vue";
-import NewHouseholdView from "@/components/household/NewHousehold.vue";
+import NewHouseholdView from "@/views/registered/NewHousehold.vue";
 // Non-Registered User views
 import NonRegisteredHomeView from "@/views/nonRegistered/HomeView.vue";
 import JoinOrCreateHouseholdView from "@/views/nonRegistered/JoinOrCreateHouseholdView.vue";
