@@ -22,6 +22,10 @@
             <Package class="h-5 w-5 mr-1" />
             <span>Beredskapslager</span>
           </router-link>
+          <router-link to="/dashboard" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+            <User class="h-5 w-5 mr-1" />
+            <span>Min profil</span>
+          </router-link>
           <router-link to="/logg-inn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2">Logg inn</router-link>
         </div>
 
@@ -50,6 +54,10 @@
           <Package class="h-5 w-5 mr-2" />
           <span>Beredskapslager</span>
         </router-link>
+        <router-link to="/profil" class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200">
+          <User class="h-5 w-5 mr-2" />
+          <span>Min profil</span>
+        </router-link>
         <router-link to="/logg-inn" class="flex items-center px-3 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700">
           <LogIn class="h-5 w-5 mr-2" />
           <span>Logg inn</span>
@@ -60,7 +68,7 @@
 </template>
 
 <script lang="ts">
-import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn } from 'lucide-vue-next';
+import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User } from 'lucide-vue-next';
 
 export default {
   name: 'AppNavbar',
@@ -70,7 +78,8 @@ export default {
     Package,
     MenuIcon,
     X,
-    LogIn
+    LogIn,
+    User
   },
   data() {
     return {
