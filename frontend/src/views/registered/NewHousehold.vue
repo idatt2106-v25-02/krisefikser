@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import AddressForm from '@/components/layout/AddressForm.vue'
 
 // Props
-const props = defineProps({
+defineProps({
   colorTheme: {
     type: String,
     default: 'blue',
@@ -15,6 +15,7 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'cancel'])
 
 // Form handling
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const onSubmit = (values: any) => {
   emit('submit', values)
 }

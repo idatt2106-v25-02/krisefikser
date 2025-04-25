@@ -112,7 +112,12 @@ const onOnlyLetters = (e: KeyboardEvent) => {
 }
 
 // Geocode address
-const geocodeAddress = async (values: any): Promise<{ lat: number; lng: number } | null> => {
+const geocodeAddress = async (values: {
+  address: string
+  postalCode: string
+  city: string
+  country: string
+}): Promise<{ lat: number; lng: number } | null> => {
   try {
     const fullAddress = `${values.address}, ${values.postalCode} ${values.city}, ${values.country}`
     const encodedQuery = encodeURIComponent(fullAddress)

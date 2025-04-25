@@ -5,19 +5,20 @@ import { Input } from '@/components/ui/input'
 import { Eye, EyeOff, Lock } from 'lucide-vue-next'
 
 interface Props {
-  name: string;
-  label?: string;
-  placeholder?: string;
-  componentField: any;
-  showToggle?: boolean;
-  showIcon?: boolean;
+  name: string
+  label?: string
+  placeholder?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  componentField: any
+  showToggle?: boolean
+  showIcon?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   label: 'Passord',
   placeholder: '********',
   showToggle: true,
-  showIcon: true
+  showIcon: true,
 })
 
 // Stores the show password state
@@ -31,16 +32,21 @@ function toggleShowPassword() {
 
 <template>
   <FormItem>
-    <FormLabel v-if="label" class="block text-sm font-medium text-gray-700 mb-1">{{ label }}</FormLabel>
+    <FormLabel v-if="label" class="block text-sm font-medium text-gray-700 mb-1">{{
+      label
+    }}</FormLabel>
     <FormControl>
       <div class="relative">
-        <Lock v-if="showIcon" class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+        <Lock
+          v-if="showIcon"
+          class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+        />
         <Input
           :type="showPassword ? 'text' : 'password'"
           :placeholder="placeholder"
           :class="[
             'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10',
-            showIcon ? 'pl-8' : ''
+            showIcon ? 'pl-8' : '',
           ]"
           v-bind="componentField"
         />

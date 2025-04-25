@@ -1,6 +1,6 @@
 <!-- AdminSection.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed } from 'vue'
 import {
   Mail,
   Edit,
@@ -11,28 +11,28 @@ import {
   Users,
   UserCog,
   User,
-  Home
-} from 'lucide-vue-next';
+  Home,
+} from 'lucide-vue-next'
 
 // Import shadcn Button component
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'
 
 // Import Accordion components
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger
-} from '@/components/ui/accordion';
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 
-const props = defineProps({
+defineProps({
   isSuperAdmin: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+})
 
-const emit = defineEmits(['navigate']);
+const emit = defineEmits(['navigate'])
 
 // Mock data for users (admins and regular users)
 const allUsers = ref([
@@ -42,7 +42,7 @@ const allUsers = ref([
     email: 'ola@example.no',
     role: 'Super Admin',
     lastLogin: '2025-04-23',
-    householdId: null
+    householdId: null,
   },
   {
     id: '2',
@@ -50,7 +50,7 @@ const allUsers = ref([
     email: 'kari@example.no',
     role: 'Admin',
     lastLogin: '2025-04-22',
-    householdId: null
+    householdId: null,
   },
   {
     id: '3',
@@ -58,7 +58,7 @@ const allUsers = ref([
     email: 'per@example.no',
     role: 'Admin',
     lastLogin: '2025-04-20',
-    householdId: null
+    householdId: null,
   },
   {
     id: '4',
@@ -66,7 +66,7 @@ const allUsers = ref([
     email: 'anne@example.no',
     role: 'User',
     lastLogin: '2025-04-19',
-    householdId: 'h1'
+    householdId: 'h1',
   },
   {
     id: '5',
@@ -74,7 +74,7 @@ const allUsers = ref([
     email: 'lars@example.no',
     role: 'User',
     lastLogin: '2025-04-18',
-    householdId: 'h1'
+    householdId: 'h1',
   },
   {
     id: '6',
@@ -82,7 +82,7 @@ const allUsers = ref([
     email: 'emma@example.no',
     role: 'User',
     lastLogin: '2025-04-17',
-    householdId: 'h2'
+    householdId: 'h2',
   },
   {
     id: '7',
@@ -90,86 +90,89 @@ const allUsers = ref([
     email: 'thomas@example.no',
     role: 'User',
     lastLogin: '2025-04-16',
-    householdId: 'h2'
-  }
-]);
+    householdId: 'h2',
+  },
+])
 
 // Mock data for households
 const households = ref([
   { id: 'h1', name: 'Berg husstand', address: 'Storgata 1, Oslo', members: 2 },
-  { id: 'h2', name: 'Solberg husstand', address: 'Lillegata 2, Bergen', members: 2 }
-]);
+  { id: 'h2', name: 'Solberg husstand', address: 'Lillegata 2, Bergen', members: 2 },
+])
 
 // View options
-const viewMode = ref('all'); // 'all', 'admins', 'users', 'households'
-const searchQuery = ref('');
+const viewMode = ref('all') // 'all', 'admins', 'users', 'households'
+const searchQuery = ref('')
 
 // Filter and group users
 const filteredUsers = computed(() => {
-  let result = [...allUsers.value];
+  let result = [...allUsers.value]
 
   // Apply search filter
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    result = result.filter(user =>
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
-    );
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(
+      (user) => user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query),
+    )
   }
 
   // Apply role filter
   if (viewMode.value === 'admins') {
-    result = result.filter(user => user.role === 'Admin' || user.role === 'Super Admin');
+    result = result.filter((user) => user.role === 'Admin' || user.role === 'Super Admin')
   } else if (viewMode.value === 'users') {
-    result = result.filter(user => user.role === 'User');
+    result = result.filter((user) => user.role === 'User')
   }
 
-  return result;
-});
+  return result
+})
 
 // Group users by household for the household view
 const groupedHouseholds = computed(() => {
-  const householdMap = new Map();
+  const householdMap = new Map()
 
   // Initialize with household data
-  households.value.forEach(household => {
+  households.value.forEach((household) => {
     householdMap.set(household.id, {
       ...household,
-      users: []
-    });
-  });
+      users: [],
+    })
+  })
 
   // Add users to their households
-  allUsers.value.forEach(user => {
+  allUsers.value.forEach((user) => {
     if (user.householdId && householdMap.has(user.householdId)) {
-      householdMap.get(user.householdId).users.push(user);
+      householdMap.get(user.householdId).users.push(user)
     }
-  });
+  })
 
-  return Array.from(householdMap.values());
-});
+  return Array.from(householdMap.values())
+})
 
 const deleteItem = (id: string) => {
-  console.log(`Deleting user with ID: ${id}`);
+  console.log(`Deleting user with ID: ${id}`)
   // Implementation would connect to actual backend
-};
+}
 
 const sendPasswordResetLink = () => {
-  emit('navigate', '/admin/reset-passord-link');
-};
+  emit('navigate', '/admin/reset-passord-link')
+}
 
 const navigateToHousehold = (householdId: string) => {
-  emit('navigate', `/admin/husstand/${householdId}`);
-};
+  emit('navigate', `/admin/husstand/${householdId}`)
+}
 
 const getRoleClass = (role: string) => {
-  switch(role) {
-    case 'Super Admin': return 'bg-purple-100 text-purple-800';
-    case 'Admin': return 'bg-blue-100 text-blue-800';
-    case 'User': return 'bg-green-100 text-green-800';
-    default: return 'bg-gray-100 text-gray-800';
+  switch (role) {
+    case 'Super Admin':
+      return 'bg-purple-100 text-purple-800'
+    case 'Admin':
+      return 'bg-blue-100 text-blue-800'
+    case 'User':
+      return 'bg-green-100 text-green-800'
+    default:
+      return 'bg-gray-100 text-gray-800'
   }
-};
+}
 </script>
 
 <template>
@@ -184,7 +187,10 @@ const getRoleClass = (role: string) => {
       </div>
 
       <div v-else class="flex space-x-3">
-        <Button variant="default" class="flex items-center bg-blue-600 hover:bg-blue-700 text-white">
+        <Button
+          variant="default"
+          class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
+        >
           <Mail class="h-4 w-4 mr-1" />
           Inviter ny admin
         </Button>
@@ -205,7 +211,10 @@ const getRoleClass = (role: string) => {
         <ShieldCheck class="h-5 w-5 text-blue-500 mr-2" />
         <div>
           <p class="font-medium text-blue-700">Super Admin rettigheter aktivert</p>
-          <p class="text-sm text-blue-600">Du har tilgang til å invitere nye admin-brukere og sende ut passord-tilbakestillingslinker.</p>
+          <p class="text-sm text-blue-600">
+            Du har tilgang til å invitere nye admin-brukere og sende ut
+            passord-tilbakestillingslinker.
+          </p>
         </div>
       </div>
     </div>
@@ -226,7 +235,7 @@ const getRoleClass = (role: string) => {
         <div class="flex space-x-2 mt-4 md:mt-0">
           <Button
             variant="ghost"
-            :class="{'bg-blue-50 text-blue-600': viewMode === 'all'}"
+            :class="{ 'bg-blue-50 text-blue-600': viewMode === 'all' }"
             @click="viewMode = 'all'"
           >
             <Users class="h-4 w-4 mr-1" />
@@ -234,7 +243,7 @@ const getRoleClass = (role: string) => {
           </Button>
           <Button
             variant="ghost"
-            :class="{'bg-blue-50 text-blue-600': viewMode === 'admins'}"
+            :class="{ 'bg-blue-50 text-blue-600': viewMode === 'admins' }"
             @click="viewMode = 'admins'"
           >
             <UserCog class="h-4 w-4 mr-1" />
@@ -242,7 +251,7 @@ const getRoleClass = (role: string) => {
           </Button>
           <Button
             variant="ghost"
-            :class="{'bg-blue-50 text-blue-600': viewMode === 'users'}"
+            :class="{ 'bg-blue-50 text-blue-600': viewMode === 'users' }"
             @click="viewMode = 'users'"
           >
             <User class="h-4 w-4 mr-1" />
@@ -250,7 +259,7 @@ const getRoleClass = (role: string) => {
           </Button>
           <Button
             variant="ghost"
-            :class="{'bg-blue-50 text-blue-600': viewMode === 'households'}"
+            :class="{ 'bg-blue-50 text-blue-600': viewMode === 'households' }"
             @click="viewMode = 'households'"
           >
             <Home class="h-4 w-4 mr-1" />
@@ -263,54 +272,60 @@ const getRoleClass = (role: string) => {
       <div v-if="viewMode !== 'households'">
         <table class="w-full">
           <thead class="bg-gray-50 text-xs text-gray-700 uppercase">
-          <tr>
-            <th class="px-4 py-3 text-left">Navn</th>
-            <th class="px-4 py-3 text-left">E-post</th>
-            <th class="px-4 py-3 text-left">Rolle</th>
-            <th class="px-4 py-3 text-left">Sist innlogget</th>
-            <th class="px-4 py-3 text-center">Handlinger</th>
-          </tr>
+            <tr>
+              <th class="px-4 py-3 text-left">Navn</th>
+              <th class="px-4 py-3 text-left">E-post</th>
+              <th class="px-4 py-3 text-left">Rolle</th>
+              <th class="px-4 py-3 text-left">Sist innlogget</th>
+              <th class="px-4 py-3 text-center">Handlinger</th>
+            </tr>
           </thead>
           <tbody class="divide-y">
-          <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
-            <td class="px-4 py-3 font-medium text-gray-800">{{ user.name }}</td>
-            <td class="px-4 py-3 text-gray-700">{{ user.email }}</td>
-            <td class="px-4 py-3">
-              <span :class="`px-2 py-1 rounded-full text-xs font-medium ${getRoleClass(user.role)}`">
-                {{ user.role }}
-              </span>
-            </td>
-            <td class="px-4 py-3 text-gray-700">{{ user.lastLogin }}</td>
-            <td class="px-4 py-3">
-              <div class="flex justify-center space-x-2">
-                <!-- View/edit user details -->
-                <Button variant="ghost" size="icon" class="text-gray-600 hover:text-gray-800 p-1 h-auto">
-                  <Edit class="h-4 w-4" />
-                </Button>
-
-                <!-- Only Super Admin can send reset links -->
-                <Button
-                  v-if="isSuperAdmin"
-                  variant="ghost"
-                  size="icon"
-                  class="text-blue-600 hover:text-blue-800 p-1 h-auto"
+            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
+              <td class="px-4 py-3 font-medium text-gray-800">{{ user.name }}</td>
+              <td class="px-4 py-3 text-gray-700">{{ user.email }}</td>
+              <td class="px-4 py-3">
+                <span
+                  :class="`px-2 py-1 rounded-full text-xs font-medium ${getRoleClass(user.role)}`"
                 >
-                  <Mail class="h-4 w-4" />
-                </Button>
+                  {{ user.role }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-gray-700">{{ user.lastLogin }}</td>
+              <td class="px-4 py-3">
+                <div class="flex justify-center space-x-2">
+                  <!-- View/edit user details -->
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    class="text-gray-600 hover:text-gray-800 p-1 h-auto"
+                  >
+                    <Edit class="h-4 w-4" />
+                  </Button>
 
-                <!-- Only Super Admin can delete users that aren't Super Admin -->
-                <Button
-                  v-if="isSuperAdmin && user.role !== 'Super Admin'"
-                  variant="ghost"
-                  size="icon"
-                  class="text-red-600 hover:text-red-800 p-1 h-auto"
-                  @click="deleteItem(user.id)"
-                >
-                  <Trash2 class="h-4 w-4" />
-                </Button>
-              </div>
-            </td>
-          </tr>
+                  <!-- Only Super Admin can send reset links -->
+                  <Button
+                    v-if="isSuperAdmin"
+                    variant="ghost"
+                    size="icon"
+                    class="text-blue-600 hover:text-blue-800 p-1 h-auto"
+                  >
+                    <Mail class="h-4 w-4" />
+                  </Button>
+
+                  <!-- Only Super Admin can delete users that aren't Super Admin -->
+                  <Button
+                    v-if="isSuperAdmin && user.role !== 'Super Admin'"
+                    variant="ghost"
+                    size="icon"
+                    class="text-red-600 hover:text-red-800 p-1 h-auto"
+                    @click="deleteItem(user.id)"
+                  >
+                    <Trash2 class="h-4 w-4" />
+                  </Button>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -328,7 +343,9 @@ const getRoleClass = (role: string) => {
               <div class="flex items-center w-full text-left">
                 <div>
                   <div class="font-medium text-gray-800">{{ household.name }}</div>
-                  <div class="text-sm text-gray-500">{{ household.address }} - {{ household.members }} medlemmer</div>
+                  <div class="text-sm text-gray-500">
+                    {{ household.address }} - {{ household.members }} medlemmer
+                  </div>
                 </div>
                 <Button
                   variant="outline"
@@ -344,18 +361,18 @@ const getRoleClass = (role: string) => {
               <div class="px-4 py-2 bg-gray-50">
                 <table class="w-full">
                   <thead class="bg-gray-100 text-xs text-gray-700">
-                  <tr>
-                    <th class="px-4 py-2 text-left rounded-l-md">Navn</th>
-                    <th class="px-4 py-2 text-left">E-post</th>
-                    <th class="px-4 py-2 text-left rounded-r-md">Sist innlogget</th>
-                  </tr>
+                    <tr>
+                      <th class="px-4 py-2 text-left rounded-l-md">Navn</th>
+                      <th class="px-4 py-2 text-left">E-post</th>
+                      <th class="px-4 py-2 text-left rounded-r-md">Sist innlogget</th>
+                    </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200">
-                  <tr v-for="user in household.users" :key="user.id" class="hover:bg-gray-100">
-                    <td class="px-4 py-2 text-sm font-medium text-gray-800">{{ user.name }}</td>
-                    <td class="px-4 py-2 text-sm text-gray-700">{{ user.email }}</td>
-                    <td class="px-4 py-2 text-sm text-gray-700">{{ user.lastLogin }}</td>
-                  </tr>
+                    <tr v-for="user in household.users" :key="user.id" class="hover:bg-gray-100">
+                      <td class="px-4 py-2 text-sm font-medium text-gray-800">{{ user.name }}</td>
+                      <td class="px-4 py-2 text-sm text-gray-700">{{ user.email }}</td>
+                      <td class="px-4 py-2 text-sm text-gray-700">{{ user.lastLogin }}</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

@@ -225,6 +225,7 @@ const onSubmit = handleSubmit(async (values) => {
                   site-key="0x4AAAAAABSTiPNZwrBLQkgr"
                   v-model="turnstileToken"
                   theme="light"
+                  v-bind="componentField"
                   @success="onTurnstileSuccess"
                   @error="onTurnstileError"
                   @expire="onTurnstileExpire"
