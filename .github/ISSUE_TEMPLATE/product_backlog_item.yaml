@@ -1,0 +1,43 @@
+name: Product Backlog Item
+description: Create a new product backlog item
+title: "[PBI]: "
+projects: ["Krisefikser"]
+milestone: "Product Backlog"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Product Backlog Item
+        Please fill out the information below to create a new product backlog item.
+        
+  - type: input
+    id: user-story
+    attributes:
+      label: User Story
+      description: As a [role], I want [feature], so that [benefit]
+      placeholder: As a user, I want to be able to reset my password, so that I can regain access if I forget it
+    validations:
+      required: true
+      
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: List the conditions that must be met for this item to be considered complete
+      placeholder: |
+        - User can navigate to a password reset page
+        - User receives an email with a reset link
+        - Reset link allows user to create a new password
+        - Old password no longer works after reset
+    validations:
+      required: true
+      
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: Any technical details or implementation notes
+      placeholder: Will need to update the authentication service and email templates
+    validations:
+      required: false
