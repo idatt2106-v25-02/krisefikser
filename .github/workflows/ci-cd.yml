@@ -43,11 +43,6 @@ jobs:
               run: |
                   cd backend
                   mvn --batch-mode --errors --fail-at-end --show-version test -Dspring.profiles.active=test
-            - name: Publish Test Results
-              uses: EnricoMi/publish-unit-test-result-action@v2
-              if: always()
-              with:
-                  files: backend/target/surefire-reports/TEST-*.xml
             - name: Upload test reports
               uses: actions/upload-artifact@v4
               if: always()
@@ -188,8 +183,3 @@ jobs:
               with:
                   name: frontend-test-results
                   path: frontend/test-results.xml
-            - name: Upload coverage reports
-              uses: codecov/codecov-action@v4
-              with:
-                  file: frontend/coverage/cobertura-coverage.xml
-                  fail_ci_if_error: false
