@@ -25,6 +25,7 @@ import DashboardView from "@/views/registered/DashboardView.vue";
 import AddItemView from "@/views/registered/AddItemView.vue";
 import HouseholdView from "@/views/registered/HouseholdView.vue";
 import HouseholdDetailsView from "@/views/registered/HouseholdDetailsView.vue";
+import HouseholdInventoryView from "@/views/registered/HouseholdInventoryView.vue";
 import InviteView from "@/views/registered/InviteView.vue";
 import SearchView from "@/views/registered/SearchView.vue";
 import HomeAddressView from "@/views/registered/HomeAddressView.vue";
@@ -130,6 +131,12 @@ const router = createRouter({
       path: '/husstand/:id',
       name: 'household-details',
       component: HouseholdDetailsView,
+    },
+
+    {
+      path: '/husstand/:id/beredskapslager',
+      name: 'household-emergency-stock',
+      component: HouseholdInventoryView,
     },
 
     {
