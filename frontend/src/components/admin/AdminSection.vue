@@ -10,11 +10,30 @@ import {
   Users,
   UserCog,
   User,
-  Home
+  Home,
+  UserPlus,
+  CheckCircle
 } from 'lucide-vue-next';
 
 // Import shadcn Button component
 import { Button } from '@/components/ui/button';
+
+// Import Dialog components
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+// Import Alert components
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle
+} from '@/components/ui/alert';
 
 // Import Accordion components
 import {
@@ -32,6 +51,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['navigate']);
+
+// State for dialogs
+const showInviteDialog = ref(false);
+const showSuccessMessage = ref(false);
+const selectedUserId = ref('');
 
 // Mock data for users (admins and regular users)
 const allUsers = ref([
@@ -126,6 +150,12 @@ const filteredUsers = computed(() => {
   return result;
 });
 
+// Get selected user data
+const selectedUser = computed(() => {
+  if (!selectedUserId.value) return null;
+  return allUsers.value.find(user => user.id === selectedUserId.value) || null;
+});
+
 // Group users by household for the household view
 const groupedHouseholds = computed(() => {
   const householdMap = new Map();
@@ -169,8 +199,46 @@ const canDeleteUser = (userRole: string) => {
   }
 };
 
+// Check if a user can be invited to be admin
+const canInviteUser = (userRole: string) => {
+  // Only regular users can be invited to be admin
+  return userRole === 'User';
+};
+
 const sendPasswordResetLink = () => {
   emit('navigate', '/admin/reset-passord-link');
+};
+
+// Open admin invite dialog for specific user
+const openInviteDialog = (userId: string) => {
+  selectedUserId.value = userId;
+  showInviteDialog.value = true;
+};
+
+// Send admin invitation
+const sendAdminInvite = () => {
+  if (!selectedUser.value) return;
+
+  // In a real app, this would call an API to send the invite
+  console.log(`Sending admin invitation to ${selectedUser.value.email}`);
+
+  // Close the confirmation dialog
+  showInviteDialog.value = false;
+
+  // Show success message
+  showSuccessMessage.value = true;
+
+  // Hide success message after 3 seconds
+  setTimeout(() => {
+    showSuccessMessage.value = false;
+    selectedUserId.value = '';
+  }, 3000);
+};
+
+// Close dialogs
+const closeDialogs = () => {
+  showInviteDialog.value = false;
+  selectedUserId.value = '';
 };
 
 const navigateToHousehold = (householdId: string) => {
@@ -189,6 +257,46 @@ const getRoleClass = (role: string) => {
 
 <template>
   <div class="p-6">
+    <!-- Admin Invite Dialog -->
+    <Dialog :open="showInviteDialog" @update:open="val => !val && closeDialogs()">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Inviter til admin</DialogTitle>
+          <DialogDescription v-if="selectedUser">
+            Vil du invitere {{ selectedUser.name }} til å bli admin?
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="flex gap-2 mt-4">
+          <Button
+            variant="outline"
+            @click="closeDialogs"
+            class="flex-1"
+          >
+            Nei
+          </Button>
+          <Button
+            variant="default"
+            @click="sendAdminInvite"
+            class="flex-1"
+          >
+            Ja
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Success alert -->
+    <Alert
+      v-if="showSuccessMessage && selectedUser"
+      class="fixed bottom-4 right-4 w-96 bg-green-50 border-green-400 text-green-800 shadow-lg z-50"
+    >
+      <CheckCircle class="h-4 w-4" />
+      <AlertTitle>Invitasjon sendt!</AlertTitle>
+      <AlertDescription>
+        {{ selectedUser.name }} har blitt invitert til å bli admin.
+      </AlertDescription>
+    </Alert>
+
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-800">Brukere og admins</h2>
 
@@ -199,8 +307,12 @@ const getRoleClass = (role: string) => {
       </div>
 
       <div v-else class="flex space-x-3">
-        <Button variant="default" class="flex items-center bg-blue-600 hover:bg-blue-700 text-white">
-          <Mail class="h-4 w-4 mr-1" />
+        <Button
+          variant="default"
+          class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
+          @click="emit('navigate', '/admin/invite')"
+        >
+          <UserPlus class="h-4 w-4 mr-1" />
           Inviter ny admin
         </Button>
         <Button
@@ -298,12 +410,14 @@ const getRoleClass = (role: string) => {
             <td class="px-4 py-3 text-gray-700">{{ user.lastLogin }}</td>
             <td class="px-4 py-3">
               <div class="flex justify-center space-x-2">
-                <!-- Only Super Admin can send reset links -->
+                <!-- Mail icon - only for regular users if Super Admin -->
                 <Button
-                  v-if="isSuperAdmin"
+                  v-if="isSuperAdmin && canInviteUser(user.role)"
                   variant="ghost"
                   size="icon"
                   class="text-blue-600 hover:text-blue-800 p-1 h-auto"
+                  @click="openInviteDialog(user.id)"
+                  title="Inviter til Admin"
                 >
                   <Mail class="h-4 w-4" />
                 </Button>
@@ -315,6 +429,7 @@ const getRoleClass = (role: string) => {
                   size="icon"
                   class="text-red-600 hover:text-red-800 p-1 h-auto"
                   @click="deleteItem(user.id)"
+                  title="Slett bruker"
                 >
                   <Trash2 class="h-4 w-4" />
                 </Button>
