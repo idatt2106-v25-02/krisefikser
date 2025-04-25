@@ -1,6 +1,6 @@
 <!-- EventSection.vue -->
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import {
   PlusCircle,
   Search,
@@ -42,6 +42,39 @@ const events = ref([
   }
 ]);
 
+// Search and filter variables
+const searchQuery = ref('');
+const selectedLevel = ref('');
+const selectedStatus = ref('');
+
+// Filtered events computed property
+const filteredEvents = computed(() => {
+  let result = [...events.value];
+
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter(event =>
+      event.title.toLowerCase().includes(query) ||
+      event.description.toLowerCase().includes(query) ||
+      event.location.toLowerCase().includes(query)
+    );
+  }
+
+  // Apply level filter
+  if (selectedLevel.value) {
+    result = result.filter(event => event.level.toLowerCase() === selectedLevel.value.toLowerCase());
+  }
+
+  // Apply status filter
+  if (selectedStatus.value !== '') {
+    const isActive = selectedStatus.value === 'true';
+    result = result.filter(event => event.active === isActive);
+  }
+
+  return result;
+});
+
 const deleteItem = (id: string) => {
   console.log(`Deleting event with ID: ${id}`);
   // Implementation would connect to actual backend
@@ -71,16 +104,27 @@ const getLevelClass = (level: string) => {
       <div class="p-4 flex justify-between border-b">
         <div class="flex items-center rounded-lg bg-gray-100 px-3 py-2 w-64">
           <Search class="h-4 w-4 text-gray-500" />
-          <input type="text" placeholder="Søk hendelser..." class="bg-transparent border-0 outline-none ml-2 text-gray-700 w-full" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Søk hendelser..."
+            class="bg-transparent border-0 outline-none ml-2 text-gray-700 w-full"
+          />
         </div>
         <div class="flex space-x-2">
-          <select class="border rounded-lg px-3 py-2 text-gray-700 bg-white">
+          <select
+            v-model="selectedLevel"
+            class="border rounded-lg px-3 py-2 text-gray-700 bg-white"
+          >
             <option value="">Alle nivåer</option>
             <option value="rød">Rød</option>
             <option value="gul">Gul</option>
             <option value="grønn">Grønn</option>
           </select>
-          <select class="border rounded-lg px-3 py-2 text-gray-700 bg-white">
+          <select
+            v-model="selectedStatus"
+            class="border rounded-lg px-3 py-2 text-gray-700 bg-white"
+          >
             <option value="">Alle statuser</option>
             <option value="true">Aktiv</option>
             <option value="false">Inaktiv</option>
@@ -100,7 +144,7 @@ const getLevelClass = (level: string) => {
         </tr>
         </thead>
         <tbody class="divide-y">
-        <tr v-for="event in events" :key="event.id" class="hover:bg-gray-50">
+        <tr v-for="event in filteredEvents" :key="event.id" class="hover:bg-gray-50">
           <td class="px-4 py-3">
             <div>
               <p class="font-medium text-gray-800">{{ event.title }}</p>
