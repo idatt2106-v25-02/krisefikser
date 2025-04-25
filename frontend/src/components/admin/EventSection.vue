@@ -8,11 +8,26 @@ import {
   Trash2
 } from 'lucide-vue-next';
 
-// Import shadcn Button component
+// Import shadcn components
 import { Button } from '@/components/ui/button';
+import router from "@/router";
+
+// Import the EditEventCard component
+import EditEventCard from './EditEventCard.vue';
+
+// Interface for Event type
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  location: string;
+  timestamp: string;
+  active: boolean;
+}
 
 // Mock data for events
-const events = ref([
+const events = ref<Event[]>([
   {
     id: '1',
     title: 'Flom i Trondheim',
@@ -47,6 +62,34 @@ const searchQuery = ref('');
 const selectedLevel = ref('');
 const selectedStatus = ref('');
 
+// Edit mode state
+const isEditing = ref(false);
+const editingEvent = ref<Event | null>(null);
+
+// Start editing an event
+const startEditing = (event: Event) => {
+  editingEvent.value = JSON.parse(JSON.stringify(event)); // Deep copy to avoid modifying original
+  isEditing.value = true;
+};
+
+// Save edited event
+const saveEvent = (updatedEvent: Event) => {
+  // Find the event and update it
+  const index = events.value.findIndex(e => e.id === updatedEvent.id);
+  if (index !== -1) {
+    events.value[index] = { ...updatedEvent };
+  }
+
+  isEditing.value = false;
+  editingEvent.value = null;
+};
+
+// Cancel editing
+const cancelEditing = () => {
+  isEditing.value = false;
+  editingEvent.value = null;
+};
+
 // Filtered events computed property
 const filteredEvents = computed(() => {
   let result = [...events.value];
@@ -78,6 +121,10 @@ const filteredEvents = computed(() => {
 const deleteItem = (id: string) => {
   console.log(`Deleting event with ID: ${id}`);
   // Implementation would connect to actual backend
+  const index = events.value.findIndex(e => e.id === id);
+  if (index !== -1) {
+    events.value.splice(index, 1);
+  }
 };
 
 const getLevelClass = (level: string) => {
@@ -88,17 +135,29 @@ const getLevelClass = (level: string) => {
     default: return 'bg-gray-100 text-gray-800 border-gray-200';
   }
 };
+
+const addNewEvent = () => {
+  router.push({ name: 'admin-map' });
+};
 </script>
 
 <template>
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-800">Hendelser</h2>
-      <Button class="flex items-center bg-blue-600 hover:bg-blue-700 text-white">
+      <Button class="flex items-center bg-blue-600 hover:bg-blue-700 text-white" @click="addNewEvent">
         <PlusCircle class="h-4 w-4 mr-1" />
         Ny hendelse
       </Button>
     </div>
+
+    <!-- Import EditEventCard component -->
+    <EditEventCard
+      v-if="isEditing"
+      :event="editingEvent"
+      @save="saveEvent"
+      @cancel="cancelEditing"
+    />
 
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="p-4 flex justify-between border-b">
@@ -165,7 +224,12 @@ const getLevelClass = (level: string) => {
           </td>
           <td class="px-4 py-3">
             <div class="flex justify-center space-x-2">
-              <Button variant="ghost" size="icon" class="text-blue-600 hover:text-blue-800 p-1 h-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                class="text-blue-600 hover:text-blue-800 p-1 h-auto"
+                @click="startEditing(event)"
+              >
                 <Edit class="h-4 w-4" />
               </Button>
               <Button
