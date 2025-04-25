@@ -21,12 +21,6 @@ jobs:
               run: |
                   cd backend
                   mvn --batch-mode --errors --fail-at-end --show-version clean compile
-            - name: Upload build artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: backend-classes
-                  path: backend/target/classes/
-                  retention-days: 1
 
     test-backend:
         runs-on: ubuntu-latest
@@ -43,13 +37,6 @@ jobs:
               run: |
                   cd backend
                   mvn --batch-mode --errors --fail-at-end --show-version test -Dspring.profiles.active=test
-            - name: Upload test reports
-              uses: actions/upload-artifact@v4
-              if: always()
-              with:
-                  name: backend-test-reports
-                  path: backend/target/surefire-reports/
-                  retention-days: 7
 
     package-backend:
         runs-on: ubuntu-latest
@@ -67,12 +54,6 @@ jobs:
               run: |
                   cd backend
                   mvn --batch-mode --errors --fail-at-end --show-version package -DskipTests
-            - name: Upload JAR
-              uses: actions/upload-artifact@v4
-              with:
-                  name: backend-jar
-                  path: backend/target/*.jar
-                  retention-days: 7
 
     build-frontend:
         runs-on: ubuntu-latest
@@ -103,14 +84,9 @@ jobs:
             - name: Install and build frontend
               run: |
                   cd frontend
+                  rm -rf dist node_modules
                   pnpm install --frozen-lockfile
                   pnpm run build
-            - name: Upload build artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: frontend-dist
-                  path: frontend/dist/
-                  retention-days: 1
 
     lint-frontend:
         runs-on: ubuntu-latest
@@ -142,6 +118,7 @@ jobs:
             - name: Run lint
               run: |
                   cd frontend
+                  rm -rf dist node_modules
                   pnpm install --frozen-lockfile
                   pnpm run lint
 
@@ -175,11 +152,6 @@ jobs:
             - name: Run tests
               run: |
                   cd frontend
+                  rm -rf dist node_modules
                   pnpm install --frozen-lockfile
                   pnpm vitest run
-            - name: Upload test results
-              uses: actions/upload-artifact@v4
-              if: always()
-              with:
-                  name: frontend-test-results
-                  path: frontend/test-results.xml
