@@ -9,8 +9,30 @@ import Settings from '@/components/dashboard/Settings.vue'
 import Households from '@/components/dashboard/Households.vue'
 import Security from '@/components/dashboard/Security.vue'
 
+// Define user interface
+interface UserPreferences {
+  notifications: boolean;
+  emailUpdates: boolean;
+  locationSharing: boolean;
+}
+
+interface Household {
+  id: string;
+  name: string;
+}
+
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  households: Household[];
+  preferences: UserPreferences;
+}
+
 // Mock user data - in a real app, you would fetch this from your API
-const user = ref({
+const user = ref<UserData>({
   id: '1',
   name: 'Erik Hansen',
   email: 'erik.hansen@example.com',
@@ -27,12 +49,17 @@ const user = ref({
   },
 })
 
-const updateUserInfo = (updatedUser) => {
+const updateUserInfo = (updatedUser: Partial<UserData>): void => {
   user.value = { ...user.value, ...updatedUser }
   // In a real app, you would send the updated user data to your API
 }
 
-const updatePreferences = ({ preference, value }) => {
+interface PreferenceUpdate {
+  preference: keyof UserPreferences;
+  value: boolean;
+}
+
+const updatePreferences = ({ preference, value }: PreferenceUpdate): void => {
   user.value.preferences[preference] = value
   // In a real app, you would send the updated preferences to your API
 }
