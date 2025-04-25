@@ -18,7 +18,7 @@
             <Home class="h-5 w-5 mr-1" />
             <span>Husstand</span>
           </router-link>
-          <router-link to="/legg-til-vare" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+          <router-link to="/husstand/:id/beredskapslager" class="flex items-center text-gray-700 hover:text-blue-600 transition">
             <Package class="h-5 w-5 mr-1" />
             <span>Beredskapslager</span>
           </router-link>
@@ -46,7 +46,7 @@
           <Home class="h-5 w-5 mr-2" />
           <span>Husstand</span>
         </router-link>
-        <router-link to="/legg-til-vare" class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200">
+        <router-link to="/husstand/:id/beredskapslager" class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200">
           <Package class="h-5 w-5 mr-2" />
           <span>Beredskapslager</span>
         </router-link>
