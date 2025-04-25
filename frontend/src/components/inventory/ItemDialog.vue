@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -125,9 +124,8 @@ function closeDialog() {
       </CardHeader>
 
       <CardContent>
-        <Form @submit="onSubmit" class="space-y-4 pt-4">
-          <!-- Name field -->
-          <FormField name="name">
+ <!-- <Form @submit.prevent="onSubmit" class="space-y-4 pt-4">    -->
+  <FormField name="name">
             <FormItem>
               <FormLabel class="text-gray-700">Navn</FormLabel>
               <FormControl>
@@ -193,7 +191,7 @@ function closeDialog() {
               <Plus class="mr-2 h-4 w-4" /> Legg til
             </Button>
           </CardFooter>
-        </Form>
+       <!-- </Form> -->
       </CardContent>
     </Card>
   </div>

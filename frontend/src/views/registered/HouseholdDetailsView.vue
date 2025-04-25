@@ -11,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   DropdownMenu,
@@ -24,17 +23,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { MapPin, ExternalLink, Trash, UserMinus, AlertCircle, Map as MapIcon } from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 
-interface ProductType {
-  name: string
-  unit: string
-}
-
-interface InventoryItem {
-  name: string
-  expiryDate: string
-  amount: number
-  productType: ProductType
-}
 
 interface Member {
   id: string
@@ -484,7 +472,7 @@ function viewMeetingPlace(placeId: string) {
 </template>
 
 <style scoped>
-:deep(.meeting-map-dialog .DialogContent) {
+:deep(.meeting-map-dialog) {
   max-width: 800px;
   width: 90vw;
 }

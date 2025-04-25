@@ -27,7 +27,7 @@ interface InventoryItem {
   name: string
   amount: number
   unit: string
-  expiryDate?: string
+  expiryDate?: string | null | undefined
   type?: string
 }
 
@@ -152,9 +152,9 @@ function handleAddItem(newItem: any) {
 
 function deleteItem(categoryId: string, itemId: string) {
   const category = apiResponse.value.household.inventory.categories.find(c => c.id === categoryId)
-  if (category) {
-    category.items = category.items.filter(item => item.id !== itemId)
-  }
+  // if (category) {
+  //   category.items = category.items.filter(item => item.id !== itemId)
+  // }
 }
 
 // State for dialogs

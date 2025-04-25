@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, PropType } from 'vue';
+import { ref } from 'vue';
+import type { PropType } from 'vue'; // Use type-only import for PropType
 import MapComponent from '@/components/map/MapComponent.vue';
 import UserLocationLayer from '@/components/map/UserLocationLayer.vue';
 import MapLegend from '@/components/map/MapLegend.vue';
 import L from 'leaflet';
 
+// Define interfaces
 interface MeetingPlace {
   id: string;
   name: string;
@@ -14,6 +16,12 @@ interface MeetingPlace {
   type: 'primary' | 'secondary'; // Primary or secondary meeting place
 }
 
+// Define interface for UserLocationLayer component to help TypeScript understand its structure
+interface UserLocationLayerInstance {
+  userPosition: [number, number] | null;
+  toggleUserLocation: (show: boolean) => void;
+}
+
 // Props definition
 const props = defineProps({
   meetingPlaces: {
@@ -21,23 +29,29 @@ const props = defineProps({
     required: true
   },
   householdPosition: {
-    type: Array as PropType<[number, number]>, // [latitude, longitude]
-    default: () => null
+    type: Array as unknown as PropType<[number, number]>, // Cast with unknown first
+    default: () => null as unknown as [number, number] | null
   }
 });
 
 // Map and related refs
 const mapRef = ref<InstanceType<typeof MapComponent> | null>(null);
-const userLocationRef = ref<InstanceType<typeof UserLocationLayer> | null>(null);
+const userLocationRef = ref<UserLocationLayerInstance | null>(null);
 const mapInstance = ref<L.Map | null>(null);
 const userLocationAvailable = ref(false);
 const showUserLocation = ref(false);
+const userInCrisisZone = ref(false);
 const selectedMeetingPlace = ref<MeetingPlace | null>(null);
 const directionsVisible = ref(false);
 const directionsRoute = ref<any[]>([]);
 
 // Emits for map interactions
 const emit = defineEmits(['meeting-place-selected', 'get-directions']);
+
+// Handle user entering/leaving crisis zone
+function handleUserCrisisZoneChange(inZone: boolean) {
+  userInCrisisZone.value = inZone;
+}
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
@@ -77,7 +91,7 @@ function addMeetingPlacesToMap() {
 
     // Create marker with popup
     const marker = L.marker(place.position as L.LatLngExpression, { icon })
-      .addTo(mapInstance.value!)
+      .addTo(mapInstance.value as unknown as L.Map)
       .bindPopup(`
         <div class="p-2">
           <h3 class="font-bold">${place.name}</h3>
@@ -132,7 +146,7 @@ function getDirections(place: MeetingPlace) {
       weight: 4,
       opacity: 0.7,
       dashArray: '10, 10'
-    }).addTo(mapInstance.value);
+    }).addTo(mapInstance.value as unknown as L.Map);
   }
 
   emit('get-directions', {
@@ -180,18 +194,21 @@ defineExpose({
 </script>
 
 <template>
-  <div class="relative w-full h-96 border border-gray-200 rounded-lg overflow-hidden">
+  <div class="relative w-full  h-[500px] border border-gray-200 rounded-lg overflow-hidden">
     <MapComponent ref="mapRef" @map-created="onMapCreated" />
 
     <UserLocationLayer
       ref="userLocationRef"
-      :map="mapInstance"
+      :map="mapInstance as any"
+      :events="[]"
+      @user-in-crisis-zone="handleUserCrisisZoneChange"
       @user-location-available="onUserLocationStatus"
     />
 
     <MapLegend
       :user-location-available="userLocationAvailable"
       :show-user-location="showUserLocation"
+      :user-in-crisis-zone="userInCrisisZone"
       @toggle-user-location="toggleUserLocation"
     />
 
