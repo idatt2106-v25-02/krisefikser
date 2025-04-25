@@ -1,82 +1,15 @@
-name: "🛠️ Development Task"
-description: "Beskriv en utviklingsoppgave basert på visjonsdokumentet"
-title: "[Task] [Kort oppgave-navn]"
-labels:
-  - chore
-  - needs-triage
-assignees: []  # Legg til ansvarlige om ønskelig
-projects: []   # Legg til prosjektlenker om ønskelig
+name: Task
+description: Create a new task
+title: "[Task]: "
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ### 🛠️ Utviklingsoppgave
-        *Beskriv oppgaven nedenfor. Vær så spesifikk som mulig!*
-
-  - type: input
-    id: summary
-    attributes:
-      label: "Kort oppsummering"
-      description: "En setning som beskriver hovedformålet med oppgaven"
-      placeholder: "Eksempel: Implementer login-endepunkt i auth-tjenesten"
-    validations:
-      required: true
-
   - type: textarea
     id: description
     attributes:
-      label: "Detaljert beskrivelse"
-      description: "Hva skal implementeres/endres? Hvorfor er dette nødvendig?"
+      label: Description (optional)
+      description: Add more description if needed
       placeholder: |
-        - Funksjon:
-        - Motivasjon:
+        - Backend is bugging out (like usual) because of example1
+        - Frontend is not being routed properly
     validations:
-      required: true
-
-  - type: textarea
-    id: acceptance_criteria
-    attributes:
-      label: "Akseptansekriterier"
-      description: "Hvordan vet vi at oppgaven er fullført? List opp krav som sjekkliste."
-      placeholder: |
-        - [ ] Kriterium 1
-        - [ ] Kriterium 2
-    validations:
-      required: true
-
-  - type: textarea
-    id: technical_details
-    attributes:
-      label: "Tekniske detaljer"
-      description: "Teknologier, rammeverk eller avhengigheter"
-      placeholder: |
-        Eksempel: Bruk Redis for cache, Spring Boot 3.0, UUID for bruker-id
-
-  - type: dropdown
-    id: estimated_hours
-    attributes:
-      label: "Estimert tidsbruk (story points)"
-      description: "1 story point = 1 time arbeid. Velg estimert varighet på oppgaven."
-      options:
-        - "1 time (1 story point)"
-        - "2 timer"
-        - "3 timer"
-        - "4 timer"
-        - "5 timer"
-        - "6 timer"
-        - "8 timer"
-        - "10 timer"
-        - "12+ timer"
-    validations:
-      required: true
-
-  - type: checkboxes
-    id: extras
-    attributes:
-      label: "Forhåndsvalg"
-      options:
-        - label: "Krever database-migrering"
-          required: false
-        - label: "Krever dokumentasjonsoppdatering"
-          required: false
+      required: false

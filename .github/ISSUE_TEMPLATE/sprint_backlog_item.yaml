@@ -1,0 +1,15 @@
+name: Sprint Backlog Item
+description: Create a new product backlog item
+title: "[Sprint Backlog]: "
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description (optional)
+      description: Add more description if needed
+      placeholder: |
+        - Need to add example1 and example2 endpoints for user
+        - Create a new component that has example1 functionality
+    validations:
+      required: false

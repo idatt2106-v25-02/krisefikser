@@ -28,6 +28,7 @@ import InviteView from '@/views/registered/InviteView.vue'
 import SearchView from '@/views/registered/SearchView.vue'
 import HomeAddressView from '@/views/registered/HomeAddressView.vue'
 import NewHouseholdView from '@/views/registered/NewHousehold.vue'
+
 // Non-Registered User views
 import NonRegisteredHomeView from '@/views/nonRegistered/HomeView.vue'
 import JoinOrCreateHouseholdView from '@/views/nonRegistered/JoinOrCreateHouseholdView.vue'
@@ -128,6 +129,12 @@ const router = createRouter({
     },
 
     {
+      path: '/husstand/:id/beredskapslager',
+      name: 'household-emergency-stock',
+      component: HouseholdInventoryView,
+    },
+
+    {
       path: '/inviter-medlemmer',
       name: 'invite',
       component: InviteView,
@@ -185,6 +192,18 @@ const router = createRouter({
       path: '/info/etter-krisen',
       name: 'after-crisis',
       component: AfterCrisisView,
+    },
+
+    {
+      path: '/om-oss',
+      name: 'om-oss',
+      component: AboutUsView,
+    },
+
+    {
+      path: '/personvern',
+      name: 'personvern',
+      component: PrivacyPolicyView,
     },
 
     // Error routes - must be last

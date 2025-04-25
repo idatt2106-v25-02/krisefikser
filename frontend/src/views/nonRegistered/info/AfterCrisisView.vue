@@ -253,7 +253,7 @@ export default {
       primaryButtonText="Registrer deg nå"
       primaryButtonRoute="/register"
       secondaryButtonText="Logg inn"
-      secondaryButtonRoute="/login"
+      secondaryButtonRoute="/logg-inn"
       colorTheme="green"
     />
   </PageLayout>

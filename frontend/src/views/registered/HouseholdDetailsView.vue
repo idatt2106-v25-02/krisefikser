@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -10,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   DropdownMenu,
@@ -19,39 +19,31 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { MapPin, ExternalLink, Trash, UserMinus, AlertCircle, Map as MapIcon } from 'lucide-vue-next'
+import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 
-interface ProductType {
-  name: string
-  unit: string
-}
-
-interface InventoryItem {
-  name: string
-  expiryDate: string
-  amount: number
-  productType: ProductType
-}
 
 interface Member {
   id: string
   name: string
-  consumptionFactor: number
+  consumptionFactor?: number
   email?: string
+}
+
+interface MeetingPlace {
+  id: string;
+  name: string;
+  address: string;
+  position: [number, number]; // [latitude, longitude]
+  description?: string;
+  type: 'primary' | 'secondary'; // Primary or secondary meeting place
 }
 
 type MemberFormValues = {
   name: string
   email?: string
   consumptionFactor?: number
-}
-
-type ItemFormValues = {
-  name: string
-  amount: number
-  expiryDate: string
-  productType: ProductType
 }
 
 // Form schemas
@@ -61,28 +53,27 @@ const memberFormSchema = toTypedSchema(z.object({
   consumptionFactor: z.number().min(0.1, 'Må være større enn 0').optional()
 }))
 
-const itemFormSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'Navn er påkrevd'),
-  amount: z.number().min(0.1, 'Må være større enn 0'),
-  expiryDate: z.string().min(1, 'Utløpsdato er påkrevd'),
-  productType: z.object({
-    name: z.string(),
-    unit: z.string()
-  })
-}))
-
-// Mock API response for a single household
+// Updated mock API response for the active household (Familien Hansen)
 const apiResponse = ref({
   household: {
     id: '1',
     name: 'Familien Hansen',
     address: 'Kongens gate 1, 0153 Oslo',
+    position: [59.9127, 10.7461] as [number, number], // Oslo coordinates
     members: [
-      { id: '1', name: 'Erik Hansen', consumptionFactor: 1, email: 'erik@example.com' },
-      { id: '2', name: 'Maria Hansen', consumptionFactor: 1, email: 'maria@example.com' },
-      { id: '3', name: 'Lars Hansen', consumptionFactor: 0.5 }
+      { id: '1', name: 'Erik Hansen', consumptionFactor: 1 },
+      { id: '2', name: 'Maria Hansen', consumptionFactor: 1 },
+      { id: '3', name: 'Lars Hansen', consumptionFactor: 1 },
+      { id: '4', name: 'Mona Hansen', consumptionFactor: 1 }
     ] as Member[],
-    inventory: [
+    inventory: {
+      food: { current: 18, target: 60, unit: 'kg' },
+      water: { current: 60, target: 160, unit: 'L' },
+      other: { current: 12, target: 22 },
+      preparedDays: 3,
+      targetDays: 7
+    },
+    inventoryItems: [
       {
         name: 'Melk',
         expiryDate: '2024-04-10',
@@ -100,41 +91,41 @@ const apiResponse = ref({
           name: 'Bakevarer',
           unit: 'stk'
         }
+      }
+    ],
+    meetingPlaces: [
+      {
+        id: 'mp1',
+        name: 'Hovedmøteplass: Rådhusplassen',
+        address: 'Rådhusplassen 1, 0037 Oslo',
+        position: [59.9125, 10.7342],
+        description: 'Samlingssted ved krisesituasjoner. Møt opp ved fontenen.',
+        type: 'primary'
       },
       {
-        name: 'Pasta',
-        expiryDate: '2025-01-15',
-        amount: 3,
-        productType: {
-          name: 'Tørrvarer',
-          unit: 'pakke'
-        }
+        id: 'mp2',
+        name: 'Alternativ møteplass: Frognerparken',
+        address: 'Kirkeveien 20, 0368 Oslo',
+        position: [59.9274, 10.7002],
+        description: 'Sekundær møteplass ved krisesituasjoner. Oppmøte ved hovedinngangen.',
+        type: 'secondary'
       }
-    ]
+    ] as MeetingPlace[]
   }
 })
 
-// Mock product types
-const productTypes = ref<ProductType[]>([
-  { name: 'Meieriprodukter', unit: 'liter' },
-  { name: 'Bakevarer', unit: 'stk' },
-  { name: 'Tørrvarer', unit: 'pakke' },
-  { name: 'Kjøtt', unit: 'gram' },
-  { name: 'Grønnsaker', unit: 'kg' }
-])
+const router = useRouter()
 
 // State for dialogs
 const isAddMemberDialogOpen = ref(false)
-const isAddItemDialogOpen = ref(false)
+const isMeetingMapDialogOpen = ref(false)
 const memberMode = ref<'invite' | 'add'>('add')
+const mapRef = ref<InstanceType<typeof HouseholdMeetingMap> | null>(null)
+const selectedMeetingPlace = ref<MeetingPlace | null>(null)
 
 // Form handling
 const { handleSubmit: submitMemberForm } = useForm<MemberFormValues>({
   validationSchema: memberFormSchema
-})
-
-const { handleSubmit: submitItemForm } = useForm<ItemFormValues>({
-  validationSchema: itemFormSchema
 })
 
 // Actions
@@ -149,244 +140,340 @@ function onMemberSubmit(values: MemberFormValues) {
   isAddMemberDialogOpen.value = false
 }
 
-function onItemSubmit(values: ItemFormValues) {
-  const item: InventoryItem = {
-    name: values.name,
-    amount: values.amount,
-    expiryDate: values.expiryDate,
-    productType: values.productType
-  }
-  apiResponse.value.household.inventory.push(item)
-  isAddItemDialogOpen.value = false
-}
-
 function handleDeleteMember(memberId: string) {
   apiResponse.value.household.members = apiResponse.value.household.members.filter(
     m => m.id !== memberId
   )
 }
+
+function navigateToInventory() {
+  router.push(`/husstand/${apiResponse.value.household.id}/beredskapslager`)
+}
+
+function leaveHousehold() {
+  // In a real app, this would make an API call
+  console.log('Forlat husstand clicked')
+}
+
+function deleteHousehold() {
+  // In a real app, this would make an API call
+  console.log('Slett husstand clicked')
+}
+
+function handleMeetingPlaceSelected(place: MeetingPlace) {
+  selectedMeetingPlace.value = place
+}
+
+function viewMeetingPlace(placeId: string) {
+  isMeetingMapDialogOpen.value = true
+
+  // Wait for dialog to open and map to initialize
+  setTimeout(() => {
+    if (mapRef.value) {
+      mapRef.value.centerOnMeetingPlace(placeId)
+    }
+  }, 300)
+}
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="max-w-8xl mx-auto px-20 py-8">
+    <!-- Household header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ apiResponse.household.name }}</h1>
-      <p class="text-gray-600">{{ apiResponse.household.address }}</p>
+      <h1 class="text-3xl font-bold text-gray-900 mb-1">{{ apiResponse.household.name }}</h1>
+      <div class="flex items-center text-gray-600 mb-6">
+        <MapPin class="h-4 w-4 text-gray-400 mr-1" />
+        <span>{{ apiResponse.household.address }}</span>
+        <ExternalLink class="h-4 w-4 ml-1 text-gray-400 cursor-pointer" />
+      </div>
     </div>
 
     <!-- Members Section -->
     <div class="mb-12">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold text-gray-800">Medlemmer</h2>
-        <Dialog v-model:open="isAddMemberDialogOpen">
-          <DialogTrigger as-child>
-            <Button variant="outline">Legg til medlem</Button>
-          </DialogTrigger>
-          <DialogContent class="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Legg til medlem</DialogTitle>
-              <DialogDescription>
-                Velg om du vil invitere en bruker via e-post eller legge til et medlem uten konto.
-              </DialogDescription>
-            </DialogHeader>
-            <div class="grid gap-4 py-4">
-              <div class="flex items-center gap-4">
-                <Button
-                  :variant="memberMode === 'invite' ? 'default' : 'outline'"
-                  @click="memberMode = 'invite'"
-                >
-                  Inviter via e-post
-                </Button>
-                <Button
-                  :variant="memberMode === 'add' ? 'default' : 'outline'"
-                  @click="memberMode = 'add'"
-                >
-                  Legg til uten konto
-                </Button>
-              </div>
-              <Form @submit="submitMemberForm(onMemberSubmit)">
-                <FormField name="name">
-                  <FormItem>
-                    <FormLabel>Navn</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Skriv inn navn" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Medlemmer</h2>
 
-                <FormField v-if="memberMode === 'invite'" name="email">
-                  <FormItem>
-                    <FormLabel>E-post</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="navn@example.com" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-
-                <FormField v-else name="consumptionFactor">
-                  <FormItem>
-                    <FormLabel>Forbruksfaktor</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                      />
-                    </FormControl>
-                    <FormMessage>
-                      0.5 for halv porsjon, 1 for normal porsjon, osv.
-                    </FormMessage>
-                  </FormItem>
-                </FormField>
-
-                <Button type="submit" class="mt-4">Legg til</Button>
-              </Form>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-4">
         <div
           v-for="member in apiResponse.household.members"
           :key="member.id"
-          class="bg-white rounded-lg p-4 border border-gray-200 flex justify-between items-center"
+          class="flex items-center bg-white border border-gray-200 rounded-lg py-2 px-4"
         >
-          <div>
-            <p class="text-gray-800 font-medium">{{ member.name }}</p>
-            <p v-if="member.consumptionFactor" class="text-sm text-gray-500">
-              Forbruksfaktor: {{ member.consumptionFactor }}
-            </p>
-            <p v-if="member.email" class="text-sm text-gray-500">
-              {{ member.email }}
-            </p>
+          <div class="flex-1">
+            <div class="flex items-center">
+              <div class="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 mr-3">
+                <span class="text-xs">{{ member.name.charAt(0) }}</span>
+              </div>
+              <span class="text-gray-800">{{ member.name }}</span>
+            </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
-              <Button variant="ghost" size="icon">
-                <span class="sr-only">Åpne meny</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+              <Button variant="ghost" size="icon" class="h-8 w-8">
+                <span class="sr-only">Medlemsalternativer</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
                   <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
                 </svg>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem @click="handleDeleteMember(member.id)">
-                Slett
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem @click="handleDeleteMember(member.id)" class="text-red-600">
+                <UserMinus class="h-4 w-4 mr-2" />
+                Fjern medlem
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        <!-- Add member button -->
+        <button
+          class="flex items-center justify-center bg-white border border-dashed border-gray-300 rounded-lg py-2 px-4 text-gray-500 hover:bg-gray-50"
+          @click="isAddMemberDialogOpen = true"
+        >
+          <div class="h-8 w-8 border border-dashed border-gray-300 rounded-full flex items-center justify-center mr-3">
+            <span class="text-lg">+</span>
+          </div>
+          <span>Legg til medlem</span>
+        </button>
       </div>
     </div>
 
-    <!-- Inventory Section -->
-    <div>
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold text-gray-800">Inventar</h2>
-        <Dialog v-model:open="isAddItemDialogOpen">
-          <DialogTrigger as-child>
-            <Button variant="outline">Legg til vare</Button>
-          </DialogTrigger>
-          <DialogContent class="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Legg til vare</DialogTitle>
-              <DialogDescription>
-                Fyll ut informasjon om varen du vil legge til.
-              </DialogDescription>
-            </DialogHeader>
-            <div class="grid gap-4 py-4">
-              <Form @submit="submitItemForm(onItemSubmit)">
-                <FormField name="productType">
-                  <FormItem>
-                    <FormLabel>Produkttype</FormLabel>
-                    <Select>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Velg produkttype" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem
-                          v-for="type in productTypes"
-                          :key="type.name"
-                          :value="type"
-                        >
-                          {{ type.name }} ({{ type.unit }})
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
+    <!-- Meeting Places Section -->
+    <div class="mb-12">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Møteplasser ved krise</h2>
 
-                <FormField name="name">
-                  <FormItem>
-                    <FormLabel>Navn på vare</FormLabel>
-                    <FormControl>
-                      <Input placeholder="F.eks. TINE Lettmelk" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-
-                <FormField name="amount">
-                  <FormItem>
-                    <FormLabel>Mengde</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-
-                <FormField name="expiryDate">
-                  <FormItem>
-                    <FormLabel>Utløpsdato</FormLabel>
-                    <FormControl>
-                      <Input type="date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-
-                <Button type="submit" class="mt-4">Legg til</Button>
-              </Form>
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="p-5 border-b">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-semibold text-gray-800 mb-1">
+                Dine møteplasser ved krisesituasjoner
+              </h3>
+              <p class="text-sm text-gray-600">
+                Ved en krisesituasjon skal du møte opp på en av disse møteplassene.
+              </p>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produkt</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mengde</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utløpsdato</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr
-              v-for="item in apiResponse.household.inventory"
-              :key="item.name"
-              class="hover:bg-gray-50"
+            <Button
+              variant="outline"
+              size="sm"
+              class="flex items-center gap-1"
+              @click="isMeetingMapDialogOpen = true"
             >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.productType.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.amount }} {{ item.productType.unit }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.expiryDate }}</td>
-            </tr>
-          </tbody>
-        </table>
+              <MapIcon class="h-4 w-4" />
+              <span>Vis i kart</span>
+            </Button>
+          </div>
+        </div>
+
+        <div>
+          <div
+            v-for="(place, index) in apiResponse.household.meetingPlaces"
+            :key="place.id"
+            :class="['p-4 flex items-start', index < apiResponse.household.meetingPlaces.length - 1 ? 'border-b border-gray-100' : '']"
+          >
+            <div class="flex-shrink-0 mr-3">
+              <div :class="[
+                'h-10 w-10 rounded-full flex items-center justify-center',
+                place.type === 'primary' ? 'bg-red-500' : 'bg-orange-400'
+              ]">
+                <AlertCircle class="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div class="flex-1">
+              <h4 class="font-medium text-gray-800">{{ place.name }}</h4>
+              <p class="text-sm text-gray-600">{{ place.address }}</p>
+              <p v-if="place.description" class="text-sm text-gray-600 mt-1">{{ place.description }}</p>
+              <button
+                class="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                @click="viewMeetingPlace(place.id)"
+              >
+                <MapIcon class="h-3 w-3 mr-1" />
+                Vis i kart
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Emergency Supplies Summary Section -->
+    <div class="mb-12">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Beredskapslager</h2>
+
+      <!-- Summary boxes -->
+      <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+        <div class="grid grid-cols-3 gap-4 mb-8">
+          <div>
+            <div class="text-sm text-gray-500 mb-1">Mat</div>
+            <div class="text-lg text-blue-600 font-semibold">
+              {{ apiResponse.household.inventory.food.current }}/{{ apiResponse.household.inventory.food.target }} {{ apiResponse.household.inventory.food.unit }}
+            </div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500 mb-1">Vann</div>
+            <div class="text-lg text-blue-600 font-semibold">
+              {{ apiResponse.household.inventory.water.current }}/{{ apiResponse.household.inventory.water.target }} {{ apiResponse.household.inventory.water.unit }}
+            </div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500 mb-1">Annet</div>
+            <div class="text-lg text-blue-600 font-semibold">
+              {{ apiResponse.household.inventory.other.current }}/{{ apiResponse.household.inventory.other.target }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Days prepared -->
+        <div class="mb-2">
+          <div class="flex justify-between mb-1">
+            <span class="text-sm text-gray-600">Dager forberedt</span>
+            <span class="text-sm font-medium">{{ apiResponse.household.inventory.preparedDays }}</span>
+          </div>
+          <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              class="h-full bg-blue-500 rounded-full"
+              :style="`width: ${(apiResponse.household.inventory.preparedDays / apiResponse.household.inventory.targetDays) * 100}%`"
+            ></div>
+          </div>
+          <div class="mt-1 text-xs text-gray-500">
+            Norske myndigheter anbefaler at du har nok forsyninger tilregnet {{ apiResponse.household.inventory.targetDays }} dager.
+          </div>
+        </div>
+
+        <button
+          @click="navigateToInventory"
+          class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors duration-200 font-medium flex items-center justify-center"
+        >
+          Vis detaljer
+        </button>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex flex-col space-y-3">
+      <button
+        @click="leaveHousehold"
+        class="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-gray-50"
+      >
+        <ExternalLink class="h-4 w-4 mr-2" />
+        Forlat husstand
+      </button>
+
+      <button
+        @click="deleteHousehold"
+        class="w-full bg-red-100 text-red-600 py-2 px-4 rounded-md flex items-center justify-center hover:bg-red-200"
+      >
+        <Trash class="h-4 w-4 mr-2" />
+        Slett husstand
+      </button>
+    </div>
+
+    <!-- Add Member Dialog -->
+    <Dialog v-model:open="isAddMemberDialogOpen">
+      <DialogContent class="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Legg til medlem</DialogTitle>
+          <DialogDescription>
+            Velg om du vil invitere en bruker via e-post eller legge til et medlem uten konto.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="grid gap-4 py-4">
+          <div class="flex items-center gap-4">
+            <Button
+              :variant="memberMode === 'invite' ? 'default' : 'outline'"
+              @click="memberMode = 'invite'"
+            >
+              Inviter via e-post
+            </Button>
+            <Button
+              :variant="memberMode === 'add' ? 'default' : 'outline'"
+              @click="memberMode = 'add'"
+            >
+              Legg til uten konto
+            </Button>
+          </div>
+          <Form @submit="submitMemberForm(onMemberSubmit)">
+            <FormField name="name">
+              <FormItem>
+                <FormLabel>Navn</FormLabel>
+                <FormControl>
+                  <Input placeholder="Skriv inn navn" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-if="memberMode === 'invite'" name="email">
+              <FormItem>
+                <FormLabel>E-post</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="navn@example.com" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
+            <FormField v-else name="consumptionFactor">
+              <FormItem>
+                <FormLabel>Forbruksfaktor</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                  />
+                </FormControl>
+                <FormMessage>
+                  0.5 for halv porsjon, 1 for normal porsjon, osv.
+                </FormMessage>
+              </FormItem>
+            </FormField>
+
+            <Button type="submit" class="mt-4">Legg til</Button>
+          </Form>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Meeting Places Map Dialog -->
+    <Dialog v-model:open="isMeetingMapDialogOpen" class="meeting-map-dialog">
+      <DialogContent class="sm:max-w-3xl h-auto">
+        <DialogHeader>
+          <DialogTitle>Møteplasser ved krise</DialogTitle>
+          <DialogDescription>
+            Kartet viser dine møteplasser ved krisesituasjoner. Klikk på markørene for mer informasjon og veibeskrivelse.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="py-4">
+          <HouseholdMeetingMap
+            ref="mapRef"
+            :meeting-places="apiResponse.household.meetingPlaces"
+            :household-position="apiResponse.household.position"
+            @meeting-place-selected="handleMeetingPlaceSelected"
+          />
+
+          <div class="mt-4 flex gap-3">
+            <div v-for="place in apiResponse.household.meetingPlaces" :key="place.id"
+                 :class="[
+                  'px-3 py-2 rounded-md text-sm cursor-pointer border flex-1',
+                  place.type === 'primary'
+                    ? 'bg-red-50 border-red-200 text-red-800'
+                    : 'bg-orange-50 border-orange-200 text-orange-800'
+                ]"
+                 @click="viewMeetingPlace(place.id)"
+            >
+              <div class="font-medium">{{ place.name.split(':')[0] }}</div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
+
+<style scoped>
+:deep(.meeting-map-dialog) {
+  max-width: 800px;
+  width: 90vw;
+}
+</style>

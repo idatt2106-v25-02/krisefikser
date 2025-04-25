@@ -291,7 +291,7 @@ export default {
       title="Finn viktige ressurser nær deg"
       description="Se kartet for å finne nærmeste tilfluktsrom, hjertestarter, og andre viktige ressurser i nærområdet ditt. Registrer deg for å få varsler om krisesituasjoner i ditt område."
       primaryButtonText="Se kart"
-      primaryButtonRoute="/map"
+      primaryButtonRoute="/kart"
       secondaryButtonText="Registrer deg"
       secondaryButtonRoute="/register"
       colorTheme="yellow"
