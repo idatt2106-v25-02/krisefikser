@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Button } from '@/components/ui/button';
+import { ref } from 'vue'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   user: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
+    id: string
+    name: string
+    email: string
+    phone: string
+    address: string
   }
-}>();
+}>()
 
-const emit = defineEmits(['update:user']);
+const emit = defineEmits(['update:user'])
 
-const isEditing = ref(false);
+const isEditing = ref(false)
 
 const toggleEdit = () => {
-  isEditing.value = !isEditing.value;
-};
+  isEditing.value = !isEditing.value
+}
 
 const saveProfile = () => {
   // In a real app, you would send the updated user data to your API
-  isEditing.value = false;
-  emit('update:user', props.user);
+  isEditing.value = false
+  emit('update:user', props.user)
   // Show success message or notification
-};
+}
 </script>
 
 <template>
@@ -48,7 +48,7 @@ const saveProfile = () => {
             v-model="user.name"
             :disabled="!isEditing"
             class="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
+          />
         </div>
 
         <!-- Email field -->
@@ -60,7 +60,7 @@ const saveProfile = () => {
             v-model="user.email"
             :disabled="!isEditing"
             class="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
+          />
         </div>
 
         <!-- Phone field -->
@@ -72,7 +72,7 @@ const saveProfile = () => {
             v-model="user.phone"
             :disabled="!isEditing"
             class="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
+          />
         </div>
 
         <!-- Address field -->
@@ -84,7 +84,7 @@ const saveProfile = () => {
             v-model="user.address"
             :disabled="!isEditing"
             class="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
+          />
         </div>
 
         <!-- Save button (only shown when editing) -->
