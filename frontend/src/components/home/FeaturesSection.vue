@@ -20,7 +20,7 @@ export default {
         </div>
         <h3 class="text-lg font-semibold text-gray-800 mb-2">Interaktivt kart</h3>
         <p class="text-gray-600 mb-4">Finn tilfluktsrom, hjertestartere og andre viktige ressurser i nærheten av deg.</p>
-        <router-link to="/map" class="text-blue-600 font-medium hover:underline">Utforsk kartet</router-link>
+        <router-link to="/kart" class="text-blue-600 font-medium hover:underline">Utforsk kartet</router-link>
       </div>
 
       <!-- Feature 2: Inventory -->
