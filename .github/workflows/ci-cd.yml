@@ -22,6 +22,15 @@ jobs:
                   cd backend
                   mvn --batch-mode --errors --fail-at-end --show-version clean compile
 
+    format-backend:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: axel-op/googlejavaformat-action@v4
+              with:
+                  files: 'backend/**/*.java'
+                  commit-message: 'refactor: format Java code with google-java-format'
+
     test-backend:
         runs-on: ubuntu-latest
         needs: build-backend
