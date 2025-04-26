@@ -41,6 +41,11 @@ import BeforeCrisisView from '@/views/nonRegistered/info/BeforeCrisisView.vue'
 import DuringCrisisView from '@/views/nonRegistered/info/DuringCrisisView.vue'
 import AfterCrisisView from '@/views/nonRegistered/info/AfterCrisisView.vue'
 
+//TODO: Dont know where these should go
+import HouseholdInventoryView from '@/views/registered/HouseholdInventoryView.vue'
+import AboutUsView from '@/views/nonRegistered/AboutUsView.vue'
+import PrivacyPolicyView from '@/views/nonRegistered/PrivacyPolicyView.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
