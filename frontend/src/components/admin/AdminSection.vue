@@ -39,7 +39,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 
-defineProps({
+const props = defineProps({
   isSuperAdmin: {
     type: Boolean,
     default: false,
@@ -436,33 +436,20 @@ const getRoleClass = (role: string) => {
                     <Mail class="h-4 w-4" />
                   </Button>
 
-                  <!-- Only Super Admin can delete users that aren't Super Admin -->
+                  <!-- Delete button with permission check -->
                   <Button
-                    v-if="isSuperAdmin && user.role !== 'Super Admin'"
+                    v-if="canDeleteUser(user.role)"
                     variant="ghost"
                     size="icon"
                     class="text-red-600 hover:text-red-800 p-1 h-auto"
                     @click="deleteItem(user.id)"
+                    title="Slett bruker"
                   >
                     <Trash2 class="h-4 w-4" />
                   </Button>
                 </div>
               </td>
             </tr>
-                <!-- Delete button with permission check -->
-                <Button
-                  v-if="canDeleteUser(user.role)"
-                  variant="ghost"
-                  size="icon"
-                  class="text-red-600 hover:text-red-800 p-1 h-auto"
-                  @click="deleteItem(user.id)"
-                  title="Slett bruker"
-                >
-                  <Trash2 class="h-4 w-4" />
-                </Button>
-              </div>
-            </td>
-          </tr>
           </tbody>
         </table>
       </div>
