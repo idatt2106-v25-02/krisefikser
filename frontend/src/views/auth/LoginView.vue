@@ -4,7 +4,10 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useAuthModeStore } from '@/stores/useAuthModeStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-vue-next'
+import { useToast } from '@/components/ui/toast/use-toast'
+import { useRoute, useRouter } from 'vue-router'
 
 // UI components
 import { Button } from '@/components/ui/button'
@@ -12,27 +15,34 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 
 // === Store logic ===
-const authStore = useAuthModeStore()
+const authModeStore = useAuthModeStore()
+const authStore = useAuthStore()
+const { toast } = useToast()
+const route = useRoute()
+const router = useRouter()
+
+// Get redirect path from route query if available
+const redirectPath = computed(() => route.query.redirect as string || '/dashboard')
 
 // Computed value to check if login mode is admin
-const isAdmin = computed(() => authStore.isAdmin)
+const isAdmin = computed(() => authModeStore.isAdmin)
 
 // === Schema logic ===
 // Dynamically set schema based on isAdmin
 const formSchema = computed(() =>
   toTypedSchema(
     z.object({
-      identifier: isAdmin.value
-        ? z.string().min(3, 'Username must be at least 3 characters')
-        : z.string().email('Invalid email').min(5, 'Email too short'),
+      email: isAdmin.value
+        ? z.string().min(3, 'Brukernavn må være minst 3 tegn')
+        : z.string().email('Ugyldig e-post').min(5, 'E-post må være minst 5 tegn'),
       password: z
         .string()
-        .min(8, 'Password must be at least 8 characters')
-        .max(50, 'Password must be at most 50 characters')
-        .regex(/[A-Z]/, 'Password must include at least one uppercase letter')
-        .regex(/[a-z]/, 'Password must include at least one lowercase letter')
-        .regex(/[0-9]/, 'Password must include at least one number')
-        .regex(/[^A-Za-z0-9]/, 'Password must include at least one special character'),
+        .min(8, 'Passord må være minst 8 tegn')
+        .max(50, 'Passord må være høyst 50 tegn')
+        .regex(/[A-Z]/, 'Passord må inkludere minst én stor bokstav')
+        .regex(/[a-z]/, 'Passord må inkludere minst én liten bokstav')
+        .regex(/[0-9]/, 'Passord må inkludere minst én tall')
+        .regex(/[^A-Za-z0-9]/, 'Passord må inkludere minst én spesialtegn'),
     })
   )
 )
@@ -43,14 +53,38 @@ const { handleSubmit, meta, resetForm } = useForm({
   validationSchema: formSchema,
 })
 
+// Loading state
+const isLoading = ref(false)
+
 // Submit handler
-const onSubmit = handleSubmit((values) => {
-  console.log(isAdmin.value ? 'Admin login' : 'User login', values)
+const onSubmit = handleSubmit(async (values) => {
+  if (isLoading.value) return
+
+  isLoading.value = true
+  try {
+    await authStore.login(values)
+    toast({
+      title: 'Suksess',
+      description: 'Du er nå logget inn',
+      variant: 'default',
+    })
+
+    // Redirect to the intended page after successful login
+    router.push(redirectPath.value)
+  } catch (error: any) {
+    toast({
+      title: 'Feil',
+      description: error?.response?.data?.message || 'Kunne ikke logge inn. Vennligst prøv igjen.',
+      variant: 'destructive',
+    })
+  } finally {
+    isLoading.value = false
+  }
 })
 
 // Toggle between user/admin mode and reset the form
 function toggleLoginType() {
-  authStore.toggle()
+  authModeStore.toggle()
   resetForm()
 }
 
@@ -68,14 +102,14 @@ function toggleShowPassword() {
       class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
     >
       <h1 class="text-3xl font-bold text-center">
-        {{ isAdmin ? 'Admin Login' : 'Login' }}
+        {{ isAdmin ? 'Admin Innlogging' : 'Logg inn' }}
       </h1>
 
       <!-- Email or Username Field -->
-      <FormField v-slot="{ componentField }" name="identifier">
+      <FormField v-slot="{ componentField }" name="email">
         <FormItem>
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">
-            {{ isAdmin ? 'Username' : 'Email' }}
+            {{ isAdmin ? 'Brukernavn' : 'E-post' }}
           </FormLabel>
           <FormControl>
             <div class="relative">
@@ -83,7 +117,7 @@ function toggleShowPassword() {
               <Mail v-else class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 :type="isAdmin ? 'text' : 'email'"
-                :placeholder="isAdmin ? 'admin_user' : 'name@example.org'"
+                :placeholder="isAdmin ? 'admin_bruker' : 'navn@eksempel.no'"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
@@ -96,7 +130,7 @@ function toggleShowPassword() {
       <!-- Password Field -->
       <FormField v-slot="{ componentField }" name="password">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Password</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Passord</FormLabel>
           <FormControl>
             <div class="relative">
               <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -124,21 +158,22 @@ function toggleShowPassword() {
       <!-- Submit Button (disabled unless form is valid and touched) -->
       <Button
         type="submit"
-        :disabled="!meta.valid || !meta.dirty"
-        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
+        :disabled="!meta.valid || !meta.dirty || isLoading"
+        class="w-full hover:cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
-        {{ isAdmin ? 'Login as Admin' : 'Login' }}
+        <template v-if="isLoading">Logger inn...</template>
+        <template v-else>{{ isAdmin ? 'Logg inn som admin' : 'Logg inn' }}</template>
       </Button>
 
       <!-- Bottom links -->
       <div class="text-sm text-center space-y-2">
         <div v-if="!isAdmin">
-          <span class="text-gray-600">Don't have an account?</span>
-          <a href="/register" class="ml-1 text-blue-600 hover:underline">Register</a>
+          <span class="text-gray-600">Har du ikke en konto?</span>
+          <a href="/register" class="ml-1 text-blue-600 hover:underline">Registrer deg</a>
         </div>
 
         <a href="/forgot-password" class="block text-blue-500 hover:underline">
-          Forgot your password?
+          Glemt passord?
         </a>
 
         <Button
@@ -147,7 +182,7 @@ function toggleShowPassword() {
           @click="toggleLoginType"
           class="text-blue-400 hover:text-blue-500 hover:underline transition-colors"
         >
-          {{ isAdmin ? 'Switch to user login' : 'Switch to admin login' }}
+          {{ isAdmin ? 'Bytt til brukerinnlogging' : 'Bytt til admininnlogging' }}
         </Button>
       </div>
     </form>

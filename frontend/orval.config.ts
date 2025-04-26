@@ -1,5 +1,3 @@
-
-
 import { defineConfig } from 'orval';
 
 export default defineConfig({
@@ -12,8 +10,13 @@ export default defineConfig({
       mock: false,
       prettier: false,
       clean: false,
-      baseUrl: 'http://localhost:8080'
-
+      baseUrl: 'http://localhost:8080',
+      override: {
+        mutator: {
+          path: './src/api/axios.ts',
+          name: 'customInstance'
+        }
+      }
     },
     input: {
       target: 'http://localhost:8080/v3/api-docs',

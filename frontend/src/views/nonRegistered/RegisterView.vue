@@ -3,9 +3,9 @@ import { ref, computed } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import VueTurnstile from 'vue-turnstile'
-import axios from 'axios'
-import { User, Mail, Home, Lock, Shield, Eye, EyeOff } from 'lucide-vue-next'
+import { User, Mail, Home, Lock, Eye, EyeOff } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useToast } from '@/components/ui/toast/use-toast'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -14,29 +14,28 @@ import { Input } from '@/components/ui/input'
 // Schema for the registeration form
 const rawSchema = z
   .object({
-    firstName: z.string().min(2, 'First name too short'),
-    lastName: z.string().min(2, 'Last name too short'),
-    email: z.string().email('Invalid email').min(5, 'Email too short'),
+    firstName: z.string().min(2, 'Fornavn må være minst 2 tegn'),
+    lastName: z.string().min(2, 'Etternavn må være minst 2 tegn'),
+    email: z.string().email('Ugyldig e-post').min(5, 'E-post må være minst 5 tegn'),
     householdCode: z.string().refine(
       (val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)),
       {
-        message: 'Household code must be exactly 5 letters (no numbers)',
+        message: 'Husholdningskode må være nøyaktig 5 bokstaver (ingen tall)',
       }
     ).optional(),
     password: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
-      .max(50, 'Password must be at most 50 characters')
-      .regex(/[A-Z]/, 'Must include an uppercase letter')
-      .regex(/[a-z]/, 'Must include a lowercase letter')
-      .regex(/[0-9]/, 'Must include a number')
-      .regex(/[^A-Za-z0-9]/, 'Must include a special character'),
+      .min(8, 'Passord må være minst 8 tegn')
+      .max(50, 'Passord må være høyst 50 tegn')
+      .regex(/[A-Z]/, 'Passord må inkludere minst én stor bokstav')
+      .regex(/[a-z]/, 'Passord må inkludere minst én liten bokstav')
+      .regex(/[0-9]/, 'Passord må inkludere minst én tall')
+      .regex(/[^A-Za-z0-9]/, 'Passord må inkludere minst én spesialtegn'),
     confirmPassword: z.string(),
-    turnstileToken: z.string().min(1, 'Please complete the CAPTCHA verification')
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'], // This will attach the error to the confirmPassword field
+    message: 'Passordene stemmer ikke overens',
+    path: ['confirmPassword'],
   })
 
 // Set up consts for submit button deactivation
@@ -44,53 +43,37 @@ const { handleSubmit, meta, setFieldValue } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
-// Store the Turnstile token
-const turnstileToken = ref('')
+// Get auth store and toast
+const authStore = useAuthStore()
+const { toast } = useToast()
 
-// Handle Turnstile verification success
-const onTurnstileSuccess = (token: string) => {
-  turnstileToken.value = token
-  setFieldValue('turnstileToken', token)
-}
-
-// Handle Turnstile verification error
-const onTurnstileError = () => {
-  turnstileToken.value = ''
-  setFieldValue('turnstileToken', '')
-}
-
-// Handle Turnstile verification expiry
-const onTurnstileExpire = () => {
-  turnstileToken.value = ''
-  setFieldValue('turnstileToken', '')
-}
+// Loading state
+const isLoading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
+  if (isLoading.value) return
+
+  isLoading.value = true
   try {
-    // TODO: Change website link to the actual server
-    // Send the form data along with the Turnstile token to the server
-    const response = await axios.post('http://localhost:3000/verify-turnstile', {
-      token: turnstileToken.value
+    const { confirmPassword, ...registrationData } = values
+    await authStore.register(registrationData)
+    toast({
+      title: 'Suksess',
+      description: 'Kontoen din er opprettet og du er nå logget inn',
+      variant: 'default',
     })
-
-    const data = response.data
-
-    if (data.success) {
-      // If Turnstile verification succeeds, proceed with registration
-      console.log('Registration form submitted successfully', values)
-      // Here you would typically call your registration API
-    } else {
-      console.error('Turnstile verification failed', data.error)
-      // Reset the Turnstile widget
-      turnstileToken.value = ''
-      setFieldValue('turnstileToken', '')
-    }
-  } catch (error) {
-    console.error('Error during form submission:', error)
+  } catch (error: any) {
+    toast({
+      title: 'Feil',
+      description: error?.response?.data?.message || 'Kunne ikke registrere. Vennligst prøv igjen.',
+      variant: 'destructive',
+    })
+  } finally {
+    isLoading.value = false
   }
 })
 
-// Stores the show password state
+// Show/hide password
 const showPassword = ref(false)
 
 // Toggle the visibility of the password
@@ -98,7 +81,7 @@ function toggleShowPassword() {
   showPassword.value = !showPassword.value
 }
 
-// Stores the show password state for confirmed password
+// Show/hide confirm password
 const showConfirmPassword = ref(false)
 
 // Toggle the visibility of the confirm password field
@@ -113,18 +96,18 @@ function toggleShowConfirmPassword() {
       @submit="onSubmit"
       class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
     >
-      <h1 class="text-3xl font-bold text-center">Register</h1>
+      <h1 class="text-3xl font-bold text-center">Registrer deg</h1>
 
       <!-- First Name -->
       <FormField v-slot="{ componentField }" name="firstName">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">First Name</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Fornavn</FormLabel>
           <FormControl>
             <div class="relative">
               <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 type="text"
-                placeholder="John"
+                placeholder="Ola"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
@@ -137,13 +120,13 @@ function toggleShowConfirmPassword() {
       <!-- Last Name -->
       <FormField v-slot="{ componentField }" name="lastName">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Last Name</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Etternavn</FormLabel>
           <FormControl>
             <div class="relative">
               <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Doe"
+                placeholder="Nordmann"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
@@ -156,13 +139,13 @@ function toggleShowConfirmPassword() {
       <!-- Email -->
       <FormField v-slot="{ componentField }" name="email">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1"> Email </FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">E-post</FormLabel>
           <FormControl>
             <div class="relative">
               <Mail class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 type="email"
-                placeholder="name@example.org"
+                placeholder="navn@eksempel.no"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
@@ -175,7 +158,7 @@ function toggleShowConfirmPassword() {
       <!-- Household Code field -->
       <FormField v-slot="{ componentField }" name="householdCode">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Household Code</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Husholdningskode</FormLabel>
           <FormControl>
             <div class="relative">
               <Home class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -195,7 +178,7 @@ function toggleShowConfirmPassword() {
       <!-- Password field -->
       <FormField v-slot="{ componentField }" name="password">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Password</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Passord</FormLabel>
           <FormControl>
             <div class="relative">
               <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -223,9 +206,7 @@ function toggleShowConfirmPassword() {
       <!-- Confirm Password -->
       <FormField v-slot="{ componentField }" name="confirmPassword">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1"
-            >Confirm Password</FormLabel
-          >
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft passord</FormLabel>
           <FormControl>
             <div class="relative">
               <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
@@ -250,40 +231,21 @@ function toggleShowConfirmPassword() {
         </FormItem>
       </FormField>
 
-      <!-- Cloudflare Turnstile -->
-      <FormField v-slot="{ componentField }" name="turnstileToken">
-        <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Verify you're human</FormLabel>
-          <FormControl>
-            <div class="flex justify-center">
-              <div class="relative w-full flex justify-center">
-                <Shield class="absolute left-2 top-0 text-gray-500 h-4 w-4" />
-                <VueTurnstile
-                  site-key="0x4AAAAAABSTiPNZwrBLQkgr"
-                  v-model="turnstileToken"
-                  theme="light"
-                />
-              </div>
-            </div>
-          </FormControl>
-          <FormMessage class="text-sm text-red-500" />
-        </FormItem>
-      </FormField>
-
       <!-- Submit button -->
       <Button
         type="submit"
-        :disabled="!meta.valid"
+        :disabled="!meta.valid || isLoading"
         class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
-        Register
+        <template v-if="isLoading">Oppretter konto...</template>
+        <template v-else>Registrer deg</template>
       </Button>
 
       <!-- Conditional CTAs below -->
       <div class="text-sm text-center space-y-2">
         <div>
-          <span class="text-gray-600">Already have an account?</span>
-          <a href="/login" class="ml-1 text-blue-600 hover:underline">Login</a>
+          <span class="text-gray-600">Har du allerede en konto?</span>
+          <a href="/login" class="ml-1 text-blue-600 hover:underline">Logg inn</a>
         </div>
       </div>
     </form>

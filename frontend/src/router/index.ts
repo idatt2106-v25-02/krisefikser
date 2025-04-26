@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from "@/views/nonRegistered/HomeView.vue";
+import NonRegisteredHomeView from "@/views/nonRegistered/HomeView.vue";
+import { useAuthStore } from '@/stores/useAuthStore'
 
 // Auth views
 import LoginView from "@/views/auth/LoginView.vue";
@@ -28,7 +29,6 @@ import InviteView from "@/views/registered/InviteView.vue";
 import SearchView from "@/views/registered/SearchView.vue";
 
 // Non-Registered User views
-import NonRegisteredHomeView from "@/views/nonRegistered/HomeView.vue";
 import JoinOrCreateHouseholdView from "@/views/nonRegistered/JoinOrCreateHouseholdView.vue";
 import MapView from "@/views/nonRegistered/MapView.vue";
 import RegisterView from "@/views/nonRegistered/RegisterView.vue";
@@ -49,23 +49,26 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: NonRegisteredHomeView,
     },
     // Auth routes
     {
       path: '/logg-inn',
       name: 'login',
       component: LoginView,
+      meta: { requiresGuest: true }
     },
     {
       path: '/glemt-passord',
       name: 'forgot-password',
       component: ForgotPasswordView,
+      meta: { requiresGuest: true }
     },
     {
       path: '/reset-passord',
       name: 'reset-password',
       component: ResetPasswordView,
+      meta: { requiresGuest: true }
     },
 
     // Admin routes
@@ -73,26 +76,31 @@ const router = createRouter({
       path: '/admin',
       name: 'admin-dashboard',
       component: AdminDashboardView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/register',
       name: 'admin-register',
       component: AdminRegisterView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/hendelser',
       name: 'admin-events',
       component: AdminEventsView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/kart',
       name: 'admin-map',
       component: AdminMapView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/sok',
       name: 'admin-search',
       component: AdminSearchView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
 
     // Super Admin routes
@@ -100,11 +108,13 @@ const router = createRouter({
       path: '/super-admin',
       name: 'super-admin-dashboard',
       component: SuperAdminDashboardView,
+      meta: { requiresAuth: true, requiresSuperAdmin: true }
     },
     {
       path: '/super-admin/behandle-administratorer',
       name: 'manage-admins',
       component: ManageAdminsView,
+      meta: { requiresAuth: true, requiresSuperAdmin: true }
     },
 
     // Registered User routes
@@ -112,40 +122,40 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/legg-til-vare',
       name: 'add-item',
       component: AddItemView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/husstand',
       name: 'household',
       component: HouseholdView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/husstand/:id',
       name: 'household-details',
       component: HouseholdDetailsView,
+      meta: { requiresAuth: true }
     },
-
     {
       path: '/inviter-medlemmer',
       name: 'invite',
       component: InviteView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/sok',
       name: 'search',
       component: SearchView,
+      meta: { requiresAuth: true }
     },
 
     // Non-Registered User routes
-    {
-      path: '/velkommen',
-      name: 'non-registered-home',
-      component: NonRegisteredHomeView,
-    },
     {
       path: '/bli-med-eller-opprett-husstand',
       name: 'join-create-household',
@@ -161,6 +171,43 @@ const router = createRouter({
       name: 'register',
       component: RegisterView,
     },
+    {
+      path: '/personvern',
+      name: 'privacy-policy',
+      component: PrivacyPolicyView,
+    },
+    {
+      path: '/nyheter',
+      name: 'news',
+      component: NewsView,
+    },
+    {
+      path: '/artikkel',
+      name: 'article',
+      component: ArticleView,
+    },
+    {
+      path: '/om-oss',
+      name: 'about-us',
+      component: AboutUsView,
+    },
+
+    // Crisis Information routes
+    {
+      path: '/info/for-krisen',
+      name: 'before-crisis',
+      component: BeforeCrisisView,
+    },
+    {
+      path: '/info/under-krisen',
+      name: 'during-crisis',
+      component: DuringCrisisView,
+    },
+    {
+      path: '/info/etter-krisen',
+      name: 'after-crisis',
+      component: AfterCrisisView,
+    },
 
     // Error routes - must be last
     {
@@ -169,6 +216,37 @@ const router = createRouter({
       component: NotFoundView,
     },
   ],
+})
+
+// Navigation guards
+router.beforeEach((to, from, next) => {
+  const auth = useAuthStore()
+
+  // Check if the route requires authentication
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    // Redirect to login page with return URL
+    return next({
+      name: 'login',
+      query: { redirect: to.fullPath }
+    })
+  }
+
+  // Check if the route requires admin privileges
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    return next({ name: 'not-found' })
+  }
+
+  // Check if the route requires super admin privileges
+  if (to.meta.requiresSuperAdmin && !auth.isSuperAdmin) {
+    return next({ name: 'not-found' })
+  }
+
+  // Check if the route requires guest access (like login page)
+  if (to.meta.requiresGuest && auth.isAuthenticated) {
+    return next({ name: 'dashboard' })
+  }
+
+  next()
 })
 
 export default router
