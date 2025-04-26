@@ -4,6 +4,19 @@ title: "[Sprint Backlog]: "
 
 body:
   - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: List the conditions that must be met for this item to be considered complete
+      placeholder: |
+        - User can navigate to a password reset page
+        - User receives an email with a reset link
+        - Reset link allows user to create a new password
+        - Old password no longer works after reset
+    validations:
+      required: true
+      
+  - type: textarea
     id: description
     attributes:
       label: Description (optional)
@@ -13,3 +26,4 @@ body:
         - Create a new component that has example1 functionality
     validations:
       required: false
+
