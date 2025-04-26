@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -10,8 +10,9 @@ import { useToast } from '@/components/ui/toast/use-toast'
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import PasswordInput from '@/components/auth/PasswordInput.vue'
 
-// Schema for the registeration form
+// Schema for the registration form
 const rawSchema = z
   .object({
     firstName: z.string().min(2, 'Fornavn må være minst 2 tegn'),
@@ -26,15 +27,16 @@ const rawSchema = z
     password: z
       .string()
       .min(8, 'Passord må være minst 8 tegn')
-      .max(50, 'Passord må være høyst 50 tegn')
-      .regex(/[A-Z]/, 'Passord må inkludere minst én stor bokstav')
-      .regex(/[a-z]/, 'Passord må inkludere minst én liten bokstav')
-      .regex(/[0-9]/, 'Passord må inkludere minst én tall')
-      .regex(/[^A-Za-z0-9]/, 'Passord må inkludere minst én spesialtegn'),
+      .max(50, 'Passord kan være maks 50 tegn')
+      .regex(/[A-Z]/, 'Må inneholde minst én stor bokstav')
+      .regex(/[a-z]/, 'Må inneholde minst én liten bokstav')
+      .regex(/[0-9]/, 'Må inneholde minst ett tall')
+      .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
     confirmPassword: z.string(),
+    //turnstileToken: z.string().min(1, 'Vennligst fullfør CAPTCHA-verifiseringen')
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passordene stemmer ikke overens',
+    message: "Passordene stemmer ikke overens",
     path: ['confirmPassword'],
   })
 
@@ -175,61 +177,52 @@ function toggleShowConfirmPassword() {
         </FormItem>
       </FormField>
 
-      <!-- Password field -->
+      <!-- Password field using component -->
       <FormField v-slot="{ componentField }" name="password">
-        <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Passord</FormLabel>
-          <FormControl>
-            <div class="relative">
-              <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-              <Input
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="********"
-                class="w-full px-3 py-2 pl-8 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                v-bind="componentField"
-              />
-              <button
-                type="button"
-                @click="toggleShowPassword"
-                class="absolute inset-y-0 right-2 flex items-center text-sm text-gray-600 focus:outline-none"
-                tabindex="-1"
-              >
-                <Eye v-if="!showPassword" class="h-4 w-4" />
-                <EyeOff v-else class="h-4 w-4" />
-              </button>
-            </div>
-          </FormControl>
-          <FormMessage class="text-sm text-red-500" />
-        </FormItem>
+        <PasswordInput
+          name="password"
+          label="Passord"
+          placeholder="********"
+          :componentField="componentField"
+          :showToggle="true"
+          :showIcon="true"
+        />
       </FormField>
 
-      <!-- Confirm Password -->
+      <!-- Confirm Password using component -->
       <FormField v-slot="{ componentField }" name="confirmPassword">
+        <PasswordInput
+          name="confirmPassword"
+          label="Bekreft passord"
+          placeholder="********"
+          :componentField="componentField"
+          :showToggle="true"
+          :showIcon="true"
+        />
+      </FormField>
+
+      <!-- Cloudflare Turnstile -->
+      <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft passord</FormLabel>
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft at du er et menneske</FormLabel>
           <FormControl>
-            <div class="relative">
-              <Lock class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-              <Input
-                :type="showConfirmPassword ? 'text' : 'password'"
-                placeholder="********"
-                class="w-full px-3 py-2 pl-8 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                v-bind="componentField"
-              />
-              <button
-                type="button"
-                @click="toggleShowConfirmPassword"
-                class="absolute inset-y-0 right-2 flex items-center text-sm text-gray-600 focus:outline-none"
-                tabindex="-1"
-              >
-                <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
-                <EyeOff v-else class="h-4 w-4" />
-              </button>
+            <div class="flex justify-center">
+              <div class="relative w-full flex justify-center">
+                <Shield class="absolute left-2 top-0 text-gray-500 h-4 w-4" />
+                <VueTurnstile
+                  site-key="0x4AAAAAABSTiPNZwrBLQkgr"
+                  v-model="turnstileToken"
+                  theme="light"
+                  @success="onTurnstileSuccess"
+                  @error="onTurnstileError"
+                  @expire="onTurnstileExpire"
+                />
+              </div>
             </div>
           </FormControl>
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
-      </FormField>
+      </FormField> -->
 
       <!-- Submit button -->
       <Button
@@ -245,7 +238,7 @@ function toggleShowConfirmPassword() {
       <div class="text-sm text-center space-y-2">
         <div>
           <span class="text-gray-600">Har du allerede en konto?</span>
-          <a href="/login" class="ml-1 text-blue-600 hover:underline">Logg inn</a>
+          <a href="/logg-inn" class="ml-1 text-blue-600 hover:underline">Logg inn</a>
         </div>
       </div>
     </form>

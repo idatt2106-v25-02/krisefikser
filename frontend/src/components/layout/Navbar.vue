@@ -10,15 +10,27 @@
         </div>
 
         <div class="hidden md:flex items-center space-x-8">
-          <router-link to="/kart" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+          <router-link
+            to="/kart"
+            class="flex items-center text-gray-700 hover:text-blue-600 transition"
+          >
             <MapIcon class="h-5 w-5 mr-1" />
             <span>Kart</span>
           </router-link>
-          <router-link v-if="authStore.isAuthenticated" to="/husstand" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+          <router-link
+            to="/husstand"
+            v-if="authStore.isAuthenticated"
+            class="flex items-center text-gray-700 hover:text-blue-600 transition"
+          >
             <Home class="h-5 w-5 mr-1" />
             <span>Husstand</span>
           </router-link>
-          <router-link v-if="authStore.isAuthenticated" to="/legg-til-vare" class="flex items-center text-gray-700 hover:text-blue-600 transition">
+
+          <router-link
+            to="/husstand/:id/beredskapslager"
+            v-if="authStore.isAuthenticated"
+            class="flex items-center text-gray-700 hover:text-blue-600 transition"
+          >
             <Package class="h-5 w-5 mr-1" />
             <span>Beredskapslager</span>
           </router-link>
@@ -38,6 +50,12 @@
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <router-link to="/dashboard">
+                  <DropdownMenuItem>
+                    <User class="h-5 w-5 mr-2" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                </router-link>
                 <DropdownMenuItem @select="authStore.logout" variant="destructive">
                   <LogOut class="h-4 w-4 mr-2" />
                   <span>Logg ut</span>
@@ -45,6 +63,8 @@
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
+
         </div>
 
         <!-- Mobile menu button -->
@@ -60,15 +80,27 @@
     <!-- Mobile menu -->
     <div v-if="isMenuOpen" class="md:hidden">
       <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
-        <router-link to="/kart" class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200">
+        <router-link
+          to="/kart"
+          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
+        >
           <MapIcon class="h-5 w-5 mr-2" />
           <span>Kart</span>
         </router-link>
-        <router-link v-if="authStore.isAuthenticated" to="/husstand" class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200">
+        <router-link
+          to="/husstand"
+          v-if="authStore.isAuthenticated"
+          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
+        >
           <Home class="h-5 w-5 mr-2" />
           <span>Husstand</span>
         </router-link>
-        <router-link v-if="authStore.isAuthenticated" to="/legg-til-vare" class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200">
+
+        <router-link
+          v-if="authStore.isAuthenticated"
+          to="/husstand/:id/beredskapslager"
+          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
+        >
           <Package class="h-5 w-5 mr-2" />
           <span>Beredskapslager</span>
         </router-link>
@@ -100,7 +132,6 @@
     </div>
   </nav>
 </template>
-
 <script lang="ts">
 import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -133,8 +164,8 @@ export default {
   },
   data() {
     return {
-      isMenuOpen: false
+      isMenuOpen: false,
     }
-  }
+  },
 }
 </script>

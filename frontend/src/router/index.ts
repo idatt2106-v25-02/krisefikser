@@ -4,7 +4,6 @@ import { useAuthStore } from '@/stores/useAuthStore'
 
 // Auth views
 import LoginView from "@/views/auth/LoginView.vue";
-import ForgotPasswordView from "@/views/auth/ForgotPasswordView.vue";
 import ResetPasswordView from "@/views/auth/ResetPasswordView.vue";
 
 // Error views
@@ -15,6 +14,8 @@ import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
 import AdminEventsView from "@/views/admin/AdminEventsView.vue";
 import AdminMapView from "@/views/admin/AdminMapView.vue";
 import AdminSearchView from "@/views/admin/AdminSearchView.vue";
+import AdminResetPasswordLink from "@/views/admin/AdminResetPasswordLink.vue";
+import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
 
 // Super Admin views
 import SuperAdminDashboardView from "@/views/superAdmin/SuperAdminDashboardView.vue";
@@ -25,9 +26,11 @@ import DashboardView from "@/views/registered/DashboardView.vue";
 import AddItemView from "@/views/registered/AddItemView.vue";
 import HouseholdView from "@/views/registered/HouseholdView.vue";
 import HouseholdDetailsView from "@/views/registered/HouseholdDetailsView.vue";
+import HouseholdInventoryView from "@/views/registered/HouseholdInventoryView.vue";
 import InviteView from "@/views/registered/InviteView.vue";
 import SearchView from "@/views/registered/SearchView.vue";
-
+import HomeAddressView from "@/views/registered/HomeAddressView.vue";
+import NewHouseholdView from "@/views/registered/NewHousehold.vue";
 // Non-Registered User views
 import JoinOrCreateHouseholdView from "@/views/nonRegistered/JoinOrCreateHouseholdView.vue";
 import MapView from "@/views/nonRegistered/MapView.vue";
@@ -36,12 +39,12 @@ import PrivacyPolicyView from "@/views/nonRegistered/PrivacyPolicyView.vue";
 import NewsView from "@/views/nonRegistered/NewsView.vue";
 import ArticleView from "@/views/nonRegistered/ArticleView.vue";
 import AboutUsView from "@/views/nonRegistered/AboutUsView.vue";
+import ForgotPasswordView from "@/views/auth/ForgotPasswordView.vue";
 
 // Crisis Information views
 import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
 import DuringCrisisView from "@/views/nonRegistered/info/DuringCrisisView.vue";
 import AfterCrisisView from "@/views/nonRegistered/info/AfterCrisisView.vue";
-import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,7 +63,7 @@ const router = createRouter({
     },
     {
       path: '/glemt-passord',
-      name: 'forgot-password',
+      name: 'glemt-passord',
       component: ForgotPasswordView,
       meta: { requiresGuest: true }
     },
@@ -96,6 +99,12 @@ const router = createRouter({
       component: AdminMapView,
       meta: { requiresAuth: true, requiresAdmin: true }
     },
+    {
+      path: '/admin/reset-passord-link',
+      name : 'admin-reset-passord-link',
+      component: AdminResetPasswordLink,
+    },
+
     {
       path: '/admin/sok',
       name: 'admin-search',
@@ -143,6 +152,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/husstand/:id/beredskapslager',
+      name: 'household-emergency-stock',
+      component: HouseholdInventoryView,
+    },
+
+    {
       path: '/inviter-medlemmer',
       name: 'invite',
       component: InviteView,
@@ -154,7 +169,11 @@ const router = createRouter({
       component: SearchView,
       meta: { requiresAuth: true }
     },
-
+    {
+      path: '/adresse',
+      name: 'home-address',
+      component: HomeAddressView,
+    },
     // Non-Registered User routes
     {
       path: '/bli-med-eller-opprett-husstand',
@@ -198,6 +217,12 @@ const router = createRouter({
       name: 'before-crisis',
       component: BeforeCrisisView,
     },
+    {
+      path: '/husstand/opprett',
+      name: 'new-household',
+      component: NewHouseholdView,
+    },
+
     {
       path: '/info/under-krisen',
       name: 'during-crisis',
