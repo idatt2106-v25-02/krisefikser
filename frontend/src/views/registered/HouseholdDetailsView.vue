@@ -335,18 +335,21 @@ function viewMeetingPlace(placeId: string) {
         </div>
 
         <!-- Days prepared -->
-        <div class="mb-2">
-          <div class="flex justify-between mb-1">
-            <span class="text-sm text-gray-600">Dager forberedt</span>
-            <span class="text-sm font-medium">{{ apiResponse.household.inventory.preparedDays }}</span>
+        <div class="mb-4 bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-base font-medium text-blue-800">Dager forberedt</span>
+            <div class="flex items-center">
+              <span class="text-3xl font-bold text-blue-700">{{ apiResponse.household.inventory.preparedDays }}</span>
+              <span class="text-lg text-blue-600 ml-1">/{{ apiResponse.household.inventory.targetDays }}</span>
+            </div>
           </div>
-          <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div class="h-4 bg-blue-200 rounded-full overflow-hidden mb-2">
             <div
-              class="h-full bg-blue-500 rounded-full"
+              class="h-full bg-blue-600 rounded-full"
               :style="`width: ${(apiResponse.household.inventory.preparedDays / apiResponse.household.inventory.targetDays) * 100}%`"
             ></div>
           </div>
-          <div class="mt-1 text-xs text-gray-500">
+          <div class="text-sm text-blue-700">
             Norske myndigheter anbefaler at du har nok forsyninger tilregnet {{ apiResponse.household.inventory.targetDays }} dager.
           </div>
         </div>
