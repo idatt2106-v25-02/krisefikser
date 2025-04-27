@@ -66,7 +66,12 @@ function navigateToInventory() {
         <div class="flex justify-between items-center mb-3">
           <span class="text-base font-medium text-blue-800">Dager forberedt</span>
           <div class="flex items-center">
-            <span class="text-3xl font-bold text-blue-700">{{ inventory.preparedDays }}</span>
+            <span
+              :class="[
+                'text-3xl font-bold',
+                inventory.preparedDays <= 3 ? 'text-red-600' : 'text-blue-700'
+              ]"
+            >{{ inventory.preparedDays }}</span>
             <span class="text-lg text-blue-600 ml-1">/{{ inventory.targetDays }}</span>
           </div>
         </div>
