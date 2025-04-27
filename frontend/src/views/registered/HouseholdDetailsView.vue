@@ -181,7 +181,7 @@ function viewMeetingPlace(placeId: string) {
   <div class="max-w-8xl mx-auto px-20 py-8">
     <!-- Household header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-1">{{ apiResponse.household.name }}</h1>
+      <h1 class="text-4xl font-bold text-gray-900 mb-1">{{ apiResponse.household.name }}</h1>
       <div class="flex items-center text-gray-600 mb-6">
         <MapPin class="h-4 w-4 text-gray-400 mr-1" />
         <span>{{ apiResponse.household.address }}</span>
