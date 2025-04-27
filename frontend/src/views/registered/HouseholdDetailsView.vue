@@ -192,47 +192,59 @@ function viewMeetingPlace(placeId: string) {
     <div class="mb-12">
       <h2 class="text-2xl font-semibold text-gray-800 mb-4">Medlemmer</h2>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Member cards -->
         <div
           v-for="member in apiResponse.household.members"
           :key="member.id"
-          class="flex items-center bg-white border border-gray-200 rounded-lg py-2 px-4"
+          class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow transition-shadow"
         >
-          <div class="flex-1">
-            <div class="flex items-center">
-              <div class="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 mr-3">
-                <span class="text-xs">{{ member.name.charAt(0) }}</span>
+          <div class="p-5">
+            <div class="flex justify-between items-start">
+              <div class="flex items-center mb-3">
+                <div class="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0">
+                  <span class="text-lg font-medium">{{ member.name.charAt(0) }}</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">{{ member.name }}</h3>
               </div>
-              <span class="text-gray-800">{{ member.name }}</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button variant="ghost" size="icon" class="h-8 w-8">
+                    <span class="sr-only">Medlemsalternativer</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                      <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+                    </svg>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem @click="handleDeleteMember(member.id)" class="text-red-600">
+                    <UserMinus class="h-4 w-4 mr-2" />
+                    Fjern medlem
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div class="text-sm text-gray-600">
+              <div v-if="member.consumptionFactor" class="mt-1">
+                Forbruksfaktor: <span class="font-medium">{{ member.consumptionFactor }}</span>
+              </div>
+              <div v-if="member.email" class="mt-1 truncate">
+                {{ member.email }}
+              </div>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <Button variant="ghost" size="icon" class="h-8 w-8">
-                <span class="sr-only">Medlemsalternativer</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
-                  <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-                </svg>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem @click="handleDeleteMember(member.id)" class="text-red-600">
-                <UserMinus class="h-4 w-4 mr-2" />
-                Fjern medlem
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
-        <!-- Add member button -->
+        <!-- Add member card -->
         <button
-          class="flex items-center justify-center bg-white border border-dashed border-gray-300 rounded-lg py-2 px-4 text-gray-500 hover:bg-gray-50"
           @click="isAddMemberDialogOpen = true"
+          class="bg-white rounded-lg border border-dashed border-gray-300 p-5 flex flex-col items-center justify-center h-full min-h-[120px] text-gray-500 hover:bg-gray-50 transition-colors"
         >
-          <div class="h-8 w-8 border border-dashed border-gray-300 rounded-full flex items-center justify-center mr-3">
-            <span class="text-lg">+</span>
+          <div class="h-12 w-12 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center mb-3">
+            <span class="text-xl">+</span>
           </div>
-          <span>Legg til medlem</span>
+          <span class="font-medium">Legg til medlem</span>
         </button>
       </div>
     </div>
