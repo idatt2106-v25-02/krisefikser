@@ -451,7 +451,7 @@ function viewMeetingPlace(placeId: string) {
 
     <!-- Meeting Places Map Dialog -->
     <Dialog v-model:open="isMeetingMapDialogOpen" class="meeting-map-dialog">
-      <DialogContent class="sm:max-w-3xl h-auto">
+      <DialogContent class="sm:max-w-5xl h-auto">
         <DialogHeader>
           <DialogTitle>Møteplasser ved krise</DialogTitle>
           <DialogDescription>
@@ -459,12 +459,13 @@ function viewMeetingPlace(placeId: string) {
           </DialogDescription>
         </DialogHeader>
 
-        <div class="py-4">
+        <div class="py-6 px-2">
           <HouseholdMeetingMap
             ref="mapRef"
             :meeting-places="apiResponse.household.meetingPlaces"
             :household-position="apiResponse.household.position"
             @meeting-place-selected="handleMeetingPlaceSelected"
+            class="min-h-[625px]"
           />
 
           <div class="mt-4 flex gap-3">
@@ -488,7 +489,7 @@ function viewMeetingPlace(placeId: string) {
 
 <style scoped>
 :deep(.meeting-map-dialog) {
-  max-width: 800px;
-  width: 90vw;
+  max-width: 1250px;
+  width: 95vw;
 }
 </style>
