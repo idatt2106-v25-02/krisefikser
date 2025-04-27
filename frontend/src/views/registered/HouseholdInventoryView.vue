@@ -198,118 +198,153 @@ const selectedCategory = ref<{id: string, name: string} | null>(null)
 </script>
 
 <template>
-  <div class="max-w-8xl mx-auto px-20 py-8">
-    <!-- Header with breadcrumb -->
-    <div class="mb-8">
-      <div class="flex items-center text-sm text-gray-500 mb-2">
-        <button @click="navigateToHousehold" class="hover:text-blue-600 flex items-center">
-          <Home class="h-4 w-4 mr-1" />
-          {{ apiResponse.household.name }}
-        </button>
-        <span class="mx-2">/</span>
-        <span class="text-gray-800">Beredskapslager</span>
+  <div class="bg-gray-50 min-h-screen">
+    <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Header with breadcrumb -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex items-center text-sm text-gray-500 mb-2">
+          <button @click="navigateToHousehold" class="hover:text-blue-600 flex items-center">
+            <Home class="h-4 w-4 mr-1" />
+            {{ apiResponse.household.name }}
+          </button>
+          <span class="mx-2">/</span>
+          <span class="text-gray-800">Beredskapslager</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900">Beredskapslager</h1>
       </div>
-      <h1 class="text-3xl font-bold text-gray-900 mb-6">Beredskapslager</h1>
-    </div>
 
-    <!-- Use the HouseholdEmergencySupplies component -->
-    <HouseholdEmergencySupplies
-      :inventory="formattedInventory"
-      :household-id="apiResponse.household.id"
-      :show-details-button="false"
-    />
-
-    <!-- Products section - Figma style -->
-    <div class="space-y-4">
-      <h2 class="text-3xl font-bold text-gray-900 mb-4">Produkter</h2>
-
-      <!-- Mat category -->
-      <div v-for="category in apiResponse.household.inventory.categories" :key="category.id" class="border-b border-gray-200">
-        <!-- Category header -->
-        <div class="flex items-center justify-between py-4 cursor-pointer" @click="expandedCategories.includes(category.id) ? expandedCategories = expandedCategories.filter(id => id !== category.id) : expandedCategories.push(category.id)">
-          <div class="flex items-center">
-            <component :is="category.icon" class="h-6 w-6 mr-3 text-gray-800" />
-            <span class="text-2xl text-gray-800">{{ category.name }}</span>
+      <!-- Main content area -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left column - Overview -->
+        <div class="lg:col-span-4 space-y-6">
+          <!-- Summary card -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Oversikt</h2>
+            <HouseholdEmergencySupplies
+              :inventory="formattedInventory"
+              :household-id="apiResponse.household.id"
+              :show-details-button="false"
+            />
           </div>
-          <ChevronDown
-            class="h-6 w-6 text-gray-500 transition-transform duration-200"
-            :class="{ 'transform rotate-180': expandedCategories.includes(category.id) }"
-          />
         </div>
 
-        <!-- Category items -->
-        <div v-if="expandedCategories.includes(category.id)" class="pb-4">
-          <!-- Individual items -->
-          <div
-            v-for="item in category.items"
-            :key="item.id"
-            class="border-t border-gray-100 flex items-center justify-between py-4 px-4"
-          >
-            <div class="flex items-center">
-              <div class="flex-shrink-0 w-6 mr-3">
-                <!-- Here you could add custom icons for different product types if needed -->
-              </div>
-              <span class="text-gray-800">{{ item.name }}</span>
-            </div>
+        <!-- Right column - Products -->
+        <div class="lg:col-span-8">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Produkter</h2>
 
-            <div class="flex items-center space-x-6">
-              <div class="text-right w-20">
-                <span class="font-medium text-gray-800">{{ item.amount }} {{ item.unit }}</span>
-              </div>
-
-              <div class="flex w-48 items-center">
-                <span class="text-gray-600 mr-2">Dato:</span>
-                <span
-                  :class="[
-                    item.expiryDate && new Date(item.expiryDate) < new Date(Date.now() + 30*24*60*60*1000)
-                      ? 'text-amber-600 font-medium'
-                      : 'text-gray-800'
-                  ]"
+            <!-- Categories -->
+            <div class="space-y-3">
+              <div v-for="category in apiResponse.household.inventory.categories" :key="category.id"
+                   class="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                <!-- Category header - all using the same blue style -->
+                <div class="flex items-center justify-between p-4 cursor-pointer transition-colors bg-blue-50 hover:bg-blue-100"
+                  @click="expandedCategories.includes(category.id) ? expandedCategories = expandedCategories.filter(id => id !== category.id) : expandedCategories.push(category.id)"
                 >
-                  {{ item.expiryDate ? new Date(item.expiryDate).toLocaleDateString('no-NO', {day: '2-digit', month: '2-digit', year: 'numeric'}) : 'Ingen dato' }}
-                </span>
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-blue-100 text-blue-700">
+                      <component :is="category.icon" class="h-5 w-5" />
+                    </div>
+                    <span class="text-lg font-medium text-blue-800">{{ category.name }}</span>
+                  </div>
+                  <div class="flex items-center">
+                    <!-- Progress indicator -->
+                    <div class="w-20 bg-gray-200 rounded-full h-2.5 mr-4 overflow-hidden">
+                      <div class="h-2.5 rounded-full bg-blue-500"
+                           :style="`width: ${Math.min(100, (category.current / category.target) * 100)}%`">
+                      </div>
+                    </div>
+                    <span class="mr-4 text-sm font-medium">
+                      {{ category.current }} / {{ category.target }} {{ category.unit }}
+                    </span>
+                    <ChevronDown
+                      class="h-5 w-5 text-gray-500 transition-transform duration-200"
+                      :class="{ 'transform rotate-180': expandedCategories.includes(category.id) }"
+                    />
+                  </div>
+                </div>
+
+                <!-- Category items -->
+                <div v-if="expandedCategories.includes(category.id)">
+                  <div class="divide-y divide-gray-100">
+                    <!-- Individual items -->
+                    <div
+                      v-for="item in category.items"
+                      :key="item.id"
+                      class="flex items-center justify-between py-3 px-4 hover:bg-gray-50"
+                    >
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
+                        <span class="text-gray-800">{{ item.name }}</span>
+                      </div>
+
+                      <div class="flex items-center space-x-6">
+                        <div class="text-right">
+                          <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                            {{ item.amount }} {{ item.unit }}
+                          </span>
+                        </div>
+
+                        <div class="flex items-center">
+                          <span class="text-gray-600 mr-2 text-sm">Utløpsdato:</span>
+                          <span
+                            :class="[
+                              !item.expiryDate ? 'text-gray-500' :
+                              new Date(item.expiryDate) < new Date() ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded' :
+                              new Date(item.expiryDate) < new Date(Date.now() + 30*24*60*60*1000) ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded' :
+                              'text-blue-600 bg-blue-50 px-2 py-0.5 rounded'
+                            ]"
+                            class="text-sm"
+                          >
+                            {{ item.expiryDate ? new Date(item.expiryDate).toLocaleDateString('no-NO', {day: '2-digit', month: '2-digit', year: 'numeric'}) : 'Ingen dato' }}
+                          </span>
+                        </div>
+
+                        <button
+                          class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
+                          @click="deleteItem(category.id, item.id)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Add item button -->
+                    <div class="p-3 bg-blue-50">
+                      <button
+                        @click="openAddItemDialog(category.id, category.name)"
+                        class="py-2 px-4 rounded-md flex items-center text-sm font-medium w-full justify-center bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Plus class="mr-2 h-4 w-4" /> Legg til vare
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <button
-                class="text-red-500 hover:text-red-700"
-                @click="deleteItem(category.id, item.id)"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 6h18"></path>
-                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                </svg>
-              </button>
             </div>
-          </div>
-
-          <!-- Add item button -->
-          <div class="mt-4 px-4">
-            <button
-              @click="openAddItemDialog(category.id, category.name)"
-              class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md flex items-center text-sm font-medium"
-            >
-              <Plus class="mr-2 h-4 w-4" /> Legg til vare
-            </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Floating action button -->
-    <div class="fixed bottom-6 right-6">
-      <Button class="h-14 w-14 rounded-full shadow-lg">
-        <span class="text-2xl">+</span>
-      </Button>
-    </div>
+      <!-- Floating action button -->
+      <div class="fixed bottom-6 right-6">
+        <Button class="h-14 w-14 rounded-full shadow-lg">
+          <span class="text-2xl">+</span>
+        </Button>
+      </div>
 
-    <!-- Add Item Dialog -->
-    <AddItemDialog
-      :is-open="isAddItemDialogOpen"
-      :category-id="selectedCategory?.id"
-      :category-name="selectedCategory?.name"
-      @close="isAddItemDialogOpen = false"
-      @add-item="handleAddItem"
-    />
+      <!-- Add Item Dialog -->
+      <AddItemDialog
+        :is-open="isAddItemDialogOpen"
+        :category-id="selectedCategory?.id"
+        :category-name="selectedCategory?.name"
+        @close="isAddItemDialogOpen = false"
+        @add-item="handleAddItem"
+      />
+    </div>
   </div>
 </template>
