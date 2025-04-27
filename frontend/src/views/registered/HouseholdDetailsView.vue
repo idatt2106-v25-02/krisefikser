@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { MapPin, ExternalLink, Trash, UserMinus, AlertCircle, Map as MapIcon } from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
+import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 
 
 interface Member {
@@ -307,61 +308,14 @@ function viewMeetingPlace(placeId: string) {
       </div>
     </div>
 
-    <!-- Emergency Supplies Summary Section -->
-    <div class="mb-12">
-      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Beredskapslager</h2>
-
-      <!-- Summary boxes -->
-      <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <div class="grid grid-cols-3 gap-4 mb-8">
-          <div>
-            <div class="text-sm text-gray-500 mb-1">Mat</div>
-            <div class="text-lg text-blue-600 font-semibold">
-              {{ apiResponse.household.inventory.food.current }}/{{ apiResponse.household.inventory.food.target }} {{ apiResponse.household.inventory.food.unit }}
-            </div>
-          </div>
-          <div>
-            <div class="text-sm text-gray-500 mb-1">Vann</div>
-            <div class="text-lg text-blue-600 font-semibold">
-              {{ apiResponse.household.inventory.water.current }}/{{ apiResponse.household.inventory.water.target }} {{ apiResponse.household.inventory.water.unit }}
-            </div>
-          </div>
-          <div>
-            <div class="text-sm text-gray-500 mb-1">Annet</div>
-            <div class="text-lg text-blue-600 font-semibold">
-              {{ apiResponse.household.inventory.other.current }}/{{ apiResponse.household.inventory.other.target }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Days prepared -->
-        <div class="mb-4 bg-blue-50 p-4 rounded-lg border border-blue-100">
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-base font-medium text-blue-800">Dager forberedt</span>
-            <div class="flex items-center">
-              <span class="text-3xl font-bold text-blue-700">{{ apiResponse.household.inventory.preparedDays }}</span>
-              <span class="text-lg text-blue-600 ml-1">/{{ apiResponse.household.inventory.targetDays }}</span>
-            </div>
-          </div>
-          <div class="h-4 bg-blue-200 rounded-full overflow-hidden mb-2">
-            <div
-              class="h-full bg-blue-600 rounded-full"
-              :style="`width: ${(apiResponse.household.inventory.preparedDays / apiResponse.household.inventory.targetDays) * 100}%`"
-            ></div>
-          </div>
-          <div class="text-sm text-blue-700">
-            Norske myndigheter anbefaler at du har nok forsyninger tilregnet {{ apiResponse.household.inventory.targetDays }} dager.
-          </div>
-        </div>
-
-        <button
-          @click="navigateToInventory"
-          class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors duration-200 font-medium flex items-center justify-center"
-        >
-          Vis detaljer
-        </button>
-      </div>
-    </div>
+    <!-- Emergency Supplies Section using the household emergency supplies component -->
+    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Beredskapslager</h2>
+    <HouseholdEmergencySupplies
+      :inventory="apiResponse.household.inventory"
+      :inventory-items="apiResponse.household.inventoryItems"
+      :household-id="apiResponse.household.id"
+      :show-details-button="true"
+    />
 
     <!-- Action buttons -->
     <div class="flex flex-col space-y-3">

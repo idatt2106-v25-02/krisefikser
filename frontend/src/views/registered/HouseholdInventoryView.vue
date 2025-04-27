@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, defineAsyncComponent } from 'vue'
+import { ref, defineAsyncComponent, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Home, ChevronDown, Utensils, Droplet, Ambulance, Zap, Phone, Package, Plus } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
+import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 
 const AddItemDialog = defineAsyncComponent(() => import('@/components/inventory/ItemDialog.vue'))
 
@@ -116,6 +117,39 @@ const apiResponse = ref({
   }
 })
 
+// Create a computed property to format data for the HouseholdEmergencySupplies component
+const formattedInventory = computed(() => {
+  const categories = apiResponse.value.household.inventory.categories;
+
+  // Find food, water, and other categories
+  const foodCategory = categories.find(cat => cat.id === 'food') || { current: 0, target: 0, unit: 'kg' };
+  const waterCategory = categories.find(cat => cat.id === 'water') || { current: 0, target: 0, unit: 'L' };
+
+  // Sum up all other categories for the "other" metric
+  const otherCategories = categories.filter(cat => cat.id !== 'food' && cat.id !== 'water');
+  const otherCurrent = otherCategories.reduce((sum, cat) => sum + cat.current, 0);
+  const otherTarget = otherCategories.reduce((sum, cat) => sum + cat.target, 0);
+
+  return {
+    food: {
+      current: foodCategory.current,
+      target: foodCategory.target,
+      unit: foodCategory.unit
+    },
+    water: {
+      current: waterCategory.current,
+      target: waterCategory.target,
+      unit: waterCategory.unit
+    },
+    other: {
+      current: otherCurrent,
+      target: otherTarget
+    },
+    preparedDays: apiResponse.value.household.inventory.preparedDays,
+    targetDays: apiResponse.value.household.inventory.targetDays
+  };
+});
+
 // Helper functions
 function calculatePercentage(current: number, target: number): number {
   return Math.min(100, Math.round((current / target) * 100))
@@ -178,34 +212,12 @@ const selectedCategory = ref<{id: string, name: string} | null>(null)
       <h1 class="text-3xl font-bold text-gray-900 mb-6">Beredskapslager</h1>
     </div>
 
-    <!-- Summary section -->
-    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-      <div class="grid grid-cols-3 gap-4 mb-8">
-        <div v-for="category in apiResponse.household.inventory.categories.slice(0, 3)" :key="category.id">
-          <div class="text-sm text-gray-500 mb-1">{{ category.name }}</div>
-          <div class="text-lg text-blue-600 font-semibold">
-            {{ category.current }}/{{ category.target }} {{ category.unit }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Days prepared -->
-      <div>
-        <div class="flex justify-between mb-1">
-          <span class="text-sm text-gray-600">Dager forberedt</span>
-          <span class="text-sm font-medium">{{ apiResponse.household.inventory.preparedDays }}</span>
-        </div>
-        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            class="h-full bg-blue-500 rounded-full"
-            :style="`width: ${(apiResponse.household.inventory.preparedDays / apiResponse.household.inventory.targetDays) * 100}%`"
-          ></div>
-        </div>
-        <div class="mt-1 text-xs text-gray-500">
-          Norske myndigheter anbefaler at du har nok forsyninger tilregnet {{ apiResponse.household.inventory.targetDays }} dager.
-        </div>
-      </div>
-    </div>
+    <!-- Use the HouseholdEmergencySupplies component -->
+    <HouseholdEmergencySupplies
+      :inventory="formattedInventory"
+      :household-id="apiResponse.household.id"
+      :show-details-button="false"
+    />
 
     <!-- Products section - Figma style -->
     <div class="space-y-4">
