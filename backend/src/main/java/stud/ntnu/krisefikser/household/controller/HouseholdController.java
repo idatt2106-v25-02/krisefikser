@@ -159,14 +159,14 @@ public class HouseholdController {
             )
     })
     @PostMapping("/leave")
-    public void LeaveHousehold(
+    public void leaveHousehold(
             @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request
     ) {
         householdService.leaveHousehold(request.getHouseholdId());
     }
 
 
-    /*
+    /**
      * Deletes the specified household.
      *
      * @param id The ID of the household to delete
