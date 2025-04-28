@@ -62,4 +62,10 @@ public class HouseholdController {
     ) {
         return ResponseEntity.ok(householdService.joinHousehold(request.getHouseholdId()));
     }
+
+    public ResponseEntity<HouseholdResponse> setActiveHousehold(
+            @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request
+    ) {
+        return ResponseEntity.ok(householdService.setActiveHousehold(request.getHouseholdId()));
+    }
 }

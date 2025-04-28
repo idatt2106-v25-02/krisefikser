@@ -62,4 +62,21 @@ public class HouseholdService {
 
         return convertToHouseholdDto(household);
     }
+
+    public HouseholdResponse setActiveHousehold(UUID householdId) {
+        User currentUser = userService.getCurrentUser();
+        Household household = householdRepo.findById(householdId)
+                .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+        if (!houseHoldMemberService.isMemberOfHousehold(currentUser, household)) {
+            throw new IllegalArgumentException("Not a member of this household");
+        }
+
+        currentUser.setActiveHousehold(household);
+        if (userService.updateUser(currentUser) == null) {
+            throw new IllegalArgumentException("Failed to set active household");
+        }
+
+        return convertToHouseholdDto(household);
+    }
 }

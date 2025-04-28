@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.user.service;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,38 +22,43 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 @RequiredArgsConstructor
 public class UserService {
 
-  private final UserRepository userRepository;
-  private final RoleRepository roleRepository;
-  private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-  public User getCurrentUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = authentication.getName();
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
-    return userRepository.findByEmail(email).orElseThrow(
-        () -> new UserDoesNotExistException("User with email " + email + " does not exist"));
-  }
-
-  public User createUser(CreateUserDto data) {
-    if (userRepository.existsByEmail(data.getEmail())) {
-      throw new EmailAlreadyExistsException(
-          "User with email " + data.getEmail() + " already exists");
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new UserDoesNotExistException("User with email " + email + " does not exist"));
     }
 
-    Role userRole = roleRepository.findByName(RoleType.USER)
-        .orElseThrow(RoleNotFoundException::new);
+    public User createUser(CreateUserDto data) {
+        if (userRepository.existsByEmail(data.getEmail())) {
+            throw new EmailAlreadyExistsException(
+                    "User with email " + data.getEmail() + " already exists");
+        }
 
-    Set<Role> roles = new HashSet<>();
-    roles.add(userRole);
+        Role userRole = roleRepository.findByName(RoleType.USER)
+                .orElseThrow(RoleNotFoundException::new);
 
-    User user = User.builder()
-        .email(data.getEmail())
-        .password(passwordEncoder.encode(data.getPassword()))
-        .firstName(data.getFirstName())
-        .lastName(data.getLastName())
-        .roles(roles)
-        .build();
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole);
 
-    return userRepository.save(user);
-  }
+        User user = User.builder()
+                .email(data.getEmail())
+                .password(passwordEncoder.encode(data.getPassword()))
+                .firstName(data.getFirstName())
+                .lastName(data.getLastName())
+                .roles(roles)
+                .build();
+
+        return userRepository.save(user);
+    }
+
+
+    public User updateUser(User newUser) {
+        return userRepository.save(newUser);
+    }
 }
