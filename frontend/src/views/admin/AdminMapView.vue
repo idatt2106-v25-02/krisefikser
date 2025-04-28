@@ -365,7 +365,6 @@ async function handleAddEvent() {
 
       <EventLayer
         :map="mapInstance"
-        :events="[]"
         :events="events || []"
 
       />
