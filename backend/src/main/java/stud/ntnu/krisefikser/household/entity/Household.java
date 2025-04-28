@@ -26,8 +26,11 @@ public class Household {
     @Column(nullable = false)
     private String name;
 
-    @Column(columnDefinition = "POINT", nullable = false)
-    private Point location;
+    @Column(nullable = false)
+    private double latitude;
+
+    @Column(nullable = false)
+    private double longitude;
 
     @Column(nullable = false)
     private String address;
