@@ -8,6 +8,7 @@ import { shelters, type Shelter } from '@/components/map/mapData';
 import type { Event } from '@/api/generated/model';
 import { EventLevel, EventStatus } from '@/api/generated/model';
 import L from 'leaflet';
+import {useCreateMapPoint} from "@/api/generated/map-point/map-point.ts";
 
 // Map and related refs
 const mapRef = ref<InstanceType<typeof MapComponent> | null>(null);
@@ -31,6 +32,8 @@ const newEvent = ref<Partial<Event>>({
   status: EventStatus.UPCOMING
 });
 
+const {mutate: createMapPoint, isPending, error} = useCreateMapPoint()
+
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
   mapInstance.value = map;
@@ -51,6 +54,12 @@ function onMapCreated(map: L.Map) {
 function handleAddShelter() {
   // TODO: Implement shelter addition logic
   console.log('Adding shelter:', newShelter.value);
+  createMapPoint({
+    data: {
+      latitude: newShelter.value.position?.[0] || 0,
+      longitude: newShelter.value.position?.[1] || 0,
+    },
+  });
 }
 
 function handleAddEvent() {
