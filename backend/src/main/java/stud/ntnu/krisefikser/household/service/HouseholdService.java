@@ -30,6 +30,7 @@ public class HouseholdService {
     }
 
     private HouseholdResponse convertToHouseholdDto(Household household) {
+        User currentUser = userService.getCurrentUser();
         List<HouseholdMember> members = houseHoldMemberService.getMembers(household.getId());
 
         return new HouseholdResponse(
@@ -39,7 +40,8 @@ public class HouseholdService {
                 household.getLongitude(),
                 household.getOwner().toDto(),
                 members.stream().map(HouseholdMember::toDto).toList(),
-                household.getCreatedAt()
+                household.getCreatedAt(),
+                household.getId() == currentUser.getActiveHousehold().getId()
         );
     }
 

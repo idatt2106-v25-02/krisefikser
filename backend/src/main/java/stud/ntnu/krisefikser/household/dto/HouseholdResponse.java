@@ -20,4 +20,5 @@ public class HouseholdResponse {
     private UserDto owner;
     private List<HouseholdMemberDto> members;
     private LocalDateTime createdAt;
+    private boolean isActive;
 }
