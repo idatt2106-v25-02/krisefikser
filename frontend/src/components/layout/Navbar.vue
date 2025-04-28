@@ -11,6 +11,14 @@
 
         <div class="hidden md:flex items-center space-x-8">
           <router-link
+            v-if="authStore.isAuthenticated && authStore.isAdmin"
+            to="/admin"
+            class="flex items-center text-gray-700 hover:text-blue-600 transition"
+          >
+            <UserIcon class="h-5 w-5 mr-1" />
+            <span>Admin</span>
+          </router-link>
+          <router-link
             to="/kart"
             class="flex items-center text-gray-700 hover:text-blue-600 transition"
           >
@@ -52,8 +60,8 @@
               <DropdownMenuContent>
                 <router-link to="/dashboard">
                   <DropdownMenuItem>
-                    <User class="h-5 w-5 mr-2" />
-                    <span>Dashboard</span>
+                    <UserIcon class="h-5 w-5 mr-2" />
+                    <span>Min Profil</span>
                   </DropdownMenuItem>
                 </router-link>
                 <DropdownMenuItem @select="authStore.logout" variant="destructive">
@@ -110,6 +118,16 @@
           <LogIn class="h-5 w-5 mr-2" />
           <span>Logg inn</span>
         </router-link>
+
+        <router-link
+          v-if="authStore.isAuthenticated && authStore.isAdmin"
+          to="/admin"
+          class="flex items-center text-gray-700 hover:text-blue-600 transition"
+        >
+          <UserIcon class="h-5 w-5 mr-1" />
+          <span>Admin</span>
+        </router-link>
+
 
         <!-- Show user profile when authenticated -->
         <div v-else class="flex items-center justify-between px-3 py-2 mt-2 rounded text-gray-700">
