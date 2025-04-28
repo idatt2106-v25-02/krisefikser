@@ -13,6 +13,6 @@ public class HouseholdService {
     private HouseholdRepo householdRepo;
 
     public List<HouseholdResponse> getAllHouseholds() {
-
+        return List.of();
     }
 }
