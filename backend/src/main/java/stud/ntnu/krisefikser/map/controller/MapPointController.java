@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +39,9 @@ public class MapPointController {
      */
     @Operation(summary = "Get all map points", description = "Retrieves a list of all map points in the system")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved map points", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPoint.class)))
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved map points", 
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPoint.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required", content = @Content)
     })
     @GetMapping
     public ResponseEntity<List<MapPoint>> getAllMapPoints() {
@@ -54,8 +57,10 @@ public class MapPointController {
      */
     @Operation(summary = "Get a map point by ID", description = "Retrieves a specific map point by its ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved the map point", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPoint.class))),
-            @ApiResponse(responseCode = "404", description = "Map point not found")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved the map point", 
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPoint.class))),
+            @ApiResponse(responseCode = "404", description = "Map point not found", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required", content = @Content)
     })
     @GetMapping("/{id}")
     public ResponseEntity<MapPoint> getMapPointById(
@@ -73,14 +78,18 @@ public class MapPointController {
      */
     @Operation(summary = "Create a new map point", description = "Creates a new map point in the system")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully created the map point", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPoint.class))),
-            @ApiResponse(responseCode = "403", description = "Access denied")
+            @ApiResponse(responseCode = "201", description = "Successfully created the map point", 
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPoint.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid map point data provided", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions", content = @Content)
     })
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MapPoint> createMapPoint(
             @Parameter(description = "Map point to create") @RequestBody MapPoint mapPoint) {
-        return ResponseEntity.ok(mapPointService.createMapPoint(mapPoint));
+        MapPoint createdPoint = mapPointService.createMapPoint(mapPoint);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdPoint);
     }
 
     /**
@@ -94,9 +103,12 @@ public class MapPointController {
      */
     @Operation(summary = "Update a map point", description = "Updates an existing map point by its ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully updated the map point", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPoint.class))),
-            @ApiResponse(responseCode = "404", description = "Map point not found"),
-            @ApiResponse(responseCode = "403", description = "Access denied")
+            @ApiResponse(responseCode = "200", description = "Successfully updated the map point", 
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPoint.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid map point data provided", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Map point not found", content = @Content)
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -106,11 +118,20 @@ public class MapPointController {
         return ResponseEntity.ok(mapPointService.updateMapPoint(id, mapPoint));
     }
 
+    /**
+     * Deletes a map point from the system.
+     * Only accessible to users with ADMIN role.
+     *
+     * @param id The ID of the map point to delete.
+     * @return ResponseEntity with no content on successful deletion.
+     * @since 1.0
+     */
     @Operation(summary = "Delete a map point", description = "Deletes a map point from the system")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Successfully deleted the map point"),
-            @ApiResponse(responseCode = "404", description = "Map point not found"),
-            @ApiResponse(responseCode = "403", description = "Access denied")
+            @ApiResponse(responseCode = "204", description = "Successfully deleted the map point", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Map point not found", content = @Content)
     })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

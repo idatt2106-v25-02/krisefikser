@@ -129,6 +129,34 @@ public class HouseholdController {
         return ResponseEntity.ok(householdService.getActiveHousehold());
     }
 
+    /**
+     * Leaves the specified household.
+     *
+     * @param request Contains the household ID to leave
+     * @since 1.0
+     */
+    @Operation(
+            summary = "Leave household",
+            description = "Leaves the specified household"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully left household"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid household ID"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Household not found"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "User is not a member of the specified household"
+            )
+    })
     @PostMapping("/leave")
     public void LeaveHousehold(
             @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request
@@ -136,6 +164,13 @@ public class HouseholdController {
         householdService.leaveHousehold(request.getHouseholdId());
     }
 
+
+    /*
+     * Deletes the specified household.
+     *
+     * @param id The ID of the household to delete
+     * @since 1.0
+     */
     @DeleteMapping("/{id}")
     public void deleteHousehold(
             @Parameter(description = "Household ID") @PathVariable UUID id
