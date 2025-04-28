@@ -36,12 +36,12 @@ public class HouseholdController {
      * @return ResponseEntity containing a list of all households.
      * @since 1.0
      */
-    @Operation(summary = "Get all households", description = "Retrieves a list of all households in the system")
+    @Operation(summary = "Get all households of user", description = "Retrieves a list of all households that the user is a member of")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved households")
     })
     @GetMapping("/all")
     public ResponseEntity<List<HouseholdResponse>> getAllHouseholds() {
-        return ResponseEntity.ok(householdService.getAllHouseholds());
+        return ResponseEntity.ok(householdService.getUserHouseholds());
     }
 }

@@ -183,6 +183,9 @@ public class DataSeeder implements CommandLineRunner {
                     .name(faker.address().streetName() + " " + faker.address().buildingNumber())
                     .latitude(latitude)
                     .longitude(longitude)
+                    .address(faker.address().streetAddress())
+                    .postalCode(faker.address().zipCode())
+                    .city(faker.address().city())
                     .owner(randomOwner)
                     .build();
 
