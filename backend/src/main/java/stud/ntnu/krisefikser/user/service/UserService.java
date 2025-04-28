@@ -45,8 +45,13 @@ public class UserService {
     Set<Role> roles = new HashSet<>();
     roles.add(userRole);
 
-    User user = User.builder().email(data.getEmail())
-        .password(passwordEncoder.encode(data.getPassword())).roles(roles).build();
+    User user = User.builder()
+        .email(data.getEmail())
+        .password(passwordEncoder.encode(data.getPassword()))
+        .firstName(data.getFirstName())
+        .lastName(data.getLastName())
+        .roles(roles)
+        .build();
 
     return userRepository.save(user);
   }

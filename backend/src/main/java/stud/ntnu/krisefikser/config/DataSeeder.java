@@ -19,6 +19,9 @@ import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
+import stud.ntnu.krisefikser.auth.entity.Role;
+import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
+import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -43,6 +46,7 @@ public class DataSeeder implements CommandLineRunner {
     private final MapPointTypeRepository mapPointTypeRepository;
     private final MapPointRepository mapPointRepository;
     private final EventRepository eventRepository;
+    private final RoleRepository roleRepository;
 
     @Autowired(required = false)
     private PasswordEncoder passwordEncoder;
@@ -63,7 +67,7 @@ public class DataSeeder implements CommandLineRunner {
         // Seed data only if repositories are empty and not reseed mode
         else if (userRepo.count() == 0 && householdRepo.count() == 0
                 && articleRepository.count() == 0 && mapPointTypeRepository.count() == 0
-                && eventRepository.count() == 0) {
+                && eventRepository.count() == 0 && roleRepository.count() == 0) {
             seedDatabase();
             System.out.println("Data seeding completed successfully!");
         }
@@ -81,6 +85,7 @@ public class DataSeeder implements CommandLineRunner {
         articleRepository.deleteAll();
         householdRepo.deleteAll();
         userRepo.deleteAll();
+        roleRepository.deleteAll();
 
         // Re-seed the database
         seedDatabase();
@@ -91,6 +96,7 @@ public class DataSeeder implements CommandLineRunner {
      */
     private void seedDatabase() {
         System.out.println("Seeding database...");
+        seedRoles();
         if (passwordEncoder != null) {
             seedUsers();
         } else {
@@ -102,6 +108,19 @@ public class DataSeeder implements CommandLineRunner {
         seedMapPointTypes();
         seedMapPoints();
         seedEvents();
+    }
+
+    private void seedRoles() {
+        List<Role> roles = new ArrayList<>();
+
+        for (RoleType roleType : RoleType.values()) {
+            Role role = new Role();
+            role.setName(roleType);
+            roles.add(role);
+        }
+
+        roleRepository.saveAll(roles);
+        System.out.println("Seeded " + roles.size() + " roles");
     }
 
     private void seedUsers() {
