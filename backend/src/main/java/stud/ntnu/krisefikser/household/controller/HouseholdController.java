@@ -63,9 +63,68 @@ public class HouseholdController {
         return ResponseEntity.ok(householdService.joinHousehold(request.getHouseholdId()));
     }
 
+    /**
+     * Sets the active household for the current user.
+     *
+     * @param request Contains the household ID to set as active
+     * @return ResponseEntity containing the newly set active household
+     * @since 1.0
+     */
+    @Operation(
+            summary = "Set active household",
+            description = "Sets the specified household as the active household for the current user"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully set active household"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid household ID"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Household not found"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "User is not a member of the specified household"
+            )
+    })
+    @PostMapping("/active")
     public ResponseEntity<HouseholdResponse> setActiveHousehold(
-            @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request
+            @Parameter(
+                    description = "Request containing the household ID to set as active",
+                    required = true
+            )
+            @RequestBody JoinHouseholdRequest request
     ) {
         return ResponseEntity.ok(householdService.setActiveHousehold(request.getHouseholdId()));
+    }
+
+    /**
+     * Retrieves the currently active household for the user.
+     *
+     * @return ResponseEntity containing the active household information
+     * @since 1.0
+     */
+    @Operation(
+            summary = "Get active household",
+            description = "Retrieves the currently active household for the logged-in user"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully retrieved active household"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "No active household set"
+            )
+    })
+    @GetMapping("/active")
+    public ResponseEntity<HouseholdResponse> getActiveHousehold() {
+        return ResponseEntity.ok(householdService.getActiveHousehold());
     }
 }

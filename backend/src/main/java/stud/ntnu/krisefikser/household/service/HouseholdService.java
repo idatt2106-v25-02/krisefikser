@@ -79,4 +79,15 @@ public class HouseholdService {
 
         return convertToHouseholdDto(household);
     }
+
+    public HouseholdResponse getActiveHousehold() {
+        User currentUser = userService.getCurrentUser();
+        Household household = currentUser.getActiveHousehold();
+
+        if (household == null) {
+            throw new IllegalArgumentException("No active household found");
+        }
+
+        return convertToHouseholdDto(household);
+    }
 }
