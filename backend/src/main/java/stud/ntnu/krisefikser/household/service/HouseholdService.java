@@ -2,7 +2,7 @@ package stud.ntnu.krisefikser.household.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import stud.ntnu.krisefikser.household.data.HouseholdResponse;
+import stud.ntnu.krisefikser.household.dto.HouseholdDto;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepo;
@@ -18,27 +18,28 @@ public class HouseholdService {
     private final HouseHoldMemberService houseHoldMemberService;
     private final UserService userService;
 
-    public List<HouseholdResponse> getUserHouseholds() {
+    public List<HouseholdDto> getUserHouseholds() {
         User currentUser = userService.getCurrentUser();
         // Find all households where currentUser.getId()
         List<Household> households = householdRepo.findAll();
-        List<HouseholdResponse> = households.stream()
-                .filter(household -> household.getMembers().contains(currentUser))
-                .map(household -> new HouseholdResponse(household.getId(), household.getName()))
+        List<HouseholdDto> = households.stream()
+                .filter(household -> convertToHouseholdDto(household).getMembers().contains(currentUser))
+                .map(household -> new HouseholdDto(household.getId(), household.getName()))
                 .toList();
 
         return List.of();
     }
 
-    private HouseholdResponse convertToHouseholdResponse(Household household) {
-        List<HouseholdMember> members =
-        return new HouseholdResponse(
+    private HouseholdDto convertToHouseholdDto(Household household) {
+        List<HouseholdMember> members = houseHoldMemberService.getMembers(household.getId());
+
+        return new HouseholdDto(
                 household.getId(),
                 household.getName(),
                 household.getLatitude(),
                 household.getLongitude(),
                 household.getOwner(),
-                household.getMembers(),
+                household.stream().map(member -> member.toDto())
                 household.getCreatedAt()
         );
     }

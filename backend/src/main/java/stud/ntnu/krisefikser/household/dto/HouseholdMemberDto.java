@@ -1,13 +1,15 @@
-package stud.ntnu.krisefikser.household.data;
+package stud.ntnu.krisefikser.household.dto;
 
-import java.time.LocalDateTime;
-import stud.ntnu.krisefikser.household.enums.HouseholdMemberRole;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
-import stud.ntnu.krisefikser.user.data.UserResponse;
+import stud.ntnu.krisefikser.user.dto.UserDto;
 
-public class HouseholdMemberResponse {
-  private UserResponse user;
-  private HouseholdMemberStatus status;
-  private HouseholdMemberRole role;
-  private LocalDateTime memberSince;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class HouseholdMemberDto {
+    private UserDto user;
+    private HouseholdMemberStatus status;
 }

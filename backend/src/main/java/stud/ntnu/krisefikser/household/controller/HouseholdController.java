@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import stud.ntnu.krisefikser.household.data.HouseholdResponse;
+import stud.ntnu.krisefikser.household.dto.HouseholdDto;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 
 import java.util.List;
@@ -41,7 +41,7 @@ public class HouseholdController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved households")
     })
     @GetMapping("/all")
-    public ResponseEntity<List<HouseholdResponse>> getAllHouseholds() {
+    public ResponseEntity<List<HouseholdDto>> getAllHouseholds() {
         return ResponseEntity.ok(householdService.getUserHouseholds());
     }
 }
