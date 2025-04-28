@@ -8,8 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import stud.ntnu.krisefikser.auth.dto.LoginRequest;
-import stud.ntnu.krisefikser.household.dto.HouseholdDto;
+import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 
@@ -42,7 +41,7 @@ public class HouseholdController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved households")
     })
     @GetMapping("/all")
-    public ResponseEntity<List<HouseholdDto>> getAllHouseholds() {
+    public ResponseEntity<List<HouseholdResponse>> getAllHouseholds() {
         return ResponseEntity.ok(householdService.getUserHouseholds());
     }
 
@@ -58,7 +57,7 @@ public class HouseholdController {
             @ApiResponse(responseCode = "400", description = "Invalid household ID")
     })
     @PostMapping("/join")
-    public ResponseEntity<HouseholdDto> joinHousehold(
+    public ResponseEntity<HouseholdResponse> joinHousehold(
             @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request
     ) {
         return ResponseEntity.ok(householdService.joinHousehold(request.getHouseholdId()));
