@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
@@ -194,5 +195,32 @@ public class HouseholdController {
             @Parameter(description = "Household ID") @PathVariable UUID id
     ) {
         householdService.deleteHousehold(id);
+    }
+
+    /**
+     * Creates a new household.
+     *
+     * @return ResponseEntity containing the created household
+     * @since 1.0
+     */
+    @Operation(
+            summary = "Create household",
+            description = "Creates a new household"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Successfully created household"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid household data"
+            )
+    })
+    @PostMapping
+    public ResponseEntity<HouseholdResponse> createHousehold(
+            @Parameter(description = "Household data") @RequestBody CreateHouseholdRequest household
+    ) {
+        return ResponseEntity.status(201).body(householdService.createHousehold(household));
     }
 }
