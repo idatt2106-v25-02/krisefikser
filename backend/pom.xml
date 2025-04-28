@@ -129,35 +129,40 @@
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.14.1</version>
+                <!--
                 <executions>
-                    <!-- 1: Installer Node.js og npm -->
+                    <!- 1: Installer Node.js og npm ->
                     <execution>
                         <id>install-node-and-npm</id>
                         <goals><goal>install-node-and-npm</goal></goals>
                         <configuration>
-                            <nodeVersion>v18.19.0</nodeVersion> <!-- Stabil LTS-versjon -->
+                            <nodeVersion>v18.19.0</nodeVersion> <!- Stabil LTS-versjon ->
+                            <skip>true</skip> <!- Skip this step for now ->
                         </configuration>
                     </execution>
 
-                    <!-- 2: Installer mjml med npm -->
+                    <!- 2: Installer mjml med npm ->
                     <execution>
                         <id>npm-install-mjml</id>
                         <goals><goal>npm</goal></goals>
                         <configuration>
-                            <arguments>install mjml@^4.15.3</arguments> <!-- Spesifiser MJML-versjon -->
+                            <arguments>install mjml@^4.15.3</arguments> <!- Spesifiser MJML-versjon ->
+                            <skip>true</skip> <!- Skip this step for now ->
                         </configuration>
                     </execution>
 
-                    <!-- 3: Kjør MJML-kompilering -->
+                    <!- 3: Kjør MJML-kompilering ->
                     <execution>
                         <id>compile-mjml</id>
                         <goals><goal>npm</goal></goals>
-                        <phase>generate-resources</phase> <!-- Kompiler tidlig i bygget -->
+                        <phase>generate-resources</phase> <!- Kompiler tidlig i bygget ->
                         <configuration>
-                            <arguments>run compile:mjml</arguments> <!-- npm script du lager -->
+                            <arguments>run compile:mjml</arguments> <!- npm script du lager ->
+                            <skip>true</skip> <!- Skip this step for now ->
                         </configuration>
                     </execution>
                 </executions>
+                -->
             </plugin>
 
             <plugin>
