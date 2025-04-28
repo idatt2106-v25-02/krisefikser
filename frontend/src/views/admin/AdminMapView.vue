@@ -14,12 +14,13 @@ import { useCreateEvent } from '@/api/generated/event/event';
 import { useCreateMapPointType } from '@/api/generated/map-point-type/map-point-type';
 import type { MapPoint, MapPointType } from '@/api/generated/model';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useQueryClient } from '@tanstack/vue-query';
 
 // Map and related refs
 const mapRef = ref<InstanceType<typeof MapComponent> | null>(null);
 const mapInstance = ref<L.Map | null>(null);
 const authStore = useAuthStore();
-const { data: events, isLoading: isEventsLoading } = useGetAllEvents();
+const { data: events, isLoading: isEventsLoading, refetch } = useGetAllEvents();
 
 
 // Form states
@@ -142,7 +143,7 @@ async function handleAddEvent() {
         status: newEvent.value.status
       }
     });
-
+    refetch();
     // Reset form
     newEvent.value = {
       title: '',
@@ -365,7 +366,7 @@ async function handleAddEvent() {
 
       <EventLayer
         :map="mapInstance"
-        :events="events || []"
+        :events="reactiveEvents"
 
       />
 
