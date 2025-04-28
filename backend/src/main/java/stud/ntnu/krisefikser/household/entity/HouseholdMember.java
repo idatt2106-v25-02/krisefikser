@@ -45,7 +45,7 @@ public class HouseholdMember {
     public HouseholdMemberDto toDto() {
         return new HouseholdMemberDto(
                 user.toDto(),
-                status,
-        )
+                status
+        );
     }
 }

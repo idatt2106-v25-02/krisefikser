@@ -3,6 +3,7 @@ package stud.ntnu.krisefikser.household.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.household.dto.HouseholdDto;
+import stud.ntnu.krisefikser.household.dto.HouseholdMemberDto;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepo;
@@ -21,13 +22,10 @@ public class HouseholdService {
     public List<HouseholdDto> getUserHouseholds() {
         User currentUser = userService.getCurrentUser();
         // Find all households where currentUser.getId()
-        List<Household> households = householdRepo.findAll();
-        List<HouseholdDto> = households.stream()
-                .filter(household -> convertToHouseholdDto(household).getMembers().contains(currentUser))
-                .map(household -> new HouseholdDto(household.getId(), household.getName()))
+        return householdRepo.findAll().stream()
+                .map(this::convertToHouseholdDto)
+                .filter(household -> household.getMembers().stream().map(HouseholdMemberDto::getUser).anyMatch(user -> user.getId() == currentUser.getId()))
                 .toList();
-
-        return List.of();
     }
 
     private HouseholdDto convertToHouseholdDto(Household household) {
@@ -38,8 +36,8 @@ public class HouseholdService {
                 household.getName(),
                 household.getLatitude(),
                 household.getLongitude(),
-                household.getOwner(),
-                household.stream().map(member -> member.toDto())
+                household.getOwner().toDto(),
+                members.stream().map(HouseholdMember::toDto).toList(),
                 household.getCreatedAt()
         );
     }
