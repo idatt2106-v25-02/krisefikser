@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import os
 from datetime import datetime, timedelta
 import json
+import re
 
 # Get environment variables
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
@@ -65,48 +66,81 @@ def get_issues_for_milestone(milestone_number):
     return all_issues
 
 def extract_story_points(issue):
-    """Extract story points from issue using multiple methods"""
-    story_points = 0
+    """Extract story points from GitHub project field named 'Story points'"""
+    # Get project items for this issue using the GraphQL API
+    if 'node_id' in issue:
+        try:
+            graphql_query = {
+                "query": """
+                query($issueId: ID!) {
+                  node(id: $issueId) {
+                    ... on Issue {
+                      projectItems(first: 10) {
+                        nodes {
+                          fieldValues(first: 20) {
+                            nodes {
+                              ... on ProjectV2ItemFieldNumberValue {
+                                field {
+                                  ... on ProjectV2FieldCommon {
+                                    name
+                                  }
+                                }
+                                number
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                """,
+                "variables": {
+                    "issueId": issue['node_id']
+                }
+            }
+
+            response = requests.post(
+                "https://api.github.com/graphql",
+                headers=headers,
+                json=graphql_query
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Navigate through the response to find the Story points field
+                if 'data' in data and 'node' in data['data'] and data['data']['node']:
+                    project_items = data['data']['node'].get('projectItems', {}).get('nodes', [])
+                    
+                    for project_item in project_items:
+                        field_values = project_item.get('fieldValues', {}).get('nodes', [])
+                        
+                        for field_value in field_values:
+                            if field_value.get('field', {}).get('name', '').lower() == 'story points':
+                                return field_value.get('number', 0)
+        except Exception as e:
+            print(f"Error getting project data for issue {issue.get('number')}: {e}")
     
-    # Method 1: Look for story points in the body
+    # Fallback method: Look for "Story points" in labels
+    for label in issue.get('labels', []):
+        label_name = label['name']
+        if label_name.startswith('Story points:') or label_name.startswith('Story Points:'):
+            try:
+                points = label_name.split(':')[1].strip()
+                return int(points)
+            except:
+                pass
+    
+    # Fallback method: Look for story points in the body
     if issue.get('body'):
         body = issue['body'] or ""
-        if "story points:" in body.lower():
-            try:
-                # Extract story points from the body
-                body_lower = body.lower()
-                idx = body_lower.find("story points:")
-                points_text = body[idx:].split("\n")[0]
-                story_points = int(''.join(filter(str.isdigit, points_text)))
-                return story_points
-            except:
-                pass
+        # Try to find "Story points: X" in the body
+        match = re.search(r'story points:\s*(\d+)', body.lower())
+        if match:
+            return int(match.group(1))
     
-    # Method 2: Check for story points in labels
-    for label in issue.get('labels', []):
-        label_name = label['name'].lower()
-        if 'points:' in label_name or 'sp:' in label_name or 'point:' in label_name:
-            try:
-                # Extract numbers from label
-                story_points = int(''.join(filter(str.isdigit, label_name)))
-                return story_points
-            except:
-                pass
-    
-    # Method 3: Check for story points in title
-    title = issue.get('title', '').lower()
-    if '[' in title and ']' in title:
-        try:
-            start_idx = title.find('[')
-            end_idx = title.find(']', start_idx)
-            points_text = title[start_idx+1:end_idx]
-            if points_text.isdigit() or (points_text.startswith('sp') and points_text[2:].isdigit()):
-                story_points = int(''.join(filter(str.isdigit, points_text)))
-                return story_points
-        except:
-            pass
-    
-    return story_points
+    return 0  # Default to 0 if no story points found
 
 def generate_velocity_data():
     """Generate velocity data from GitHub issues and milestones"""
