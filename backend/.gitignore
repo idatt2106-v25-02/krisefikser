@@ -17,6 +17,8 @@ target/
 ### IntelliJ IDEA ###
 .idea/
 
+### environment ###
+.env
 
 ### NetBeans ###
 /nbproject/private/
