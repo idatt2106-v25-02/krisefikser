@@ -21,13 +21,6 @@ import type {
   UseQueryReturnType
 } from '@tanstack/vue-query';
 
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import {
   computed,
   unref
@@ -40,7 +33,11 @@ import type {
   MapPointType
 } from '.././model';
 
+import { customInstance } from '../../axios';
+import type { ErrorType , BodyType } from '../../axios';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -49,31 +46,33 @@ import type {
  * @summary Get a map point type by ID
  */
 export const getMapPointTypeById = (
-    id: MaybeRef<number>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapPointType>> => {
-    id = unref(id);
-    
-    return axios.default.get(
-      `http://localhost:8080/api/map-point-types/${id}`,options
-    );
-  }
-
+    id: MaybeRef<number>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      id = unref(id);
+      
+      return customInstance<MapPointType>(
+      {url: `http://localhost:8080/api/map-point-types/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 export const getGetMapPointTypeByIdQueryKey = (id: MaybeRef<number>,) => {
     return ['http:','localhost:8080','api','map-point-types',id] as const;
     }
 
     
-export const getGetMapPointTypeByIdQueryOptions = <TData = Awaited<ReturnType<typeof getMapPointTypeById>>, TError = AxiosError<MapPointType>>(id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMapPointTypeById>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetMapPointTypeByIdQueryOptions = <TData = Awaited<ReturnType<typeof getMapPointTypeById>>, TError = ErrorType<MapPointType>>(id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMapPointTypeById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  getGetMapPointTypeByIdQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMapPointTypeById>>> = ({ signal }) => getMapPointTypeById(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMapPointTypeById>>> = ({ signal }) => getMapPointTypeById(id, requestOptions, signal);
 
       
 
@@ -83,15 +82,15 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetMapPointTypeByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getMapPointTypeById>>>
-export type GetMapPointTypeByIdQueryError = AxiosError<MapPointType>
+export type GetMapPointTypeByIdQueryError = ErrorType<MapPointType>
 
 
 /**
  * @summary Get a map point type by ID
  */
 
-export function useGetMapPointTypeById<TData = Awaited<ReturnType<typeof getMapPointTypeById>>, TError = AxiosError<MapPointType>>(
- id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMapPointTypeById>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetMapPointTypeById<TData = Awaited<ReturnType<typeof getMapPointTypeById>>, TError = ErrorType<MapPointType>>(
+ id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMapPointTypeById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient 
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -112,37 +111,39 @@ export function useGetMapPointTypeById<TData = Awaited<ReturnType<typeof getMapP
  */
 export const updateMapPointType = (
     id: MaybeRef<number>,
-    mapPointType: MaybeRef<MapPointType>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapPointType>> => {
-    id = unref(id);
+    mapPointType: MaybeRef<MapPointType>,
+ options?: SecondParameter<typeof customInstance>,) => {
+      id = unref(id);
 mapPointType = unref(mapPointType);
-    
-    return axios.default.put(
-      `http://localhost:8080/api/map-point-types/${id}`,
-      mapPointType,options
-    );
-  }
+      
+      return customInstance<MapPointType>(
+      {url: `http://localhost:8080/api/map-point-types/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: mapPointType
+    },
+      options);
+    }
+  
 
 
-
-export const getUpdateMapPointTypeMutationOptions = <TError = AxiosError<MapPointType>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMapPointType>>, TError,{id: number;data: MapPointType}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof updateMapPointType>>, TError,{id: number;data: MapPointType}, TContext> => {
+export const getUpdateMapPointTypeMutationOptions = <TError = ErrorType<MapPointType>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMapPointType>>, TError,{id: number;data: BodyType<MapPointType>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMapPointType>>, TError,{id: number;data: BodyType<MapPointType>}, TContext> => {
     
 const mutationKey = ['updateMapPointType'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMapPointType>>, {id: number;data: MapPointType}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMapPointType>>, {id: number;data: BodyType<MapPointType>}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateMapPointType(id,data,axiosOptions)
+          return  updateMapPointType(id,data,requestOptions)
         }
 
         
@@ -151,18 +152,18 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateMapPointTypeMutationResult = NonNullable<Awaited<ReturnType<typeof updateMapPointType>>>
-    export type UpdateMapPointTypeMutationBody = MapPointType
-    export type UpdateMapPointTypeMutationError = AxiosError<MapPointType>
+    export type UpdateMapPointTypeMutationBody = BodyType<MapPointType>
+    export type UpdateMapPointTypeMutationError = ErrorType<MapPointType>
 
     /**
  * @summary Update a map point type
  */
-export const useUpdateMapPointType = <TError = AxiosError<MapPointType>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMapPointType>>, TError,{id: number;data: MapPointType}, TContext>, axios?: AxiosRequestConfig}
+export const useUpdateMapPointType = <TError = ErrorType<MapPointType>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMapPointType>>, TError,{id: number;data: BodyType<MapPointType>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof updateMapPointType>>,
         TError,
-        {id: number;data: MapPointType},
+        {id: number;data: BodyType<MapPointType>},
         TContext
       > => {
 
@@ -175,27 +176,28 @@ export const useUpdateMapPointType = <TError = AxiosError<MapPointType>,
  * @summary Delete a map point type
  */
 export const deleteMapPointType = (
-    id: MaybeRef<number>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    id = unref(id);
-    
-    return axios.default.delete(
-      `http://localhost:8080/api/map-point-types/${id}`,options
-    );
-  }
+    id: MaybeRef<number>,
+ options?: SecondParameter<typeof customInstance>,) => {
+      id = unref(id);
+      
+      return customInstance<void>(
+      {url: `http://localhost:8080/api/map-point-types/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
 
 
-
-export const getDeleteMapPointTypeMutationOptions = <TError = AxiosError<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMapPointType>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteMapPointTypeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMapPointType>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteMapPointType>>, TError,{id: number}, TContext> => {
     
 const mutationKey = ['deleteMapPointType'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -203,7 +205,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMapPointType>>, {id: number}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteMapPointType(id,axiosOptions)
+          return  deleteMapPointType(id,requestOptions)
         }
 
         
@@ -213,13 +215,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteMapPointTypeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMapPointType>>>
     
-    export type DeleteMapPointTypeMutationError = AxiosError<void>
+    export type DeleteMapPointTypeMutationError = ErrorType<void>
 
     /**
  * @summary Delete a map point type
  */
-export const useDeleteMapPointType = <TError = AxiosError<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMapPointType>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const useDeleteMapPointType = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMapPointType>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof deleteMapPointType>>,
         TError,
@@ -236,31 +238,33 @@ export const useDeleteMapPointType = <TError = AxiosError<void>,
  * @summary Get all map point types
  */
 export const getAllMapPointTypes = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapPointType>> => {
     
-    
-    return axios.default.get(
-      `http://localhost:8080/api/map-point-types`,options
-    );
-  }
-
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<MapPointType>(
+      {url: `http://localhost:8080/api/map-point-types`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 export const getGetAllMapPointTypesQueryKey = () => {
     return ['http:','localhost:8080','api','map-point-types'] as const;
     }
 
     
-export const getGetAllMapPointTypesQueryOptions = <TData = Awaited<ReturnType<typeof getAllMapPointTypes>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMapPointTypes>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAllMapPointTypesQueryOptions = <TData = Awaited<ReturnType<typeof getAllMapPointTypes>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMapPointTypes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  getGetAllMapPointTypesQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllMapPointTypes>>> = ({ signal }) => getAllMapPointTypes({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllMapPointTypes>>> = ({ signal }) => getAllMapPointTypes(requestOptions, signal);
 
       
 
@@ -270,15 +274,15 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAllMapPointTypesQueryResult = NonNullable<Awaited<ReturnType<typeof getAllMapPointTypes>>>
-export type GetAllMapPointTypesQueryError = AxiosError<unknown>
+export type GetAllMapPointTypesQueryError = ErrorType<unknown>
 
 
 /**
  * @summary Get all map point types
  */
 
-export function useGetAllMapPointTypes<TData = Awaited<ReturnType<typeof getAllMapPointTypes>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMapPointTypes>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllMapPointTypes<TData = Awaited<ReturnType<typeof getAllMapPointTypes>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMapPointTypes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient 
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -298,36 +302,39 @@ export function useGetAllMapPointTypes<TData = Awaited<ReturnType<typeof getAllM
  * @summary Create a new map point type
  */
 export const createMapPointType = (
-    mapPointType: MaybeRef<MapPointType>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<MapPointType>> => {
-    mapPointType = unref(mapPointType);
-    
-    return axios.default.post(
-      `http://localhost:8080/api/map-point-types`,
-      mapPointType,options
-    );
-  }
+    mapPointType: MaybeRef<MapPointType>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      mapPointType = unref(mapPointType);
+      
+      return customInstance<MapPointType>(
+      {url: `http://localhost:8080/api/map-point-types`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: mapPointType, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreateMapPointTypeMutationOptions = <TError = AxiosError<MapPointType>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMapPointType>>, TError,{data: MapPointType}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof createMapPointType>>, TError,{data: MapPointType}, TContext> => {
+export const getCreateMapPointTypeMutationOptions = <TError = ErrorType<MapPointType>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMapPointType>>, TError,{data: BodyType<MapPointType>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMapPointType>>, TError,{data: BodyType<MapPointType>}, TContext> => {
     
 const mutationKey = ['createMapPointType'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMapPointType>>, {data: MapPointType}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMapPointType>>, {data: BodyType<MapPointType>}> = (props) => {
           const {data} = props ?? {};
 
-          return  createMapPointType(data,axiosOptions)
+          return  createMapPointType(data,requestOptions)
         }
 
         
@@ -336,18 +343,18 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateMapPointTypeMutationResult = NonNullable<Awaited<ReturnType<typeof createMapPointType>>>
-    export type CreateMapPointTypeMutationBody = MapPointType
-    export type CreateMapPointTypeMutationError = AxiosError<MapPointType>
+    export type CreateMapPointTypeMutationBody = BodyType<MapPointType>
+    export type CreateMapPointTypeMutationError = ErrorType<MapPointType>
 
     /**
  * @summary Create a new map point type
  */
-export const useCreateMapPointType = <TError = AxiosError<MapPointType>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMapPointType>>, TError,{data: MapPointType}, TContext>, axios?: AxiosRequestConfig}
+export const useCreateMapPointType = <TError = ErrorType<MapPointType>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMapPointType>>, TError,{data: BodyType<MapPointType>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof createMapPointType>>,
         TError,
-        {data: MapPointType},
+        {data: BodyType<MapPointType>},
         TContext
       > => {
 

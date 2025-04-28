@@ -57,10 +57,10 @@ function processMapData() {
     }));
 
   // Process events if available
-  if (eventsData.value?.data) {
-    events.value = Array.isArray(eventsData.value.data)
-      ? eventsData.value.data
-      : [eventsData.value.data];
+  if (eventsData.value) {
+    events.value = Array.isArray(eventsData.value)
+      ? eventsData.value
+      : [eventsData.value];
   }
 
   isLoading.value = false;
