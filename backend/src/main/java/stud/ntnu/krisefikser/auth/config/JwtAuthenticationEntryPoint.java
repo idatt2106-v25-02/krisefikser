@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URI;
+import java.time.Instant;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import stud.ntnu.krisefikser.ErrorResponse;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -19,14 +21,16 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
       HttpServletResponse response,
       AuthenticationException authException
   ) throws IOException {
-    ErrorResponse error = new ErrorResponse(
-        HttpStatus.UNAUTHORIZED.value(),
-        "Unauthorized",
-        System.currentTimeMillis()
+    ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        HttpStatus.UNAUTHORIZED,
+        "Unauthorized"
     );
-
-    response.setContentType("application/json");
+    problemDetail.setType(URI.create("https://krisefikser.ntnu.stud/errors/" + HttpStatus.UNAUTHORIZED.value()));
+    problemDetail.setTitle(HttpStatus.UNAUTHORIZED.getReasonPhrase());
+    problemDetail.setProperty("timestamp", Instant.now());
+  
+    response.setContentType("application/problem+json");
     response.setStatus(HttpStatus.UNAUTHORIZED.value());
-    response.getWriter().write(new ObjectMapper().writeValueAsString(error));
+    response.getWriter().write(new ObjectMapper().writeValueAsString(problemDetail));
   }
 }
