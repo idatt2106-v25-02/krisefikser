@@ -172,6 +172,24 @@ public class HouseholdController {
      * @since 1.0
      */
     @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Delete household",
+            description = "Deletes the specified household"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully deleted household"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid household ID"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Household not found"
+            )
+    })
     public void deleteHousehold(
             @Parameter(description = "Household ID") @PathVariable UUID id
     ) {

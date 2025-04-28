@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.household.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdMemberDto;
 import stud.ntnu.krisefikser.household.entity.Household;
@@ -38,6 +39,7 @@ public class HouseholdService {
                 household.getName(),
                 household.getLatitude(),
                 household.getLongitude(),
+                household.getAddress(),
                 household.getOwner().toDto(),
                 members.stream().map(HouseholdMember::toDto).toList(),
                 household.getCreatedAt(),
@@ -110,5 +112,24 @@ public class HouseholdService {
     public void deleteHousehold(UUID id) {
         leaveHousehold(id);
         householdRepo.deleteById(id);
+    }
+
+    public HouseholdResponse createHousehold(CreateHouseholdRequest household) {
+        User currentUser = userService.getCurrentUser();
+        Household newHousehold = new Household();
+        newHousehold.setName(household.getName());
+        newHousehold.setLatitude(household.getLatitude());
+        newHousehold.setLongitude(household.getLongitude());
+        newHousehold.setAddress(household.getAddress());
+        newHousehold.setPostalCode(household.getPostalCode());
+        newHousehold.setCity(household.getCity());
+        newHousehold.setOwner(currentUser);
+
+        householdRepo.save(newHousehold);
+        houseHoldMemberService.addMember(newHousehold, currentUser);
+
+        setActiveHousehold(newHousehold.getId());
+
+        return convertToHouseholdDto(newHousehold);
     }
 }
