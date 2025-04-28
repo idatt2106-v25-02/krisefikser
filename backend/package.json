@@ -1,0 +1,10 @@
+{
+  "name": "krisefikser-email",
+  "version": "1.0.0",
+  "scripts": {
+    "compile:mjml": "mjml src/main/mjml/*.mjml -o src/main/resources/templates/"
+  },
+  "dependencies": {
+    "mjml": "^4.15.3"
+  }
+}
