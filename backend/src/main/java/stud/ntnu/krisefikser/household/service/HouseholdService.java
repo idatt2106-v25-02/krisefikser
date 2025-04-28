@@ -106,4 +106,9 @@ public class HouseholdService {
             userService.updateUser(currentUser);
         }
     }
+
+    public void deleteHousehold(UUID id) {
+        leaveHousehold(id);
+        householdRepo.deleteById(id);
+    }
 }

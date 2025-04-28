@@ -52,8 +52,8 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "active_household_id")
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "active_household_id", nullable = true)
     private Household activeHousehold;
 
     public UserDto toDto() {

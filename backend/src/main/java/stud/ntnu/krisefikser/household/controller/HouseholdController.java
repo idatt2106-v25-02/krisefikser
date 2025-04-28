@@ -13,6 +13,7 @@ import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * REST controller for managing households in the system.
@@ -133,5 +134,12 @@ public class HouseholdController {
             @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request
     ) {
         householdService.leaveHousehold(request.getHouseholdId());
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteHousehold(
+            @Parameter(description = "Household ID") @PathVariable UUID id
+    ) {
+        householdService.deleteHousehold(id);
     }
 }
