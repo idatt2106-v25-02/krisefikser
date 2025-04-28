@@ -17,6 +17,7 @@ public class HouseholdResponse {
     private String name;
     private double latitude;
     private double longitude;
+    private String address;
     private UserDto owner;
     private List<HouseholdMemberDto> members;
     private LocalDateTime createdAt;
