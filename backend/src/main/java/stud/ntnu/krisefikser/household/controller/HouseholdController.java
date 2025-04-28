@@ -127,4 +127,11 @@ public class HouseholdController {
     public ResponseEntity<HouseholdResponse> getActiveHousehold() {
         return ResponseEntity.ok(householdService.getActiveHousehold());
     }
+
+    @PostMapping("/leave")
+    public void LeaveHousehold(
+            @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request
+    ) {
+        householdService.leaveHousehold(request.getHouseholdId());
+    }
 }

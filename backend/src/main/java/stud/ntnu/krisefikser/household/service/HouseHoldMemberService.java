@@ -32,4 +32,10 @@ public class HouseHoldMemberService {
         member.setStatus(HouseholdMemberStatus.ACCEPTED);
         return householdMemberRepo.save(member);
     }
+
+    public void removeMember(Household household, User currentUser) {
+        HouseholdMember member = householdMemberRepo.findByHouseholdAndUser(household, currentUser)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        householdMemberRepo.delete(member);
+    }
 }

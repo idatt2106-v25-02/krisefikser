@@ -1,6 +1,7 @@
 package stud.ntnu.krisefikser.household.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,6 @@ public interface HouseholdMemberRepo extends JpaRepository<HouseholdMember, UUID
     List<HouseholdMember> findByHouseholdId(UUID householdId);
 
     boolean existsByUserAndHousehold(User currentUser, Household household);
+
+    Optional<HouseholdMember> findByHouseholdAndUser(Household household, User currentUser);
 }

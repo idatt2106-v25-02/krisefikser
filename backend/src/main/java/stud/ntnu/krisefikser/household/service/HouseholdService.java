@@ -90,4 +90,20 @@ public class HouseholdService {
 
         return convertToHouseholdDto(household);
     }
+
+    public void leaveHousehold(UUID householdId) {
+        User currentUser = userService.getCurrentUser();
+        Household household = householdRepo.findById(householdId)
+                .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+        if (!houseHoldMemberService.isMemberOfHousehold(currentUser, household)) {
+            throw new IllegalArgumentException("Not a member of this household");
+        }
+
+        houseHoldMemberService.removeMember(household, currentUser);
+        if (currentUser.getActiveHousehold().getId() == household.getId()) {
+            currentUser.setActiveHousehold(null);
+            userService.updateUser(currentUser);
+        }
+    }
 }
