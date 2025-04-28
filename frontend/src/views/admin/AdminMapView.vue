@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { Home } from 'lucide-vue-next';
 import MapComponent from '@/components/map/MapComponent.vue';
 import ShelterLayer from '@/components/map/ShelterLayer.vue';
 import EventLayer from '@/components/map/EventLayer.vue';
@@ -81,11 +82,12 @@ async function handleAddShelter() {
 
   try {
     // First create the map point type for the shelter
-    const mapPointType = await createMapPointType({
+    const mapPointTypeResponse = await createMapPointType({
       data: {
         title: newShelter.value.name,
         description: `Shelter with capacity of ${newShelter.value.capacity} people`,
-        iconUrl: '/shelter-icon.png' // You should have this icon in your public folder
+        iconUrl: '/shelter-icon.png', // Use a proper icon URL
+        openingTime: '24/7' // Default opening time for shelters
       }
     });
 
@@ -94,7 +96,9 @@ async function handleAddShelter() {
       data: {
         latitude: newShelter.value.position[0],
         longitude: newShelter.value.position[1],
-        type: mapPointType // The response from createMapPointType is the type object itself
+        type: {
+          id: mapPointTypeResponse.id // Use the ID from the created map point type
+        }
       }
     });
 
@@ -366,7 +370,7 @@ async function handleAddEvent() {
 
       <EventLayer
         :map="mapInstance"
-        :events="reactiveEvents"
+        :events="events || []"
 
       />
 
