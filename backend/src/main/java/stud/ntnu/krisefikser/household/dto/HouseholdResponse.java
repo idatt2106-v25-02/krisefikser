@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HouseholdDto {
+public class HouseholdResponse {
     private UUID id;
     private String name;
     private double latitude;

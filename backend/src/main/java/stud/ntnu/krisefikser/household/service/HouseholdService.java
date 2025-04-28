@@ -2,7 +2,7 @@ package stud.ntnu.krisefikser.household.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import stud.ntnu.krisefikser.household.dto.HouseholdDto;
+import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdMemberDto;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
@@ -20,7 +20,7 @@ public class HouseholdService {
     private final HouseHoldMemberService houseHoldMemberService;
     private final UserService userService;
 
-    public List<HouseholdDto> getUserHouseholds() {
+    public List<HouseholdResponse> getUserHouseholds() {
         User currentUser = userService.getCurrentUser();
         // Find all households where currentUser.getId()
         return householdRepo.findAll().stream()
@@ -29,10 +29,10 @@ public class HouseholdService {
                 .toList();
     }
 
-    private HouseholdDto convertToHouseholdDto(Household household) {
+    private HouseholdResponse convertToHouseholdDto(Household household) {
         List<HouseholdMember> members = houseHoldMemberService.getMembers(household.getId());
 
-        return new HouseholdDto(
+        return new HouseholdResponse(
                 household.getId(),
                 household.getName(),
                 household.getLatitude(),
@@ -43,7 +43,7 @@ public class HouseholdService {
         );
     }
 
-    public HouseholdDto joinHousehold(UUID householdId) {
+    public HouseholdResponse joinHousehold(UUID householdId) {
         User currentUser = userService.getCurrentUser();
         Household household = householdRepo.findById(householdId)
                 .orElseThrow(() -> new IllegalArgumentException("Household not found"));
