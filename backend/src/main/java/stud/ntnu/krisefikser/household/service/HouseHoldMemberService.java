@@ -2,8 +2,11 @@ package stud.ntnu.krisefikser.household.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
+import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepo;
+import stud.ntnu.krisefikser.user.entity.User;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,5 +18,18 @@ public class HouseHoldMemberService {
 
     public List<HouseholdMember> getMembers(UUID householdId) {
         return householdMemberRepo.findByHouseholdId(householdId);
+    }
+
+    public boolean isMemberOfHousehold(User currentUser, Household household) {
+        return householdMemberRepo.existsByUserAndHousehold(currentUser, household);
+    }
+
+    // TODO: Check if the user is invited
+    public HouseholdMember addMember(Household household, User currentUser) {
+        HouseholdMember member = new HouseholdMember();
+        member.setHousehold(household);
+        member.setUser(currentUser);
+        member.setStatus(HouseholdMemberStatus.ACCEPTED);
+        return householdMemberRepo.save(member);
     }
 }

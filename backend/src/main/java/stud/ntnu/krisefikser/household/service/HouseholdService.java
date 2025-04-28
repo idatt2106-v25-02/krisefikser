@@ -11,6 +11,7 @@ import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -40,5 +41,23 @@ public class HouseholdService {
                 members.stream().map(HouseholdMember::toDto).toList(),
                 household.getCreatedAt()
         );
+    }
+
+    public HouseholdDto joinHousehold(UUID householdId) {
+        User currentUser = userService.getCurrentUser();
+        Household household = householdRepo.findById(householdId)
+                .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+        if (houseHoldMemberService.isMemberOfHousehold(currentUser, household)) {
+            throw new IllegalArgumentException("Already a member of this household");
+        }
+
+        HouseholdMember member = houseHoldMemberService.addMember(household, currentUser);
+
+        if (member == null) {
+            throw new IllegalArgumentException("Failed to join household");
+        }
+
+        return convertToHouseholdDto(household);
     }
 }
