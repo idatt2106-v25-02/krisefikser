@@ -66,14 +66,49 @@ public class AuthService {
         refreshToken
     );
   }
-
-  // Rest of the class remains unchanged
   public LoginResponse login(LoginRequest loginRequest) {
-    // existing implementation
+    // Authenticate user
+    authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+    );
+
+    // Load user details and generate tokens
+    UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
+    String accessToken = createAccessToken(userDetails);
+    String refreshToken = createRefreshToken(userDetails);
+
+    // Save refresh token
+    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
+
+    // Return response
+    return new LoginResponse(accessToken, refreshToken);
   }
 
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
-    // existing implementation
+    // Validate refresh token exists
+    String token = refreshRequest.getRefreshToken();
+    if (!refreshTokenRepository.existsByToken(token)) {
+      throw new RefreshTokenDoesNotExistException("Refresh token does not exist");
+    }
+
+    // Verify and extract user details
+    String email = tokenService.extractUsername(token);
+    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+    // Validate token
+    if (!tokenService.validate(token, userDetails)) {
+      throw new InvalidTokenException("Invalid refresh token");
+    }
+
+    // Generate new tokens
+    String accessToken = createAccessToken(userDetails);
+    String newRefreshToken = createRefreshToken(userDetails);
+
+    // Update refresh token in repository
+    refreshTokenRepository.delete(refreshTokenRepository.findByToken(token).get());
+    refreshTokenRepository.save(RefreshToken.builder().token(newRefreshToken).build());
+
+    return new RefreshResponse(accessToken, newRefreshToken);
   }
 
   public UserDto me() {

@@ -71,4 +71,13 @@ public class TokenService {
         .parseSignedClaims(token)
         .getPayload();
   }
+
+  // Method aliases to match what's being called in AuthService
+  public String extractUsername(String token) {
+    return extractEmail(token);
+  }
+
+  public boolean validate(String token, UserDetails userDetails) {
+    return isValid(token, userDetails);
+  }
 }
