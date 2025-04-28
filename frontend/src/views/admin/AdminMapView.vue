@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Home } from 'lucide-vue-next';
 import MapComponent from '@/components/map/MapComponent.vue';
 import ShelterLayer from '@/components/map/ShelterLayer.vue';
 import EventLayer from '@/components/map/EventLayer.vue';
@@ -9,20 +8,18 @@ import { shelters, type Shelter } from '@/components/map/mapData';
 import type { Event } from '@/api/generated/model';
 import { EventLevel, EventStatus } from '@/api/generated/model';
 import L from 'leaflet';
-import { useCreateMapPoint } from '@/api/generated/map-point/map-point';
+import {useCreateMapPoint, useGetAllMapPoints} from '@/api/generated/map-point/map-point';
 import { useGetAllEvents } from '@/api/generated/event/event';
 import { useCreateEvent } from '@/api/generated/event/event';
 import { useCreateMapPointType } from '@/api/generated/map-point-type/map-point-type';
-import type { MapPoint, MapPointType } from '@/api/generated/model';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useQueryClient } from '@tanstack/vue-query';
 
 // Map and related refs
 const mapRef = ref<InstanceType<typeof MapComponent> | null>(null);
 const mapInstance = ref<L.Map | null>(null);
 const authStore = useAuthStore();
 const { data: events, isLoading: isEventsLoading, refetch } = useGetAllEvents();
-
+const { data: mapPoints, isLoading: isMapPointsLoading, refetch: refetchMapPoints } = useGetAllMapPoints();
 
 // Form states
 const activeTab = ref<'shelters' | 'events'>('shelters');
@@ -86,21 +83,22 @@ async function handleAddShelter() {
       data: {
         title: newShelter.value.name,
         description: `Shelter with capacity of ${newShelter.value.capacity} people`,
-        iconUrl: '/shelter-icon.png', // Use a proper icon URL
-        openingTime: '24/7' // Default opening time for shelters
+        iconUrl: '/shelter-icon.png',
+        openingTime: '24/7'
       }
     });
 
-    // Then create the map point with the type
     await createMapPoint({
       data: {
         latitude: newShelter.value.position[0],
         longitude: newShelter.value.position[1],
         type: {
-          id: mapPointTypeResponse.id // Use the ID from the created map point type
+          id: mapPointTypeResponse.data.id
         }
       }
     });
+
+    refetchMapPoints();
 
     // Reset form
     newShelter.value = {
@@ -365,7 +363,8 @@ async function handleAddEvent() {
 
       <ShelterLayer
         :map="mapInstance"
-        :shelters="shelters"
+        :mapPoints="mapPoints "
+        :isLoading="isMapPointsLoading"
       />
 
       <EventLayer
