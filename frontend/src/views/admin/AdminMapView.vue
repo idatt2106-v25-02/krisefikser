@@ -8,10 +8,18 @@ import { shelters, type Shelter } from '@/components/map/mapData';
 import type { Event } from '@/api/generated/model';
 import { EventLevel, EventStatus } from '@/api/generated/model';
 import L from 'leaflet';
+import {useCreateMapPoint, useGetAllMapPoints} from '@/api/generated/map-point/map-point';
+import { useGetAllEvents } from '@/api/generated/event/event';
+import { useCreateEvent } from '@/api/generated/event/event';
+import { useCreateMapPointType } from '@/api/generated/map-point-type/map-point-type';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 // Map and related refs
 const mapRef = ref<InstanceType<typeof MapComponent> | null>(null);
 const mapInstance = ref<L.Map | null>(null);
+const authStore = useAuthStore();
+const { data: events, isLoading: isEventsLoading, refetch } = useGetAllEvents();
+const { data: mapPoints, isLoading: isMapPointsLoading, refetch: refetchMapPoints } = useGetAllMapPoints();
 
 // Form states
 const activeTab = ref<'shelters' | 'events'>('shelters');
@@ -31,6 +39,11 @@ const newEvent = ref<Partial<Event>>({
   status: EventStatus.UPCOMING
 });
 
+// API mutations
+const { mutate: createMapPoint, isPending: isMapPointPending, error: mapPointError } = useCreateMapPoint();
+const { mutate: createEvent, isPending: isEventPending, error: eventError } = useCreateEvent();
+const { mutate: createMapPointType, isPending: isMapPointTypePending, error: mapPointTypeError } = useCreateMapPointType();
+
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
   mapInstance.value = map;
@@ -48,14 +61,109 @@ function onMapCreated(map: L.Map) {
 }
 
 // Form submission handlers
-function handleAddShelter() {
-  // TODO: Implement shelter addition logic
-  console.log('Adding shelter:', newShelter.value);
+async function handleAddShelter() {
+  if (!authStore.isAuthenticated) {
+    console.error('User must be authenticated to create a shelter');
+    return;
+  }
+
+  if (!authStore.isAdmin) {
+    console.error('User must have ADMIN role to create a shelter');
+    return;
+  }
+
+  if (!newShelter.value.name || !newShelter.value.position) {
+    console.error('Missing required shelter fields');
+    return;
+  }
+
+  try {
+    // First create the map point type for the shelter
+    const mapPointTypeResponse = await createMapPointType({
+      data: {
+        title: newShelter.value.name,
+        description: `Shelter with capacity of ${newShelter.value.capacity} people`,
+        iconUrl: '/shelter-icon.png',
+        openingTime: '24/7'
+      }
+    });
+
+    await createMapPoint({
+      data: {
+        latitude: newShelter.value.position[0],
+        longitude: newShelter.value.position[1],
+        type: {
+          id: mapPointTypeResponse.data.id
+        }
+      }
+    });
+
+    refetchMapPoints();
+
+    // Reset form
+    newShelter.value = {
+      name: '',
+      capacity: 0,
+      position: [63.4305, 10.3951]
+    };
+  } catch (error) {
+    console.error('Error creating shelter:', error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+      console.error('Status code:', error.response.status);
+    }
+  }
 }
 
-function handleAddEvent() {
-  // TODO: Implement event addition logic
-  console.log('Adding event:', newEvent.value);
+async function handleAddEvent() {
+  if (!authStore.isAuthenticated) {
+    console.error('User must be authenticated to create an event');
+    return;
+  }
+
+  if (!authStore.isAdmin) {
+    console.error('User must have ADMIN role to create an event');
+    return;
+  }
+
+  if (!newEvent.value.title || !newEvent.value.latitude || !newEvent.value.longitude) {
+    console.error('Missing required event fields');
+    return;
+  }
+
+  try {
+    await createEvent({
+      data: {
+        title: newEvent.value.title,
+        description: newEvent.value.description,
+        radius: newEvent.value.radius,
+        latitude: newEvent.value.latitude,
+        longitude: newEvent.value.longitude,
+        level: newEvent.value.level,
+        startTime: newEvent.value.startTime,
+        endTime: newEvent.value.endTime,
+        status: newEvent.value.status
+      }
+    });
+    refetch();
+    // Reset form
+    newEvent.value = {
+      title: '',
+      description: '',
+      radius: 500,
+      latitude: 63.4305,
+      longitude: 10.3951,
+      level: EventLevel.GREEN,
+      startTime: new Date().toISOString(),
+      status: EventStatus.UPCOMING
+    };
+  } catch (error) {
+    console.error('Error creating event:', error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+      console.error('Status code:', error.response.status);
+    }
+  }
 }
 </script>
 
@@ -255,12 +363,14 @@ function handleAddEvent() {
 
       <ShelterLayer
         :map="mapInstance"
-        :shelters="shelters"
+        :mapPoints="mapPoints "
+        :isLoading="isMapPointsLoading"
       />
 
       <EventLayer
         :map="mapInstance"
-        :events="[]"
+        :events="events || []"
+
       />
 
       <MapLegend

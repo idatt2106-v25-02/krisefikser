@@ -51,11 +51,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Role-based authorization
   const isAdmin = computed(() => {
-    return currentUser.value?.roles?.includes('admin') || currentUser.value?.roles?.includes('super_admin') || false
+    return currentUser.value?.roles?.includes('ADMIN') || currentUser.value?.roles?.includes('SUPER_ADMIN') || false
   })
 
   const isSuperAdmin = computed(() => {
-    return currentUser.value?.roles?.includes('super_admin') || false
+    return currentUser.value?.roles?.includes('SUPER_ADMIN') || false
   })
 
   // Actions
