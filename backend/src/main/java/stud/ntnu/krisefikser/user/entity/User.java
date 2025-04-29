@@ -1,5 +1,6 @@
 package stud.ntnu.krisefikser.user.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,12 +10,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +24,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import stud.ntnu.krisefikser.auth.entity.Role;
+import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.dto.UserDto;
 
 @Entity
@@ -29,6 +32,7 @@ import stud.ntnu.krisefikser.user.dto.UserDto;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "users")
 public class User {
 
   @Id
@@ -42,7 +46,7 @@ public class User {
   @JoinTable(name = "user_roles",
       joinColumns = @JoinColumn(name = "user_id"),
       inverseJoinColumns = @JoinColumn(name = "role_id")
-      )
+  )
   private Set<Role> roles = new HashSet<>();
 
   @Column(nullable = false)
@@ -52,20 +56,36 @@ public class User {
 
   private String lastName;
 
+  @Column(nullable = false)
+  private boolean notifications = true;
+
+  @Column(nullable = false)
+  private boolean emailUpdates = true;
+
+  @Column(nullable = false)
+  private boolean locationSharing = false;
+
   @CreationTimestamp
   private LocalDateTime createdAt;
 
   @UpdateTimestamp
   private LocalDateTime updatedAt;
 
+  @ManyToOne(cascade = CascadeType.MERGE)
+  @JoinColumn(name = "active_household_id", nullable = true)
+  private Household activeHousehold;
+
   public UserDto toDto() {
     List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
 
     return new UserDto(
+        id,
         email,
         roleNames,
         firstName,
-        lastName
-    );
+        lastName,
+        notifications,
+        emailUpdates,
+        locationSharing);
   }
 }

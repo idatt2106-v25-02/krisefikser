@@ -21,13 +21,6 @@ import type {
   UseQueryReturnType
 } from '@tanstack/vue-query';
 
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
-
 import {
   computed,
   unref
@@ -40,7 +33,11 @@ import type {
   Event
 } from '.././model';
 
+import { customInstance } from '../../axios';
+import type { ErrorType , BodyType } from '../../axios';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -49,31 +46,33 @@ import type {
  * @summary Get an event by ID
  */
 export const getEventById = (
-    id: MaybeRef<number>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<Event>> => {
-    id = unref(id);
-    
-    return axios.default.get(
-      `http://localhost:8080/api/events/${id}`,options
-    );
-  }
-
+    id: MaybeRef<number>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      id = unref(id);
+      
+      return customInstance<Event>(
+      {url: `http://localhost:8080/api/events/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 export const getGetEventByIdQueryKey = (id: MaybeRef<number>,) => {
     return ['http:','localhost:8080','api','events',id] as const;
     }
 
     
-export const getGetEventByIdQueryOptions = <TData = Awaited<ReturnType<typeof getEventById>>, TError = AxiosError<Event>>(id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventById>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetEventByIdQueryOptions = <TData = Awaited<ReturnType<typeof getEventById>>, TError = ErrorType<Event>>(id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  getGetEventByIdQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventById>>> = ({ signal }) => getEventById(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventById>>> = ({ signal }) => getEventById(id, requestOptions, signal);
 
       
 
@@ -83,15 +82,15 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetEventByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getEventById>>>
-export type GetEventByIdQueryError = AxiosError<Event>
+export type GetEventByIdQueryError = ErrorType<Event>
 
 
 /**
  * @summary Get an event by ID
  */
 
-export function useGetEventById<TData = Awaited<ReturnType<typeof getEventById>>, TError = AxiosError<Event>>(
- id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventById>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetEventById<TData = Awaited<ReturnType<typeof getEventById>>, TError = ErrorType<Event>>(
+ id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient 
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -112,37 +111,39 @@ export function useGetEventById<TData = Awaited<ReturnType<typeof getEventById>>
  */
 export const updateEvent = (
     id: MaybeRef<number>,
-    event: MaybeRef<Event>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<Event>> => {
-    id = unref(id);
+    event: MaybeRef<Event>,
+ options?: SecondParameter<typeof customInstance>,) => {
+      id = unref(id);
 event = unref(event);
-    
-    return axios.default.put(
-      `http://localhost:8080/api/events/${id}`,
-      event,options
-    );
-  }
+      
+      return customInstance<Event>(
+      {url: `http://localhost:8080/api/events/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: event
+    },
+      options);
+    }
+  
 
 
-
-export const getUpdateEventMutationOptions = <TError = AxiosError<Event>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,{id: number;data: Event}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,{id: number;data: Event}, TContext> => {
+export const getUpdateEventMutationOptions = <TError = ErrorType<Event>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,{id: number;data: BodyType<Event>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,{id: number;data: BodyType<Event>}, TContext> => {
     
 const mutationKey = ['updateEvent'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEvent>>, {id: number;data: Event}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEvent>>, {id: number;data: BodyType<Event>}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateEvent(id,data,axiosOptions)
+          return  updateEvent(id,data,requestOptions)
         }
 
         
@@ -151,18 +152,18 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateEventMutationResult = NonNullable<Awaited<ReturnType<typeof updateEvent>>>
-    export type UpdateEventMutationBody = Event
-    export type UpdateEventMutationError = AxiosError<Event>
+    export type UpdateEventMutationBody = BodyType<Event>
+    export type UpdateEventMutationError = ErrorType<Event>
 
     /**
  * @summary Update an event
  */
-export const useUpdateEvent = <TError = AxiosError<Event>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,{id: number;data: Event}, TContext>, axios?: AxiosRequestConfig}
+export const useUpdateEvent = <TError = ErrorType<Event>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,{id: number;data: BodyType<Event>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof updateEvent>>,
         TError,
-        {id: number;data: Event},
+        {id: number;data: BodyType<Event>},
         TContext
       > => {
 
@@ -175,27 +176,28 @@ export const useUpdateEvent = <TError = AxiosError<Event>,
  * @summary Delete an event
  */
 export const deleteEvent = (
-    id: MaybeRef<number>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    id = unref(id);
-    
-    return axios.default.delete(
-      `http://localhost:8080/api/events/${id}`,options
-    );
-  }
+    id: MaybeRef<number>,
+ options?: SecondParameter<typeof customInstance>,) => {
+      id = unref(id);
+      
+      return customInstance<void>(
+      {url: `http://localhost:8080/api/events/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
 
 
-
-export const getDeleteEventMutationOptions = <TError = AxiosError<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEvent>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteEventMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteEvent>>, TError,{id: number}, TContext> => {
     
 const mutationKey = ['deleteEvent'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -203,7 +205,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEvent>>, {id: number}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteEvent(id,axiosOptions)
+          return  deleteEvent(id,requestOptions)
         }
 
         
@@ -213,13 +215,13 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteEventMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEvent>>>
     
-    export type DeleteEventMutationError = AxiosError<void>
+    export type DeleteEventMutationError = ErrorType<void>
 
     /**
  * @summary Delete an event
  */
-export const useDeleteEvent = <TError = AxiosError<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEvent>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const useDeleteEvent = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEvent>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof deleteEvent>>,
         TError,
@@ -236,31 +238,33 @@ export const useDeleteEvent = <TError = AxiosError<void>,
  * @summary Get all events
  */
 export const getAllEvents = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<Event>> => {
     
-    
-    return axios.default.get(
-      `http://localhost:8080/api/events`,options
-    );
-  }
-
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<Event>(
+      {url: `http://localhost:8080/api/events`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 export const getGetAllEventsQueryKey = () => {
     return ['http:','localhost:8080','api','events'] as const;
     }
 
     
-export const getGetAllEventsQueryOptions = <TData = Awaited<ReturnType<typeof getAllEvents>>, TError = AxiosError<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllEvents>>, TError, TData>>, axios?: AxiosRequestConfig}
+export const getGetAllEventsQueryOptions = <TData = Awaited<ReturnType<typeof getAllEvents>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllEvents>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  getGetAllEventsQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllEvents>>> = ({ signal }) => getAllEvents({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllEvents>>> = ({ signal }) => getAllEvents(requestOptions, signal);
 
       
 
@@ -270,15 +274,15 @@ const {query: queryOptions, axios: axiosOptions} = options ?? {};
 }
 
 export type GetAllEventsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllEvents>>>
-export type GetAllEventsQueryError = AxiosError<unknown>
+export type GetAllEventsQueryError = ErrorType<unknown>
 
 
 /**
  * @summary Get all events
  */
 
-export function useGetAllEvents<TData = Awaited<ReturnType<typeof getAllEvents>>, TError = AxiosError<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllEvents>>, TError, TData>>, axios?: AxiosRequestConfig}
+export function useGetAllEvents<TData = Awaited<ReturnType<typeof getAllEvents>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllEvents>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient 
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -298,36 +302,39 @@ export function useGetAllEvents<TData = Awaited<ReturnType<typeof getAllEvents>>
  * @summary Create a new event
  */
 export const createEvent = (
-    event: MaybeRef<Event>, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<Event>> => {
-    event = unref(event);
-    
-    return axios.default.post(
-      `http://localhost:8080/api/events`,
-      event,options
-    );
-  }
+    event: MaybeRef<Event>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      event = unref(event);
+      
+      return customInstance<Event>(
+      {url: `http://localhost:8080/api/events`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: event, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreateEventMutationOptions = <TError = AxiosError<Event>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,{data: Event}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,{data: Event}, TContext> => {
+export const getCreateEventMutationOptions = <TError = ErrorType<Event>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,{data: BodyType<Event>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,{data: BodyType<Event>}, TContext> => {
     
 const mutationKey = ['createEvent'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEvent>>, {data: Event}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEvent>>, {data: BodyType<Event>}> = (props) => {
           const {data} = props ?? {};
 
-          return  createEvent(data,axiosOptions)
+          return  createEvent(data,requestOptions)
         }
 
         
@@ -336,18 +343,18 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateEventMutationResult = NonNullable<Awaited<ReturnType<typeof createEvent>>>
-    export type CreateEventMutationBody = Event
-    export type CreateEventMutationError = AxiosError<Event>
+    export type CreateEventMutationBody = BodyType<Event>
+    export type CreateEventMutationError = ErrorType<Event>
 
     /**
  * @summary Create a new event
  */
-export const useCreateEvent = <TError = AxiosError<Event>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,{data: Event}, TContext>, axios?: AxiosRequestConfig}
+export const useCreateEvent = <TError = ErrorType<Event>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,{data: BodyType<Event>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof createEvent>>,
         TError,
-        {data: Event},
+        {data: BodyType<Event>},
         TContext
       > => {
 

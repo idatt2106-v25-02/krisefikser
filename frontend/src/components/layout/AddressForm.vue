@@ -46,7 +46,6 @@ const props = defineProps({
       address: '',
       postalCode: '',
       city: '',
-      country: 'Norge',
     }),
   },
 })
@@ -74,7 +73,8 @@ const formSchema = computed(() => {
       .string()
       .min(2, 'Land må være minst 2 tegn')
       .max(50, 'Land må være mindre enn 50 tegn')
-      .default('Norge'),
+      .default('Norge')
+      .optional(),
   }
 
   if (props.includeHouseholdName) {
@@ -112,14 +112,9 @@ const onOnlyLetters = (e: KeyboardEvent) => {
 }
 
 // Geocode address
-const geocodeAddress = async (values: {
-  address: string
-  postalCode: string
-  city: string
-  country: string
-}): Promise<{ lat: number; lng: number } | null> => {
+const geocodeAddress = async (values: any): Promise<{ latitude: number; longitude: number } | null> => {
   try {
-    const fullAddress = `${values.address}, ${values.postalCode} ${values.city}, ${values.country}`
+    const fullAddress = `${values.address}, ${values.postalCode} ${values.city}`
     const encodedQuery = encodeURIComponent(fullAddress)
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}&limit=1`
 
@@ -140,8 +135,8 @@ const geocodeAddress = async (values: {
     // Return coordinates if results found
     if (data && data.length > 0) {
       return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
+        latitude: parseFloat(data[0].lat),
+        longitude: parseFloat(data[0].lon),
       }
     }
 
@@ -159,16 +154,16 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     // Try to geocode the address
-    const coords = await geocodeAddress(values)
+    const location = await geocodeAddress(values)
 
-    if (coords) {
-      // Log the coordinates if found
-      console.log('Geocoded coordinates:', coords.lat, coords.lng)
+    if (location) {
+      // Log the location if found
+      console.log('Geocoded location:', location.latitude, location.longitude)
 
       // Continue with form submission
       setTimeout(() => {
         loading.value = false
-        emit('submit', { ...values, coordinates: coords })
+        emit('submit', { ...values, ...location })
       }, 500)
     } else {
       // Show alert if address not found
@@ -255,18 +250,14 @@ const buttonColorClass = computed(() => {
                 <FormLabel>Postnummer</FormLabel>
                 <FormControl>
                   <div class="relative">
-                    <div
-                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
-                    >
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <Mail class="h-5 w-5 text-gray-400" />
                     </div>
                     <Input
                       v-bind="field"
                       id="postalCode"
-                      placeholder="0123"
+                      placeholder="0000"
                       class="pl-10"
-                      inputmode="numeric"
-                      pattern="[0-9]*"
                       @input="onPostalCodeInput"
                       @keypress="onPostalCodeKeyPressStrict"
                     />
@@ -283,15 +274,13 @@ const buttonColorClass = computed(() => {
                 <FormLabel>By/sted</FormLabel>
                 <FormControl>
                   <div class="relative">
-                    <div
-                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
-                    >
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <Building class="h-5 w-5 text-gray-400" />
                     </div>
                     <Input
                       v-bind="field"
                       id="city"
-                      placeholder="Oslo"
+                      placeholder="Skriv inn by/sted"
                       class="pl-10"
                       @keypress="onOnlyLetters"
                     />
@@ -303,29 +292,6 @@ const buttonColorClass = computed(() => {
               </FormItem>
             </FormField>
           </div>
-
-          <FormField name="country" v-slot="{ field, meta }">
-            <FormItem>
-              <FormLabel>Land</FormLabel>
-              <FormControl>
-                <div class="relative">
-                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Globe class="h-5 w-5 text-gray-400" />
-                  </div>
-                  <Input
-                    v-bind="field"
-                    id="country"
-                    placeholder="Norge"
-                    class="pl-10"
-                    @keypress="onOnlyLetters"
-                  />
-                </div>
-              </FormControl>
-              <FormMessage v-slot="{ message }">
-                <p v-if="meta.touched && field.value">{{ message }}</p>
-              </FormMessage>
-            </FormItem>
-          </FormField>
         </form>
       </CardContent>
 

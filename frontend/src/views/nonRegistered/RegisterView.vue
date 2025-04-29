@@ -3,9 +3,9 @@ import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import VueTurnstile from 'vue-turnstile'
-import axios from 'axios'
-import { User, Mail, Home, Shield } from 'lucide-vue-next'
+import { User, Mail, Home, Lock, Eye, EyeOff } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useToast } from '@/components/ui/toast/use-toast'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -15,15 +15,15 @@ import PasswordInput from '@/components/auth/PasswordInput.vue'
 // Schema for the registration form
 const rawSchema = z
   .object({
-    firstName: z.string().min(2, 'Fornavn for kort'),
-    lastName: z.string().min(2, 'Etternavn for kort'),
-    email: z.string().email('Ugyldig e-post').min(5, 'E-post for kort'),
-    householdCode: z
-      .string()
-      .refine((val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)), {
+    firstName: z.string().min(2, 'Fornavn må være minst 2 tegn'),
+    lastName: z.string().min(2, 'Etternavn må være minst 2 tegn'),
+    email: z.string().email('Ugyldig e-post').min(5, 'E-post må være minst 5 tegn'),
+    householdCode: z.string().refine(
+      (val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)),
+      {
         message: 'Husholdningskode må være nøyaktig 5 bokstaver (ingen tall)',
-      })
-      .optional(),
+      }
+    ).optional(),
     password: z
       .string()
       .min(8, 'Passord må være minst 8 tegn')
@@ -33,10 +33,10 @@ const rawSchema = z
       .regex(/[0-9]/, 'Må inneholde minst ett tall')
       .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
     confirmPassword: z.string(),
-    turnstileToken: z.string().min(1, 'Vennligst fullfør CAPTCHA-verifiseringen'),
+    //turnstileToken: z.string().min(1, 'Vennligst fullfør CAPTCHA-verifiseringen')
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passordene stemmer ikke overens',
+    message: "Passordene stemmer ikke overens",
     path: ['confirmPassword'],
   })
 
@@ -45,51 +45,51 @@ const { handleSubmit, meta, setFieldValue } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
-// Store the Turnstile token
-const turnstileToken = ref('')
+// Get auth store and toast
+const authStore = useAuthStore()
+const { toast } = useToast()
 
-// Handle Turnstile verification success
-const onTurnstileSuccess = (token: string) => {
-  turnstileToken.value = token
-  setFieldValue('turnstileToken', token)
-}
-
-// Handle Turnstile verification error
-const onTurnstileError = () => {
-  turnstileToken.value = ''
-  setFieldValue('turnstileToken', '')
-}
-
-// Handle Turnstile verification expiry
-const onTurnstileExpire = () => {
-  turnstileToken.value = ''
-  setFieldValue('turnstileToken', '')
-}
+// Loading state
+const isLoading = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
+  if (isLoading.value) return
+
+  isLoading.value = true
   try {
-    // TODO: Change website link to the actual server
-    // Send the form data along with the Turnstile token to the server
-    const response = await axios.post('http://localhost:3000/verify-turnstile', {
-      token: turnstileToken.value,
+    const { confirmPassword, ...registrationData } = values
+    await authStore.register(registrationData)
+    toast({
+      title: 'Suksess',
+      description: 'Kontoen din er opprettet og du er nå logget inn',
+      variant: 'default',
     })
-
-    const data = response.data
-
-    if (data.success) {
-      // If Turnstile verification succeeds, proceed with registration
-      console.log('Registreringsskjema sendt inn', values)
-      // Here you would typically call your registration API
-    } else {
-      console.error('Turnstile-verifisering mislyktes', data.error)
-      // Reset the Turnstile widget
-      turnstileToken.value = ''
-      setFieldValue('turnstileToken', '')
-    }
-  } catch (error) {
-    console.error('Feil under innsending av skjema:', error)
+  } catch (error: any) {
+    toast({
+      title: 'Feil',
+      description: error?.response?.data?.message || 'Kunne ikke registrere. Vennligst prøv igjen.',
+      variant: 'destructive',
+    })
+  } finally {
+    isLoading.value = false
   }
 })
+
+// Show/hide password
+const showPassword = ref(false)
+
+// Toggle the visibility of the password
+function toggleShowPassword() {
+  showPassword.value = !showPassword.value
+}
+
+// Show/hide confirm password
+const showConfirmPassword = ref(false)
+
+// Toggle the visibility of the confirm password field
+function toggleShowConfirmPassword() {
+  showConfirmPassword.value = !showConfirmPassword.value
+}
 </script>
 
 <template>
@@ -98,7 +98,7 @@ const onSubmit = handleSubmit(async (values) => {
       @submit="onSubmit"
       class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
     >
-      <h1 class="text-3xl font-bold text-center">Registrering</h1>
+      <h1 class="text-3xl font-bold text-center">Registrer deg</h1>
 
       <!-- First Name -->
       <FormField v-slot="{ componentField }" name="firstName">
@@ -106,9 +106,7 @@ const onSubmit = handleSubmit(async (values) => {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Fornavn</FormLabel>
           <FormControl>
             <div class="relative">
-              <User
-                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
-              />
+              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 type="text"
                 placeholder="Ola"
@@ -127,9 +125,7 @@ const onSubmit = handleSubmit(async (values) => {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Etternavn</FormLabel>
           <FormControl>
             <div class="relative">
-              <User
-                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
-              />
+              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 type="text"
                 placeholder="Nordmann"
@@ -148,36 +144,10 @@ const onSubmit = handleSubmit(async (values) => {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">E-post</FormLabel>
           <FormControl>
             <div class="relative">
-              <Mail
-                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
-              />
+              <Mail class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 type="email"
                 placeholder="navn@eksempel.no"
-                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                v-bind="componentField"
-              />
-            </div>
-          </FormControl>
-          <FormMessage class="text-sm text-red-500" />
-        </FormItem>
-      </FormField>
-
-      <!-- Household Code field -->
-      <FormField v-slot="{ componentField }" name="householdCode">
-        <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1"
-            >Husholdningskode</FormLabel
-          >
-          <FormControl>
-            <div class="relative">
-              <Home
-                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
-              />
-              <Input
-                type="text"
-                placeholder="ABCDE"
-                maxlength="5"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
@@ -212,11 +182,9 @@ const onSubmit = handleSubmit(async (values) => {
       </FormField>
 
       <!-- Cloudflare Turnstile -->
-      <FormField v-slot="{ componentField }" name="turnstileToken">
+      <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
         <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1"
-            >Bekreft at du er et menneske</FormLabel
-          >
+          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft at du er et menneske</FormLabel>
           <FormControl>
             <div class="flex justify-center">
               <div class="relative w-full flex justify-center">
@@ -225,7 +193,6 @@ const onSubmit = handleSubmit(async (values) => {
                   site-key="0x4AAAAAABSTiPNZwrBLQkgr"
                   v-model="turnstileToken"
                   theme="light"
-                  v-bind="componentField"
                   @success="onTurnstileSuccess"
                   @error="onTurnstileError"
                   @expire="onTurnstileExpire"
@@ -235,15 +202,16 @@ const onSubmit = handleSubmit(async (values) => {
           </FormControl>
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
-      </FormField>
+      </FormField> -->
 
       <!-- Submit button -->
       <Button
         type="submit"
-        :disabled="!meta.valid"
+        :disabled="!meta.valid || isLoading"
         class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
-        Registrer
+        <template v-if="isLoading">Oppretter konto...</template>
+        <template v-else>Registrer deg</template>
       </Button>
 
       <!-- Conditional CTAs below -->

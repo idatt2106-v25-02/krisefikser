@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useAuthModeStore } from '@/stores/useAuthModeStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { User, Mail } from 'lucide-vue-next'
+import { useToast } from '@/components/ui/toast/use-toast'
+import { useRoute, useRouter } from 'vue-router'
 
 // UI components
 import { Button } from '@/components/ui/button'
@@ -13,10 +16,17 @@ import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 // === Store logic ===
-const authStore = useAuthModeStore()
+const authModeStore = useAuthModeStore()
+const authStore = useAuthStore()
+const { toast } = useToast()
+const route = useRoute()
+const router = useRouter()
+
+// Get redirect path from route query if available
+const redirectPath = computed(() => route.query.redirect as string || '/dashboard')
 
 // Computed value to check if login mode is admin
-const isAdmin = computed(() => authStore.isAdmin)
+const isAdmin = computed(() => authModeStore.isAdmin)
 
 // === Schema logic ===
 // Dynamically set schema based on isAdmin
@@ -44,14 +54,44 @@ const { handleSubmit, meta, resetForm } = useForm({
   validationSchema: formSchema,
 })
 
+// Loading state
+const isLoading = ref(false)
+
 // Submit handler
-const onSubmit = handleSubmit((values) => {
-  console.log(isAdmin.value ? 'Admin-innlogging' : 'Bruker-innlogging', values)
+const onSubmit = handleSubmit(async (values) => {
+  if (isLoading.value) return
+
+  isLoading.value = true
+  try {
+    // Map identifier to email for backend compatibility
+    const loginData = {
+      email: values.identifier,
+      password: values.password
+    }
+
+    await authStore.login(loginData)
+    toast({
+      title: 'Suksess',
+      description: 'Du er nå logget inn',
+      variant: 'default',
+    })
+
+    // Redirect to the intended page after successful login
+    router.push(redirectPath.value)
+  } catch (error: any) {
+    toast({
+      title: 'Feil',
+      description: error?.response?.data?.message || 'Kunne ikke logge inn. Vennligst prøv igjen.',
+      variant: 'destructive',
+    })
+  } finally {
+    isLoading.value = false
+  }
 })
 
 // Toggle between user/admin mode and reset the form
 function toggleLoginType() {
-  authStore.toggle()
+  authModeStore.toggle()
   resetForm()
 }
 </script>
@@ -78,7 +118,7 @@ function toggleLoginType() {
               <Mail v-else class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 :type="isAdmin ? 'text' : 'email'"
-                :placeholder="isAdmin ? 'admin_bruker' : 'navn@eksempel.org'"
+                :placeholder="isAdmin ? 'admin_bruker' : 'navn@eksempel.no'"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
@@ -103,10 +143,11 @@ function toggleLoginType() {
       <!-- Submit Button (disabled unless form is valid and touched) -->
       <Button
         type="submit"
-        :disabled="!meta.valid || !meta.dirty"
-        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
+        :disabled="!meta.valid || !meta.dirty || isLoading"
+        class="w-full hover:cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
-        {{ isAdmin ? 'Logg inn som Admin' : 'Logg inn' }}
+        <template v-if="isLoading">Logger inn...</template>
+        <template v-else>{{ isAdmin ? 'Logg inn som admin' : 'Logg inn' }}</template>
       </Button>
 
       <!-- Bottom links -->
@@ -126,7 +167,7 @@ function toggleLoginType() {
           @click="toggleLoginType"
           class="text-blue-400 hover:text-blue-500 hover:underline transition-colors"
         >
-          {{ isAdmin ? 'Bytt til brukerinnlogging' : 'Bytt til admin-innlogging' }}
+          {{ isAdmin ? 'Bytt til brukerinnlogging' : 'Bytt til admininnlogging' }}
         </Button>
       </div>
     </form>

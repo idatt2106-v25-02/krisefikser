@@ -40,8 +40,10 @@ public class AuthService {
         registerRequest.getEmail(),
         registerRequest.getPassword(),
         registerRequest.getFirstName(),
-        registerRequest.getLastName()
-    ));
+        registerRequest.getLastName(),
+        true,
+        true,
+        true));
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getEmail());
 
@@ -52,17 +54,14 @@ public class AuthService {
 
     return new RegisterResponse(
         accessToken,
-        refreshToken
-    );
+        refreshToken);
   }
 
   public LoginResponse login(LoginRequest loginRequest) {
     authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
             loginRequest.getEmail(),
-            loginRequest.getPassword()
-        )
-    );
+            loginRequest.getPassword()));
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
 
@@ -73,15 +72,13 @@ public class AuthService {
 
     return new LoginResponse(
         accessToken,
-        refreshToken
-    );
+        refreshToken);
   }
 
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
     RefreshToken existingToken = refreshTokenRepository.findByToken(
         refreshRequest.getRefreshToken()).orElseThrow(
-        RefreshTokenDoesNotExistException::new
-    );
+            RefreshTokenDoesNotExistException::new);
 
     String email = tokenService.extractEmail(existingToken.getToken());
     if (email == null) {
@@ -98,8 +95,7 @@ public class AuthService {
 
     return new RefreshResponse(
         accessToken,
-        refreshToken
-    );
+        refreshToken);
   }
 
   public UserDto me() {

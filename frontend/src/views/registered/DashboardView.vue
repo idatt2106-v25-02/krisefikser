@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import PageLayout from '@/components/layout/PageLayout.vue'
 import { User } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useMe } from '@/api/generated/authentication/authentication'
 
 // Import new components
 import PersonalInfo from '@/components/dashboard/PersonalInfo.vue'
@@ -9,83 +11,51 @@ import Settings from '@/components/dashboard/Settings.vue'
 import Households from '@/components/dashboard/Households.vue'
 import Security from '@/components/dashboard/Security.vue'
 
-// Define user interface
-interface UserPreferences {
-  notifications: boolean;
-  emailUpdates: boolean;
-  locationSharing: boolean;
-}
+// Get auth store
+const authStore = useAuthStore()
 
-interface Household {
-  id: string;
-  name: string;
-}
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  households: Household[];
-  preferences: UserPreferences;
-}
-
-// Mock user data - in a real app, you would fetch this from your API
-const user = ref<UserData>({
-  id: '1',
-  name: 'Erik Hansen',
-  email: 'erik.hansen@example.com',
-  phone: '+47 123 45 678',
-  address: 'Kongens gate 1, 0153 Oslo',
-  households: [
-    { id: '1', name: 'Familien Hansen' },
-    { id: '2', name: 'Hytta i Trysil' },
-  ],
-  preferences: {
-    notifications: true,
-    emailUpdates: false,
-    locationSharing: true,
+// Get current user data
+const {
+  data: currentUser,
+  isLoading: isLoadingUser,
+} = useMe({
+  query: {
+    enabled: authStore.isAuthenticated,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   },
 })
-
-const updateUserInfo = (updatedUser: Partial<UserData>): void => {
-  user.value = { ...user.value, ...updatedUser }
-  // In a real app, you would send the updated user data to your API
-}
-
-interface PreferenceUpdate {
-  preference: keyof UserPreferences;
-  value: boolean;
-}
-
-const updatePreferences = ({ preference, value }: PreferenceUpdate): void => {
-  user.value.preferences[preference] = value
-  // In a real app, you would send the updated preferences to your API
-}
 </script>
 
 <template>
   <PageLayout pageTitle="Min profil" sectionName="Bruker" :iconComponent="User" iconBgColor="blue">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div v-if="isLoadingUser" class="flex justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    </div>
+
+    <div v-else-if="currentUser" class="grid grid-cols-1 md:grid-cols-3 gap-8">
       <!-- Main profile information -->
       <div class="md:col-span-2">
-        <PersonalInfo :user="user" @update:user="updateUserInfo" />
+        <PersonalInfo />
 
         <!-- User preferences section -->
         <div class="mt-6">
-          <Settings :preferences="user.preferences" @update:preferences="updatePreferences" />
+          <Settings />
         </div>
       </div>
 
       <!-- Sidebar information -->
       <div class="md:col-span-1">
         <!-- User households -->
-        <Households :households="user.households" />
+        <Households />
 
         <!-- Password change card -->
         <Security />
       </div>
+    </div>
+
+    <div v-else class="text-center py-12">
+      <p class="text-gray-500">Kunne ikke laste brukerdata. Vennligst prøv igjen senere.</p>
     </div>
   </PageLayout>
 </template>
