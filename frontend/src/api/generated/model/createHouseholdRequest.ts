@@ -7,11 +7,13 @@
  */
 
 /**
- * Updated user data
+ * Household data
  */
-export interface CreateUserDto {
-  email?: string;
-  password?: string;
-  firstName?: string;
-  lastName?: string;
+export interface CreateHouseholdRequest {
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  city?: string;
+  postalCode?: string;
 }

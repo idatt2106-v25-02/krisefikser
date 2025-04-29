@@ -7,10 +7,15 @@
  */
 
 export * from './articleDTO';
+export * from './createHouseholdRequest';
 export * from './createUserDto';
 export * from './event';
 export * from './eventLevel';
 export * from './eventStatus';
+export * from './householdMemberDto';
+export * from './householdMemberDtoStatus';
+export * from './householdResponse';
+export * from './joinHouseholdRequest';
 export * from './loginRequest';
 export * from './loginResponse';
 export * from './mapPoint';

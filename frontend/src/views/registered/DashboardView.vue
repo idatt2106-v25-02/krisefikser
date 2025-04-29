@@ -67,7 +67,6 @@ const user = computed(() => {
     firstName: currentUser.value.firstName || '',
     lastName: currentUser.value.lastName || '',
     email: currentUser.value.email || '',
-    households: [],
     notifications: currentUser.value.notifications || false,
     emailUpdates: currentUser.value.emailUpdates || false,
     locationSharing: currentUser.value.locationSharing || false,
@@ -146,7 +145,7 @@ const updateLocationSetting = (value: boolean) => {
       <!-- Sidebar information -->
       <div class="md:col-span-1">
         <!-- User households -->
-        <Households :households="user.households" />
+        <Households />
 
         <!-- Password change card -->
         <Security />

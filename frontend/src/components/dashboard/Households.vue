@@ -11,27 +11,46 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
+import { useJoinHousehold } from '@/api/generated/household/household'
+import { useGetAllHouseholds } from '@/api/generated/household/household'
+
+const { mutate: JoinHousehold, isPending: isJoinHouseholdPending } = useJoinHousehold({
+  mutation: {
+    onSuccess: () => {
+      console.log('Successfully joined household')
+      refetchHouseholds()
+      householdCode.value = ''
+      errorMessage.value = ''
+      showJoinModal.value = false
+    },
+    onError: (error) => {
+      console.error('Failed to join household:', error)
+      errorMessage.value = 'Kunne ikke bli med i husstanden'
+    },
+  },
+})
+
+const {
+  data: householdsData,
+  isLoading: isLoadingHouseholds,
+  refetch: refetchHouseholds,
+} = useGetAllHouseholds()
+
 // Import Button component
 import { Button } from '@/components/ui/button'
-
-defineProps<{
-  households: Array<{
-    id: string
-    name: string
-  }>
-}>()
 
 const showJoinModal = ref(false)
 const householdCode = ref('')
 const errorMessage = ref('')
 
 const joinHousehold = () => {
-  // TODO: Implement joining household with the code
   console.log('Joining household with code:', householdCode.value)
-  // Reset form and close modal after successful join
-  householdCode.value = ''
-  errorMessage.value = ''
-  showJoinModal.value = false
+
+  JoinHousehold({
+    data: {
+      householdId: householdCode.value,
+    },
+  })
 }
 
 const closeModal = () => {
@@ -46,8 +65,16 @@ const closeModal = () => {
     <router-link to="/husstand" class="inline-block mb-4">
       <h2 class="text-lg font-semibold text-gray-800">Mine husstander</h2>
     </router-link>
-    <ul class="space-y-3">
-      <li v-for="(household, index) in households" :key="household.id" class="flex items-center">
+
+    <!-- Display loading state -->
+    <div v-if="isLoadingHouseholds" class="p-4 text-center text-gray-500">Laster husstander...</div>
+
+    <ul v-else class="space-y-3">
+      <li
+        v-for="(household, index) in householdsData"
+        :key="household.id"
+        class="flex items-center"
+      >
         <div class="bg-blue-100 p-2 rounded-full mr-3">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -164,7 +191,14 @@ const closeModal = () => {
 
       <DialogFooter class="flex gap-2 mt-4">
         <Button variant="outline" @click="closeModal" class="flex-1"> Avbryt </Button>
-        <Button variant="default" @click="joinHousehold" class="flex-1"> Bli med </Button>
+        <Button
+          variant="default"
+          @click="joinHousehold"
+          class="flex-1"
+          :disabled="isJoinHouseholdPending"
+        >
+          {{ isJoinHouseholdPending ? 'Blir med...' : 'Bli med' }}
+        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

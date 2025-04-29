@@ -12,7 +12,4 @@ export interface UserDto {
   roles?: string[];
   firstName?: string;
   lastName?: string;
-  notifications?: boolean;
-  emailUpdates?: boolean;
-  locationSharing?: boolean;
 }
