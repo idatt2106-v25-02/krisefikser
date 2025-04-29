@@ -20,6 +20,8 @@ const { mutate: setActiveHousehold } = useSetActiveHousehold({
   mutation: {
     onSuccess: () => {
       emit('refresh')
+      refetchHouseholds()
+      refetchActiveHousehold()
     }
   }
 })
@@ -40,8 +42,6 @@ const handleSetActiveHousehold = (householdId: string | undefined) => {
       householdId
     }
   })
-  refetchHouseholds()
-  refetchActiveHousehold()
 }
 import { ref } from 'vue'
 

@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router';
 import { Home, MapPin, Users, ShoppingBag, CheckCircle } from 'lucide-vue-next';
 import { useGetAllHouseholds, useGetActiveHousehold } from '@/api/generated/household/household';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { watch } from 'vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -23,6 +24,13 @@ const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetAct
     refetchOnWindowFocus: true
   }
 });
+
+// Watch for active household and redirect if it exists
+watch(activeHousehold, (newActiveHousehold) => {
+  if (newActiveHousehold?.id) {
+    router.push(`/husstand/${newActiveHousehold.id}`);
+  }
+}, { immediate: true });
 
 const navigateToHousehold = (id: string | undefined) => {
 
