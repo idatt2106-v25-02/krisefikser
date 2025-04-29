@@ -7,6 +7,7 @@
  */
 
 export * from './articleDTO';
+export * from './createUserDto';
 export * from './event';
 export * from './eventLevel';
 export * from './eventStatus';
