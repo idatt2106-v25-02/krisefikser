@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { useMe } from '@/api/generated/authentication/authentication'
 import { useUpdateUser } from '@/api/generated/user/user'
 import type { CreateUserDto } from '@/api/generated/model'
+import { useGetAllHouseholds, useGetActiveHousehold } from '@/api/generated/household/household'
 
 // Import new components
 import PersonalInfo from '@/components/dashboard/PersonalInfo.vue'
@@ -42,6 +43,23 @@ const { data: currentUser, isLoading: isLoadingUser, refetch: refetchUser } = us
   }
 })
 
+// Get household data
+const { data: households, isLoading: isLoadingHouseholds, refetch: refetchHouseholds } = useGetAllHouseholds({
+  query: {
+    enabled: authStore.isAuthenticated,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
+  }
+})
+
+const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold({
+  query: {
+    enabled: authStore.isAuthenticated,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
+  }
+})
+
 // Update user mutation
 const { mutate: updateUserProfile } = useUpdateUser({
   mutation: {
@@ -63,7 +81,10 @@ const user = computed(() => {
     firstName: currentUser.value.firstName || '',
     lastName: currentUser.value.lastName || '',
     email: currentUser.value.email || '',
-    households: [],
+    households: households.value?.map(h => ({
+      id: h.id || '',
+      name: h.name || ''
+    })) || [],
     notifications: currentUser.value.notifications || false,
     emailUpdates: currentUser.value.emailUpdates || false,
     locationSharing: currentUser.value.locationSharing || false,
@@ -115,7 +136,7 @@ const updateLocationSetting = (value: boolean) => {
 
 <template>
   <PageLayout pageTitle="Min profil" sectionName="Bruker" :iconComponent="User" iconBgColor="blue">
-    <div v-if="isLoadingUser" class="flex justify-center items-center h-64">
+    <div v-if="isLoadingUser || isLoadingHouseholds" class="flex justify-center items-center h-64">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
     </div>
 
@@ -140,7 +161,11 @@ const updateLocationSetting = (value: boolean) => {
       <!-- Sidebar information -->
       <div class="md:col-span-1">
         <!-- User households -->
-        <Households :households="user.households" />
+        <Households
+          :households="user.households"
+          :active-household-id="activeHousehold?.id"
+          @refresh="refetchHouseholds"
+        />
 
         <!-- Password change card -->
         <Security />

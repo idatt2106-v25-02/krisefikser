@@ -60,7 +60,10 @@ class UserControllerTest {
                 "test@example.com",
                 "password",
                 "Test",
-                "User");
+                "User",
+                true,
+                true,
+                true);
 
         testUserDtoResponse = testUser.toDto();
     }

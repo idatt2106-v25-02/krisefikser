@@ -1,10 +1,56 @@
 <script setup lang="ts">
-defineProps<{
+import { useLeaveHousehold, useSetActiveHousehold } from '@/api/generated/household/household'
+import { useAuthStore } from '@/stores/useAuthStore'
+
+const props = defineProps<{
   households: Array<{
     id: string
     name: string
   }>
+  activeHouseholdId?: string
 }>()
+
+const emit = defineEmits<{
+  (e: 'refresh'): void
+}>()
+
+const authStore = useAuthStore()
+
+// Leave household mutation
+const { mutate: leaveHousehold } = useLeaveHousehold({
+  mutation: {
+    onSuccess: () => {
+      emit('refresh')
+    }
+  }
+})
+
+// Set active household mutation
+const { mutate: setActiveHousehold } = useSetActiveHousehold({
+  mutation: {
+    onSuccess: () => {
+      emit('refresh')
+    }
+  }
+})
+
+const handleLeaveHousehold = (householdId: string) => {
+  if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
+    leaveHousehold({
+      data: {
+        householdId
+      }
+    })
+  }
+}
+
+const handleSetActiveHousehold = (householdId: string) => {
+  setActiveHousehold({
+    data: {
+      householdId
+    }
+  })
+}
 </script>
 
 <template>
@@ -13,7 +59,7 @@ defineProps<{
       <h2 class="text-lg font-semibold text-gray-800">Mine husstander</h2>
     </router-link>
     <ul class="space-y-3">
-      <li v-for="(household, index) in households" :key="household.id" class="flex items-center">
+      <li v-for="household in households" :key="household.id" class="flex items-center">
         <div class="bg-blue-100 p-2 rounded-full mr-3">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -37,12 +83,27 @@ defineProps<{
           >
             {{ household.name }}
           </router-link>
-          <span
-            v-if="index === 0"
-            class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
-          >
-            Aktiv
-          </span>
+          <div class="flex items-center space-x-2">
+            <span
+              v-if="household.id === activeHouseholdId"
+              class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
+            >
+              Aktiv
+            </span>
+            <button
+              v-else
+              @click="handleSetActiveHousehold(household.id)"
+              class="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Gjør aktiv
+            </button>
+            <button
+              @click="handleLeaveHousehold(household.id)"
+              class="text-red-600 hover:text-red-800 text-sm"
+            >
+              Forlat
+            </button>
+          </div>
         </div>
       </li>
     </ul>
