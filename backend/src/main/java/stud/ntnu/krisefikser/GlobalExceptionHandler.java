@@ -5,6 +5,9 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.persistence.EntityNotFoundException;
+import java.net.URI;
+import java.time.Instant;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,14 +18,12 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
+import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
 import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
-
-import java.net.URI;
-import java.time.Instant;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,7 +35,8 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(RefreshTokenDoesNotExistException.class)
-  public ProblemDetail handleRefreshTokenDoesNotExistException(RefreshTokenDoesNotExistException exception) {
+  public ProblemDetail handleRefreshTokenDoesNotExistException(
+      RefreshTokenDoesNotExistException exception) {
     return createProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage());
   }
 
@@ -72,7 +74,8 @@ public class GlobalExceptionHandler {
 
   // Spring Security exceptions
   @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
-  public ProblemDetail handleAccessDeniedException(org.springframework.security.access.AccessDeniedException exception) {
+  public ProblemDetail handleAccessDeniedException(
+      org.springframework.security.access.AccessDeniedException exception) {
     return createProblemDetail(HttpStatus.FORBIDDEN, "Access denied");
   }
 
@@ -93,7 +96,8 @@ public class GlobalExceptionHandler {
 
   // Request mapping exceptions
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-  public ProblemDetail handleMethodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
+  public ProblemDetail handleMethodNotSupportedException(
+      HttpRequestMethodNotSupportedException exception) {
     return createProblemDetail(
         HttpStatus.METHOD_NOT_ALLOWED,
         "Method " + exception.getMethod() + " is not supported for this request"
@@ -101,7 +105,8 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-  public ProblemDetail handleMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException exception) {
+  public ProblemDetail handleMediaTypeNotSupportedException(
+      HttpMediaTypeNotSupportedException exception) {
     return createProblemDetail(
         HttpStatus.UNSUPPORTED_MEDIA_TYPE,
         "Media type " + exception.getContentType() + " is not supported"
@@ -109,7 +114,8 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(MissingServletRequestParameterException.class)
-  public ProblemDetail handleMissingParameterException(MissingServletRequestParameterException exception) {
+  public ProblemDetail handleMissingParameterException(
+      MissingServletRequestParameterException exception) {
     return createProblemDetail(
         HttpStatus.BAD_REQUEST,
         "Required parameter '" + exception.getParameterName() + "' is missing"
@@ -128,6 +134,17 @@ public class GlobalExceptionHandler {
         HttpStatus.NOT_FOUND,
         "No handler found for " + exception.getHttpMethod() + " " + exception.getRequestURL()
     );
+  }
+
+  // TODO: move this into article domain
+  @ExceptionHandler(ArticleNotFoundException.class)
+  public ProblemDetail handleArticleNotFoundException(ArticleNotFoundException exception) {
+    return createProblemDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+  }
+
+  @ExceptionHandler(UnauthorizedAccessException.class)
+  public ProblemDetail handleUnauthorizedAccessException(UnauthorizedAccessException exception) {
+    return createProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage());
   }
 
   // General exceptions
