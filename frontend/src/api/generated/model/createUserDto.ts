@@ -6,10 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface UserDto {
-  id?: string;
+/**
+ * Updated user data
+ */
+export interface CreateUserDto {
   email?: string;
-  roles?: string[];
+  password?: string;
   firstName?: string;
   lastName?: string;
   notifications?: boolean;
