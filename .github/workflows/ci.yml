@@ -27,7 +27,7 @@ jobs:
             - name: Verify with maven
               run: |
                   cd backend
-                  mvn clean verify
+                  mvn -Dspring.profiles.active=test clean verify
 
     frontend:
         runs-on: ubuntu-latest
