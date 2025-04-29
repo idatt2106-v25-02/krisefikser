@@ -22,6 +22,7 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -180,7 +181,11 @@ public class DataSeeder implements CommandLineRunner {
 
             Household household = Household.builder()
                     .name(faker.address().streetName() + " " + faker.address().buildingNumber())
-                    .location(geometryFactory.createPoint(new Coordinate(longitude, latitude)))
+                    .latitude(latitude)
+                    .longitude(longitude)
+                    .address(faker.address().streetAddress())
+                    .postalCode(faker.address().zipCode())
+                    .city(faker.address().city())
                     .owner(randomOwner)
                     .build();
 
@@ -326,11 +331,11 @@ public class DataSeeder implements CommandLineRunner {
 
         // Event levels and their distribution probability
         EventLevel[] levels = EventLevel.values();
-        int[] levelWeights = { 60, 30, 10 }; // 60% GREEN, 30% YELLOW, 10% RED
+        int[] levelWeights = {60, 30, 10}; // 60% GREEN, 30% YELLOW, 10% RED
 
         // Event statuses and their distribution probability
         EventStatus[] statuses = EventStatus.values();
-        int[] statusWeights = { 30, 50, 20 }; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
+        int[] statusWeights = {30, 50, 20}; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
 
         // Create 15 events
         LocalDateTime now = LocalDateTime.now();
@@ -410,7 +415,7 @@ public class DataSeeder implements CommandLineRunner {
     /**
      * Helper method to get a random item from an array based on weighted
      * probabilities
-     * 
+     *
      * @param items   Array of items to choose from
      * @param weights Array of weights corresponding to the items
      * @return Randomly chosen item based on weights
