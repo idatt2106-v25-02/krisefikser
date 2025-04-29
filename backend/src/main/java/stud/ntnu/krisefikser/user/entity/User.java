@@ -39,10 +39,7 @@ public class User {
   private String email;
 
   @ManyToMany(fetch = FetchType.EAGER)
-  @JoinTable(name = "user_roles",
-      joinColumns = @JoinColumn(name = "user_id"),
-      inverseJoinColumns = @JoinColumn(name = "role_id")
-      )
+  @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
   @Column(nullable = false)
@@ -51,6 +48,15 @@ public class User {
   private String firstName;
 
   private String lastName;
+
+  @Column(nullable = false)
+  private boolean notifications = true;
+
+  @Column(nullable = false)
+  private boolean emailUpdates = true;
+
+  @Column(nullable = false)
+  private boolean locationSharing = false;
 
   @CreationTimestamp
   private LocalDateTime createdAt;
@@ -62,10 +68,13 @@ public class User {
     List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
 
     return new UserDto(
+        id,
         email,
         roleNames,
         firstName,
-        lastName
-    );
+        lastName,
+        notifications,
+        emailUpdates,
+        locationSharing);
   }
 }

@@ -82,6 +82,9 @@ public class UserService {
     user.setEmail(data.getEmail());
     user.setFirstName(data.getFirstName());
     user.setLastName(data.getLastName());
+    user.setNotifications(data.isNotifications());
+    user.setEmailUpdates(data.isEmailUpdates());
+    user.setLocationSharing(data.isLocationSharing());
 
     // Only update password if it's provided
     if (data.getPassword() != null && !data.getPassword().isEmpty()) {
