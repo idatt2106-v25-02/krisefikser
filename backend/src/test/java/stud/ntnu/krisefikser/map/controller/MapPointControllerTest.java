@@ -112,7 +112,7 @@ class MapPointControllerTest {
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(testMapPoint)))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(testMapPoint.getId()))
         .andExpect(jsonPath("$.latitude").value(testMapPoint.getLatitude()))

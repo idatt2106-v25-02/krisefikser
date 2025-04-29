@@ -98,7 +98,7 @@ class MapPointTypeControllerTest {
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(testMapPointType)))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(testMapPointType.getId()))
         .andExpect(jsonPath("$.title").value(testMapPointType.getTitle()));

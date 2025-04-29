@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,8 @@ public class AuthControllerTest {
     registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User");
     loginRequest = new LoginRequest("test@example.com", "password");
     refreshRequest = new RefreshRequest("refresh-token-123");
-    userDto = new UserDto("test@example.com", List.of("USER"), "Test", "User");
+    userDto = new UserDto(UUID.randomUUID(), "test@example.com", List.of("USER"), "Test", "User",
+        false, false, false);
   }
 
   @Test
