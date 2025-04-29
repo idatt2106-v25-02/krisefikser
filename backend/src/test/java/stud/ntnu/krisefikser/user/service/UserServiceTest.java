@@ -66,7 +66,7 @@ class UserServiceTest {
                 .build();
 
         testUserDto = new CreateUserDto(
-                "test@example.com",
+                "newemail@example.com",
                 "password",
                 "Test",
                 "User");
