@@ -23,11 +23,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
+import stud.ntnu.krisefikser.auth.service.TokenService;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
 import stud.ntnu.krisefikser.map.entity.MapPoint;
 import stud.ntnu.krisefikser.map.entity.MapPointType;
 import stud.ntnu.krisefikser.map.service.MapPointService;
+import stud.ntnu.krisefikser.map.service.MapPointTypeService;
 
 @WebMvcTest(MapPointController.class)
 @Import(TestSecurityConfig.class)
@@ -38,6 +42,15 @@ class MapPointControllerTest {
 
   @MockBean
   private MapPointService mapPointService;
+
+  @MockBean
+  private MapPointTypeService mapPointTypeService;
+
+  @MockBean
+  private TokenService tokenService;
+
+  @MockBean
+  private CustomUserDetailsService userDetailsService;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -96,6 +109,7 @@ class MapPointControllerTest {
     when(mapPointService.createMapPoint(any(MapPoint.class))).thenReturn(testMapPoint);
 
     mockMvc.perform(post("/api/map-points")
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(testMapPoint)))
         .andExpect(status().isOk())
@@ -106,8 +120,10 @@ class MapPointControllerTest {
   }
 
   @Test
+  @WithMockUser(roles = "USER")
   void createMapPoint_WithoutAdminRole_ShouldReturnForbidden() throws Exception {
     mockMvc.perform(post("/api/map-points")
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(testMapPoint)))
         .andExpect(status().isForbidden());
@@ -119,6 +135,7 @@ class MapPointControllerTest {
     when(mapPointService.updateMapPoint(eq(1L), any(MapPoint.class))).thenReturn(testMapPoint);
 
     mockMvc.perform(put("/api/map-points/1")
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(testMapPoint)))
         .andExpect(status().isOk())
@@ -133,13 +150,16 @@ class MapPointControllerTest {
   void deleteMapPoint_WithAdminRole_ShouldReturnNoContent() throws Exception {
     doNothing().when(mapPointService).deleteMapPoint(1L);
 
-    mockMvc.perform(delete("/api/map-points/1"))
+    mockMvc.perform(delete("/api/map-points/1")
+            .with(SecurityMockMvcRequestPostProcessors.csrf()))
         .andExpect(status().isNoContent());
   }
 
   @Test
+  @WithMockUser(roles = "USER")
   void deleteMapPoint_WithoutAdminRole_ShouldReturnForbidden() throws Exception {
-    mockMvc.perform(delete("/api/map-points/1"))
+    mockMvc.perform(delete("/api/map-points/1")
+            .with(SecurityMockMvcRequestPostProcessors.csrf()))
         .andExpect(status().isForbidden());
   }
 }

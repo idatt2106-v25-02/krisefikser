@@ -8,7 +8,9 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,6 +26,7 @@ import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 @TestConfiguration
+@EnableMethodSecurity
 public class TestSecurityConfig {
 
   @Bean
@@ -31,9 +34,15 @@ public class TestSecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth ->
             auth
-                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh")
                 .permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
         )
         .exceptionHandling(exception ->
