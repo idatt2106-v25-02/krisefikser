@@ -526,7 +526,7 @@ function viewMeetingPlace(placeId: string) {
 
 <style scoped>
 :deep(.meeting-map-dialog) {
-  max-width: 800px;
-  width: 90vw;
+  max-width: 1250px;
+  width: 95vw;
 }
 </style>
