@@ -1,4 +1,48 @@
 <script setup lang="ts">
+import { useLeaveHousehold, useSetActiveHousehold } from '@/api/generated/household/household'
+
+const emit = defineEmits<{
+  (e: 'refresh'): void
+}>()
+
+
+// Leave household mutation
+const { mutate: leaveHousehold } = useLeaveHousehold({
+  mutation: {
+    onSuccess: () => {
+      emit('refresh')
+    }
+  }
+})
+
+// Set active household mutation
+const { mutate: setActiveHousehold } = useSetActiveHousehold({
+  mutation: {
+    onSuccess: () => {
+      emit('refresh')
+      refetchHouseholds()
+      refetchActiveHousehold()
+    }
+  }
+})
+
+const handleLeaveHousehold = (householdId: string | undefined) => {
+  if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
+    leaveHousehold({
+      data: {
+        householdId
+      }
+    })
+  }
+}
+
+const handleSetActiveHousehold = (householdId: string | undefined) => {
+  setActiveHousehold({
+    data: {
+      householdId
+    }
+  })
+}
 import { ref } from 'vue'
 
 // Import Dialog components
@@ -13,6 +57,7 @@ import {
 
 import { useJoinHousehold } from '@/api/generated/household/household'
 import { useGetAllHouseholds } from '@/api/generated/household/household'
+import { useGetActiveHousehold } from '@/api/generated/household/household'
 
 const { mutate: JoinHousehold, isPending: isJoinHouseholdPending } = useJoinHousehold({
   mutation: {
@@ -30,11 +75,18 @@ const { mutate: JoinHousehold, isPending: isJoinHouseholdPending } = useJoinHous
   },
 })
 
+
+
 const {
   data: householdsData,
   isLoading: isLoadingHouseholds,
   refetch: refetchHouseholds,
 } = useGetAllHouseholds()
+
+const {
+  data: activeHouseholdData,
+  refetch: refetchActiveHousehold,
+} = useGetActiveHousehold()
 
 // Import Button component
 import { Button } from '@/components/ui/button'
@@ -65,7 +117,6 @@ const closeModal = () => {
     <router-link to="/husstand" class="inline-block mb-4">
       <h2 class="text-lg font-semibold text-gray-800">Mine husstander</h2>
     </router-link>
-
     <!-- Display loading state -->
     <div v-if="isLoadingHouseholds" class="p-4 text-center text-gray-500">Laster husstander...</div>
 
@@ -98,12 +149,27 @@ const closeModal = () => {
           >
             {{ household.name }}
           </router-link>
-          <span
-            v-if="index === 0"
-            class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
-          >
-            Aktiv
-          </span>
+          <div class="flex items-center space-x-2">
+            <span
+              v-if="activeHouseholdData?.id === household.id"
+              class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
+            >
+              Aktiv
+            </span>
+            <button
+              v-else
+              @click="handleSetActiveHousehold(household.id)"
+              class="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Gjør aktiv
+            </button>
+            <button
+              @click="handleLeaveHousehold(household.id)"
+              class="text-red-600 hover:text-red-800 text-sm"
+            >
+              Forlat
+            </button>
+          </div>
         </div>
       </li>
     </ul>

@@ -69,7 +69,10 @@ class UserServiceTest {
                 "test@example.com",
                 "password",
                 "Test",
-                "User");
+                "User",
+                true,
+                true,
+                true);
 
         SecurityContextHolder.setContext(securityContext);
     }

@@ -6,13 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface UserDto {
+export interface ProductTypeDto {
   id?: string;
-  email?: string;
-  roles?: string[];
-  firstName?: string;
-  lastName?: string;
-  notifications?: boolean;
-  emailUpdates?: boolean;
-  locationSharing?: boolean;
+  name?: string;
+  unit?: string;
 }

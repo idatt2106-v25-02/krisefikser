@@ -14,4 +14,7 @@ export interface CreateUserDto {
   password?: string;
   firstName?: string;
   lastName?: string;
+  notifications?: boolean;
+  emailUpdates?: boolean;
+  locationSharing?: boolean;
 }
