@@ -15,4 +15,6 @@ public interface HouseholdMemberRepo extends JpaRepository<HouseholdMember, UUID
     boolean existsByUserAndHousehold(User currentUser, Household household);
 
     Optional<HouseholdMember> findByHouseholdAndUser(Household household, User currentUser);
+
+    List<HouseholdMember> findByUser(User user);
 }

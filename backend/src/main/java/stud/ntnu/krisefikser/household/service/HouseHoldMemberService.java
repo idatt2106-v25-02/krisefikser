@@ -38,4 +38,8 @@ public class HouseHoldMemberService {
                 .orElseThrow(() -> new IllegalArgumentException("Member not found"));
         householdMemberRepo.delete(member);
     }
+
+    public List<HouseholdMember> getHouseholdsByUser(User user) {
+        return householdMemberRepo.findByUser(user);
+    }
 }

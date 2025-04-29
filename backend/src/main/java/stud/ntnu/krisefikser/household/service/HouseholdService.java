@@ -2,14 +2,13 @@ package stud.ntnu.krisefikser.household.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
-import stud.ntnu.krisefikser.household.dto.HouseholdMemberDto;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepo;
 import stud.ntnu.krisefikser.user.entity.User;
-import stud.ntnu.krisefikser.user.repository.UserRepository;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 import java.util.List;
@@ -22,18 +21,24 @@ public class HouseholdService {
     private final HouseHoldMemberService houseHoldMemberService;
     private final UserService userService;
 
+    @Transactional(readOnly = true)
     public List<HouseholdResponse> getUserHouseholds() {
         User currentUser = userService.getCurrentUser();
-        // Find all households where currentUser.getId()
-        return householdRepo.findAll().stream()
-                .map(this::convertToHouseholdDto)
-                .filter(household -> household.getMembers().stream().map(HouseholdMemberDto::getUser).anyMatch(user -> user.getId() == currentUser.getId()))
+        List<HouseholdMember> userMemberships = houseHoldMemberService.getHouseholdsByUser(currentUser);
+
+        return userMemberships.stream()
+                .map(member -> toHouseholdResponse(member.getHousehold()))
                 .toList();
     }
 
-    private HouseholdResponse convertToHouseholdDto(Household household) {
+    private HouseholdResponse toHouseholdResponse(Household household) {
         User currentUser = userService.getCurrentUser();
         List<HouseholdMember> members = houseHoldMemberService.getMembers(household.getId());
+
+        boolean isActive = false;
+        if (currentUser.getActiveHousehold() != null) {
+            isActive = household.getId().equals(currentUser.getActiveHousehold().getId());
+        }
 
         return new HouseholdResponse(
                 household.getId(),
@@ -44,10 +49,11 @@ public class HouseholdService {
                 household.getOwner().toDto(),
                 members.stream().map(HouseholdMember::toDto).toList(),
                 household.getCreatedAt(),
-                household.getId().equals(currentUser.getActiveHousehold().getId())
+                isActive
         );
     }
 
+    @Transactional
     public HouseholdResponse joinHousehold(UUID householdId) {
         User currentUser = userService.getCurrentUser();
         Household household = householdRepo.findById(householdId)
@@ -63,9 +69,10 @@ public class HouseholdService {
             throw new IllegalArgumentException("Failed to join household");
         }
 
-        return convertToHouseholdDto(household);
+        return toHouseholdResponse(household);
     }
 
+    @Transactional
     public HouseholdResponse setActiveHousehold(UUID householdId) {
         User currentUser = userService.getCurrentUser();
         Household household = householdRepo.findById(householdId)
@@ -76,8 +83,9 @@ public class HouseholdService {
         }
 
         currentUser.setActiveHousehold(household);
+        userService.updateActiveHousehold(household);
 
-        return convertToHouseholdDto(household);
+        return toHouseholdResponse(household);
     }
 
     public HouseholdResponse getActiveHousehold() {
@@ -88,9 +96,10 @@ public class HouseholdService {
             throw new IllegalArgumentException("No active household found");
         }
 
-        return convertToHouseholdDto(household);
+        return toHouseholdResponse(household);
     }
 
+    @Transactional
     public void leaveHousehold(UUID householdId) {
         User currentUser = userService.getCurrentUser();
         Household household = householdRepo.findById(householdId)
@@ -104,11 +113,31 @@ public class HouseholdService {
         houseHoldMemberService.removeMember(household, currentUser);
     }
 
+    @Transactional
     public void deleteHousehold(UUID id) {
-        leaveHousehold(id);
+        User currentUser = userService.getCurrentUser();
+        Household household = householdRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+        // Check if current user is the owner
+        if (!household.getOwner().getId().equals(currentUser.getId())) {
+            throw new IllegalArgumentException("Only the owner can delete a household");
+        }
+
+        // Clear active household for all members
+        List<HouseholdMember> members = houseHoldMemberService.getMembers(id);
+        for (HouseholdMember member : members) {
+            if (member.getUser().getActiveHousehold() != null &&
+                    member.getUser().getActiveHousehold().getId().equals(id)) {
+                userService.updateActiveHousehold(null);
+            }
+            houseHoldMemberService.removeMember(household, member.getUser());
+        }
+
         householdRepo.deleteById(id);
     }
 
+    @Transactional
     public HouseholdResponse createHousehold(CreateHouseholdRequest household) {
         User currentUser = userService.getCurrentUser();
         Household newHousehold = new Household();
@@ -123,8 +152,9 @@ public class HouseholdService {
         householdRepo.save(newHousehold);
         houseHoldMemberService.addMember(newHousehold, currentUser);
 
-        setActiveHousehold(newHousehold.getId());
+        currentUser.setActiveHousehold(newHousehold);
+        userService.updateActiveHousehold(newHousehold);
 
-        return convertToHouseholdDto(newHousehold);
+        return toHouseholdResponse(newHousehold);
     }
 }
