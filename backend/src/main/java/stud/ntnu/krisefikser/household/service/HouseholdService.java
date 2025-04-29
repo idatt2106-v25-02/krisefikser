@@ -9,6 +9,7 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepo;
 import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.repository.UserRepository;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public class HouseholdService {
                 household.getOwner().toDto(),
                 members.stream().map(HouseholdMember::toDto).toList(),
                 household.getCreatedAt(),
-                household.getId() == currentUser.getActiveHousehold().getId()
+                household.getId().equals(currentUser.getActiveHousehold().getId())
         );
     }
 
@@ -75,9 +76,6 @@ public class HouseholdService {
         }
 
         currentUser.setActiveHousehold(household);
-        if (userService.updateUser(currentUser) == null) {
-            throw new IllegalArgumentException("Failed to set active household");
-        }
 
         return convertToHouseholdDto(household);
     }
@@ -102,11 +100,8 @@ public class HouseholdService {
             throw new IllegalArgumentException("Not a member of this household");
         }
 
+        userService.updateActiveHousehold(null);
         houseHoldMemberService.removeMember(household, currentUser);
-        if (currentUser.getActiveHousehold().getId() == household.getId()) {
-            currentUser.setActiveHousehold(null);
-            userService.updateUser(currentUser);
-        }
     }
 
     public void deleteHousehold(UUID id) {
