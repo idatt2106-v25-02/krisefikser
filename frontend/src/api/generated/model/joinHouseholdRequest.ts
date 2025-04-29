@@ -7,11 +7,8 @@
  */
 
 /**
- * Updated user data
+ * Request containing the household ID to set as active
  */
-export interface CreateUserDto {
-  email?: string;
-  password?: string;
-  firstName?: string;
-  lastName?: string;
+export interface JoinHouseholdRequest {
+  householdId?: string;
 }

@@ -63,7 +63,7 @@ export const getGetMapPointByIdQueryKey = (id: MaybeRef<number>,) => {
     }
 
     
-export const getGetMapPointByIdQueryOptions = <TData = Awaited<ReturnType<typeof getMapPointById>>, TError = ErrorType<MapPoint>>(id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMapPointById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetMapPointByIdQueryOptions = <TData = Awaited<ReturnType<typeof getMapPointById>>, TError = ErrorType<void>>(id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMapPointById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -82,14 +82,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetMapPointByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getMapPointById>>>
-export type GetMapPointByIdQueryError = ErrorType<MapPoint>
+export type GetMapPointByIdQueryError = ErrorType<void>
 
 
 /**
  * @summary Get a map point by ID
  */
 
-export function useGetMapPointById<TData = Awaited<ReturnType<typeof getMapPointById>>, TError = ErrorType<MapPoint>>(
+export function useGetMapPointById<TData = Awaited<ReturnType<typeof getMapPointById>>, TError = ErrorType<void>>(
  id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMapPointById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient 
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -126,7 +126,7 @@ mapPoint = unref(mapPoint);
   
 
 
-export const getUpdateMapPointMutationOptions = <TError = ErrorType<MapPoint>,
+export const getUpdateMapPointMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMapPoint>>, TError,{id: number;data: BodyType<MapPoint>}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateMapPoint>>, TError,{id: number;data: BodyType<MapPoint>}, TContext> => {
     
@@ -153,12 +153,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateMapPointMutationResult = NonNullable<Awaited<ReturnType<typeof updateMapPoint>>>
     export type UpdateMapPointMutationBody = BodyType<MapPoint>
-    export type UpdateMapPointMutationError = ErrorType<MapPoint>
+    export type UpdateMapPointMutationError = ErrorType<void>
 
     /**
  * @summary Update a map point
  */
-export const useUpdateMapPoint = <TError = ErrorType<MapPoint>,
+export const useUpdateMapPoint = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMapPoint>>, TError,{id: number;data: BodyType<MapPoint>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof updateMapPoint>>,
@@ -255,7 +255,7 @@ export const getGetAllMapPointsQueryKey = () => {
     }
 
     
-export const getGetAllMapPointsQueryOptions = <TData = Awaited<ReturnType<typeof getAllMapPoints>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMapPoints>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetAllMapPointsQueryOptions = <TData = Awaited<ReturnType<typeof getAllMapPoints>>, TError = ErrorType<void>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMapPoints>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -274,14 +274,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAllMapPointsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllMapPoints>>>
-export type GetAllMapPointsQueryError = ErrorType<unknown>
+export type GetAllMapPointsQueryError = ErrorType<void>
 
 
 /**
  * @summary Get all map points
  */
 
-export function useGetAllMapPoints<TData = Awaited<ReturnType<typeof getAllMapPoints>>, TError = ErrorType<unknown>>(
+export function useGetAllMapPoints<TData = Awaited<ReturnType<typeof getAllMapPoints>>, TError = ErrorType<void>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMapPoints>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient 
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -317,7 +317,7 @@ export const createMapPoint = (
   
 
 
-export const getCreateMapPointMutationOptions = <TError = ErrorType<MapPoint>,
+export const getCreateMapPointMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMapPoint>>, TError,{data: BodyType<MapPoint>}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createMapPoint>>, TError,{data: BodyType<MapPoint>}, TContext> => {
     
@@ -344,12 +344,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateMapPointMutationResult = NonNullable<Awaited<ReturnType<typeof createMapPoint>>>
     export type CreateMapPointMutationBody = BodyType<MapPoint>
-    export type CreateMapPointMutationError = ErrorType<MapPoint>
+    export type CreateMapPointMutationError = ErrorType<void>
 
     /**
  * @summary Create a new map point
  */
-export const useCreateMapPoint = <TError = ErrorType<MapPoint>,
+export const useCreateMapPoint = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMapPoint>>, TError,{data: BodyType<MapPoint>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof createMapPoint>>,

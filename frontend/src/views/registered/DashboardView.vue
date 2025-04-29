@@ -15,31 +15,35 @@ import Security from '@/components/dashboard/Security.vue'
 
 // Define user interface
 interface Household {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 interface UserData {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  households: Household[];
-  notifications: boolean;
-  emailUpdates: boolean;
-  locationSharing: boolean;
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  households: Household[]
+  notifications: boolean
+  emailUpdates: boolean
+  locationSharing: boolean
 }
 
 // Get auth store
 const authStore = useAuthStore()
 
 // Get current user data
-const { data: currentUser, isLoading: isLoadingUser, refetch: refetchUser } = useMe({
+const {
+  data: currentUser,
+  isLoading: isLoadingUser,
+  refetch: refetchUser,
+} = useMe({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
-    refetchOnWindowFocus: true
-  }
+    refetchOnWindowFocus: true,
+  },
 })
 
 // Update user mutation
@@ -50,8 +54,8 @@ const { mutate: updateUserProfile } = useUpdateUser({
     },
     onError: (error) => {
       console.error('Failed to update user:', error)
-    }
-  }
+    },
+  },
 })
 
 // Transform API user data to match our component interface
@@ -63,7 +67,6 @@ const user = computed(() => {
     firstName: currentUser.value.firstName || '',
     lastName: currentUser.value.lastName || '',
     email: currentUser.value.email || '',
-    households: [],
     notifications: currentUser.value.notifications || false,
     emailUpdates: currentUser.value.emailUpdates || false,
     locationSharing: currentUser.value.locationSharing || false,
@@ -77,9 +80,11 @@ const updateUserInfo = (updatedUser: Partial<UserData>, p0: unknown): void => {
 
   // Optimistically update local state
   if (user.value) {
-    if (updatedUser.notifications !== undefined) user.value.notifications = updatedUser.notifications
+    if (updatedUser.notifications !== undefined)
+      user.value.notifications = updatedUser.notifications
     if (updatedUser.emailUpdates !== undefined) user.value.emailUpdates = updatedUser.emailUpdates
-    if (updatedUser.locationSharing !== undefined) user.value.locationSharing = updatedUser.locationSharing
+    if (updatedUser.locationSharing !== undefined)
+      user.value.locationSharing = updatedUser.locationSharing
   }
 
   // Call the mutation
@@ -92,7 +97,7 @@ const updateUserInfo = (updatedUser: Partial<UserData>, p0: unknown): void => {
       notifications: updatedUser.notifications ?? currentUser.value.notifications,
       emailUpdates: updatedUser.emailUpdates ?? currentUser.value.emailUpdates,
       locationSharing: updatedUser.locationSharing ?? currentUser.value.locationSharing,
-    } as CreateUserDto
+    } as CreateUserDto,
   })
 }
 
@@ -140,7 +145,7 @@ const updateLocationSetting = (value: boolean) => {
       <!-- Sidebar information -->
       <div class="md:col-span-1">
         <!-- User households -->
-        <Households :households="user.households" />
+        <Households />
 
         <!-- Password change card -->
         <Security />
