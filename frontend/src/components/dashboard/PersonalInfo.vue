@@ -1,30 +1,74 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Button } from '@/components/ui/button'
+import { useMe } from '@/api/generated/authentication/authentication'
+import { useUpdateUser } from '@/api/generated/user/user'
+import type { CreateUserDto } from '@/api/generated/model'
+import { useAuthStore } from '@/stores/useAuthStore'
 
-const props = defineProps<{
-  user: {
-    id: string
-    firstName: string
-    lastName: string
-    email: string
+// Get auth store
+const authStore = useAuthStore()
+
+// Get current user data
+const {
+  data: currentUser,
+  isLoading: isLoadingUser,
+  refetch: refetchUser,
+} = useMe({
+  query: {
+    enabled: authStore.isAuthenticated,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  },
+})
+
+// Update user mutation
+const { mutate: updateUserProfile } = useUpdateUser({
+  mutation: {
+    onSuccess: (data) => {
+      console.log('User updated successfully:', data)
+      refetchUser()
+    },
+    onError: (error) => {
+      console.error('Failed to update user:', error)
+    },
+  },
+})
+
+// Transform API user data to match our component interface
+const user = computed(() => {
+  if (!currentUser.value) return null
+
+  return {
+    id: currentUser.value.id || '',
+    firstName: currentUser.value.firstName || '',
+    lastName: currentUser.value.lastName || '',
+    email: currentUser.value.email || '',
   }
-}>()
-
-const emit = defineEmits(['update:user'])
+})
 
 const isEditing = ref(false)
-const editedUser = ref({ ...props.user })
+const editedUser = ref({ ...user.value })
 
 const toggleEdit = () => {
   isEditing.value = !isEditing.value
   if (isEditing.value) {
-    editedUser.value = { ...props.user }
+    editedUser.value = { ...user.value }
   }
 }
 
 const saveProfile = () => {
-  emit('update:user', editedUser.value)
+  if (!currentUser.value) return
+
+  updateUserProfile({
+    userId: currentUser.value.id || '',
+    data: {
+      firstName: editedUser.value.firstName,
+      lastName: editedUser.value.lastName,
+      email: editedUser.value.email,
+    } as CreateUserDto,
+  })
+
   isEditing.value = false
 }
 </script>

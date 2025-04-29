@@ -40,7 +40,10 @@ public class AuthService {
         registerRequest.getEmail(),
         registerRequest.getPassword(),
         registerRequest.getFirstName(),
-        registerRequest.getLastName()));
+        registerRequest.getLastName(),
+        true,
+        true,
+        true));
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getEmail());
 

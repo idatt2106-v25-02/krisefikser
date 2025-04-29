@@ -1,35 +1,81 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Switch } from '@/components/ui/switch'
+import { useMe } from '@/api/generated/authentication/authentication'
+import { useUpdateUser } from '@/api/generated/user/user'
+import type { CreateUserDto } from '@/api/generated/model'
+import { useAuthStore } from '@/stores/useAuthStore'
 
-const props = defineProps<{
-  notifications: boolean
-  emailUpdates: boolean
-  locationSharing: boolean
-}>()
+// Get auth store
+const authStore = useAuthStore()
 
-const emit = defineEmits<{
-  'update:notifications': [value: boolean]
-  'update:emailUpdates': [value: boolean]
-  'update:locationSharing': [value: boolean]
-}>()
+// Get current user data
+const {
+  data: currentUser,
+  isLoading: isLoadingUser,
+  refetch: refetchUser,
+} = useMe({
+  query: {
+    enabled: authStore.isAuthenticated,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  },
+})
 
-const notificationsRef = ref(props.notifications)
-const emailUpdatesRef = ref(props.emailUpdates)
-const locationSharingRef = ref(props.locationSharing)
+// Update user mutation
+const { mutate: updateUserProfile } = useUpdateUser({
+  mutation: {
+    onSuccess: (data) => {
+      console.log('User updated successfully:', data)
+      refetchUser()
+    },
+    onError: (error) => {
+      console.error('Failed to update user:', error)
+    },
+  },
+})
+
+// Transform API user data to match our component interface
+const user = computed(() => {
+  if (!currentUser.value) return null
+
+  return {
+    notifications: currentUser.value.notifications || false,
+    emailUpdates: currentUser.value.emailUpdates || false,
+    locationSharing: currentUser.value.locationSharing || false,
+  }
+})
+
+const notificationsRef = ref(user.value?.notifications ?? false)
+const emailUpdatesRef = ref(user.value?.emailUpdates ?? false)
+const locationSharingRef = ref(user.value?.locationSharing ?? false)
 
 const handleToggle = (field: 'notifications' | 'emailUpdates' | 'locationSharing', value: boolean) => {
+  if (!currentUser.value) return
+
   console.log(`Toggling ${field} to ${value}`)
+
+  // Update local state
   if (field === 'notifications') {
     notificationsRef.value = value
-    emit('update:notifications', value)
   } else if (field === 'emailUpdates') {
     emailUpdatesRef.value = value
-    emit('update:emailUpdates', value)
   } else if (field === 'locationSharing') {
     locationSharingRef.value = value
-    emit('update:locationSharing', value)
   }
+
+  // Call the mutation
+  updateUserProfile({
+    userId: currentUser.value.id || '',
+    data: {
+      firstName: currentUser.value.firstName,
+      lastName: currentUser.value.lastName,
+      email: currentUser.value.email,
+      notifications: field === 'notifications' ? value : currentUser.value.notifications,
+      emailUpdates: field === 'emailUpdates' ? value : currentUser.value.emailUpdates,
+      locationSharing: field === 'locationSharing' ? value : currentUser.value.locationSharing,
+    } as CreateUserDto,
+  })
 }
 </script>
 
@@ -37,7 +83,11 @@ const handleToggle = (field: 'notifications' | 'emailUpdates' | 'locationSharing
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-6">Innstillinger</h2>
 
-    <div class="space-y-4">
+    <div v-if="isLoadingUser" class="flex justify-center items-center h-32">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+    </div>
+
+    <div v-else class="space-y-4">
       <!-- Notifications toggle -->
       <div class="flex items-center justify-between">
         <div>

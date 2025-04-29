@@ -1,9 +1,12 @@
 package stud.ntnu.krisefikser.user.controller;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
@@ -15,117 +18,142 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
+import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
+import stud.ntnu.krisefikser.auth.service.TokenService;
+import stud.ntnu.krisefikser.common.TestSecurityConfig;
 import stud.ntnu.krisefikser.user.dto.CreateUserDto;
 import stud.ntnu.krisefikser.user.dto.UserDto;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 @WebMvcTest(UserController.class)
+@Import(TestSecurityConfig.class)
 class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-    @MockBean
-    private UserService userService;
+  @MockBean
+  private UserService userService;
 
-    private User testUser;
-    private UUID testUserId;
-    private CreateUserDto testUserDto;
-    private UserDto testUserDtoResponse;
+  @MockBean
+  private TokenService tokenService;
 
-    @BeforeEach
-    void setUp() {
-        testUserId = UUID.randomUUID();
-        Role userRole = new Role();
-        userRole.setName(RoleType.USER);
+  @MockBean
+  private CustomUserDetailsService userDetailsService;
 
-        testUser = User.builder()
-                .id(testUserId)
-                .email("test@example.com")
-                .password("encodedPassword")
-                .firstName("Test")
-                .lastName("User")
-                .roles(new HashSet<>(Arrays.asList(userRole)))
-                .build();
+  private User testUser;
+  private UUID testUserId;
+  private CreateUserDto testUserDto;
+  private UserDto testUserDtoResponse;
 
-        testUserDto = new CreateUserDto(
-                "test@example.com",
-                "password",
-                "Test",
-                "User");
+  @BeforeEach
+  void setUp() {
+    testUserId = UUID.randomUUID();
+    Role userRole = new Role();
+    userRole.setName(RoleType.USER);
 
-        testUserDtoResponse = testUser.toDto();
-    }
+    testUser = User.builder()
+        .id(testUserId)
+        .email("test@example.com")
+        .password("encodedPassword")
+        .firstName("Test")
+        .lastName("User")
+        .roles(new HashSet<>(Arrays.asList(userRole)))
+        .build();
 
-    @Test
-    void getAllUsers_Success() throws Exception {
-        // Arrange
-        List<User> users = Arrays.asList(testUser);
-        when(userService.getAllUsers()).thenReturn(users);
+    testUserDto = new CreateUserDto(
+        "test@example.com",
+        "password",
+        "Test",
+        "User",
+        true,
+        true,
+        true);
 
-        // Act & Assert
-        mockMvc.perform(get("/api/users"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].email").value(testUserDtoResponse.getEmail()))
-                .andExpect(jsonPath("$[0].firstName").value(testUserDtoResponse.getFirstName()))
-                .andExpect(jsonPath("$[0].lastName").value(testUserDtoResponse.getLastName()));
-    }
+    testUserDtoResponse = testUser.toDto();
+  }
 
-    @Test
-    void updateUser_Success() throws Exception {
-        // Arrange
-        when(userService.isAdminOrSelf(testUserId)).thenReturn(true);
-        when(userService.updateUser(testUserId, testUserDto)).thenReturn(testUser);
+  @Test
+  @WithMockUser
+  void getAllUsers_Success() throws Exception {
+    // Arrange
+    List<User> users = Arrays.asList(testUser);
+    when(userService.getAllUsers()).thenReturn(users);
 
-        // Act & Assert
-        mockMvc.perform(put("/api/users/{userId}", testUserId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testUserDto)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.email").value(testUserDtoResponse.getEmail()))
-                .andExpect(jsonPath("$.firstName").value(testUserDtoResponse.getFirstName()))
-                .andExpect(jsonPath("$.lastName").value(testUserDtoResponse.getLastName()));
-    }
+    // Act & Assert
+    mockMvc.perform(get("/api/users"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$[0].email").value(testUserDtoResponse.getEmail()))
+        .andExpect(jsonPath("$[0].firstName").value(testUserDtoResponse.getFirstName()))
+        .andExpect(jsonPath("$[0].lastName").value(testUserDtoResponse.getLastName()));
+  }
 
-    @Test
-    void updateUser_Unauthorized() throws Exception {
-        // Arrange
-        when(userService.isAdminOrSelf(testUserId)).thenReturn(false);
+  @Test
+  @WithMockUser
+  void updateUser_Success() throws Exception {
+    // Arrange
+    when(userService.isAdminOrSelf(testUserId)).thenReturn(true);
+    when(userService.updateUser(testUserId, testUserDto)).thenReturn(testUser);
 
-        // Act & Assert
-        mockMvc.perform(put("/api/users/{userId}", testUserId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testUserDto)))
-                .andExpect(status().isForbidden());
-    }
+    // Act & Assert
+    mockMvc.perform(put("/api/users/{userId}", testUserId)
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(testUserDto)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.email").value(testUserDtoResponse.getEmail()))
+        .andExpect(jsonPath("$.firstName").value(testUserDtoResponse.getFirstName()))
+        .andExpect(jsonPath("$.lastName").value(testUserDtoResponse.getLastName()));
+  }
 
-    @Test
-    void deleteUser_Success() throws Exception {
-        // Arrange
-        when(userService.isAdminOrSelf(testUserId)).thenReturn(true);
+  @Test
+  @WithMockUser
+  void updateUser_Unauthorized() throws Exception {
+    // Arrange
+    when(userService.isAdminOrSelf(testUserId)).thenReturn(false);
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/users/{userId}", testUserId))
-                .andExpect(status().isOk());
-    }
+    // Act & Assert
+    mockMvc.perform(put("/api/users/{userId}", testUserId)
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(testUserDto)))
+        .andExpect(status().isUnauthorized());
+  }
 
-    @Test
-    void deleteUser_Unauthorized() throws Exception {
-        // Arrange
-        when(userService.isAdminOrSelf(testUserId)).thenReturn(false);
+  @Test
+  @WithMockUser
+  void deleteUser_Success() throws Exception {
+    // Arrange
+    when(userService.isAdminOrSelf(testUserId)).thenReturn(true);
 
-        // Act & Assert
-        mockMvc.perform(delete("/api/users/{userId}", testUserId))
-                .andExpect(status().isForbidden());
-    }
+    // Act & Assert
+    mockMvc.perform(delete("/api/users/{userId}", testUserId)
+            .with(SecurityMockMvcRequestPostProcessors.csrf()))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser
+  void deleteUser_Unauthorized() throws Exception {
+    // Arrange
+    when(userService.isAdminOrSelf(testUserId)).thenReturn(false);
+
+    // Act & Assert
+    mockMvc.perform(delete("/api/users/{userId}", testUserId)
+            .with(SecurityMockMvcRequestPostProcessors.csrf()))
+        .andExpect(status().isUnauthorized());
+  }
 }

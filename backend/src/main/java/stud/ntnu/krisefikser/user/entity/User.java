@@ -1,13 +1,22 @@
 package stud.ntnu.krisefikser.user.entity;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,56 +32,60 @@ import stud.ntnu.krisefikser.user.dto.UserDto;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "users")
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+  @Column(nullable = false, unique = true)
+  private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>();
+  @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(name = "user_roles",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "role_id")
+  )
+  private Set<Role> roles = new HashSet<>();
 
-    @Column(nullable = false)
-    private String password;
+  @Column(nullable = false)
+  private String password;
 
-    private String firstName;
+  private String firstName;
 
-    private String lastName;
+  private String lastName;
 
-    @Column(nullable = false)
-    private boolean notifications = true;
+  @Column(nullable = false)
+  private boolean notifications = true;
 
-    @Column(nullable = false)
-    private boolean emailUpdates = true;
+  @Column(nullable = false)
+  private boolean emailUpdates = true;
 
-    @Column(nullable = false)
-    private boolean locationSharing = false;
+  @Column(nullable = false)
+  private boolean locationSharing = false;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+  @CreationTimestamp
+  private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+  @UpdateTimestamp
+  private LocalDateTime updatedAt;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "active_household_id", nullable = true)
-    private Household activeHousehold;
+  @ManyToOne(cascade = CascadeType.MERGE)
+  @JoinColumn(name = "active_household_id", nullable = true)
+  private Household activeHousehold;
 
-    public UserDto toDto() {
-        List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
+  public UserDto toDto() {
+    List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
 
-        return new UserDto(
-                id,
-                email,
-                roleNames,
-                firstName,
-                lastName,
-                notifications,
-                emailUpdates,
-                locationSharing);
-    }
+    return new UserDto(
+        id,
+        email,
+        roleNames,
+        firstName,
+        lastName,
+        notifications,
+        emailUpdates,
+        locationSharing);
+  }
 }
