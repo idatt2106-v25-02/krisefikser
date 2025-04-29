@@ -22,6 +22,7 @@ import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
+import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
 import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
 
 @RestControllerAdvice
@@ -139,6 +140,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(ArticleNotFoundException.class)
   public ProblemDetail handleArticleNotFoundException(ArticleNotFoundException exception) {
     return createProblemDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+  }
+
+  @ExceptionHandler(UnauthorizedAccessException.class)
+  public ProblemDetail handleUnauthorizedAccessException(UnauthorizedAccessException exception) {
+    return createProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage());
   }
 
   // General exceptions
