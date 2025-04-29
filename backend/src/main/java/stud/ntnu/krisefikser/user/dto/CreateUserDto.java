@@ -12,4 +12,7 @@ public class CreateUserDto {
   private String password;
   private String firstName;
   private String lastName;
+  private boolean notifications;
+  private boolean emailUpdates;
+  private boolean locationSharing;
 }
