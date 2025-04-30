@@ -11,14 +11,8 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import PrivacyPolicyView from './PrivacyPolicyView.vue'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 // Schema for the registration form
 const rawSchema = z
@@ -86,21 +80,6 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-// Show/hide password
-const showPassword = ref(false)
-
-// Toggle the visibility of the password
-function toggleShowPassword() {
-  showPassword.value = !showPassword.value
-}
-
-// Show/hide confirm password
-const showConfirmPassword = ref(false)
-
-// Toggle the visibility of the confirm password field
-function toggleShowConfirmPassword() {
-  showConfirmPassword.value = !showConfirmPassword.value
-}
 
 // Dialog state
 const isPrivacyPolicyOpen = ref(false)
@@ -250,6 +229,13 @@ const isPrivacyPolicyOpen = ref(false)
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
       </FormField> -->
+
+      <!-- Privacy Policy Dialog -->
+      <Dialog :open="isPrivacyPolicyOpen" @update:open="isPrivacyPolicyOpen = $event">
+        <DialogContent class="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <PrivacyPolicyView />
+        </DialogContent>
+      </Dialog>
 
       <!-- Submit button -->
       <Button
