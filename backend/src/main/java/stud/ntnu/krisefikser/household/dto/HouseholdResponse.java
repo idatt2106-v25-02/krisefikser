@@ -19,7 +19,7 @@ public class HouseholdResponse {
     private double longitude;
     private String address;
     private UserDto owner;
-    private List<HouseholdMemberDto> members;
+    private List<HouseholdMemberResponse> members;
     private LocalDateTime createdAt;
     private boolean isActive;
 }
