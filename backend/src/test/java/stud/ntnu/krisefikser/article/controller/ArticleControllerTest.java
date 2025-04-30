@@ -25,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import stud.ntnu.krisefikser.article.dto.ArticleRequest;
 import stud.ntnu.krisefikser.article.dto.ArticleResponse;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.article.service.ArticleService;
@@ -101,7 +102,7 @@ class ArticleControllerTest {
   @Test
   @WithMockUser(roles = "ADMIN")
   void createArticle_ShouldReturnCreatedArticle() throws Exception {
-    when(articleService.createArticle(any(ArticleResponse.class))).thenReturn(articleResponse);
+    when(articleService.createArticle(any(ArticleRequest.class))).thenReturn(articleResponse);
 
     mockMvc.perform(post("/api/articles")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
@@ -117,7 +118,7 @@ class ArticleControllerTest {
   @Test
   @WithMockUser(roles = "ADMIN")
   void updateArticle_WhenArticleExists_ShouldReturnUpdatedArticle() throws Exception {
-    when(articleService.updateArticle(eq(1L), any(ArticleResponse.class))).thenReturn(
+    when(articleService.updateArticle(eq(1L), any(ArticleRequest.class))).thenReturn(
         articleResponse);
 
     mockMvc.perform(put("/api/articles/1")
@@ -134,7 +135,7 @@ class ArticleControllerTest {
   @Test
   @WithMockUser(roles = "ADMIN")
   void updateArticle_WhenArticleDoesNotExist_ShouldReturn404() throws Exception {
-    when(articleService.updateArticle(eq(1L), any(ArticleResponse.class)))
+    when(articleService.updateArticle(eq(1L), any(ArticleRequest.class)))
         .thenThrow(new ArticleNotFoundException("Article not found with id: 1"));
 
     mockMvc.perform(put("/api/articles/1")
