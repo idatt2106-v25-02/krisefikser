@@ -49,7 +49,6 @@ public class UserController {
   @GetMapping
   public ResponseEntity<List<UserDto>> getAllUsers() {
     List<UserDto> users = userService.getAllUsers().stream()
-        .map(User::toDto)
         .collect(Collectors.toList());
     return ResponseEntity.ok(users);
   }
@@ -69,8 +68,8 @@ public class UserController {
     if (!userService.isAdminOrSelf(userId)) {
       throw new UnauthorizedAccessException("You are not authorized to update this user");
     }
-    User updatedUser = userService.updateUser(userId, userDto);
-    return ResponseEntity.ok(updatedUser.toDto());
+    UserDto updatedUser = userService.updateUser(userId, userDto);
+    return ResponseEntity.ok(updatedUser);
   }
 
   @Operation(summary = "Delete user", description = "Deletes a user from the system")
