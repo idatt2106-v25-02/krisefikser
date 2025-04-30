@@ -5,20 +5,20 @@
  * This API exposes endpoints for the Krisefikser application.
  * OpenAPI spec version: 1.0
  */
-import type { ProductType } from './productType';
-import type { SortObject } from './sortObject';
-import type { PageableObject } from './pageableObject';
+import type { ProductType } from './productType'
+import type { SortObject } from './sortObject'
+import type { PageableObject } from './pageableObject'
 
 export interface PageProductType {
-  totalPages?: number;
-  totalElements?: number;
-  first?: boolean;
-  last?: boolean;
-  size?: number;
-  content?: ProductType[];
-  number?: number;
-  sort?: SortObject;
-  pageable?: PageableObject;
-  numberOfElements?: number;
-  empty?: boolean;
+  totalPages?: number
+  totalElements?: number
+  first?: boolean
+  last?: boolean
+  size?: number
+  content?: ProductType[]
+  number?: number
+  sort?: SortObject
+  pageable?: PageableObject
+  numberOfElements?: number
+  empty?: boolean
 }

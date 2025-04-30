@@ -5,10 +5,7 @@
  * This API exposes endpoints for the Krisefikser application.
  * OpenAPI spec version: 1.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/vue-query';
+import { useMutation, useQuery } from '@tanstack/vue-query'
 import type {
   DataTag,
   MutationFunction,
@@ -18,348 +15,411 @@ import type {
   UseMutationOptions,
   UseMutationReturnType,
   UseQueryOptions,
-  UseQueryReturnType
-} from '@tanstack/vue-query';
+  UseQueryReturnType,
+} from '@tanstack/vue-query'
 
-import {
-  computed,
-  unref
-} from 'vue';
-import type {
-  MaybeRef
-} from 'vue';
+import { computed, unref } from 'vue'
+import type { MaybeRef } from 'vue'
 
-import type {
-  ArticleDTO
-} from '.././model';
+import type { ArticleDTO } from '.././model'
 
-import { customInstance } from '../../axios';
-import type { ErrorType , BodyType } from '../../axios';
+import { customInstance } from '../../axios'
+import type { ErrorType, BodyType } from '../../axios'
 
-
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * Retrieves a specific article by its ID
  * @summary Get an article by ID
  */
 export const getArticleById = (
-    id: MaybeRef<number>,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  id: MaybeRef<number>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      id = unref(id);
-      
-      return customInstance<ArticleDTO>(
-      {url: `http://localhost:8080/api/articles/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  id = unref(id)
 
-export const getGetArticleByIdQueryKey = (id: MaybeRef<number>,) => {
-    return ['http:','localhost:8080','api','articles',id] as const;
-    }
+  return customInstance<ArticleDTO>(
+    { url: `http://localhost:8080/api/articles/${id}`, method: 'GET', signal },
+    options,
+  )
+}
 
-    
-export const getGetArticleByIdQueryOptions = <TData = Awaited<ReturnType<typeof getArticleById>>, TError = ErrorType<ArticleDTO>>(id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getArticleById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetArticleByIdQueryKey = (id: MaybeRef<number>) => {
+  return ['http:', 'localhost:8080', 'api', 'articles', id] as const
+}
+
+export const getGetArticleByIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getArticleById>>,
+  TError = ErrorType<ArticleDTO>,
+>(
+  id: MaybeRef<number>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getArticleById>>, TError, TData>>
+    request?: SecondParameter<typeof customInstance>
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = getGetArticleByIdQueryKey(id)
 
-  const queryKey =  getGetArticleByIdQueryKey(id);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getArticleById>>> = ({ signal }) =>
+    getArticleById(id, requestOptions, signal)
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getArticleById>>> = ({ signal }) => getArticleById(id, requestOptions, signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: computed(() => !!(unref(id))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getArticleById>>, TError, TData> 
+  return {
+    queryKey,
+    queryFn,
+    enabled: computed(() => !!unref(id)),
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getArticleById>>, TError, TData>
 }
 
 export type GetArticleByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getArticleById>>>
 export type GetArticleByIdQueryError = ErrorType<ArticleDTO>
 
-
 /**
  * @summary Get an article by ID
  */
 
-export function useGetArticleById<TData = Awaited<ReturnType<typeof getArticleById>>, TError = ErrorType<ArticleDTO>>(
- id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getArticleById>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetArticleById<
+  TData = Awaited<ReturnType<typeof getArticleById>>,
+  TError = ErrorType<ArticleDTO>,
+>(
+  id: MaybeRef<number>,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getArticleById>>, TError, TData>>
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetArticleByIdQueryOptions(id, options)
 
-  const queryOptions = getGetArticleByIdQueryOptions(id,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 
-  const query = useQuery(queryOptions , queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
 
-  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
-
-  return query;
+  return query
 }
-
-
 
 /**
  * Updates an existing article by its ID
  * @summary Update an article
  */
 export const updateArticle = (
-    id: MaybeRef<number>,
-    articleDTO: MaybeRef<ArticleDTO>,
- options?: SecondParameter<typeof customInstance>,) => {
-      id = unref(id);
-articleDTO = unref(articleDTO);
-      
-      return customInstance<ArticleDTO>(
-      {url: `http://localhost:8080/api/articles/${id}`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: articleDTO
+  id: MaybeRef<number>,
+  articleDTO: MaybeRef<ArticleDTO>,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  id = unref(id)
+  articleDTO = unref(articleDTO)
+
+  return customInstance<ArticleDTO>(
+    {
+      url: `http://localhost:8080/api/articles/${id}`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: articleDTO,
     },
-      options);
-    }
-  
+    options,
+  )
+}
 
+export const getUpdateArticleMutationOptions = <
+  TError = ErrorType<ArticleDTO>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateArticle>>,
+    TError,
+    { id: number; data: BodyType<ArticleDTO> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateArticle>>,
+  TError,
+  { id: number; data: BodyType<ArticleDTO> },
+  TContext
+> => {
+  const mutationKey = ['updateArticle']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
 
-export const getUpdateArticleMutationOptions = <TError = ErrorType<ArticleDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateArticle>>, TError,{id: number;data: BodyType<ArticleDTO>}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateArticle>>, TError,{id: number;data: BodyType<ArticleDTO>}, TContext> => {
-    
-const mutationKey = ['updateArticle'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateArticle>>,
+    { id: number; data: BodyType<ArticleDTO> }
+  > = (props) => {
+    const { id, data } = props ?? {}
 
-      
+    return updateArticle(id, data, requestOptions)
+  }
 
+  return { mutationFn, ...mutationOptions }
+}
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateArticle>>, {id: number;data: BodyType<ArticleDTO>}> = (props) => {
-          const {id,data} = props ?? {};
+export type UpdateArticleMutationResult = NonNullable<Awaited<ReturnType<typeof updateArticle>>>
+export type UpdateArticleMutationBody = BodyType<ArticleDTO>
+export type UpdateArticleMutationError = ErrorType<ArticleDTO>
 
-          return  updateArticle(id,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateArticleMutationResult = NonNullable<Awaited<ReturnType<typeof updateArticle>>>
-    export type UpdateArticleMutationBody = BodyType<ArticleDTO>
-    export type UpdateArticleMutationError = ErrorType<ArticleDTO>
-
-    /**
+/**
  * @summary Update an article
  */
-export const useUpdateArticle = <TError = ErrorType<ArticleDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateArticle>>, TError,{id: number;data: BodyType<ArticleDTO>}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationReturnType<
-        Awaited<ReturnType<typeof updateArticle>>,
-        TError,
-        {id: number;data: BodyType<ArticleDTO>},
-        TContext
-      > => {
+export const useUpdateArticle = <TError = ErrorType<ArticleDTO>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateArticle>>,
+      TError,
+      { id: number; data: BodyType<ArticleDTO> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof updateArticle>>,
+  TError,
+  { id: number; data: BodyType<ArticleDTO> },
+  TContext
+> => {
+  const mutationOptions = getUpdateArticleMutationOptions(options)
 
-      const mutationOptions = getUpdateArticleMutationOptions(options);
-
-      return useMutation(mutationOptions , queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient)
+}
+/**
  * Deletes an article from the system
  * @summary Delete an article
  */
 export const deleteArticle = (
-    id: MaybeRef<number>,
- options?: SecondParameter<typeof customInstance>,) => {
-      id = unref(id);
-      
-      return customInstance<void>(
-      {url: `http://localhost:8080/api/articles/${id}`, method: 'DELETE'
-    },
-      options);
-    }
-  
+  id: MaybeRef<number>,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  id = unref(id)
 
+  return customInstance<void>(
+    { url: `http://localhost:8080/api/articles/${id}`, method: 'DELETE' },
+    options,
+  )
+}
 
-export const getDeleteArticleMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteArticle>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteArticle>>, TError,{id: number}, TContext> => {
-    
-const mutationKey = ['deleteArticle'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+export const getDeleteArticleMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteArticle>>,
+    TError,
+    { id: number },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteArticle>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ['deleteArticle']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
 
-      
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteArticle>>, { id: number }> = (
+    props,
+  ) => {
+    const { id } = props ?? {}
 
+    return deleteArticle(id, requestOptions)
+  }
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteArticle>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
+  return { mutationFn, ...mutationOptions }
+}
 
-          return  deleteArticle(id,requestOptions)
-        }
+export type DeleteArticleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteArticle>>>
 
-        
+export type DeleteArticleMutationError = ErrorType<void>
 
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteArticleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteArticle>>>
-    
-    export type DeleteArticleMutationError = ErrorType<void>
-
-    /**
+/**
  * @summary Delete an article
  */
-export const useDeleteArticle = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteArticle>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationReturnType<
-        Awaited<ReturnType<typeof deleteArticle>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
+export const useDeleteArticle = <TError = ErrorType<void>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteArticle>>,
+      TError,
+      { id: number },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof deleteArticle>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationOptions = getDeleteArticleMutationOptions(options)
 
-      const mutationOptions = getDeleteArticleMutationOptions(options);
-
-      return useMutation(mutationOptions , queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient)
+}
+/**
  * Retrieves a list of all articles in the system
  * @summary Get all articles
  */
 export const getAllArticles = (
-    
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<ArticleDTO>(
-      {url: `http://localhost:8080/api/articles`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<ArticleDTO>(
+    { url: `http://localhost:8080/api/articles`, method: 'GET', signal },
+    options,
+  )
+}
 
 export const getGetAllArticlesQueryKey = () => {
-    return ['http:','localhost:8080','api','articles'] as const;
-    }
+  return ['http:', 'localhost:8080', 'api', 'articles'] as const
+}
 
-    
-export const getGetAllArticlesQueryOptions = <TData = Awaited<ReturnType<typeof getAllArticles>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllArticles>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
+export const getGetAllArticlesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAllArticles>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllArticles>>, TError, TData>>
+  request?: SecondParameter<typeof customInstance>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = getGetAllArticlesQueryKey()
 
-  const queryKey =  getGetAllArticlesQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllArticles>>> = ({ signal }) =>
+    getAllArticles(requestOptions, signal)
 
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllArticles>>> = ({ signal }) => getAllArticles(requestOptions, signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllArticles>>, TError, TData> 
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAllArticles>>,
+    TError,
+    TData
+  >
 }
 
 export type GetAllArticlesQueryResult = NonNullable<Awaited<ReturnType<typeof getAllArticles>>>
 export type GetAllArticlesQueryError = ErrorType<unknown>
 
-
 /**
  * @summary Get all articles
  */
 
-export function useGetAllArticles<TData = Awaited<ReturnType<typeof getAllArticles>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllArticles>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
+export function useGetAllArticles<
+  TData = Awaited<ReturnType<typeof getAllArticles>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllArticles>>, TError, TData>>
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getGetAllArticlesQueryOptions(options)
 
-  const query = useQuery(queryOptions , queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 
-  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
 
-  return query;
+  return query
 }
-
-
 
 /**
  * Creates a new article in the system
  * @summary Create a new article
  */
 export const createArticle = (
-    articleDTO: MaybeRef<ArticleDTO>,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  articleDTO: MaybeRef<ArticleDTO>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      articleDTO = unref(articleDTO);
-      
-      return customInstance<ArticleDTO>(
-      {url: `http://localhost:8080/api/articles`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: articleDTO, signal
+  articleDTO = unref(articleDTO)
+
+  return customInstance<ArticleDTO>(
+    {
+      url: `http://localhost:8080/api/articles`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: articleDTO,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  )
+}
 
+export const getCreateArticleMutationOptions = <
+  TError = ErrorType<ArticleDTO>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createArticle>>,
+    TError,
+    { data: BodyType<ArticleDTO> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createArticle>>,
+  TError,
+  { data: BodyType<ArticleDTO> },
+  TContext
+> => {
+  const mutationKey = ['createArticle']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
 
-export const getCreateArticleMutationOptions = <TError = ErrorType<ArticleDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createArticle>>, TError,{data: BodyType<ArticleDTO>}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createArticle>>, TError,{data: BodyType<ArticleDTO>}, TContext> => {
-    
-const mutationKey = ['createArticle'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createArticle>>,
+    { data: BodyType<ArticleDTO> }
+  > = (props) => {
+    const { data } = props ?? {}
 
-      
+    return createArticle(data, requestOptions)
+  }
 
+  return { mutationFn, ...mutationOptions }
+}
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createArticle>>, {data: BodyType<ArticleDTO>}> = (props) => {
-          const {data} = props ?? {};
+export type CreateArticleMutationResult = NonNullable<Awaited<ReturnType<typeof createArticle>>>
+export type CreateArticleMutationBody = BodyType<ArticleDTO>
+export type CreateArticleMutationError = ErrorType<ArticleDTO>
 
-          return  createArticle(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateArticleMutationResult = NonNullable<Awaited<ReturnType<typeof createArticle>>>
-    export type CreateArticleMutationBody = BodyType<ArticleDTO>
-    export type CreateArticleMutationError = ErrorType<ArticleDTO>
-
-    /**
+/**
  * @summary Create a new article
  */
-export const useCreateArticle = <TError = ErrorType<ArticleDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createArticle>>, TError,{data: BodyType<ArticleDTO>}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationReturnType<
-        Awaited<ReturnType<typeof createArticle>>,
-        TError,
-        {data: BodyType<ArticleDTO>},
-        TContext
-      > => {
+export const useCreateArticle = <TError = ErrorType<ArticleDTO>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createArticle>>,
+      TError,
+      { data: BodyType<ArticleDTO> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof createArticle>>,
+  TError,
+  { data: BodyType<ArticleDTO> },
+  TContext
+> => {
+  const mutationOptions = getCreateArticleMutationOptions(options)
 
-      const mutationOptions = getCreateArticleMutationOptions(options);
-
-      return useMutation(mutationOptions , queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient)
+}

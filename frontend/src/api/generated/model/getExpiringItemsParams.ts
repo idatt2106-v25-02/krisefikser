@@ -7,5 +7,5 @@
  */
 
 export type GetExpiringItemsParams = {
-before: string;
-};
+  before: string
+}

@@ -9,12 +9,12 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/components/ui/select'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
 
 interface ProductUnit {
   value: string
@@ -29,6 +29,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (e: 'addItem', item: any): void
 }>()
 
@@ -39,29 +40,27 @@ const unitsByCategory = {
     { value: 'stk', label: 'stk' },
     { value: 'pakke', label: 'pakke' },
     { value: 'boks', label: 'boks' },
-    { value: 'liter', label: 'liter' }
+    { value: 'liter', label: 'liter' },
   ],
   water: [
     { value: 'L', label: 'L' },
-    { value: 'flaske', label: 'flaske' }
+    { value: 'flaske', label: 'flaske' },
   ],
   health: [
     { value: 'stk', label: 'stk' },
     { value: 'pakke', label: 'pakke' },
-    { value: 'rull', label: 'rull' }
+    { value: 'rull', label: 'rull' },
   ],
   power: [
     { value: 'stk', label: 'stk' },
-    { value: 'pakke', label: 'pakke' }
+    { value: 'pakke', label: 'pakke' },
   ],
-  comm: [
-    { value: 'stk', label: 'stk' },
-  ],
+  comm: [{ value: 'stk', label: 'stk' }],
   misc: [
     { value: 'stk', label: 'stk' },
     { value: 'eske', label: 'eske' },
-    { value: 'kr', label: 'kr' }
-  ]
+    { value: 'kr', label: 'kr' },
+  ],
 }
 
 // Get available units for current category
@@ -73,13 +72,15 @@ const availableUnits = computed<ProductUnit[]>(() => {
 })
 
 // Form validation schema
-const schema = toTypedSchema(z.object({
-  name: z.string().min(1, 'Navn er påkrevd'),
-  amount: z.number().min(0.1, 'Må være større enn 0'),
-  unit: z.string().min(1, 'Enhet er påkrevd'),
-  hasExpiryDate: z.boolean().default(true),
-  expiryDate: z.string().optional()
-}))
+const schema = toTypedSchema(
+  z.object({
+    name: z.string().min(1, 'Navn er påkrevd'),
+    amount: z.number().min(0.1, 'Må være større enn 0'),
+    unit: z.string().min(1, 'Enhet er påkrevd'),
+    hasExpiryDate: z.boolean().default(true),
+    expiryDate: z.string().optional(),
+  }),
+)
 
 // Form handling
 const { handleSubmit } = useForm({
@@ -89,19 +90,19 @@ const { handleSubmit } = useForm({
     amount: 1,
     unit: availableUnits.value[0]?.value || 'stk',
     hasExpiryDate: true,
-    expiryDate: new Date().toISOString().split('T')[0]
-  }
+    expiryDate: new Date().toISOString().split('T')[0],
+  },
 })
 
 const hasExpiryDate = ref(true)
 
-const onSubmit = handleSubmit((values) => {
+handleSubmit((values) => {
   const newItem = {
     id: crypto.randomUUID(),
     name: values.name,
     amount: values.amount,
     unit: values.unit,
-    expiryDate: values.hasExpiryDate ? values.expiryDate : null
+    expiryDate: values.hasExpiryDate ? values.expiryDate : null,
   }
 
   emit('addItem', newItem)
@@ -114,7 +115,11 @@ function closeDialog() {
 </script>
 
 <template>
-  <div v-if="isOpen" class="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4" @click.self="closeDialog">
+  <div
+    v-if="isOpen"
+    class="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4"
+    @click.self="closeDialog"
+  >
     <Card class="w-full max-w-md">
       <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle class="text-xl font-semibold">Legg til vare</CardTitle>
@@ -124,74 +129,70 @@ function closeDialog() {
       </CardHeader>
 
       <CardContent>
- <!-- <Form @submit.prevent="onSubmit" class="space-y-4 pt-4">    -->
-  <FormField name="name">
+        <!-- <Form @submit.prevent="onSubmit" class="space-y-4 pt-4">    -->
+        <FormField name="name">
+          <FormItem>
+            <FormLabel class="text-gray-700">Navn</FormLabel>
+            <FormControl>
+              <Input placeholder="Tørrvare" />
+            </FormControl>
+          </FormItem>
+        </FormField>
+
+        <!-- Amount and Unit fields -->
+        <div class="flex gap-4">
+          <FormField name="amount" class="flex-1">
             <FormItem>
-              <FormLabel class="text-gray-700">Navn</FormLabel>
+              <FormLabel class="text-gray-700">Mengde</FormLabel>
               <FormControl>
-                <Input placeholder="Tørrvare" />
+                <Input type="number" min="0.1" step="0.1" />
               </FormControl>
             </FormItem>
           </FormField>
 
-          <!-- Amount and Unit fields -->
-          <div class="flex gap-4">
-            <FormField name="amount" class="flex-1">
-              <FormItem>
-                <FormLabel class="text-gray-700">Mengde</FormLabel>
+          <FormField name="unit" class="flex-1">
+            <FormItem>
+              <FormLabel class="text-gray-700">Enhet</FormLabel>
+              <Select>
                 <FormControl>
-                  <Input type="number" min="0.1" step="0.1" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Velg enhet" />
+                  </SelectTrigger>
                 </FormControl>
-              </FormItem>
-            </FormField>
-
-            <FormField name="unit" class="flex-1">
-              <FormItem>
-                <FormLabel class="text-gray-700">Enhet</FormLabel>
-                <Select>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Velg enhet" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="unit in availableUnits"
-                      :key="unit.value"
-                      :value="unit.value"
-                    >
-                      {{ unit.label }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            </FormField>
-          </div>
-
-          <!-- Expiry date field -->
-          <FormField name="hasExpiryDate">
-            <FormItem class="flex flex-row items-start space-x-3 space-y-0 mb-1">
-              <FormControl>
-                <Checkbox v-model:checked="hasExpiryDate" />
-              </FormControl>
-              <FormLabel class="text-gray-700">Dato</FormLabel>
+                <SelectContent>
+                  <SelectItem v-for="unit in availableUnits" :key="unit.value" :value="unit.value">
+                    {{ unit.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </FormItem>
           </FormField>
+        </div>
 
-          <FormField v-if="hasExpiryDate" name="expiryDate">
-            <FormItem>
-              <FormControl>
-                <Input type="date" />
-              </FormControl>
-            </FormItem>
-          </FormField>
+        <!-- Expiry date field -->
+        <FormField name="hasExpiryDate">
+          <FormItem class="flex flex-row items-start space-x-3 space-y-0 mb-1">
+            <FormControl>
+              <Checkbox v-model:checked="hasExpiryDate" />
+            </FormControl>
+            <FormLabel class="text-gray-700">Dato</FormLabel>
+          </FormItem>
+        </FormField>
 
-          <CardFooter class="px-0 pt-4">
-            <Button type="submit" class="w-full bg-blue-600 hover:bg-blue-700">
-              <Plus class="mr-2 h-4 w-4" /> Legg til
-            </Button>
-          </CardFooter>
-       <!-- </Form> -->
+        <FormField v-if="hasExpiryDate" name="expiryDate">
+          <FormItem>
+            <FormControl>
+              <Input type="date" />
+            </FormControl>
+          </FormItem>
+        </FormField>
+
+        <CardFooter class="px-0 pt-4">
+          <Button type="submit" class="w-full bg-blue-600 hover:bg-blue-700">
+            <Plus class="mr-2 h-4 w-4" /> Legg til
+          </Button>
+        </CardFooter>
+        <!-- </Form> -->
       </CardContent>
     </Card>
   </div>

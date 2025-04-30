@@ -6,12 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export type EventLevel = typeof EventLevel[keyof typeof EventLevel];
+export type EventLevel = (typeof EventLevel)[keyof typeof EventLevel]
 
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const EventLevel = {
   GREEN: 'GREEN',
   YELLOW: 'YELLOW',
   RED: 'RED',
-} as const;
+} as const

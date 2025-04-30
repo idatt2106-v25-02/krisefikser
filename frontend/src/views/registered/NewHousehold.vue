@@ -5,7 +5,7 @@ import { useCreateHousehold } from '@/api/generated/household/household'
 import type { CreateHouseholdRequest, HouseholdResponse } from '@/api/generated/model'
 
 // Props
-const props = defineProps({
+defineProps({
   colorTheme: {
     type: String,
     default: 'blue',
@@ -17,15 +17,20 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'cancel'])
 
 // Mutation
-const { mutate: createHousehold, isPending, isError, error } = useCreateHousehold({
+const {
+  mutate: createHousehold,
+  isPending,
+  isError,
+  error,
+} = useCreateHousehold({
   mutation: {
     onSuccess: (data: HouseholdResponse) => {
       emit('submit', data)
     },
     onError: (error: Error) => {
       console.error('Failed to create household:', error)
-    }
-  }
+    },
+  },
 })
 
 // Form handling
