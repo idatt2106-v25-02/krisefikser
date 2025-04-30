@@ -1,20 +1,18 @@
 package stud.ntnu.krisefikser.auth.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import stud.ntnu.krisefikser.decorators.ValidEmail;
+import stud.ntnu.krisefikser.decorators.ValidPassword;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
 
-  @NotBlank(message = "Email is required")
-  @Email(message = "Must be a valid email")
+  @ValidEmail
   private String email;
-  @NotBlank(message = "Password is required")
+  @ValidPassword
   private String password;
   @NotBlank(message = "First name is required")
   private String firstName;
