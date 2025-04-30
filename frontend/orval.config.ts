@@ -1,4 +1,9 @@
 import { defineConfig } from 'orval'
+import { loadEnv } from 'vite'
+
+
+const env = loadEnv("production", process.cwd())
+
 
 export default defineConfig({
   krisefikser: {
@@ -9,8 +14,8 @@ export default defineConfig({
       schemas: './src/api/generated/model',
       mock: false,
       prettier: true,
-      clean: false,
-      baseUrl: 'http://localhost:8080',
+      clean: true,
+      baseUrl: env.VITE_API_URL || 'http://localhost:8080',
       override: {
         mutator: {
           path: './src/api/axios.ts',
@@ -19,7 +24,7 @@ export default defineConfig({
       },
     },
     input: {
-      target: 'http://localhost:8080/v3/api-docs',
+      target:  env.VITE_API_URL ? `${env.VITE_API_URL}/v3/api-docs` : 'http://localhost:8080/v3/api-docs',
     },
   },
 })

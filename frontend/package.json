@@ -13,9 +13,8 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "preinstall": "npx only-allow pnpm",
-    "generate-api": "orval"
-  },
+    "preinstall": "npx only-allow pnpm"
+    },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.4",
     "@tanstack/vue-query": "^5.74.6",
@@ -46,13 +45,14 @@
     "@playwright/test": "^1.51.1",
     "@tsconfig/node22": "^22.0.1",
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.14.1",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vitest/eslint-plugin": "^1.1.39",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.5.0",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
+    "dotenv": "^16.5.0",
     "eslint": "^9.22.0",
     "eslint-plugin-playwright": "^2.2.0",
     "eslint-plugin-vue": "~10.0.0",

@@ -2,8 +2,6 @@ import axios from 'axios'
 
 // Create a custom Axios instance
 export const AXIOS_INSTANCE = axios.create({
-  // Use a direct string for the baseURL if import.meta is not available
-  baseURL: 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json',
   },

@@ -15,6 +15,13 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
+# Clean generated directory
+RUN rm -rf src/api/generated/*
+
+# Generate API client
+ARG VITE_API_URL
+RUN pnpm orval
+
 # Build the application (ignoring type errors)
 ENV NODE_ENV=production
 RUN pnpm build-only

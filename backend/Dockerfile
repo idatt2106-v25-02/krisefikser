@@ -5,7 +5,7 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
-COPY .env .
+# Create empty .env if it doesn't exist
 # Download all required dependencies into one layer
 RUN mvn dependency:go-offline -B
 COPY src ./src
@@ -15,7 +15,9 @@ RUN mvn clean package -DskipTests -Dmaven.test.skip=true -Dmaven.compiler.fork=t
 # Production stage
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY .env .
+
+RUN touch .env
+
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
