@@ -7,6 +7,8 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import lombok.RequiredArgsConstructor;
+import stud.ntnu.krisefikser.config.FrontendConfig;
 
 import java.util.List;
 
@@ -18,7 +20,10 @@ import java.util.List;
  * @since 1.0
  */
 @Configuration
+@RequiredArgsConstructor
 public class OpenApiConfig {
+
+        private final FrontendConfig frontendConfig;
 
         /**
          * Configures the OpenAPI documentation for the application.
@@ -29,28 +34,21 @@ public class OpenApiConfig {
          * @since 1.0
          */
         @Bean
-        public OpenAPI myOpenAPI() {
-                Server devServer = new Server()
-                                .url("http://localhost:8080")
-                                .description("Development server");
-
-                Contact contact = new Contact()
-                                .name("Krisefikser Team")
-                                .email("embret.roas@outlook.com");
-
-                License mitLicense = new License()
-                                .name("MIT License")
-                                .url("https://choosealicense.com/licenses/mit/");
-
-                Info info = new Info()
-                                .title("Krisefikser API")
-                                .version("1.0")
-                                .contact(contact)
-                                .description("This API exposes endpoints for the Krisefikser application.")
-                                .license(mitLicense);
-
+        public OpenAPI openAPI() {
                 return new OpenAPI()
-                                .info(info)
-                                .servers(List.of(devServer));
+                                .info(new Info()
+                                                .title("Krisefikser API")
+                                                .description("API for the Krisefikser application")
+                                                .version("1.0")
+                                                .contact(new Contact()
+                                                                .name("Krisefikser Team")
+                                                                .email("krisefikser@example.com"))
+                                                .license(new License()
+                                                                .name("MIT License")
+                                                                .url("https://opensource.org/licenses/MIT")))
+                                .servers(List.of(
+                                                new Server()
+                                                                .url(frontendConfig.getUrl())
+                                                                .description("Development server")));
         }
 }
