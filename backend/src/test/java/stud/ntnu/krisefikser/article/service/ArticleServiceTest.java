@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import stud.ntnu.krisefikser.article.dto.ArticleRequest;
 import stud.ntnu.krisefikser.article.dto.ArticleResponse;
 import stud.ntnu.krisefikser.article.entity.Article;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
@@ -30,6 +31,7 @@ class ArticleServiceTest {
   private ArticleService articleService;
 
   private Article article;
+  private ArticleRequest articleRequest;
   private ArticleResponse articleResponse;
   private final LocalDateTime now = LocalDateTime.now();
 
@@ -40,6 +42,12 @@ class ArticleServiceTest {
         .title("Test Article")
         .text("Test Content")
         .createdAt(now)
+        .imageUrl("http://example.com/image.jpg")
+        .build();
+
+    articleRequest = ArticleRequest.builder().
+        title("Test Article")
+        .text("Test Content")
         .imageUrl("http://example.com/image.jpg")
         .build();
 
@@ -87,7 +95,7 @@ class ArticleServiceTest {
   void createArticle_ShouldReturnCreatedArticle() {
     when(articleRepository.save(any(Article.class))).thenReturn(article);
 
-    ArticleResponse result = articleService.createArticle(articleResponse);
+    ArticleResponse result = articleService.createArticle(articleRequest);
 
     assertThat(result.getTitle()).isEqualTo(articleResponse.getTitle());
     assertThat(result.getText()).isEqualTo(articleResponse.getText());
@@ -99,7 +107,7 @@ class ArticleServiceTest {
     when(articleRepository.findById(1L)).thenReturn(Optional.of(article));
     when(articleRepository.save(any(Article.class))).thenReturn(article);
 
-    ArticleResponse updatedDTO = ArticleResponse.builder()
+    ArticleRequest updatedDTO = ArticleRequest.builder()
         .title("Updated Title")
         .text("Updated Content")
         .imageUrl("http://example.com/updated.jpg")
@@ -116,7 +124,7 @@ class ArticleServiceTest {
   void updateArticle_WhenArticleDoesNotExist_ShouldThrowException() {
     when(articleRepository.findById(1L)).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> articleService.updateArticle(1L, articleResponse))
+    assertThatThrownBy(() -> articleService.updateArticle(1L, articleRequest))
         .isInstanceOf(ArticleNotFoundException.class)
         .hasMessageContaining("Article not found with id: 1");
   }
