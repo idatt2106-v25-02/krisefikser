@@ -63,7 +63,10 @@ const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
   try {
     const { confirmPassword, acceptedPrivacyPolicy, ...registrationData } = values
-    await authStore.register(registrationData)
+    await authStore.register({
+      ...registrationData,
+      turnstileToken: captchaToken.value
+    })
     toast({
       title: 'Suksess',
       description: 'Kontoen din er opprettet og du er nå logget inn',
