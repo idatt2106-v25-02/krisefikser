@@ -16,6 +16,8 @@ RUN mvn clean package -DskipTests -Dmaven.test.skip=true -Dmaven.compiler.fork=t
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
+RUN touch .env
+
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
