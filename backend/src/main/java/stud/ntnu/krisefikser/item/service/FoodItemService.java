@@ -38,4 +38,5 @@ public class FoodItemService {
 
         return foodItemRepository.findByHousehold(activeHousehold).stream().map(FoodItem::toResponse).toList();
     }
+
 }
