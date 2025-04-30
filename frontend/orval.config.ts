@@ -1,12 +1,9 @@
 import { defineConfig } from 'orval'
-import { config } from 'dotenv'
+import { loadEnv } from 'vite'
 
-// Only load .env file in development
-if (process.env.NODE_ENV !== 'production') {
-  config()
-}
 
-const openApiUrl = process.env.VITE_API_URL ? `${process.env.VITE_API_URL}/v3/api-docs` : 'http://localhost:8080/v3/api-docs'
+const env = loadEnv("production", process.cwd())
+
 
 export default defineConfig({
   krisefikser: {
@@ -18,7 +15,7 @@ export default defineConfig({
       mock: false,
       prettier: true,
       clean: false,
-      baseUrl: process.env.VITE_API_URL || 'http://localhost:8080',
+      baseUrl: env.VITE_API_URL || 'http://localhost:8080',
       override: {
         mutator: {
           path: './src/api/axios.ts',
@@ -27,7 +24,7 @@ export default defineConfig({
       },
     },
     input: {
-      target: openApiUrl,
+      target:  env.VITE_API_URL ? `${env.VITE_API_URL}/v3/api-docs` : 'http://localhost:8080/v3/api-docs',
     },
   },
 })
