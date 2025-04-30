@@ -2,7 +2,6 @@ import axios from 'axios'
 
 // Create a custom Axios instance
 export const AXIOS_INSTANCE = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
