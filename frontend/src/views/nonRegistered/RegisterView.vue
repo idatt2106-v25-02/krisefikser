@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
+import PrivacyPolicyView from './PrivacyPolicyView.vue'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 // Schema for the registration form
 const rawSchema = z
@@ -33,6 +35,9 @@ const rawSchema = z
       .regex(/[0-9]/, 'Må inneholde minst ett tall')
       .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
     confirmPassword: z.string(),
+    acceptedPrivacyPolicy: z.literal(true, {
+      errorMap: () => ({ message: 'Du må godta personvernerklæringen' }),
+    }),
     //turnstileToken: z.string().min(1, 'Vennligst fullfør CAPTCHA-verifiseringen')
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -57,7 +62,7 @@ const onSubmit = handleSubmit(async (values) => {
 
   isLoading.value = true
   try {
-    const { confirmPassword, ...registrationData } = values
+    const { confirmPassword, acceptedPrivacyPolicy, ...registrationData } = values
     await authStore.register(registrationData)
     toast({
       title: 'Suksess',
@@ -75,6 +80,9 @@ const onSubmit = handleSubmit(async (values) => {
     isLoading.value = false
   }
 })
+
+// Dialog state
+const isPrivacyPolicyOpen = ref(false)
 </script>
 
 <template>
@@ -171,6 +179,33 @@ const onSubmit = handleSubmit(async (values) => {
           :showIcon="true"
         />
       </FormField>
+      <!-- Accept Privacy Policy -->
+      <FormField v-slot="{ value, handleChange }" name="acceptedPrivacyPolicy" type="checkbox">
+        <FormItem>
+          <div class="flex items-start space-x-2">
+            <FormControl>
+              <input
+                type="checkbox"
+                :checked="value"
+                @change="handleChange(($event.target as HTMLInputElement)?.checked ?? false)"
+                id="acceptedPrivacyPolicy"
+                class="mt-1"
+              />
+            </FormControl>
+            <label for="acceptedPrivacyPolicy" class="text-sm text-gray-700">
+              Jeg godtar
+              <button
+                type="button"
+                @click="isPrivacyPolicyOpen = true"
+                class="text-blue-600 hover:underline"
+              >
+                personvernerklæringen
+              </button>
+            </label>
+          </div>
+          <FormMessage class="text-sm text-red-500" />
+        </FormItem>
+      </FormField>
 
       <!-- Cloudflare Turnstile -->
       <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
@@ -194,6 +229,13 @@ const onSubmit = handleSubmit(async (values) => {
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
       </FormField> -->
+
+      <!-- Privacy Policy Dialog -->
+      <Dialog :open="isPrivacyPolicyOpen" @update:open="isPrivacyPolicyOpen = $event">
+        <DialogContent class="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <PrivacyPolicyView />
+        </DialogContent>
+      </Dialog>
 
       <!-- Submit button -->
       <Button
