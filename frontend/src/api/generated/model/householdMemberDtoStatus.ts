@@ -9,7 +9,6 @@
 export type HouseholdMemberDtoStatus =
   (typeof HouseholdMemberDtoStatus)[keyof typeof HouseholdMemberDtoStatus]
 
- 
 export const HouseholdMemberDtoStatus = {
   INVITED: 'INVITED',
   ACCEPTED: 'ACCEPTED',
