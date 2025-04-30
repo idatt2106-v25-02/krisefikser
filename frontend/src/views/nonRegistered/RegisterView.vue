@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import PrivacyPolicyView from './PrivacyPolicyView.vue'
 
 // Schema for the registration form
 const rawSchema = z
@@ -90,6 +92,9 @@ const showConfirmPassword = ref(false)
 function toggleShowConfirmPassword() {
   showConfirmPassword.value = !showConfirmPassword.value
 }
+
+// Dialog state
+const isPrivacyPolicyOpen = ref(false)
 </script>
 
 <template>
@@ -203,6 +208,22 @@ function toggleShowConfirmPassword() {
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
       </FormField> -->
+
+      <!-- Privacy Policy Dialog -->
+      <Dialog v-model:open="isPrivacyPolicyOpen">
+        <DialogTrigger asChild>
+          <div class="text-sm text-center">
+            <span class="text-gray-600">Ved å registrere deg godtar du vår</span>
+            <button type="button" class="ml-1 text-blue-600 hover:underline">personvernerklæring</button>
+          </div>
+        </DialogTrigger>
+        <DialogContent class="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Personvernerklæring</DialogTitle>
+          </DialogHeader>
+          <PrivacyPolicyView />
+        </DialogContent>
+      </Dialog>
 
       <!-- Submit button -->
       <Button
