@@ -1,14 +1,26 @@
 package stud.ntnu.krisefikser.config;
 
 import com.github.javafaker.Faker;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import stud.ntnu.krisefikser.article.entity.Article;
 import stud.ntnu.krisefikser.article.repository.ArticleRepository;
+import stud.ntnu.krisefikser.auth.entity.Role;
+import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
+import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.entity.Household;
-import stud.ntnu.krisefikser.household.entity.HouseholdItem;
 import stud.ntnu.krisefikser.household.entity.ProductType;
 import stud.ntnu.krisefikser.household.repository.HouseholdItemRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
@@ -23,44 +35,25 @@ import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
-import stud.ntnu.krisefikser.auth.entity.Role;
-import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
-import stud.ntnu.krisefikser.auth.repository.RoleRepository;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.PrecisionModel;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepo;
-    private final HouseholdRepository householdRepo;
+    private final HouseholdRepository householdRepository;
     private final ArticleRepository articleRepository;
     private final MapPointTypeRepository mapPointTypeRepository;
     private final MapPointRepository mapPointRepository;
     private final EventRepository eventRepository;
     private final RoleRepository roleRepository;
     private final ProductTypeRepository productTypeRepository;
-    private final HouseholdItemRepository householdItemRepository;
 
     @Autowired(required = false)
     private PasswordEncoder passwordEncoder;
 
     private final Faker faker = new Faker();
     private final Random random = new Random();
-    private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override
     public void run(String... args) throws Exception {
@@ -72,7 +65,7 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("Database cleaned and re-seeded successfully!");
         }
         // Seed data only if repositories are empty and not reseed mode
-        else if (userRepo.count() == 0 && householdRepo.count() == 0
+        else if (userRepo.count() == 0 && householdRepository.count() == 0
                 && articleRepository.count() == 0 && mapPointTypeRepository.count() == 0
                 && eventRepository.count() == 0 && roleRepository.count() == 0) {
             seedDatabase();
@@ -90,7 +83,7 @@ public class DataSeeder implements CommandLineRunner {
         mapPointTypeRepository.deleteAll();
         eventRepository.deleteAll();
         articleRepository.deleteAll();
-        householdRepo.deleteAll();
+        householdRepository.deleteAll();
         userRepo.deleteAll();
         roleRepository.deleteAll();
 
@@ -168,26 +161,26 @@ public class DataSeeder implements CommandLineRunner {
 
         // Common crisis storage items
         String[][] items = {
-                { "Water", "liters" },
-                { "Canned Food", "cans" },
-                { "First Aid Kit", "kits" },
-                { "Batteries", "packs" },
-                { "Flashlight", "pieces" },
-                { "Blankets", "pieces" },
-                { "Gasoline", "liters" },
-                { "Propane", "tanks" },
-                { "Matches", "boxes" },
-                { "Candles", "pieces" },
-                { "Portable Radio", "pieces" },
-                { "Emergency Whistle", "pieces" },
-                { "Duct Tape", "rolls" },
-                { "Rope", "meters" },
-                { "Water Purification Tablets", "tablets" },
-                { "Emergency Blanket", "pieces" },
-                { "Multi-tool", "pieces" },
-                { "Hand Sanitizer", "liters" },
-                { "Face Masks", "pieces" },
-                { "Emergency Food Rations", "days" }
+                {"Water", "liters"},
+                {"Canned Food", "cans"},
+                {"First Aid Kit", "kits"},
+                {"Batteries", "packs"},
+                {"Flashlight", "pieces"},
+                {"Blankets", "pieces"},
+                {"Gasoline", "liters"},
+                {"Propane", "tanks"},
+                {"Matches", "boxes"},
+                {"Candles", "pieces"},
+                {"Portable Radio", "pieces"},
+                {"Emergency Whistle", "pieces"},
+                {"Duct Tape", "rolls"},
+                {"Rope", "meters"},
+                {"Water Purification Tablets", "tablets"},
+                {"Emergency Blanket", "pieces"},
+                {"Multi-tool", "pieces"},
+                {"Hand Sanitizer", "liters"},
+                {"Face Masks", "pieces"},
+                {"Emergency Food Rations", "days"}
         };
 
         for (String[] item : items) {
@@ -238,7 +231,7 @@ public class DataSeeder implements CommandLineRunner {
             households.add(household);
         }
 
-        householdRepo.saveAll(households);
+        householdRepository.saveAll(households);
         System.out.println("Seeded " + households.size() + " households");
     }
 
@@ -377,11 +370,11 @@ public class DataSeeder implements CommandLineRunner {
 
         // Event levels and their distribution probability
         EventLevel[] levels = EventLevel.values();
-        int[] levelWeights = { 60, 30, 10 }; // 60% GREEN, 30% YELLOW, 10% RED
+        int[] levelWeights = {60, 30, 10}; // 60% GREEN, 30% YELLOW, 10% RED
 
         // Event statuses and their distribution probability
         EventStatus[] statuses = EventStatus.values();
-        int[] statusWeights = { 30, 50, 20 }; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
+        int[] statusWeights = {30, 50, 20}; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
 
         // Create 15 events
         LocalDateTime now = LocalDateTime.now();
@@ -459,8 +452,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     /**
-     * Helper method to get a random item from an array based on weighted
-     * probabilities
+     * Helper method to get a random item from an array based on weighted probabilities
      *
      * @param items   Array of items to choose from
      * @param weights Array of weights corresponding to the items
