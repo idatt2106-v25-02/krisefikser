@@ -251,24 +251,6 @@ const isPrivacyPolicyOpen = ref(false)
         </FormItem>
       </FormField> -->
 
-      <!-- Privacy Policy Dialog -->
-      <Dialog v-model:open="isPrivacyPolicyOpen">
-        <DialogTrigger asChild>
-          <div class="text-sm text-center">
-            <span class="text-gray-600">Ved å registrere deg godtar du vår</span>
-            <button type="button" class="ml-1 text-blue-600 hover:underline">
-              personvernerklæring
-            </button>
-          </div>
-        </DialogTrigger>
-        <DialogContent class="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Personvernerklæring</DialogTitle>
-          </DialogHeader>
-          <PrivacyPolicyView />
-        </DialogContent>
-      </Dialog>
-
       <!-- Submit button -->
       <Button
         type="submit"
