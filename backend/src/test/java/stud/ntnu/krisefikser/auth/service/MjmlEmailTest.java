@@ -26,36 +26,6 @@ import java.util.Properties;
 public class MjmlEmailTest {
 
     private final String targetEmail = "janjaboy14@gmail.com";
-    private final Dotenv dotenv;
-
-    public MjmlEmailTest() {
-        // Finn path til backend-mappen
-        Path currentPath = Paths.get("").toAbsolutePath();
-        String backendPath = currentPath.toString();
-
-        // Hvis vi er i prosjektets rotmappe, legg til "backend"
-        // Juster "Smidig oppgave" hvis prosjektmappen heter noe annet
-        if (backendPath.endsWith("Smidig oppgave")) {
-            backendPath = Paths.get(backendPath, "backend").toString();
-        } else if (!backendPath.endsWith("backend")) {
-            // Anta at vi er i en undermappe av backend, gå opp et nivå
-            Path parentPath = currentPath.getParent();
-            if (parentPath != null && parentPath.toString().endsWith("Smidig oppgave")) {
-                backendPath = Paths.get(parentPath.toString(), "backend").toString();
-            }
-            // Hvis vi fortsatt ikke finner den, logg en advarsel
-            else {
-                System.err.println("ADVARSEL: Kunne ikke bestemme backend-mappen sikkert. Prøver standard.");
-            }
-        }
-
-
-        // Konfigurer dotenv til å lete i backend-mappen
-        dotenv = Dotenv.configure()
-            .directory(backendPath)
-            .ignoreIfMissing() // Ikke kast feil hvis .env mangler
-            .load();
-    }
 
     /**
      * Denne testen kan kjøres direkte for å sende en e-post med MJML-formattering
@@ -104,44 +74,95 @@ public class MjmlEmailTest {
 
     private JavaMailSenderImpl configureMailSender(Properties properties) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(properties.getProperty("spring.mail.host"));
-        mailSender.setPort(Integer.parseInt(properties.getProperty("spring.mail.port")));
-        mailSender.setUsername(properties.getProperty("spring.mail.username"));
 
-        // Hent API token fra .env fil, deretter miljøvariabel, til slutt properties
-        String mailtrapToken = dotenv.get("MAILTRAP_API_TOKEN");
-        if (mailtrapToken == null || mailtrapToken.isEmpty()) {
-            mailtrapToken = System.getenv("MAILTRAP_API_TOKEN");
-            if (mailtrapToken == null || mailtrapToken.isEmpty()) {
-                String passwordProperty = properties.getProperty("spring.mail.password");
-                if (passwordProperty != null && passwordProperty.contains("${MAILTRAP_API_TOKEN:")) {
-                    mailtrapToken = passwordProperty.replace("${MAILTRAP_API_TOKEN:", "").replace("}", "");
-                } else {
-                    mailtrapToken = passwordProperty; // Bruk verdien direkte hvis den ikke er en placeholder
+        // Initialize Dotenv here to ensure it's loaded
+        Dotenv dotenv = null;
+        try {
+            Path currentPath = Paths.get("").toAbsolutePath();
+            String backendPath = currentPath.toString();
+
+            if (backendPath.endsWith("Smidig 3.0")) { // Adjust if your root folder name is different
+                backendPath = Paths.get(backendPath, "backend").toString();
+            } else if (!backendPath.endsWith("backend")) {
+                Path parentPath = currentPath.getParent();
+                // Check if parent is the project root (adjust folder name if needed)
+                if (parentPath != null && parentPath.getFileName().toString().equals("Smidig 3.0")) {
+                    backendPath = Paths.get(parentPath.toString(), "backend").toString();
                 }
-                if (mailtrapToken == null || mailtrapToken.isEmpty() || mailtrapToken.equals("api_token_here")) {
-                    System.out.println("ADVARSEL: MAILTRAP_API_TOKEN er ikke satt i .env, miljøvariabler eller properties. Bruker placeholder.");
-                    mailtrapToken = "placeholder_token"; // Dette vil ikke fungere
-                } else {
-                    System.out.println("Bruker API token fra application-test.properties");
-                }
-            } else {
-                System.out.println("Bruker API token fra miljøvariabel");
+                 // Add more robust checks if needed, e.g., searching upwards
+                 else {
+                     System.err.println("ADVARSEL: Kunne ikke bestemme backend-mappen sikkert. Leter i current dir.");
+                     backendPath = currentPath.toString(); // Fallback to current dir
+                 }
             }
-        } else {
-            System.out.println("Bruker API token fra .env fil");
-        }
-        mailSender.setPassword(mailtrapToken);
 
-        // Konfigurer mail properties
+            System.out.println("Attempting to load .env from directory: " + backendPath);
+            dotenv = Dotenv.configure()
+                .directory(backendPath)
+                .ignoreIfMissing() // Important: won't fail if .env is missing
+                .load();
+
+            if (dotenv == null || dotenv.entries().isEmpty()) {
+                 System.err.println("WARNING: Dotenv loaded but found no entries or failed to load.");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error initializing Dotenv: " + e.getMessage());
+            // Proceed without dotenv if initialization fails
+        }
+
+        // Use properties file for base configuration
+        mailSender.setHost(properties.getProperty("spring.mail.host", "live.smtp.mailtrap.io"));
+        mailSender.setPort(Integer.parseInt(properties.getProperty("spring.mail.port", "587")));
+        mailSender.setUsername(properties.getProperty("spring.mail.username", "api"));
+
+        // Determine API Token/Password priority: Env Var -> .env file -> Properties file
+        String apiToken = System.getenv("MAILTRAP_API_TOKEN");
+        String tokenSource = "environment variable";
+
+        if ((apiToken == null || apiToken.isEmpty()) && dotenv != null) {
+            apiToken = dotenv.get("MAILTRAP_API_TOKEN");
+            tokenSource = ".env file";
+            if (apiToken == null || apiToken.isEmpty()) { // If dotenv didn't have it either
+                tokenSource = ".env file (but token not found)";
+            }
+        }
+
+        // Only check properties file if token still not found
+        if (apiToken == null || apiToken.isEmpty()) {
+            String passwordProp = properties.getProperty("spring.mail.password");
+            if (passwordProp != null && !passwordProp.startsWith("${MAILTRAP_API_TOKEN:")) {
+                apiToken = passwordProp;
+                tokenSource = "properties file (spring.mail.password)";
+            }
+        }
+
+        if (apiToken == null || apiToken.isEmpty()) {
+            System.err.println("ERROR: MAILTRAP_API_TOKEN not found in environment variables, .env file, or application-test.properties.");
+            System.err.println("Please ensure the token is set in one of these locations.");
+            tokenSource = "Not found";
+        } else {
+            System.out.println("Using MAILTRAP_API_TOKEN from: " + tokenSource);
+        }
+
+        mailSender.setPassword(apiToken);
+
+        // Log configuration
+        System.out.println("Using Mail Configuration:");
+        System.out.println("Host: " + mailSender.getHost());
+        System.out.println("Port: " + mailSender.getPort());
+        System.out.println("Username: " + mailSender.getUsername());
+        System.out.println("Password specified: " + (mailSender.getPassword() != null && !mailSender.getPassword().isEmpty()));
+
+        // Configure mail properties from properties file
         Properties mailProperties = new Properties();
         mailProperties.put("mail.transport.protocol", "smtp");
-        mailProperties.put("mail.smtp.auth", properties.getProperty("spring.mail.properties.mail.smtp.auth"));
-        mailProperties.put("mail.smtp.starttls.enable", properties.getProperty("spring.mail.properties.mail.smtp.starttls.enable"));
-        mailProperties.put("mail.smtp.connectiontimeout", properties.getProperty("spring.mail.properties.mail.smtp.connectiontimeout"));
-        mailProperties.put("mail.smtp.timeout", properties.getProperty("spring.mail.properties.mail.smtp.timeout"));
-        mailProperties.put("mail.smtp.writetimeout", properties.getProperty("spring.mail.properties.mail.smtp.writetimeout"));
-        mailProperties.put("mail.debug", "true"); // Sett til false for mindre output
+        mailProperties.put("mail.smtp.auth", properties.getProperty("spring.mail.properties.mail.smtp.auth", "true"));
+        mailProperties.put("mail.smtp.starttls.enable", properties.getProperty("spring.mail.properties.mail.smtp.starttls.enable", "true"));
+        mailProperties.put("mail.smtp.connectiontimeout", properties.getProperty("spring.mail.properties.mail.smtp.connectiontimeout", "5000"));
+        mailProperties.put("mail.smtp.timeout", properties.getProperty("spring.mail.properties.mail.smtp.timeout", "5000"));
+        mailProperties.put("mail.smtp.writetimeout", properties.getProperty("spring.mail.properties.mail.smtp.writetimeout", "5000"));
+        mailProperties.put("mail.debug", "true");
         mailSender.setJavaMailProperties(mailProperties);
 
         return mailSender;
