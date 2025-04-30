@@ -22,7 +22,6 @@ import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.ProductType;
-import stud.ntnu.krisefikser.household.repository.HouseholdItemRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.household.repository.ProductTypeRepository;
 import stud.ntnu.krisefikser.map.entity.Event;
