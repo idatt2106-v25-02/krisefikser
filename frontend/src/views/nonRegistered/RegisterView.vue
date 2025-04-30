@@ -80,7 +80,6 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-
 // Dialog state
 const isPrivacyPolicyOpen = ref(false)
 </script>
