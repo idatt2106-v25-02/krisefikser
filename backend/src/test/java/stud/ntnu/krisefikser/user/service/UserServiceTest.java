@@ -101,11 +101,10 @@ class UserServiceTest {
     // Arrange
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(userRepository.existsByEmail(any())).thenReturn(false);
-    when(userRepository.save(any())).thenReturn(testUser);
+    when(userRepository.save(any(User.class))).thenReturn(testUser);
     when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
 
-    // Mock the service method to return the DTO
-    when(userService.updateUser(testUserId, testUserDto)).thenReturn(testUserDtoResponse);
+    // Remove the circular mock of the method under test
 
     // Act
     UserDto updatedUserDto = userService.updateUser(testUserId, testUserDto);
@@ -132,6 +131,8 @@ class UserServiceTest {
   void deleteUser_Success() {
     // Arrange
     when(userRepository.existsById(testUserId)).thenReturn(true);
+    // Add this mock to fix the test - service looks up user before deletion
+    when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
     // Act
     userService.deleteUser(testUserId);
@@ -154,16 +155,15 @@ class UserServiceTest {
   void getAllUsers_Success() {
     // Arrange
     List<User> users = Arrays.asList(testUser);
-    List<UserDto> expectedUserDtos = users.stream().map(User::toDto).toList();
     when(userRepository.findAll()).thenReturn(users);
-    when(userService.getAllUsers()).thenReturn(expectedUserDtos);
+    // Remove the circular mock of the method under test
 
     // Act
     List<UserDto> actualUsers = userService.getAllUsers();
 
     // Assert
-    assertEquals(expectedUserDtos.size(), actualUsers.size());
-    assertEquals(expectedUserDtos.get(0), actualUsers.get(0));
+    assertEquals(1, actualUsers.size());
+    assertEquals(testUser.getEmail(), actualUsers.get(0).getEmail());
     verify(userRepository).findAll();
   }
 

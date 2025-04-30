@@ -22,7 +22,7 @@ import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles("test") // Ensure test profile is active
 public class AuthenticationFlowIntegrationTest {
 
   @Autowired
@@ -35,7 +35,7 @@ public class AuthenticationFlowIntegrationTest {
   void completeAuthenticationFlow() throws Exception {
     // Step 1: Register a new user
     RegisterRequest registerRequest = new RegisterRequest(
-        "newuser@example.com",
+        "test-user-" + System.currentTimeMillis() + "@example.com", // Use unique email
         "password123",
         "New",
         "User"
@@ -63,7 +63,7 @@ public class AuthenticationFlowIntegrationTest {
     mockMvc.perform(get("/api/auth/me")
             .header("Authorization", "Bearer " + accessToken))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.email").value("newuser@example.com"))
+        .andExpect(jsonPath("$.email").value(registerRequest.getEmail()))
         .andExpect(jsonPath("$.firstName").value("New"))
         .andExpect(jsonPath("$.lastName").value("User"));
 
@@ -87,10 +87,10 @@ public class AuthenticationFlowIntegrationTest {
     mockMvc.perform(get("/api/auth/me")
             .header("Authorization", "Bearer " + newAccessToken))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.email").value("newuser@example.com"));
+        .andExpect(jsonPath("$.email").value(registerRequest.getEmail()));
 
     // Step 5: Login with the same credentials
-    LoginRequest loginRequest = new LoginRequest("newuser@example.com", "password123");
+    LoginRequest loginRequest = new LoginRequest(registerRequest.getEmail(), "password123");
     mockMvc.perform(post("/api/auth/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginRequest)))
