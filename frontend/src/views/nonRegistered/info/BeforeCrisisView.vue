@@ -189,18 +189,46 @@ export default {
         I en krisesituasjon er pålitelig informasjon avgjørende. Kjenn til disse kildene i forkant:
       </p>
       <ul class="list-disc list-inside text-gray-700 mb-4 space-y-1">
-        <li>NRK P1 er beredskapskanalen på radio (ha en batteridrevet radio)</li>
-        <li>Offisielle nettsider: DSB.no, Helsedirektoratet.no, Politiet.no</li>
-        <li>Kommunens nettsider og sosiale mediekanaler</li>
-        <li>Nødnumre: 110 (brann), 112 (politi), 113 (ambulanse), 116 117 (legevakt)</li>
-        <li>Last ned appen "Hjelp 113" for å kunne dele nøyaktig posisjon med nødetatene</li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span><strong>NRK P1</strong> er beredskapskanalen på radio (ha en batteridrevet radio) -
+        <a href="https://radio.nrk.no/direkte/p1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Lytt direkte</a>
+      </span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Offisielle nettsider:
+        <a href="https://www.dsb.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">DSB.no</a>,
+        <a href="https://www.helsedirektoratet.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Helsedirektoratet.no</a>,
+        <a href="https://www.politiet.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Politiet.no</a>
+      </span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Kommunens nettsider og sosiale mediekanaler - Søk opp din kommune</span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Nødnumre: <strong class="text-red-600">110</strong> (brann), <strong class="text-red-600">112</strong> (politi), <strong class="text-red-600">113</strong> (ambulanse), <strong class="text-blue-600">116 117</strong> (legevakt)</span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Last ned appen "Hjelp 113" for å kunne dele nøyaktig posisjon med nødetatene -
+        <a href="https://www.hjelp113.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Hjelp113.no</a>
+      </span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Kriseinfo samler viktig informasjon under kriser -
+        <a href="https://www.kriseinfo.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Kriseinfo.no</a>
+      </span>
+        </li>
       </ul>
       <AlertBox type="warning" :iconComponent="iconComponents.AlertTriangle">
         Vær kritisk til informasjon på sosiale medier. Stol på offisielle kanaler
         og informasjon fra myndighetene.
       </AlertBox>
     </ContentCard>
-
     <!-- Quiz section -->
     <ContentCard fullWidth id="quiz-section">
       <div class="bg-blue-50 p-6 rounded-lg mb-6">

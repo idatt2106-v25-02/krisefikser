@@ -132,13 +132,26 @@ export default {
         <p class="text-gray-700 mb-4">
           Første steg etter at den akutte fasen er over:
         </p>
-        <ul class="list-disc list-inside text-gray-700 mb-4 space-y-1">
+        <ul class="list-disc list-outside px-4 text-gray-700 mb-4 space-y-2">
           <li>Sikre at alle i husstanden er trygge og har det de trenger</li>
           <li>Sjekk boligen for skader og potensielle farer</li>
-          <li>Kontakt forsikringsselskap hvis du har materielle skader</li>
+          <li>
+            <span>Kontakt forsikringsselskap hvis du har materielle skader -
+              <a href="https://www.finansportalen.no/forsikring/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Finansportalen</a> for forsikringsoversikt
+            </span>
+          </li>
           <li>Dokumenter eventuelle skader med bilder for forsikringsformål</li>
-          <li>Følg råd fra myndighetene angående rent vann, matsikkerhet og rengjøring</li>
-          <li>Følg med på offisielle informasjonskanaler for oppdateringer</li>
+          <li>
+            <span>Følg råd fra myndighetene via
+              <a href="https://www.kriseinfo.no/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Kriseinfo.no</a> og din kommunes nettsider
+            </span>
+          </li>
+          <li>
+            <span>Sjekk aktuelle støtteordninger hos
+              <a href="https://www.nav.no/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">NAV</a> og
+              <a href="https://www.dsb.no/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">DSB</a>
+            </span>
+          </li>
         </ul>
         <AlertBox type="success" :iconComponent="iconComponents.Info">
           Vær oppmerksom på at det kan være ettereffekter av krisen som fortsatt krever
@@ -151,19 +164,42 @@ export default {
         <p class="text-gray-700 mb-4">
           Psykologisk bearbeiding etter en krise er viktig:
         </p>
-        <ul class="list-disc list-inside text-gray-700 mb-4 space-y-1">
+        <ul class="list-disc list-outside px-4 text-gray-700 mb-4 space-y-2">
           <li>Anerkjenn at det er normalt å ha sterke følelser etter en krise</li>
           <li>Ta tid til å bearbeide opplevelsen sammen med familie og venner</li>
           <li>Gjenoppta rutiner gradvis for å skape stabilitet</li>
           <li>Tillat deg å sørge over tap, enten materielle eller relasjonelle</li>
-          <li>Vær oppmerksom på symptomer på posttraumatisk stress (PTSD)</li>
+          <li>
+            <span>Vær oppmerksom på symptomer på posttraumatisk stress (PTSD) -
+              <a href="https://www.helsenorge.no/psykisk-helse/reaksjoner-etter-kriser-og-katastrofer/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Les mer på Helsenorge</a>
+            </span>
+          </li>
           <li>Søk profesjonell hjelp hvis du opplever vedvarende symptomer</li>
           <li>Vær spesielt oppmerksom på barns behov for å bearbeide</li>
         </ul>
-        <AlertBox type="info" :iconComponent="iconComponents.PhoneCall">
-          Hvis du trenger noen å snakke med, kontakt fastlege, Mental Helse Hjelpetelefon: 116 123,
-          eller Røde Kors samtaletilbud: 800 33 321.
-        </AlertBox>
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+          <h4 class="font-semibold text-gray-800 mb-2">Psykisk helsehjelp:</h4>
+          <ul class="space-y-2">
+            <li>
+              <a href="tel:116123" class="flex items-center text-green-600 hover:underline">
+                <PhoneCall class="h-4 w-4 mr-2" />
+                <span class="font-bold">Mental Helse Hjelpetelefon: 116 123</span>
+                <span class="ml-2 text-sm text-gray-600">(døgnåpen)</span>
+              </a>
+            </li>
+            <li>
+              <a href="tel:80033321" class="flex items-center text-green-600 hover:underline">
+                <PhoneCall class="h-4 w-4 mr-2" />
+                <span class="font-bold">Røde Kors Samtaletilbud: 800 33 321</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://helsenorge.no/psykisk-helse" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">
+                Helsenorge - Informasjon om psykisk helse
+              </a>
+            </li>
+          </ul>
+        </div>
       </ContentCard>
     </div>
 
@@ -177,13 +213,25 @@ export default {
       <p class="text-gray-700 mb-4">
         Et lokalsamfunn kommer raskere på fote når alle bidrar:
       </p>
-      <ul class="list-disc list-inside text-gray-700 mb-4 space-y-1">
-        <li>Delta i lokale opprydningsaksjoner og dugnader</li>
+      <ul class="list-disc list-outside px-4 text-gray-700 mb-4 space-y-2">
+        <li>
+          <span>Delta i lokale opprydningsaksjoner og dugnader - spør via kommunens nettsider eller lokale Facebook-grupper</span>
+        </li>
         <li>Tilby hjelp til naboer som fremdeles strever</li>
         <li>Del ressurser med de som har mistet mer enn deg</li>
         <li>Støtt lokale virksomheter som er rammet av krisen</li>
-        <li>Delta i frivillig arbeid gjennom etablerte organisasjoner</li>
-        <li>Del dine erfaringer for å bidra til bedre krisehåndtering i fremtiden</li>
+        <li>
+          <span>Delta i frivillig arbeid gjennom etablerte organisasjoner som
+            <a href="https://www.rodekors.no/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Røde Kors</a>,
+            <a href="https://www.frivillig.no/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Frivillig.no</a> eller
+            <a href="https://www.kirkens-sos.no/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Kirkens SOS</a>
+          </span>
+        </li>
+        <li>
+          <span>Del dine erfaringer med
+            <a href="https://www.dsb.no/rapporter-og-evalueringer/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">DSB</a> for å bidre til bedre krisehåndtering
+          </span>
+        </li>
       </ul>
       <p class="text-gray-700">
         Et sterkt lokalsamfunn er en av de beste beskyttelsene mot fremtidige kriser. Ved å
@@ -201,13 +249,25 @@ export default {
       <p class="text-gray-700 mb-4">
         Hver krise gir verdifull erfaring for fremtiden:
       </p>
-      <ul class="list-disc list-inside text-gray-700 mb-4 space-y-1">
+      <ul class="list-disc list-outside px-4 text-gray-700 mb-4 space-y-2">
         <li>Evaluer hvordan beredskapsplanen din fungerte</li>
-        <li>Noter hva som manglet i beredskapslageret</li>
+        <li>
+          <span>Noter hva som manglet i beredskapslageret -
+            <a href="https://www.sikkerhverdag.no/din-beredskap/hendelser-og-kriser/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Sjekk anbefalte forsyninger på Sikker Hverdag</a>
+          </span>
+        </li>
         <li>Dokumenter hva du lærte og hva du ville gjort annerledes</li>
-        <li>Oppdater beredskapsplanen basert på erfaringene</li>
+        <li>
+          <span>Oppdater beredskapsplanen basert på erfaringene -
+            <a href="https://www.dsb.no/egenberedskap/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">DSBs råd om egenberedskap</a>
+          </span>
+        </li>
         <li>Etterfyll beredskapslageret med nye forsyninger</li>
-        <li>Revurder om det er nye ferdigheter du bør lære (førstehjelp, etc.)</li>
+        <li>
+          <span>Revurder om det er nye ferdigheter du bør lære -
+            <a href="https://www.rodekors.no/tilbudene/forstehjelp/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Førstehjelpskurs hos Røde Kors</a>
+          </span>
+        </li>
         <li>Del lærdommene med familie, venner og nærmiljø</li>
       </ul>
       <div class="mt-4 bg-green-50 p-6 rounded-lg">
@@ -238,19 +298,43 @@ export default {
       <p class="text-gray-700 mb-4">
         Gjenopprettelse av normalitet er viktig, men kan ta tid:
       </p>
-      <ul class="list-disc list-inside text-gray-700 mb-4 space-y-1">
+      <ul class="list-disc list-outside px-4 text-gray-700 mb-4 space-y-2">
         <li>Gjenoppta rutiner gradvis, spesielt for barn</li>
         <li>Tillat fleksibilitet i forventninger og planer</li>
         <li>Balansér behovet for å snakke om opplevelsen med å se fremover</li>
         <li>Markér milepæler i gjenoppbyggingen for å anerkjenne fremgang</li>
         <li>Finn måter å ta med seg positive erfaringer fra krisen (samhold, etc.)</li>
-        <li>Vær tålmodig med deg selv og andre - gjenoppbygging tar tid</li>
+        <li>
+          <span>Vær tålmodig med deg selv og andre - gjenoppbygging tar tid -
+            <a href="https://www.psykologforeningen.no/publikum/videoer/videoer-om-psykisk-helse/resiliens-hvordan-takle-motgang" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">Les om resiliens</a>
+          </span>
+        </li>
       </ul>
       <p class="text-gray-700">
         Å komme tilbake til normalitet betyr ikke nødvendigvis å gå tilbake til akkurat
         slik livet var før. Mange opplever at prioriteringer og perspektiver endres etter
         en krise, noe som kan føre til positive endringer på lang sikt.
       </p>
+      <div class="bg-green-50 p-4 rounded-lg border border-green-200 mt-4">
+        <h4 class="font-medium text-gray-800 mb-2">Praktiske ressurser for nystart:</h4>
+        <ul class="space-y-2">
+          <li>
+            <a href="https://www.nav.no/no/person/flere-tema/sosiale-tjenester/okonomisk-sosialhjelp" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">
+              NAV - Økonomisk støtte
+            </a>
+          </li>
+          <li>
+            <a href="https://www.husbanken.no/om-husbanken/virkemidler/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">
+              Husbanken - Boligstøtte
+            </a>
+          </li>
+          <li>
+            <a href="https://www.skatteetaten.no/person/" target="_blank" rel="noopener noreferrer" class="text-green-600 hover:underline">
+              Skatteetaten - Skattemessige konsekvenser ved tap
+            </a>
+          </li>
+        </ul>
+      </div>
     </ContentCard>
 
     <!-- Quiz section -->
@@ -281,7 +365,7 @@ export default {
       authTitle="Oppdater beredskapen basert på dine erfaringer"
       authDescription="Nå som krisen er over, er det viktig å evaluere hva som fungerte og hva som manglet i din beredskap. Oppdater beholdningen din og forbedre beredskapsplanen."
       primaryButtonText="Registrer deg nå"
-      primaryButtonRoute="/registrer"
+      primaryButtonRoute="/register"
       secondaryButtonText="Logg inn"
       secondaryButtonRoute="/logg-inn"
       authPrimaryButtonText="Oppdater beredskapslager"
