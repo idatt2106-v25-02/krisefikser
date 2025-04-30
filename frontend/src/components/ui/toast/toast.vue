@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   class?: string
-  variant?: 'default' | 'destructive'
+  variant?: 'default' | 'destructive' | 'warning'
 }>()
 
 const toastVariants = cva(
@@ -18,6 +18,7 @@ const toastVariants = cva(
         default: 'border bg-background',
         destructive:
           'destructive group border-destructive bg-destructive text-white',
+        warning: 'border-yellow-500 bg-yellow-50 text-yellow-800',
       },
     },
     defaultVariants: {
