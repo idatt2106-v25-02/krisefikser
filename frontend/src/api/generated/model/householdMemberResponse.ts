@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 import type { UserDto } from './userDto'
-import type { HouseholdMemberDtoStatus } from './householdMemberDtoStatus'
+import type { HouseholdMemberResponseStatus } from './householdMemberResponseStatus'
 
-export interface HouseholdMemberDto {
+export interface HouseholdMemberResponse {
   user?: UserDto
-  status?: HouseholdMemberDtoStatus
+  status?: HouseholdMemberResponseStatus
 }

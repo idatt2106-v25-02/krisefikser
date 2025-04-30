@@ -5,20 +5,20 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { HouseholdItemDto } from './householdItemDto'
+import type { HouseholdItemResponse } from './householdItemResponse'
 import type { SortObject } from './sortObject'
 import type { PageableObject } from './pageableObject'
 
-export interface PageHouseholdItemDto {
-  totalPages?: number
+export interface PageHouseholdItemResponse {
   totalElements?: number
+  totalPages?: number
   first?: boolean
   last?: boolean
   size?: number
-  content?: HouseholdItemDto[]
+  content?: HouseholdItemResponse[]
   number?: number
   sort?: SortObject
-  pageable?: PageableObject
   numberOfElements?: number
+  pageable?: PageableObject
   empty?: boolean
 }

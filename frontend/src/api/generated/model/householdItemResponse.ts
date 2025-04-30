@@ -5,15 +5,15 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { ProductTypeDto } from './productTypeDto'
+import type { ProductTypeResponse } from './productTypeResponse'
 
-export interface HouseholdItemDto {
+export interface HouseholdItemResponse {
   id?: string
   name?: string
   amount?: number
   expiryDate?: string
   householdId?: string
-  productType?: ProductTypeDto
+  productType?: ProductTypeResponse
   createdAt?: string
   updatedAt?: string
 }

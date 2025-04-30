@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { UserDto } from './userDto'
-import type { HouseholdMemberDto } from './householdMemberDto'
+import type { HouseholdMemberResponse } from './householdMemberResponse'
 
 export interface HouseholdResponse {
   id?: string
@@ -15,7 +15,7 @@ export interface HouseholdResponse {
   longitude?: number
   address?: string
   owner?: UserDto
-  members?: HouseholdMemberDto[]
+  members?: HouseholdMemberResponse[]
   createdAt?: string
   active?: boolean
 }

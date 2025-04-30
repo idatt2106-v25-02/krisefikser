@@ -14,7 +14,7 @@ export default defineConfig({
       schemas: './src/api/generated/model',
       mock: false,
       prettier: true,
-      clean: false,
+      clean: true,
       baseUrl: env.VITE_API_URL || 'http://localhost:8080',
       override: {
         mutator: {

@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useGetAllArticles } from '@/api/generated/krisefikserAPI'
+import { useGetAllArticles } from '@/api/generated/article/article'
 
 const router = useRouter()
 
