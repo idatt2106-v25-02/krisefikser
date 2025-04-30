@@ -131,16 +131,14 @@ class UserServiceTest {
   void deleteUser_Success() {
     // Arrange
     when(userRepository.existsById(testUserId)).thenReturn(true);
-    // Add this mock to fix the test - service looks up user before deletion
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
     // Act
     userService.deleteUser(testUserId);
 
     // Assert
-    verify(userRepository).deleteById(testUserId);
+    verify(userRepository).delete(testUser); // Change this line to match actual implementation
   }
-
   @Test
   void deleteUser_UserNotFound() {
     // Arrange
