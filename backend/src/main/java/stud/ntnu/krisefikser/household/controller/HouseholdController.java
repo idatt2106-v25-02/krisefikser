@@ -97,7 +97,7 @@ public class HouseholdController {
     })
     @GetMapping("/active")
     public ResponseEntity<HouseholdResponse> getActiveHousehold() {
-        return ResponseEntity.ok(householdService.getActiveHousehold());
+        return ResponseEntity.ok(householdService.toHouseholdResponse(householdService.getActiveHousehold()));
     }
 
     /**

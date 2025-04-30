@@ -1,5 +1,6 @@
 package stud.ntnu.krisefikser.household.service;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,6 +8,7 @@ import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
+import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
@@ -31,7 +33,7 @@ public class HouseholdService {
                 .toList();
     }
 
-    private HouseholdResponse toHouseholdResponse(Household household) {
+    public HouseholdResponse toHouseholdResponse(Household household) {
         User currentUser = userService.getCurrentUser();
         List<HouseholdMember> members = householdMemberService.getMembers(household.getId());
 
@@ -88,15 +90,15 @@ public class HouseholdService {
         return toHouseholdResponse(household);
     }
 
-    public HouseholdResponse getActiveHousehold() {
+    public Household getActiveHousehold() {
         User currentUser = userService.getCurrentUser();
         Household household = currentUser.getActiveHousehold();
 
         if (household == null) {
-            throw new IllegalArgumentException("No active household found");
+            throw new HouseholdNotFoundException();
         }
 
-        return toHouseholdResponse(household);
+        return household;
     }
 
     @Transactional

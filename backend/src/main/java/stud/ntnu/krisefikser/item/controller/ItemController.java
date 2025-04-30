@@ -11,10 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import stud.ntnu.krisefikser.item.dto.CreateFoodItemRequest;
 import stud.ntnu.krisefikser.item.dto.FoodItemResponse;
-import stud.ntnu.krisefikser.item.service.ItemService;
+import stud.ntnu.krisefikser.item.service.FoodItemService;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * REST controller for managing items.
@@ -27,7 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Item", description = "Item management APIs")
 public class ItemController {
-    private final ItemService itemService;
+    private final FoodItemService itemService;
 
     @PostMapping("/food")
     @Operation(summary = "Create a new food item")

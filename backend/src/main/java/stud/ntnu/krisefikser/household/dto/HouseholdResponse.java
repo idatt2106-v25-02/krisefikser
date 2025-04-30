@@ -1,6 +1,7 @@
 package stud.ntnu.krisefikser.household.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.user.dto.UserDto;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class HouseholdResponse {
