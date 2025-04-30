@@ -33,12 +33,14 @@ public class HouseholdMember {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @ManyToOne(optional = false, cascade = CascadeType.REMOVE)
+
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     private User user;
-    @ManyToOne(optional = false, cascade = CascadeType.REMOVE)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "household_id")
     private Household household;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private HouseholdMemberStatus status;
