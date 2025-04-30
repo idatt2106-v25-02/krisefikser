@@ -10,6 +10,7 @@ import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepo;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
+import stud.ntnu.krisefikser.household.service.HouseholdMemberService;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class HouseholdService {
     private final HouseholdRepo householdRepo;
-    private final HouseHoldMemberService houseHoldMemberService;
+    private final HouseholdMemberService houseHoldMemberService;
     private final UserService userService;
 
     @Transactional(readOnly = true)
