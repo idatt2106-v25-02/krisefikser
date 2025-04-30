@@ -1,33 +1,33 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import MapComponent from '@/components/map/MapComponent.vue';
-import ShelterLayer from '@/components/map/ShelterLayer.vue';
-import EventLayer from '@/components/map/EventLayer.vue';
-import MapLegend from '@/components/map/MapLegend.vue';
-import { shelters, type Shelter } from '@/components/map/mapData';
-import type { Event } from '@/api/generated/model';
-import { EventLevel, EventStatus } from '@/api/generated/model';
-import L from 'leaflet';
-import {useCreateMapPoint, useGetAllMapPoints} from '@/api/generated/map-point/map-point';
-import { useGetAllEvents } from '@/api/generated/event/event';
-import { useCreateEvent } from '@/api/generated/event/event';
-import { useCreateMapPointType } from '@/api/generated/map-point-type/map-point-type';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { ref } from 'vue'
+import MapComponent from '@/components/map/MapComponent.vue'
+import ShelterLayer from '@/components/map/ShelterLayer.vue'
+import EventLayer from '@/components/map/EventLayer.vue'
+import MapLegend from '@/components/map/MapLegend.vue'
+import { type Shelter } from '@/components/map/mapData'
+import type { Event } from '@/api/generated/model'
+import { EventLevel, EventStatus } from '@/api/generated/model'
+import L from 'leaflet'
+import { useCreateMapPoint, useGetAllMapPoints } from '@/api/generated/map-point/map-point'
+import { useGetAllEvents } from '@/api/generated/event/event'
+import { useCreateEvent } from '@/api/generated/event/event'
+import { useCreateMapPointType } from '@/api/generated/map-point-type/map-point-type'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 // Map and related refs
-const mapRef = ref<InstanceType<typeof MapComponent> | null>(null);
-const mapInstance = ref<L.Map | null>(null);
-const authStore = useAuthStore();
-const { data: events, isLoading: isEventsLoading, refetch } = useGetAllEvents();
-const { data: mapPoints, isLoading: isMapPointsLoading, refetch: refetchMapPoints } = useGetAllMapPoints();
+const mapRef = ref<InstanceType<typeof MapComponent> | null>(null)
+const mapInstance = ref<L.Map | null>(null)
+const authStore = useAuthStore()
+const { data: events, refetch } = useGetAllEvents()
+const { data: mapPoints, refetch: refetchMapPoints } = useGetAllMapPoints()
 
 // Form states
-const activeTab = ref<'shelters' | 'events'>('shelters');
+const activeTab = ref<'shelters' | 'events'>('shelters')
 const newShelter = ref<Partial<Shelter>>({
   name: '',
   capacity: 0,
   position: [63.4305, 10.3951], // Default to Trondheim center
-});
+})
 const newEvent = ref<Partial<Event>>({
   title: '',
   description: '',
@@ -36,99 +36,111 @@ const newEvent = ref<Partial<Event>>({
   longitude: 10.3951,
   level: EventLevel.GREEN,
   startTime: new Date().toISOString(),
-  status: EventStatus.UPCOMING
-});
+  status: EventStatus.UPCOMING,
+})
 
 // API mutations
-const { mutate: createMapPoint, isPending: isMapPointPending, error: mapPointError } = useCreateMapPoint();
-const { mutate: createEvent, isPending: isEventPending, error: eventError } = useCreateEvent();
-const { mutate: createMapPointType, isPending: isMapPointTypePending, error: mapPointTypeError } = useCreateMapPointType();
+const { mutate: createMapPoint } = useCreateMapPoint()
+const { mutate: createEvent } = useCreateEvent()
+const { mutate: createMapPointType } = useCreateMapPointType()
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
-  mapInstance.value = map;
+  mapInstance.value = map
 
   // Add click handler for location selection
   map.on('click', (e) => {
-    const { lat, lng } = e.latlng;
+    const { lat, lng } = e.latlng
     if (activeTab.value === 'shelters') {
-      newShelter.value.position = [lat, lng];
+      newShelter.value.position = [lat, lng]
     } else {
-      newEvent.value.latitude = lat;
-      newEvent.value.longitude = lng;
+      newEvent.value.latitude = lat
+      newEvent.value.longitude = lng
     }
-  });
+  })
 }
 
 // Form submission handlers
 async function handleAddShelter() {
   if (!authStore.isAuthenticated) {
-    console.error('User must be authenticated to create a shelter');
-    return;
+    console.error('User must be authenticated to create a shelter')
+    return
   }
 
   if (!authStore.isAdmin) {
-    console.error('User must have ADMIN role to create a shelter');
-    return;
+    console.error('User must have ADMIN role to create a shelter')
+    return
   }
 
   if (!newShelter.value.name || !newShelter.value.position) {
-    console.error('Missing required shelter fields');
-    return;
+    console.error('Missing required shelter fields')
+    return
   }
 
   try {
     // First create the map point type for the shelter
-    const mapPointTypeResponse = await createMapPointType({
-      data: {
-        title: newShelter.value.name,
-        description: `Shelter with capacity of ${newShelter.value.capacity} people`,
-        iconUrl: '/shelter-icon.png',
-        openingTime: '24/7'
-      }
-    });
+    createMapPointType(
+      {
+        data: {
+          title: newShelter.value.name,
+          description: `Shelter with capacity of ${newShelter.value.capacity} people`,
+          iconUrl: '/shelter-icon.png',
+          openingTime: '24/7',
+        },
+      },
+      {
+        onSuccess: (data) => {
+          if (!newShelter.value.position) {
+            console.error('Shelter position is not set')
+            return
+          }
 
-    await createMapPoint({
-      data: {
-        latitude: newShelter.value.position[0],
-        longitude: newShelter.value.position[1],
-        type: {
-          id: mapPointTypeResponse.data.id
-        }
-      }
-    });
+          createMapPoint({
+            data: {
+              latitude: newShelter.value.position[0],
+              longitude: newShelter.value.position[1],
+              type: {
+                id: data.id,
+              },
+            },
+          })
+        },
+      },
+    )
 
-    refetchMapPoints();
+    refetchMapPoints()
 
     // Reset form
     newShelter.value = {
       name: '',
       capacity: 0,
-      position: [63.4305, 10.3951]
-    };
+      position: [63.4305, 10.3951],
+    }
   } catch (error) {
-    console.error('Error creating shelter:', error);
-    if (error.response) {
-      console.error('Server response:', error.response.data);
-      console.error('Status code:', error.response.status);
+    console.error('Error creating shelter:', error)
+    if (error && typeof error === 'object' && 'response' in error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiError = error as { response: { data: any; status: number } }
+      console.error('Server response:', apiError.response.data)
+      console.error('Status code:', apiError.response.status)
     }
   }
 }
 
 async function handleAddEvent() {
   if (!authStore.isAuthenticated) {
-    console.error('User must be authenticated to create an event');
-    return;
+    console.error('User must be authenticated to create an event')
+    return
   }
 
   if (!authStore.isAdmin) {
-    console.error('User must have ADMIN role to create an event');
-    return;
+    console.error('User must have ADMIN role to create an event')
+    return
   }
 
   if (!newEvent.value.title || !newEvent.value.latitude || !newEvent.value.longitude) {
-    console.error('Missing required event fields');
-    return;
+    console.error('Missing required event fields')
+    return
   }
 
   try {
@@ -142,10 +154,10 @@ async function handleAddEvent() {
         level: newEvent.value.level,
         startTime: newEvent.value.startTime,
         endTime: newEvent.value.endTime,
-        status: newEvent.value.status
-      }
-    });
-    refetch();
+        status: newEvent.value.status,
+      },
+    })
+    refetch()
     // Reset form
     newEvent.value = {
       title: '',
@@ -155,13 +167,15 @@ async function handleAddEvent() {
       longitude: 10.3951,
       level: EventLevel.GREEN,
       startTime: new Date().toISOString(),
-      status: EventStatus.UPCOMING
-    };
+      status: EventStatus.UPCOMING,
+    }
   } catch (error) {
-    console.error('Error creating event:', error);
-    if (error.response) {
-      console.error('Server response:', error.response.data);
-      console.error('Status code:', error.response.status);
+    console.error('Error creating event:', error)
+    if (error && typeof error === 'object' && 'response' in error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiError = error as { response: { data: any; status: number } }
+      console.error('Server response:', apiError.response.data)
+      console.error('Status code:', apiError.response.status)
     }
   }
 }
@@ -181,7 +195,7 @@ async function handleAddEvent() {
             'px-4 py-2 rounded-lg',
             activeTab === 'shelters'
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
           ]"
         >
           Tilfluktsrom
@@ -192,7 +206,7 @@ async function handleAddEvent() {
             'px-4 py-2 rounded-lg',
             activeTab === 'events'
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
           ]"
         >
           Hendelser
@@ -284,10 +298,7 @@ async function handleAddEvent() {
 
         <div class="space-y-2">
           <label class="text-sm font-medium">Alvorlighetsgrad</label>
-          <select
-            v-model="newEvent.level"
-            class="w-full px-3 py-2 border rounded-lg"
-          >
+          <select v-model="newEvent.level" class="w-full px-3 py-2 border rounded-lg">
             <option :value="EventLevel.GREEN">Lav</option>
             <option :value="EventLevel.YELLOW">Middels</option>
             <option :value="EventLevel.RED">Høy</option>
@@ -296,10 +307,7 @@ async function handleAddEvent() {
 
         <div class="space-y-2">
           <label class="text-sm font-medium">Status</label>
-          <select
-            v-model="newEvent.status"
-            class="w-full px-3 py-2 border rounded-lg"
-          >
+          <select v-model="newEvent.status" class="w-full px-3 py-2 border rounded-lg">
             <option :value="EventStatus.UPCOMING">Kommende</option>
             <option :value="EventStatus.ONGOING">Pågående</option>
             <option :value="EventStatus.FINISHED">Avsluttet</option>
@@ -356,22 +364,23 @@ async function handleAddEvent() {
 
     <!-- Map Container -->
     <div class="flex-1 relative">
-      <MapComponent
-        ref="mapRef"
-        @map-created="onMapCreated"
-      />
+      <MapComponent ref="mapRef" @map-created="onMapCreated" />
 
       <ShelterLayer
         :map="mapInstance"
-        :mapPoints="mapPoints "
-        :isLoading="isMapPointsLoading"
+        :shelters="
+          Array.isArray(mapPoints)
+            ? mapPoints.map((point) => ({
+                id: point.id,
+                name: point.type?.title || 'Unknown',
+                position: [point.latitude, point.longitude],
+                capacity: parseInt(point.type?.description?.match(/\d+/)?.[0] || '0'),
+              }))
+            : []
+        "
       />
 
-      <EventLayer
-        :map="mapInstance"
-        :events="events || []"
-
-      />
+      <EventLayer :map="mapInstance" :events="Array.isArray(events) ? events : []" />
 
       <MapLegend
         :user-location-available="false"

@@ -10,11 +10,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 const authStore = useAuthStore()
 
 // Get current user data
-const {
-  data: currentUser,
-  isLoading: isLoadingUser,
-  refetch: refetchUser,
-} = useMe({
+const { data: currentUser, refetch: refetchUser } = useMe({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
@@ -86,7 +82,9 @@ const saveProfile = () => {
       <div class="space-y-4">
         <!-- First Name field -->
         <div>
-          <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">Fornavn</label>
+          <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1"
+            >Fornavn</label
+          >
           <input
             type="text"
             id="firstName"
@@ -98,7 +96,9 @@ const saveProfile = () => {
 
         <!-- Last Name field -->
         <div>
-          <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Etternavn</label>
+          <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1"
+            >Etternavn</label
+          >
           <input
             type="text"
             id="lastName"

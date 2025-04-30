@@ -6,12 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 
-export type HouseholdMemberDtoStatus = typeof HouseholdMemberDtoStatus[keyof typeof HouseholdMemberDtoStatus];
+export type HouseholdMemberDtoStatus =
+  (typeof HouseholdMemberDtoStatus)[keyof typeof HouseholdMemberDtoStatus]
 
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const HouseholdMemberDtoStatus = {
   INVITED: 'INVITED',
   ACCEPTED: 'ACCEPTED',
   REJECTED: 'REJECTED',
-} as const;
+} as const
