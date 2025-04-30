@@ -7,14 +7,18 @@ RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml orval.config.ts ./
-
+COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
+
+
 # Copy source code
 COPY . .
+
+# Generate API client
+RUN pnpm orval
 
 # Build the application (ignoring type errors)
 ENV NODE_ENV=production

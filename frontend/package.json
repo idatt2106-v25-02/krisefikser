@@ -13,8 +13,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "preinstall": "npx only-allow pnpm",
-    "postinstall": "orval"
+    "preinstall": "npx only-allow pnpm"
     },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.4",

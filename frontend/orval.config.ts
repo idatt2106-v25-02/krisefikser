@@ -3,7 +3,7 @@ import { config } from 'dotenv'
 
 config()
 
-const openApiUrl = process.env.VITE_API_URL ? `${process.env.VITE_API_URL}/v3/api-docs` : './openapi.json'
+const openApiUrl = process.env.VITE_API_URL ? `${process.env.VITE_API_URL}/v3/api-docs` : 'http://localhost:8080/v3/api-docs'
 
 export default defineConfig({
   krisefikser: {
