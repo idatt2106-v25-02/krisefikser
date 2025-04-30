@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
 import PrivacyPolicyView from './PrivacyPolicyView.vue'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 // Schema for the registration form
 const rawSchema = z
@@ -69,6 +71,7 @@ const onSubmit = handleSubmit(async (values) => {
       description: 'Kontoen din er opprettet og du er nå logget inn',
       variant: 'default',
     })
+    router.push('/dashboard');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     toast({
