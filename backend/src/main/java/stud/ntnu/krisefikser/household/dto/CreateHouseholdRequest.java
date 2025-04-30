@@ -8,10 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateHouseholdRequest {
-    private String name;
-    private double latitude;
-    private double longitude;
-    private String address;
-    private String city;
-    private String postalCode;
+
+  private String name;
+  private double latitude;
+  private double longitude;
+  private String address;
+  private String city;
+  private String postalCode;
 }
