@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -83,6 +83,48 @@ const onSubmit = handleSubmit(async (values) => {
 
 // Dialog state
 const isPrivacyPolicyOpen = ref(false)
+
+// Captcha logic
+const captchaToken = ref('')
+const turnstileWidgetId = ref<string>('')
+
+// Initialise Cloudflare Turnstile
+onMounted(() => {
+  turnstileWidgetId.value = turnstile.render('#turnstile', {
+    sitekey: '0x4AAAAAABSTiPNZwrBLQkgr',
+    callback: (token: string) => {
+      captchaToken.value = token
+      toast({
+        title: 'Success',
+        description: 'Captcha token received',
+        variant: 'default'
+      })
+    },
+    'error-callback': () => {
+      toast({
+        title: 'Error',
+        description: 'Captcha token error',
+        variant: 'destructive'
+      })
+      captchaToken.value = ''
+    },
+    'expired-callback': () => {
+      toast({
+        title: 'Warning',
+        description: 'Captcha token expired',
+        variant: 'warning'
+      })
+      captchaToken.value = ''
+    }
+  })
+})
+
+// Clean up Turnstile on component unmount
+onUnmounted(() => {
+  if (turnstileWidgetId.value) {
+    turnstile.remove(turnstileWidgetId.value)
+  }
+})
 </script>
 
 <template>
@@ -206,6 +248,8 @@ const isPrivacyPolicyOpen = ref(false)
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
       </FormField>
+
+      <div id="turnstile"></div>
 
       <!-- Cloudflare Turnstile -->
       <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
