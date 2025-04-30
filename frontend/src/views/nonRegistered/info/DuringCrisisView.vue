@@ -1,5 +1,5 @@
 <script lang="ts">
- 
+
 import { AlertTriangle, Radio, Info, Shield, AlertCircle, Zap, Droplets, Cloud,
   Stethoscope, Heart, PhoneCall, Users } from 'lucide-vue-next';
 import QuizComponent from '@/components/quiz/QuizComponent.vue';
@@ -290,11 +290,18 @@ export default {
     <CTASection
       title="Finn viktige ressurser nær deg"
       description="Se kartet for å finne nærmeste tilfluktsrom, hjertestarter, og andre viktige ressurser i nærområdet ditt. Registrer deg for å få varsler om krisesituasjoner i ditt område."
+      authTitle="Finn viktige ressurser nær deg"
+      authDescription="Bruk kartet for å lokalisere tilfluktsrom, hjertestartere og andre kritiske ressurser. Få varsler om krisesituasjoner i ditt området basert på din registrerte adresse."
       primaryButtonText="Se kart"
       primaryButtonRoute="/kart"
       secondaryButtonText="Registrer deg"
       secondaryButtonRoute="/register"
+      authPrimaryButtonText="Se kart"
+      authPrimaryButtonRoute="/kart"
+      authSecondaryButtonText="Min profil"
+      authSecondaryButtonRoute="/dashboard"
       colorTheme="yellow"
     />
+
   </PageLayout>
 </template>

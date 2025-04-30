@@ -248,12 +248,18 @@ export default {
 
     <!-- CTA section -->
     <CTASection
-      title="Del dine erfaringer og lær av andre"
-      description="Ved å registrere deg kan du lagre dine refleksjoner, lese andres erfaringer og kontinuerlig forbedre din egenberedskap basert på faktiske opplevelser."
+      title="Forbedre din beredskap basert på erfaringer"
+      description="Ved å registrere deg kan du opprette og administrere din beredskapsplan, få oversikt over nødvendig utstyr og være bedre forberedt til neste gang."
+      authTitle="Oppdater beredskapen basert på dine erfaringer"
+      authDescription="Nå som krisen er over, er det viktig å evaluere hva som fungerte og hva som manglet i din beredskap. Oppdater beholdningen din og forbedre beredskapsplanen."
       primaryButtonText="Registrer deg nå"
       primaryButtonRoute="/register"
       secondaryButtonText="Logg inn"
       secondaryButtonRoute="/logg-inn"
+      authPrimaryButtonText="Oppdater beredskapslager"
+      authPrimaryButtonRoute="/husstand/:id/beredskapslager"
+      authSecondaryButtonText="Administrer husstand"
+      authSecondaryButtonRoute="/husstand"
       colorTheme="green"
     />
   </PageLayout>

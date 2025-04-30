@@ -1,7 +1,17 @@
-<script  lang="ts">
-export default {
-  name: 'FeaturesSection'
-}
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { useAuthStore } from '@/stores/useAuthStore.ts'; // Adjust path if necessary
+
+export default defineComponent({
+  name: 'FeaturesSection',
+  setup() {
+    const authStore = useAuthStore();
+
+    return {
+      isAuthenticated: authStore.isAuthenticated
+    };
+  }
+});
 </script>
 <template>
   <section class="mb-16">
@@ -32,7 +42,12 @@ export default {
         </div>
         <h3 class="text-lg font-semibold text-gray-800 mb-2">Beredskapslager</h3>
         <p class="text-gray-600 mb-4">Hold oversikt over ditt eget beredskapslager og få påminnelser om utløpsdatoer.</p>
-        <router-link to="/logg-inn" class="text-blue-600 font-medium hover:underline">Logg inn for å bruke</router-link>
+        <router-link v-if="isAuthenticated" to="/husstand/:id/beredskapslager" class="text-blue-600 font-medium hover:underline">
+          Gå til beredskapslager
+        </router-link>
+        <router-link v-else to="/logg-inn" class="text-blue-600 font-medium hover:underline">
+          Logg inn for å bruke
+        </router-link>
       </div>
 
       <!-- Feature 3: Notifications -->
@@ -44,7 +59,12 @@ export default {
         </div>
         <h3 class="text-lg font-semibold text-gray-800 mb-2">Varsler</h3>
         <p class="text-gray-600 mb-4">Motta varsler om krisesituasjoner i ditt område og viktige oppdateringer.</p>
-        <router-link to="/register" class="text-blue-600 font-medium hover:underline">Registrer deg</router-link>
+        <router-link v-if="isAuthenticated" to="/varsler" class="text-blue-600 font-medium hover:underline">
+          Administrer varsler
+        </router-link>
+        <router-link v-else to="/register" class="text-blue-600 font-medium hover:underline">
+          Registrer deg
+        </router-link>
       </div>
 
       <!-- Feature 4: Household -->
@@ -56,10 +76,13 @@ export default {
         </div>
         <h3 class="text-lg font-semibold text-gray-800 mb-2">Husstand</h3>
         <p class="text-gray-600 mb-4">Koble sammen husstanden din for å samarbeide om beredskap og sikkerhet.</p>
-        <router-link to="/register" class="text-blue-600 font-medium hover:underline">Opprett husstand</router-link>
+        <router-link v-if="isAuthenticated" to="/husstand" class="text-blue-600 font-medium hover:underline">
+          Administrer husstand
+        </router-link>
+        <router-link v-else to="/register" class="text-blue-600 font-medium hover:underline">
+          Opprett husstand
+        </router-link>
       </div>
     </div>
   </section>
 </template>
-
-
