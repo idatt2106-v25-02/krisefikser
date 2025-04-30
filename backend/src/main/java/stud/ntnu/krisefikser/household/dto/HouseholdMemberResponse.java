@@ -9,7 +9,7 @@ import stud.ntnu.krisefikser.user.dto.UserDto;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HouseholdMemberDto {
+public class HouseholdMemberResponse {
     private UserDto user;
     private HouseholdMemberStatus status;
 }

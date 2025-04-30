@@ -6,8 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import stud.ntnu.krisefikser.household.dto.HouseholdItemDto;
-import stud.ntnu.krisefikser.household.dto.ProductTypeDto;
+import stud.ntnu.krisefikser.household.dto.HouseholdItemResponse;
+import stud.ntnu.krisefikser.household.dto.ProductTypeResponse;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdItem;
 import stud.ntnu.krisefikser.household.entity.ProductType;
@@ -32,7 +32,7 @@ public class HouseholdItemController {
     private final ProductTypeRepository productTypeRepository;
 
     @GetMapping
-    public ResponseEntity<Page<HouseholdItemDto>> getHouseholdItems(
+    public ResponseEntity<Page<HouseholdItemResponse>> getHouseholdItems(
             @PathVariable UUID householdId,
             @RequestParam(required = false) UUID productTypeId,
             Pageable pageable) {
@@ -53,7 +53,7 @@ public class HouseholdItemController {
     }
 
     @GetMapping("/expiring-soon")
-    public ResponseEntity<List<HouseholdItemDto>> getExpiringItems(
+    public ResponseEntity<List<HouseholdItemResponse>> getExpiringItems(
             @PathVariable UUID householdId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime before) {
         return householdRepo.findById(householdId)
@@ -78,9 +78,9 @@ public class HouseholdItemController {
     }
 
     @PostMapping
-    public ResponseEntity<HouseholdItemDto> createHouseholdItem(
+    public ResponseEntity<HouseholdItemResponse> createHouseholdItem(
             @PathVariable UUID householdId,
-            @RequestBody HouseholdItemDto itemDto) {
+            @RequestBody HouseholdItemResponse itemDto) {
         Optional<Household> householdOpt = householdRepo.findById(householdId);
         if (householdOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -103,10 +103,10 @@ public class HouseholdItemController {
     }
 
     @PutMapping("/{itemId}")
-    public ResponseEntity<HouseholdItemDto> updateHouseholdItem(
+    public ResponseEntity<HouseholdItemResponse> updateHouseholdItem(
             @PathVariable UUID householdId,
             @PathVariable UUID itemId,
-            @RequestBody HouseholdItemDto itemDto) {
+            @RequestBody HouseholdItemResponse itemDto) {
         Optional<HouseholdItem> itemOpt = householdItemRepository.findById(itemId);
         if (itemOpt.isEmpty() || !itemOpt.get().getHousehold().getId().equals(householdId)) {
             return ResponseEntity.notFound().build();
@@ -139,14 +139,14 @@ public class HouseholdItemController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    private HouseholdItemDto convertToDto(HouseholdItem item) {
-        return HouseholdItemDto.builder()
+    private HouseholdItemResponse convertToDto(HouseholdItem item) {
+        return HouseholdItemResponse.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .amount(item.getAmount())
                 .expiryDate(item.getExpiryDate())
                 .householdId(item.getHousehold().getId())
-                .productType(ProductTypeDto.builder()
+                .productType(ProductTypeResponse.builder()
                         .id(item.getProductType().getId())
                         .name(item.getProductType().getName())
                         .unit(item.getProductType().getUnit())

@@ -1,6 +1,5 @@
 package stud.ntnu.krisefikser.household.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,7 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import stud.ntnu.krisefikser.household.dto.HouseholdMemberDto;
+import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
 import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.user.entity.User;
 
@@ -45,8 +44,8 @@ public class HouseholdMember {
     @Column(nullable = false)
     private HouseholdMemberStatus status;
 
-    public HouseholdMemberDto toDto() {
-        return new HouseholdMemberDto(
+    public HouseholdMemberResponse toDto() {
+        return new HouseholdMemberResponse(
                 user.toDto(),
                 status
         );
