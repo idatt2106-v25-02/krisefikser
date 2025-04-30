@@ -62,7 +62,7 @@ export default defineComponent({
         <router-link v-if="isAuthenticated" to="/varsler" class="text-blue-600 font-medium hover:underline">
           Administrer varsler
         </router-link>
-        <router-link v-else to="/register" class="text-blue-600 font-medium hover:underline">
+        <router-link v-else to="/registrer" class="text-blue-600 font-medium hover:underline">
           Registrer deg
         </router-link>
       </div>
@@ -79,7 +79,7 @@ export default defineComponent({
         <router-link v-if="isAuthenticated" to="/husstand" class="text-blue-600 font-medium hover:underline">
           Administrer husstand
         </router-link>
-        <router-link v-else to="/register" class="text-blue-600 font-medium hover:underline">
+        <router-link v-else to="/registrer" class="text-blue-600 font-medium hover:underline">
           Opprett husstand
         </router-link>
       </div>

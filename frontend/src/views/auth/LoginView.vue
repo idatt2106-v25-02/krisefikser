@@ -198,7 +198,7 @@ function toggleLoginType() {
       <div class="text-sm text-center space-y-2">
         <div v-if="!isAdmin">
           <span class="text-gray-600">Har du ikke en konto?</span>
-          <a href="/register" class="ml-1 text-blue-600 hover:underline">Registrer deg</a>
+          <a href="/registrer" class="ml-1 text-blue-600 hover:underline">Registrer deg</a>
         </div>
 
         <a href="/glemt-passord" class="block text-blue-500 hover:underline">

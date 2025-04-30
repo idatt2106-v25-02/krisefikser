@@ -20,7 +20,7 @@ export default defineComponent({
 
         <!-- Different button sets based on authentication status -->
         <div v-if="!authStore.isAuthenticated" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-          <router-link to="/register" class="bg-white text-blue-900 font-bold py-3 px-6 rounded-md text-center hover:bg-blue-100 transition">
+          <router-link to="/registrer" class="bg-white text-blue-900 font-bold py-3 px-6 rounded-md text-center hover:bg-blue-100 transition">
             Kom i gang nå
           </router-link>
           <router-link to="/kart" class="bg-transparent border-2 border-white py-3 px-6 rounded-md text-center hover:bg-blue-800 transition">

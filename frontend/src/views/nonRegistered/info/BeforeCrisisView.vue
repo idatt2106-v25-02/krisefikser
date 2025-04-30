@@ -229,7 +229,7 @@ export default {
       authTitle="Administrer ditt beredskapslager"
       authDescription="Sjekk utløpsdatoer, oppdater beholdningen og legg til nye varer i ditt beredskapslager. Hold hele husstanden oppdatert og beredt."
       primaryButtonText="Registrer deg nå"
-      primaryButtonRoute="/register"
+      primaryButtonRoute="/registrer"
       secondaryButtonText="Logg inn"
       secondaryButtonRoute="/logg-inn"
       authPrimaryButtonText="Gå til beredskapslager"

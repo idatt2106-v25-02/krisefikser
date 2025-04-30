@@ -21,7 +21,7 @@
 
             <!-- Authentication-aware links -->
             <template v-if="!authStore.isAuthenticated">
-              <li><router-link to="/register" class="text-blue-200 hover:text-white transition">Registrer deg</router-link></li>
+              <li><router-link to="/registrer" class="text-blue-200 hover:text-white transition">Registrer deg</router-link></li>
               <li><router-link to="/logg-inn" class="text-blue-200 hover:text-white transition">Logg inn</router-link></li>
             </template>
 

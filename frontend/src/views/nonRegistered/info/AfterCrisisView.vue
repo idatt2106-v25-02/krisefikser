@@ -281,7 +281,7 @@ export default {
       authTitle="Oppdater beredskapen basert på dine erfaringer"
       authDescription="Nå som krisen er over, er det viktig å evaluere hva som fungerte og hva som manglet i din beredskap. Oppdater beholdningen din og forbedre beredskapsplanen."
       primaryButtonText="Registrer deg nå"
-      primaryButtonRoute="/register"
+      primaryButtonRoute="/registrer"
       secondaryButtonText="Logg inn"
       secondaryButtonRoute="/logg-inn"
       authPrimaryButtonText="Oppdater beredskapslager"
