@@ -1,4 +1,4 @@
-import { defineConfig } from 'orval';
+import { defineConfig } from 'orval'
 
 export default defineConfig({
   krisefikser: {
@@ -8,18 +8,18 @@ export default defineConfig({
       mode: 'tags-split',
       schemas: './src/api/generated/model',
       mock: false,
-      prettier: false,
+      prettier: true,
       clean: false,
       baseUrl: 'http://localhost:8080',
       override: {
         mutator: {
           path: './src/api/axios.ts',
-          name: 'customInstance'
-        }
-      }
+          name: 'customInstance',
+        },
+      },
     },
     input: {
       target: 'http://localhost:8080/v3/api-docs',
     },
   },
-});
+})

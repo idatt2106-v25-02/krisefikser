@@ -7,7 +7,7 @@
  */
 
 export interface ProductTypeDto {
-  id?: string;
-  name?: string;
-  unit?: string;
+  id?: string
+  name?: string
+  unit?: string
 }

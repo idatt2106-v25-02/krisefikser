@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import PageLayout from '@/components/layout/PageLayout.vue'
 import { User } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -15,10 +14,7 @@ import Security from '@/components/dashboard/Security.vue'
 const authStore = useAuthStore()
 
 // Get current user data
-const {
-  data: currentUser,
-  isLoading: isLoadingUser,
-} = useMe({
+const { data: currentUser, isLoading: isLoadingUser } = useMe({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,

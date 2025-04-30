@@ -5,9 +5,9 @@
  * This API exposes endpoints for the Krisefikser application.
  * OpenAPI spec version: 1.0
  */
-import type { Pageable } from './pageable';
+import type { Pageable } from './pageable'
 
 export type GetHouseholdItemsParams = {
-productTypeId?: string;
-pageable: Pageable;
-};
+  productTypeId?: string
+  pageable: Pageable
+}

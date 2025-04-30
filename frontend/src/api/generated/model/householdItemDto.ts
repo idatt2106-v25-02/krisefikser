@@ -5,15 +5,15 @@
  * This API exposes endpoints for the Krisefikser application.
  * OpenAPI spec version: 1.0
  */
-import type { ProductTypeDto } from './productTypeDto';
+import type { ProductTypeDto } from './productTypeDto'
 
 export interface HouseholdItemDto {
-  id?: string;
-  name?: string;
-  amount?: number;
-  expiryDate?: string;
-  householdId?: string;
-  productType?: ProductTypeDto;
-  createdAt?: string;
-  updatedAt?: string;
+  id?: string
+  name?: string
+  amount?: number
+  expiryDate?: string
+  householdId?: string
+  productType?: ProductTypeDto
+  createdAt?: string
+  updatedAt?: string
 }

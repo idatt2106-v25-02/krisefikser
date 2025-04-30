@@ -7,9 +7,9 @@
  */
 
 export interface MapPointType {
-  id?: number;
-  title?: string;
-  iconUrl?: string;
-  description?: string;
-  openingTime?: string;
+  id?: number
+  title?: string
+  iconUrl?: string
+  description?: string
+  openingTime?: string
 }
