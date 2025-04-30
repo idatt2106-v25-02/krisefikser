@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +20,7 @@ import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
+import stud.ntnu.krisefikser.email.service.EmailService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,6 +33,9 @@ public class AuthenticationFlowIntegrationTest {
   @Autowired
   private ObjectMapper objectMapper;
 
+  @MockBean
+  private EmailService emailService;
+
   @Test
   void completeAuthenticationFlow() throws Exception {
     // Step 1: Register a new user
@@ -40,23 +45,6 @@ public class AuthenticationFlowIntegrationTest {
         "New",
         "User"
     );
-
-    // First try the registration and capture the result without assertions
-    MvcResult registerAttempt = mockMvc.perform(post("/api/auth/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(registerRequest)))
-        .andReturn();
-
-    // Print error message if status is not 200
-    if (registerAttempt.getResponse().getStatus() != 200) {
-      System.err.println("Registration failed with status: " +
-          registerAttempt.getResponse().getStatus());
-      System.err.println("Response body: " +
-          registerAttempt.getResponse().getContentAsString());
-      // Print request that caused failure
-      System.err.println("Request body: " +
-          objectMapper.writeValueAsString(registerRequest));
-    }
 
     // Now proceed with the actual test assertion
     MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
