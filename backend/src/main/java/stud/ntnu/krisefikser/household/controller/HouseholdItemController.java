@@ -12,7 +12,7 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdItem;
 import stud.ntnu.krisefikser.household.entity.ProductType;
 import stud.ntnu.krisefikser.household.repository.HouseholdItemRepository;
-import stud.ntnu.krisefikser.household.repository.HouseholdRepo;
+import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.household.repository.ProductTypeRepository;
 
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class HouseholdItemController {
 
     private final HouseholdItemRepository householdItemRepository;
-    private final HouseholdRepo householdRepo;
+    private final HouseholdRepository householdRepo;
     private final ProductTypeRepository productTypeRepository;
 
     @GetMapping

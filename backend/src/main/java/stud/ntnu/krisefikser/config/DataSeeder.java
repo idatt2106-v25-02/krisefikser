@@ -11,7 +11,7 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdItem;
 import stud.ntnu.krisefikser.household.entity.ProductType;
 import stud.ntnu.krisefikser.household.repository.HouseholdItemRepository;
-import stud.ntnu.krisefikser.household.repository.HouseholdRepo;
+import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.household.repository.ProductTypeRepository;
 import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.map.entity.EventLevel;
@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepo;
-    private final HouseholdRepo householdRepo;
+    private final HouseholdRepository householdRepo;
     private final ArticleRepository articleRepository;
     private final MapPointTypeRepository mapPointTypeRepository;
     private final MapPointRepository mapPointRepository;
