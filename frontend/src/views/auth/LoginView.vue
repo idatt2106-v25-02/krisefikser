@@ -57,6 +57,36 @@ const { handleSubmit, meta, resetForm } = useForm({
 // Loading state
 const isLoading = ref(false)
 
+// Function to provide specific error messages based on error responses
+const getLoginErrorMessage = (error: { response?: { data?: { message?: string }; status?: number } }) => {
+  const message = 'Kunne ikke logge inn. Vennligst prøv igjen.';
+
+  const errorMessage = error?.response?.data?.message || '';
+  const statusCode = error?.response?.status;
+
+  // Check for specific error types and provide user-friendly messages
+  if (errorMessage.includes('Bad credentials') || errorMessage.includes('incorrect password') ||
+    errorMessage.includes('wrong password') || statusCode === 401) {
+    return 'Feil e-post eller passord. Vennligst prøv igjen.';
+  }
+
+  if (errorMessage.includes('not found') || errorMessage.includes('no user')) {
+    return isAdmin.value
+      ? 'Brukernavn finnes ikke. Sjekk om du har skrevet riktig brukernavnet.'
+      : 'E-postadressen er ikke registrert. Vennligst registrer deg eller sjekk om du har skrevet riktig e-post.';
+  }
+
+  if (errorMessage.includes('locked') || errorMessage.includes('disabled')) {
+    return 'Kontoen er låst. Vennligst kontakt administrator for hjelp.';
+  }
+
+  if (statusCode === 429) {
+    return 'For mange innloggingsforsøk. Vennligst vent litt før du prøver igjen.';
+  }
+
+  return errorMessage || message;
+}
+
 // Submit handler
 const onSubmit = handleSubmit(async (values) => {
   if (isLoading.value) return
@@ -77,13 +107,20 @@ const onSubmit = handleSubmit(async (values) => {
     })
 
     // Redirect to the intended page after successful login
-    router.push(redirectPath.value)
+    await router.push(redirectPath.value)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     toast({
-      title: 'Feil',
-      description: error?.response?.data?.message || 'Kunne ikke logge inn. Vennligst prøv igjen.',
+      title: 'Innloggingsfeil',
+      description: getLoginErrorMessage(error),
       variant: 'destructive',
+    })
+
+    resetForm({
+      values: {
+        identifier: values.identifier,
+        password: '',
+      },
     })
   } finally {
     isLoading.value = false

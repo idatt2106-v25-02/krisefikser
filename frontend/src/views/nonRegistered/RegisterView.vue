@@ -59,6 +59,29 @@ const { toast } = useToast()
 // Loading state
 const isLoading = ref(false)
 
+// Function to parse error messages and provide specific user feedback
+const getErrorMessage = (error: { response?: { data?: { message?: string }; status?: number } }) => {
+  // Default message
+  const message = 'Kunne ikke registrere. Vennligst prøv igjen.';
+
+  // Extract error message from response if available
+  const errorMessage = error?.response?.data?.message || '';
+
+  if (error?.response?.status === 429) {
+    return 'For mange forsøk. Vennligst vent litt før du prøver igjen.';
+  }
+
+  if (error?.response?.status === 409) {
+    return 'E-postadressen er allerede registrert. Vennligst bruk en annen e-post eller prøv å logge inn.';
+  }
+
+  if (error?.response?.status === 500) {
+    return 'Det oppstod en serverfeil. Vennligst prøv igjen senere.';
+  }
+
+  return errorMessage || message;
+}
+
 const onSubmit = handleSubmit(async (values) => {
   if (isLoading.value) return
 
@@ -71,12 +94,12 @@ const onSubmit = handleSubmit(async (values) => {
       description: 'Kontoen din er opprettet og du er nå logget inn',
       variant: 'default',
     })
-    router.push('/dashboard');
+    await router.push('/dashboard');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     toast({
-      title: 'Feil',
-      description: error?.response?.data?.message || 'Kunne ikke registrere. Vennligst prøv igjen.',
+      title: 'Registreringsfeil',
+      description: getErrorMessage(error),
       variant: 'destructive',
     })
   } finally {
