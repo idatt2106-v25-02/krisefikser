@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -19,30 +19,42 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { MapPin, ExternalLink, Trash, UserMinus, AlertCircle, Map as MapIcon } from 'lucide-vue-next'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
+  MapPin,
+  ExternalLink,
+  Trash,
+  UserMinus,
+  AlertCircle,
+  Map as MapIcon,
+} from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
-import { useGetActiveHousehold, useLeaveHousehold, useDeleteHousehold, useJoinHousehold } from '@/api/generated/household/household'
+import {
+  useGetActiveHousehold,
+  useLeaveHousehold,
+  useDeleteHousehold,
+  useJoinHousehold,
+} from '@/api/generated/household/household'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Badge } from '@/components/ui/badge'
-import type { HouseholdResponse, HouseholdMemberDto, UserDto } from '@/api/generated/model'
-
-interface Member {
-  id: string
-  name: string
-  consumptionFactor?: number
-  email?: string
-}
+import type { HouseholdResponse } from '@/api/generated/model'
 
 interface MeetingPlace {
-  id: string;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  description?: string;
-  type: 'primary' | 'secondary';
+  id: string
+  name: string
+  address: string
+  latitude: number
+  longitude: number
+  description?: string
+  type: 'primary' | 'secondary'
 }
 
 interface Inventory {
@@ -74,25 +86,28 @@ interface ExtendedHouseholdResponse extends HouseholdResponse {
 }
 
 // Form schemas
-const memberFormSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'Navn er påkrevd'),
-  email: z.string().email('Ugyldig e-postadresse').optional(),
-  consumptionFactor: z.number().min(0.1, 'Må være større enn 0').optional()
-}))
+const memberFormSchema = toTypedSchema(
+  z.object({
+    name: z.string().min(1, 'Navn er påkrevd'),
+    email: z.string().email('Ugyldig e-postadresse').optional(),
+    consumptionFactor: z.number().min(0.1, 'Må være større enn 0').optional(),
+  }),
+)
 
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 
-const householdId = computed(() => route.params.id as string)
-
 // Get household data
-const { data: household, isLoading: isLoadingHousehold, refetch: refetchHousehold } = useGetActiveHousehold<ExtendedHouseholdResponse>({
+const {
+  data: household,
+  isLoading: isLoadingHousehold,
+  refetch: refetchHousehold,
+} = useGetActiveHousehold<ExtendedHouseholdResponse>({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
-    refetchOnWindowFocus: true
-  }
+    refetchOnWindowFocus: true,
+  },
 })
 
 // Mutations
@@ -100,16 +115,16 @@ const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       router.push('/husstand')
-    }
-  }
+    },
+  },
 })
 
 const { mutate: deleteHousehold } = useDeleteHousehold({
   mutation: {
     onSuccess: () => {
       router.push('/husstand')
-    }
-  }
+    },
+  },
 })
 
 const { mutate: addMember } = useJoinHousehold({
@@ -117,16 +132,16 @@ const { mutate: addMember } = useJoinHousehold({
     onSuccess: () => {
       refetchHousehold()
       isAddMemberDialogOpen.value = false
-    }
-  }
+    },
+  },
 })
 
 const { mutate: removeMember } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       refetchHousehold()
-    }
-  }
+    },
+  },
 })
 
 // State for dialogs
@@ -138,17 +153,17 @@ const selectedMeetingPlace = ref<MeetingPlace | null>(null)
 
 // Form handling
 const { handleSubmit: submitMemberForm } = useForm<MemberFormValues>({
-  validationSchema: memberFormSchema
+  validationSchema: memberFormSchema,
 })
 
 // Actions
-function onMemberSubmit(values: MemberFormValues) {
+function onMemberSubmit() {
   if (!household.value) return
 
   addMember({
     data: {
-      householdId: household.value.id
-    }
+      householdId: household.value.id,
+    },
   })
 }
 
@@ -156,8 +171,8 @@ function onRemoveMember(userId?: string) {
   if (!userId) return
   removeMember({
     data: {
-      householdId: household.value?.id
-    }
+      householdId: household.value?.id,
+    },
   })
 }
 
@@ -170,17 +185,20 @@ function handleLeaveHousehold() {
   if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
     leaveHousehold({
       data: {
-        householdId: household.value.id
-      }
+        householdId: household.value.id,
+      },
     })
   }
 }
 
 function handleDeleteHousehold() {
   if (!household.value) return
-  if (confirm('Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres.') && household.value.id) {
+  if (
+    confirm('Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres.') &&
+    household.value.id
+  ) {
     deleteHousehold({
-      id: household.value.id
+      id: household.value.id,
     })
   }
 }
@@ -256,22 +274,44 @@ function viewMeetingPlace(placeId: string) {
                   <div class="p-4">
                     <div class="flex justify-between items-start">
                       <div class="flex items-center mb-3">
-                        <div class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0">
-                          <span class="text-md font-medium">{{ member.user?.firstName?.[0] || '?' }}</span>
+                        <div
+                          class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0"
+                        >
+                          <span class="text-md font-medium">{{
+                            member.user?.firstName?.[0] || '?'
+                          }}</span>
                         </div>
-                        <h3 class="text-md font-bold text-gray-900">{{ member.user?.firstName }} {{ member.user?.lastName }}</h3>
+                        <h3 class="text-md font-bold text-gray-900">
+                          {{ member.user?.firstName }} {{ member.user?.lastName }}
+                        </h3>
                       </div>
                       <DropdownMenu v-if="member.user?.id !== authStore.currentUser?.id">
                         <DropdownMenuTrigger as-child>
                           <Button variant="ghost" size="icon" class="h-8 w-8">
                             <span class="sr-only">Medlemsalternativer</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
-                              <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="text-gray-400"
+                            >
+                              <circle cx="12" cy="12" r="1" />
+                              <circle cx="12" cy="5" r="1" />
+                              <circle cx="12" cy="19" r="1" />
                             </svg>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem @click="onRemoveMember(member.user?.id)" class="text-red-600">
+                          <DropdownMenuItem
+                            @click="onRemoveMember(member.user?.id)"
+                            class="text-red-600"
+                          >
                             <UserMinus class="h-4 w-4 mr-2" />
                             Fjern medlem
                           </DropdownMenuItem>
@@ -310,11 +350,22 @@ function viewMeetingPlace(placeId: string) {
 
               <HouseholdEmergencySupplies
                 :inventory="{
-                  food: { current: household.inventory?.food?.current || 0, target: household.inventory?.food?.target || 0, unit: household.inventory?.food?.unit || '' },
-                  water: { current: household.inventory?.water?.current || 0, target: household.inventory?.water?.target || 0, unit: household.inventory?.water?.unit || '' },
-                  other: { current: household.inventory?.other?.current || 0, target: household.inventory?.other?.target || 0 },
+                  food: {
+                    current: household.inventory?.food?.current || 0,
+                    target: household.inventory?.food?.target || 0,
+                    unit: household.inventory?.food?.unit || '',
+                  },
+                  water: {
+                    current: household.inventory?.water?.current || 0,
+                    target: household.inventory?.water?.target || 0,
+                    unit: household.inventory?.water?.unit || '',
+                  },
+                  other: {
+                    current: household.inventory?.other?.current || 0,
+                    target: household.inventory?.other?.target || 0,
+                  },
                   preparedDays: household.inventory?.preparedDays || 0,
-                  targetDays: household.inventory?.targetDays || 7
+                  targetDays: household.inventory?.targetDays || 7,
                 }"
                 :inventory-items="household.inventoryItems || []"
                 :household-id="household.id || ''"
@@ -343,17 +394,15 @@ function viewMeetingPlace(placeId: string) {
               </div>
 
               <div class="divide-y divide-gray-100">
-                <div
-                  v-for="(place, index) in household.meetingPlaces"
-                  :key="place.id"
-                  class="p-4"
-                >
+                <div v-for="place in household.meetingPlaces" :key="place.id" class="p-4">
                   <div class="flex items-start">
                     <div class="flex-shrink-0 mr-3">
-                      <div :class="[
-                        'h-10 w-10 rounded-full flex items-center justify-center',
-                        place.type === 'primary' ? 'bg-red-500' : 'bg-orange-400'
-                      ]">
+                      <div
+                        :class="[
+                          'h-10 w-10 rounded-full flex items-center justify-center',
+                          place.type === 'primary' ? 'bg-red-500' : 'bg-orange-400',
+                        ]"
+                      >
                         <AlertCircle class="h-5 w-5 text-white" />
                       </div>
                     </div>
@@ -446,15 +495,9 @@ function viewMeetingPlace(placeId: string) {
                   <FormItem>
                     <FormLabel>Forbruksfaktor</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                      />
+                      <Input type="number" step="0.1" min="0" />
                     </FormControl>
-                    <FormMessage>
-                      0.5 for halv porsjon, 1 for normal porsjon, osv.
-                    </FormMessage>
+                    <FormMessage> 0.5 for halv porsjon, 1 for normal porsjon, osv. </FormMessage>
                   </FormItem>
                 </FormField>
 
@@ -470,31 +513,36 @@ function viewMeetingPlace(placeId: string) {
             <DialogHeader>
               <DialogTitle>Møteplasser ved krise</DialogTitle>
               <DialogDescription>
-                Kartet viser dine møteplasser ved krisesituasjoner. Klikk på markørene for mer informasjon og veibeskrivelse.
+                Kartet viser dine møteplasser ved krisesituasjoner. Klikk på markørene for mer
+                informasjon og veibeskrivelse.
               </DialogDescription>
             </DialogHeader>
 
             <div class="py-6 px-2">
               <HouseholdMeetingMap
                 ref="mapRef"
-                :meeting-places="household.meetingPlaces?.map(place => ({
-                  ...place,
-                  position: [place.latitude, place.longitude]
-                })) || []"
+                :meeting-places="
+                  household.meetingPlaces?.map((place) => ({
+                    ...place,
+                    position: [place.latitude, place.longitude],
+                  })) || []
+                "
                 :household-position="[household.latitude || 0, household.longitude || 0]"
                 @meeting-place-selected="handleMeetingPlaceSelected"
                 class="min-h-[625px]"
               />
 
               <div class="mt-4 flex gap-3">
-                <div v-for="place in household.meetingPlaces" :key="place.id"
-                     :class="[
-                      'px-3 py-2 rounded-md text-sm cursor-pointer border flex-1',
-                      place.type === 'primary'
-                        ? 'bg-red-50 border-red-200 text-red-800'
-                        : 'bg-orange-50 border-orange-200 text-orange-800'
-                    ]"
-                     @click="viewMeetingPlace(place.id)"
+                <div
+                  v-for="place in household.meetingPlaces"
+                  :key="place.id"
+                  :class="[
+                    'px-3 py-2 rounded-md text-sm cursor-pointer border flex-1',
+                    place.type === 'primary'
+                      ? 'bg-red-50 border-red-200 text-red-800'
+                      : 'bg-orange-50 border-orange-200 text-orange-800',
+                  ]"
+                  @click="viewMeetingPlace(place.id)"
                 >
                   <div class="font-medium">{{ place.name.split(':')[0] }}</div>
                 </div>

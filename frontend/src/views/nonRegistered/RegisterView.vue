@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { User, Mail, Home, Lock, Eye, EyeOff } from 'lucide-vue-next'
+import { User, Mail } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from '@/components/ui/toast/use-toast'
 
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
+import PrivacyPolicyView from './PrivacyPolicyView.vue'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 // Schema for the registration form
 const rawSchema = z
@@ -18,12 +20,12 @@ const rawSchema = z
     firstName: z.string().min(2, 'Fornavn må være minst 2 tegn'),
     lastName: z.string().min(2, 'Etternavn må være minst 2 tegn'),
     email: z.string().email('Ugyldig e-post').min(5, 'E-post må være minst 5 tegn'),
-    householdCode: z.string().refine(
-      (val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)),
-      {
+    householdCode: z
+      .string()
+      .refine((val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)), {
         message: 'Husholdningskode må være nøyaktig 5 bokstaver (ingen tall)',
-      }
-    ).optional(),
+      })
+      .optional(),
     password: z
       .string()
       .min(8, 'Passord må være minst 8 tegn')
@@ -33,15 +35,18 @@ const rawSchema = z
       .regex(/[0-9]/, 'Må inneholde minst ett tall')
       .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
     confirmPassword: z.string(),
+    acceptedPrivacyPolicy: z.literal(true, {
+      errorMap: () => ({ message: 'Du må godta personvernerklæringen' }),
+    }),
     //turnstileToken: z.string().min(1, 'Vennligst fullfør CAPTCHA-verifiseringen')
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passordene stemmer ikke overens",
+    message: 'Passordene stemmer ikke overens',
     path: ['confirmPassword'],
   })
 
 // Set up consts for submit button deactivation
-const { handleSubmit, meta, setFieldValue } = useForm({
+const { handleSubmit, meta } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
@@ -57,13 +62,14 @@ const onSubmit = handleSubmit(async (values) => {
 
   isLoading.value = true
   try {
-    const { confirmPassword, ...registrationData } = values
+    const { confirmPassword, acceptedPrivacyPolicy, ...registrationData } = values
     await authStore.register(registrationData)
     toast({
       title: 'Suksess',
       description: 'Kontoen din er opprettet og du er nå logget inn',
       variant: 'default',
     })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     toast({
       title: 'Feil',
@@ -75,21 +81,8 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-// Show/hide password
-const showPassword = ref(false)
-
-// Toggle the visibility of the password
-function toggleShowPassword() {
-  showPassword.value = !showPassword.value
-}
-
-// Show/hide confirm password
-const showConfirmPassword = ref(false)
-
-// Toggle the visibility of the confirm password field
-function toggleShowConfirmPassword() {
-  showConfirmPassword.value = !showConfirmPassword.value
-}
+// Dialog state
+const isPrivacyPolicyOpen = ref(false)
 </script>
 
 <template>
@@ -106,7 +99,9 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Fornavn</FormLabel>
           <FormControl>
             <div class="relative">
-              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <User
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="text"
                 placeholder="Ola"
@@ -125,7 +120,9 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Etternavn</FormLabel>
           <FormControl>
             <div class="relative">
-              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <User
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="text"
                 placeholder="Nordmann"
@@ -144,7 +141,9 @@ function toggleShowConfirmPassword() {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">E-post</FormLabel>
           <FormControl>
             <div class="relative">
-              <Mail class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Mail
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="email"
                 placeholder="navn@eksempel.no"
@@ -180,6 +179,33 @@ function toggleShowConfirmPassword() {
           :showIcon="true"
         />
       </FormField>
+      <!-- Accept Privacy Policy -->
+      <FormField v-slot="{ value, handleChange }" name="acceptedPrivacyPolicy" type="checkbox">
+        <FormItem>
+          <div class="flex items-start space-x-2">
+            <FormControl>
+              <input
+                type="checkbox"
+                :checked="value"
+                @change="handleChange(($event.target as HTMLInputElement)?.checked ?? false)"
+                id="acceptedPrivacyPolicy"
+                class="mt-1"
+              />
+            </FormControl>
+            <label for="acceptedPrivacyPolicy" class="text-sm text-gray-700">
+              Jeg godtar
+              <button
+                type="button"
+                @click="isPrivacyPolicyOpen = true"
+                class="text-blue-600 hover:underline"
+              >
+                personvernerklæringen
+              </button>
+            </label>
+          </div>
+          <FormMessage class="text-sm text-red-500" />
+        </FormItem>
+      </FormField>
 
       <!-- Cloudflare Turnstile -->
       <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
@@ -203,6 +229,13 @@ function toggleShowConfirmPassword() {
           <FormMessage class="text-sm text-red-500" />
         </FormItem>
       </FormField> -->
+
+      <!-- Privacy Policy Dialog -->
+      <Dialog :open="isPrivacyPolicyOpen" @update:open="isPrivacyPolicyOpen = $event">
+        <DialogContent class="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <PrivacyPolicyView />
+        </DialogContent>
+      </Dialog>
 
       <!-- Submit button -->
       <Button

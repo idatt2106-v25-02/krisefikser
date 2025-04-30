@@ -23,7 +23,7 @@ const route = useRoute()
 const router = useRouter()
 
 // Get redirect path from route query if available
-const redirectPath = computed(() => route.query.redirect as string || '/dashboard')
+const redirectPath = computed(() => (route.query.redirect as string) || '/dashboard')
 
 // Computed value to check if login mode is admin
 const isAdmin = computed(() => authModeStore.isAdmin)
@@ -44,8 +44,8 @@ const formSchema = computed(() =>
         .regex(/[a-z]/, 'Passord må inneholde minst én liten bokstav')
         .regex(/[0-9]/, 'Passord må inneholde minst ett tall')
         .regex(/[^A-Za-z0-9]/, 'Passord må inneholde minst ett spesialtegn'),
-    })
-  )
+    }),
+  ),
 )
 
 // === Form logic ===
@@ -66,7 +66,7 @@ const onSubmit = handleSubmit(async (values) => {
     // Map identifier to email for backend compatibility
     const loginData = {
       email: values.identifier,
-      password: values.password
+      password: values.password,
     }
 
     await authStore.login(loginData)
@@ -78,6 +78,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     // Redirect to the intended page after successful login
     router.push(redirectPath.value)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     toast({
       title: 'Feil',
@@ -114,8 +115,14 @@ function toggleLoginType() {
           </FormLabel>
           <FormControl>
             <div class="relative">
-              <User v-if="isAdmin" class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-              <Mail v-else class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <User
+                v-if="isAdmin"
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
+              <Mail
+                v-else
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 :type="isAdmin ? 'text' : 'email'"
                 :placeholder="isAdmin ? 'admin_bruker' : 'navn@eksempel.no'"

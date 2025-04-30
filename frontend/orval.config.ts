@@ -1,4 +1,9 @@
-import { defineConfig } from 'orval';
+import { defineConfig } from 'orval'
+import { config } from 'dotenv'
+
+config()
+
+const openApiUrl = process.env.VITE_API_URL ? `${process.env.VITE_API_URL}/v3/api-docs` : './openapi.json'
 
 export default defineConfig({
   krisefikser: {
@@ -8,18 +13,18 @@ export default defineConfig({
       mode: 'tags-split',
       schemas: './src/api/generated/model',
       mock: false,
-      prettier: false,
+      prettier: true,
       clean: false,
-      baseUrl: 'http://localhost:8080',
+      baseUrl: process.env.VITE_API_URL || 'http://localhost:8080',
       override: {
         mutator: {
           path: './src/api/axios.ts',
-          name: 'customInstance'
-        }
-      }
+          name: 'customInstance',
+        },
+      },
     },
     input: {
-      target: 'http://localhost:8080/v3/api-docs',
+      target: openApiUrl,
     },
   },
-});
+})
