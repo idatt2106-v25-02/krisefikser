@@ -21,9 +21,7 @@ import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.entity.Household;
-import stud.ntnu.krisefikser.household.entity.ProductType;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
-import stud.ntnu.krisefikser.household.repository.ProductTypeRepository;
 import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.map.entity.EventLevel;
 import stud.ntnu.krisefikser.map.entity.EventStatus;
@@ -46,7 +44,6 @@ public class DataSeeder implements CommandLineRunner {
     private final MapPointRepository mapPointRepository;
     private final EventRepository eventRepository;
     private final RoleRepository roleRepository;
-    private final ProductTypeRepository productTypeRepository;
 
     @Autowired(required = false)
     private PasswordEncoder passwordEncoder;
@@ -102,7 +99,6 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("PasswordEncoder not available, skipping user seeding");
         }
 
-        seedProductTypes();
         seedHouseholds();
         seedArticles();
         seedMapPointTypes();
@@ -153,45 +149,6 @@ public class DataSeeder implements CommandLineRunner {
 
         userRepo.saveAll(users);
         System.out.println("Seeded " + users.size() + " users");
-    }
-
-    private void seedProductTypes() {
-        List<ProductType> productTypes = new ArrayList<>();
-
-        // Common crisis storage items
-        String[][] items = {
-                {"Water", "liters"},
-                {"Canned Food", "cans"},
-                {"First Aid Kit", "kits"},
-                {"Batteries", "packs"},
-                {"Flashlight", "pieces"},
-                {"Blankets", "pieces"},
-                {"Gasoline", "liters"},
-                {"Propane", "tanks"},
-                {"Matches", "boxes"},
-                {"Candles", "pieces"},
-                {"Portable Radio", "pieces"},
-                {"Emergency Whistle", "pieces"},
-                {"Duct Tape", "rolls"},
-                {"Rope", "meters"},
-                {"Water Purification Tablets", "tablets"},
-                {"Emergency Blanket", "pieces"},
-                {"Multi-tool", "pieces"},
-                {"Hand Sanitizer", "liters"},
-                {"Face Masks", "pieces"},
-                {"Emergency Food Rations", "days"}
-        };
-
-        for (String[] item : items) {
-            ProductType productType = ProductType.builder()
-                    .name(item[0])
-                    .unit(item[1])
-                    .build();
-            productTypes.add(productType);
-        }
-
-        productTypeRepository.saveAll(productTypes);
-        System.out.println("Seeded " + productTypes.size() + " product types");
     }
 
     private void seedHouseholds() {
