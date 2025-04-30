@@ -41,6 +41,24 @@ public class AuthenticationFlowIntegrationTest {
         "User"
     );
 
+    // First try the registration and capture the result without assertions
+    MvcResult registerAttempt = mockMvc.perform(post("/api/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(registerRequest)))
+        .andReturn();
+
+    // Print error message if status is not 200
+    if (registerAttempt.getResponse().getStatus() != 200) {
+      System.err.println("Registration failed with status: " +
+          registerAttempt.getResponse().getStatus());
+      System.err.println("Response body: " +
+          registerAttempt.getResponse().getContentAsString());
+      // Print request that caused failure
+      System.err.println("Request body: " +
+          objectMapper.writeValueAsString(registerRequest));
+    }
+
+    // Now proceed with the actual test assertion
     MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(registerRequest)))
@@ -49,6 +67,7 @@ public class AuthenticationFlowIntegrationTest {
         .andExpect(jsonPath("$.refreshToken").exists())
         .andReturn();
 
+    // Continue with rest of the test...
     LoginResponse registerResponse = objectMapper.readValue(
         registerResult.getResponse().getContentAsString(),
         LoginResponse.class
