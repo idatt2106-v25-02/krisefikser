@@ -1,4 +1,7 @@
 import { defineConfig } from 'orval'
+import { config } from 'dotenv'
+
+config()
 
 export default defineConfig({
   krisefikser: {
@@ -10,7 +13,7 @@ export default defineConfig({
       mock: false,
       prettier: true,
       clean: false,
-      baseUrl: 'http://localhost:8080',
+      baseUrl: process.env.VITE_API_URL,
       override: {
         mutator: {
           path: './src/api/axios.ts',
@@ -19,7 +22,7 @@ export default defineConfig({
       },
     },
     input: {
-      target: 'http://localhost:8080/v3/api-docs',
+      target: `${process.env.VITE_API_URL}/v3/api-docs`,
     },
   },
 })
