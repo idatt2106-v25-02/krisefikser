@@ -5,14 +5,13 @@ const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
-
 // Leave household mutation
 const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       emit('refresh')
-    }
-  }
+    },
+  },
 })
 
 // Set active household mutation
@@ -22,16 +21,16 @@ const { mutate: setActiveHousehold } = useSetActiveHousehold({
       emit('refresh')
       refetchHouseholds()
       refetchActiveHousehold()
-    }
-  }
+    },
+  },
 })
 
 const handleLeaveHousehold = (householdId: string | undefined) => {
   if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
     leaveHousehold({
       data: {
-        householdId
-      }
+        householdId,
+      },
     })
   }
 }
@@ -39,8 +38,8 @@ const handleLeaveHousehold = (householdId: string | undefined) => {
 const handleSetActiveHousehold = (householdId: string | undefined) => {
   setActiveHousehold({
     data: {
-      householdId
-    }
+      householdId,
+    },
   })
 }
 import { ref } from 'vue'
@@ -75,18 +74,13 @@ const { mutate: JoinHousehold, isPending: isJoinHouseholdPending } = useJoinHous
   },
 })
 
-
-
 const {
   data: householdsData,
   isLoading: isLoadingHouseholds,
   refetch: refetchHouseholds,
 } = useGetAllHouseholds()
 
-const {
-  data: activeHouseholdData,
-  refetch: refetchActiveHousehold,
-} = useGetActiveHousehold()
+const { data: activeHouseholdData, refetch: refetchActiveHousehold } = useGetActiveHousehold()
 
 // Import Button component
 import { Button } from '@/components/ui/button'
@@ -121,11 +115,7 @@ const closeModal = () => {
     <div v-if="isLoadingHouseholds" class="p-4 text-center text-gray-500">Laster husstander...</div>
 
     <ul v-else class="space-y-3">
-      <li
-        v-for="(household, index) in householdsData"
-        :key="household.id"
-        class="flex items-center"
-      >
+      <li v-for="household in householdsData" :key="household.id" class="flex items-center">
         <div class="bg-blue-100 p-2 rounded-full mr-3">
           <svg
             xmlns="http://www.w3.org/2000/svg"

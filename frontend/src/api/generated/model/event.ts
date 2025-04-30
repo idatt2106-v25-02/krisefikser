@@ -5,18 +5,18 @@
  * This API exposes endpoints for the Krisefikser application.
  * OpenAPI spec version: 1.0
  */
-import type { EventLevel } from './eventLevel';
-import type { EventStatus } from './eventStatus';
+import type { EventLevel } from './eventLevel'
+import type { EventStatus } from './eventStatus'
 
 export interface Event {
-  id?: number;
-  title?: string;
-  description?: string;
-  radius?: number;
-  latitude?: number;
-  longitude?: number;
-  level?: EventLevel;
-  startTime?: string;
-  endTime?: string;
-  status?: EventStatus;
+  id?: number
+  title?: string
+  description?: string
+  radius?: number
+  latitude?: number
+  longitude?: number
+  level?: EventLevel
+  startTime?: string
+  endTime?: string
+  status?: EventStatus
 }

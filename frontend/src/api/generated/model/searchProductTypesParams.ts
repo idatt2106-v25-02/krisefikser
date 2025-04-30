@@ -7,5 +7,5 @@
  */
 
 export type SearchProductTypesParams = {
-name: string;
-};
+  name: string
+}

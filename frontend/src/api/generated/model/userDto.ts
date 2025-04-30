@@ -7,12 +7,12 @@
  */
 
 export interface UserDto {
-  id?: string;
-  email?: string;
-  roles?: string[];
-  firstName?: string;
-  lastName?: string;
-  notifications?: boolean;
-  emailUpdates?: boolean;
-  locationSharing?: boolean;
+  id?: string
+  email?: string
+  roles?: string[]
+  firstName?: string
+  lastName?: string
+  notifications?: boolean
+  emailUpdates?: boolean
+  locationSharing?: boolean
 }

@@ -64,6 +64,7 @@ pnpm lint
 ```
 
 ## Project Structure
+
 ```
 🗂️ Project Structure
 src/

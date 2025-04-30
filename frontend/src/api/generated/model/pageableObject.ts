@@ -5,13 +5,13 @@
  * This API exposes endpoints for the Krisefikser application.
  * OpenAPI spec version: 1.0
  */
-import type { SortObject } from './sortObject';
+import type { SortObject } from './sortObject'
 
 export interface PageableObject {
-  offset?: number;
-  sort?: SortObject;
-  paged?: boolean;
-  pageNumber?: number;
-  pageSize?: number;
-  unpaged?: boolean;
+  offset?: number
+  sort?: SortObject
+  paged?: boolean
+  pageNumber?: number
+  pageSize?: number
+  unpaged?: boolean
 }
