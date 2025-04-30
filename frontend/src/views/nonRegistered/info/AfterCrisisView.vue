@@ -95,8 +95,25 @@ export default {
     :iconComponent="iconComponents.CheckCircle"
     iconBgColor="green"
   >
-    <!-- Introduction -->
+    <!-- Introduction with Quiz Highlight -->
     <ContentCard fullWidth>
+      <div class="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
+        <div class="flex items-center mb-2">
+          <component :is="iconComponents.BookOpen" class="h-6 w-6 text-green-600 mr-2" />
+          <h3 class="text-lg font-semibold text-gray-800">Test din kunnskap</h3>
+        </div>
+        <p class="text-gray-700">
+          Denne siden inneholder en quiz nederst hvor du kan teste din kunnskap om hva du bør
+          gjøre etter en krisesituasjon. Du får umiddelbar tilbakemelding og kan lære mens du tester deg selv.
+        </p>
+        <a href="#quiz-section" class="inline-flex items-center text-green-600 font-medium mt-2 hover:underline">
+          Gå til quiz
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </a>
+      </div>
+
       <h2 class="text-2xl font-semibold text-gray-800 mb-4">Gjenoppbygging og normalisering</h2>
       <p class="text-gray-700 mb-4">
         Når en krise er over, starter en viktig fase med gjenoppbygging, normalisering og læring.
@@ -237,7 +254,18 @@ export default {
     </ContentCard>
 
     <!-- Quiz section -->
-    <ContentCard fullWidth>
+    <ContentCard fullWidth id="quiz-section">
+      <div class="bg-green-50 p-6 rounded-lg mb-6">
+        <h3 class="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+          <component :is="iconComponents.BookOpen" class="h-6 w-6 text-green-600 mr-2" />
+          Test din kunnskap om tiden etter en krise
+        </h3>
+        <p class="text-gray-700 mb-4">
+          Svar på spørsmålene nedenfor for å teste din kunnskap om hva du bør gjøre etter en krisesituasjon.
+          Hver riktig besvarelse styrker din mentale beredskap.
+        </p>
+      </div>
+
       <QuizComponent
         title="Test din kunnskap"
         description="Svar på spørsmålene nedenfor for å teste din kunnskap om hva du bør gjøre etter en krisesituasjon."

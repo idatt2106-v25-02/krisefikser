@@ -1,7 +1,7 @@
 <script lang="ts">
-
+/* eslint-disable vue/no-unused-components */
 import { AlertTriangle, Radio, Info, Shield, AlertCircle, Zap, Droplets, Cloud,
-  Stethoscope, Heart, PhoneCall, Users } from 'lucide-vue-next';
+  Stethoscope, Heart, PhoneCall, Users, BookOpen } from 'lucide-vue-next';
 import QuizComponent from '@/components/quiz/QuizComponent.vue';
 import PageLayout from '@/components/layout/PageLayout.vue';
 import ContentCard from '@/components/ui/ContentCard.vue';
@@ -27,6 +27,7 @@ export default {
     Heart,
     PhoneCall,
     Users,
+    BookOpen,
     QuizComponent
   },
   data() {
@@ -44,7 +45,8 @@ export default {
         Stethoscope,
         Heart,
         PhoneCall,
-        Users
+        Users,
+        BookOpen
       },
       quizQuestions: [
         {
@@ -104,8 +106,25 @@ export default {
     :iconComponent="iconComponents.AlertTriangle"
     iconBgColor="yellow"
   >
-    <!-- Introduction -->
+    <!-- Introduction with Quiz Highlight -->
     <ContentCard fullWidth>
+      <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4">
+        <div class="flex items-center mb-2">
+          <component :is="iconComponents.BookOpen" class="h-6 w-6 text-yellow-600 mr-2" />
+          <h3 class="text-lg font-semibold text-gray-800">Test din kunnskap</h3>
+        </div>
+        <p class="text-gray-700">
+          Denne siden inneholder en quiz nederst hvor du kan teste din kunnskap om hva du bør
+          gjøre under en krisesituasjon. Du får umiddelbar tilbakemelding og kan lære mens du tester deg selv.
+        </p>
+        <a href="#quiz-section" class="inline-flex items-center text-yellow-600 font-medium mt-2 hover:underline">
+          Gå til quiz
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </a>
+      </div>
+
       <h2 class="text-2xl font-semibold text-gray-800 mb-4">Når krisen inntreffer</h2>
       <p class="text-gray-700 mb-4">
         Når en krise oppstår, er det viktig å holde roen og handle rasjonelt. Din evne til
@@ -277,7 +296,18 @@ export default {
     </ContentCard>
 
     <!-- Quiz section -->
-    <ContentCard fullWidth>
+    <ContentCard fullWidth id="quiz-section">
+      <div class="bg-yellow-50 p-6 rounded-lg mb-6">
+        <h3 class="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+          <component :is="iconComponents.BookOpen" class="h-6 w-6 text-yellow-600 mr-2" />
+          Test din kunnskap om krisehåndtering
+        </h3>
+        <p class="text-gray-700 mb-4">
+          Svar på spørsmålene nedenfor for å teste din kunnskap om hva du bør gjøre under en krisesituasjon.
+          Hver riktig besvarelse styrker din mentale beredskap.
+        </p>
+      </div>
+
       <QuizComponent
         title="Test din kunnskap"
         description="Svar på spørsmålene nedenfor for å teste din kunnskap om hva du bør gjøre under en krisesituasjon."
@@ -302,6 +332,5 @@ export default {
       authSecondaryButtonRoute="/dashboard"
       colorTheme="yellow"
     />
-
   </PageLayout>
 </template>
