@@ -3,7 +3,7 @@ package stud.ntnu.krisefikser.household.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import stud.ntnu.krisefikser.user.dto.UserDto;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,7 +18,7 @@ public class HouseholdResponse {
     private double latitude;
     private double longitude;
     private String address;
-    private UserDto owner;
+    private UserResponse owner;
     private List<HouseholdMemberResponse> members;
     private LocalDateTime createdAt;
     private boolean isActive;
