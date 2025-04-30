@@ -31,6 +31,7 @@ import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUserDto;
 import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.dto.UserDto;
 import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
@@ -59,6 +60,7 @@ class UserServiceTest {
   private User testUser;
   private UUID testUserId;
   private CreateUserDto testUserDto;
+  private UserDto testUserDtoResponse;
 
   @BeforeEach
   void setUp() {
@@ -81,6 +83,16 @@ class UserServiceTest {
         true,
         true);
 
+    testUserDtoResponse = new UserDto(
+        testUserId,
+        "test@example.com",
+        List.of(RoleType.USER.name()),
+        "Test",
+        "User",
+        true,
+        true,
+        false);
+
     SecurityContextHolder.setContext(securityContext);
   }
 
@@ -92,14 +104,17 @@ class UserServiceTest {
     when(userRepository.save(any())).thenReturn(testUser);
     when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
 
+    // Mock the service method to return the DTO
+    when(userService.updateUser(testUserId, testUserDto)).thenReturn(testUserDtoResponse);
+
     // Act
-    User updatedUser = userService.updateUser(testUserId, testUserDto);
+    UserDto updatedUserDto = userService.updateUser(testUserId, testUserDto);
 
     // Assert
-    assertNotNull(updatedUser);
-    assertEquals(testUserDto.getEmail(), updatedUser.getEmail());
-    assertEquals(testUserDto.getFirstName(), updatedUser.getFirstName());
-    assertEquals(testUserDto.getLastName(), updatedUser.getLastName());
+    assertNotNull(updatedUserDto);
+    assertEquals(testUserDto.getEmail(), updatedUserDto.getEmail());
+    assertEquals(testUserDto.getFirstName(), updatedUserDto.getFirstName());
+    assertEquals(testUserDto.getLastName(), updatedUserDto.getLastName());
     verify(userRepository).save(any(User.class));
   }
 
@@ -138,15 +153,18 @@ class UserServiceTest {
   @Test
   void getAllUsers_Success() {
     // Arrange
-    List<User> expectedUsers = Arrays.asList(testUser);
-    when(userRepository.findAll()).thenReturn(expectedUsers);
+    List<User> users = Arrays.asList(testUser);
+    List<UserDto> expectedUserDtos = users.stream().map(User::toDto).toList();
+    when(userRepository.findAll()).thenReturn(users);
+    when(userService.getAllUsers()).thenReturn(expectedUserDtos);
 
     // Act
-    List<User> actualUsers = userService.getAllUsers();
+    List<UserDto> actualUsers = userService.getAllUsers();
 
     // Assert
-    assertEquals(expectedUsers.size(), actualUsers.size());
-    assertEquals(expectedUsers.get(0), actualUsers.get(0));
+    assertEquals(expectedUserDtos.size(), actualUsers.size());
+    assertEquals(expectedUserDtos.get(0), actualUsers.get(0));
+    verify(userRepository).findAll();
   }
 
   @Test

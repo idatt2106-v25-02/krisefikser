@@ -88,8 +88,8 @@ class UserControllerTest {
   @WithMockUser
   void getAllUsers_Success() throws Exception {
     // Arrange
-    List<User> users = Arrays.asList(testUser);
-    when(userService.getAllUsers()).thenReturn(users);
+    List<UserDto> userDtos = Arrays.asList(testUserDtoResponse);
+    when(userService.getAllUsers()).thenReturn(userDtos);
 
     // Act & Assert
     mockMvc.perform(get("/api/users"))
@@ -105,7 +105,7 @@ class UserControllerTest {
   void updateUser_Success() throws Exception {
     // Arrange
     when(userService.isAdminOrSelf(testUserId)).thenReturn(true);
-    when(userService.updateUser(testUserId, testUserDto)).thenReturn(testUser);
+    when(userService.updateUser(testUserId, testUserDto)).thenReturn(testUserDtoResponse);
 
     // Act & Assert
     mockMvc.perform(put("/api/users/{userId}", testUserId)

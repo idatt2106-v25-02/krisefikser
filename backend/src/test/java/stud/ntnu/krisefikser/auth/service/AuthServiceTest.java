@@ -34,7 +34,9 @@ import stud.ntnu.krisefikser.auth.entity.RefreshToken;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.email.service.EmailService;
 import stud.ntnu.krisefikser.user.dto.CreateUserDto;
+import stud.ntnu.krisefikser.user.dto.UserDto;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,6 +61,9 @@ public class AuthServiceTest {
   @Mock
   private RefreshTokenRepository refreshTokenRepository;
 
+  @Mock
+  private EmailService emailService;
+
   @InjectMocks
   private AuthService authService;
 
@@ -68,6 +73,7 @@ public class AuthServiceTest {
   private UserDetails userDetails;
   private stud.ntnu.krisefikser.user.entity.User user;
   private RefreshToken refreshToken;
+  private UserDto userDto;
 
   @BeforeEach
   void setUp() {
@@ -93,6 +99,8 @@ public class AuthServiceTest {
         .roles(Collections.singleton(role))
         .build();
 
+    userDto = user.toDto();
+
     refreshToken = RefreshToken.builder()
         .id(UUID.randomUUID())
         .token("refresh-token-123")
@@ -105,14 +113,15 @@ public class AuthServiceTest {
     // Configure token service
     when(tokenService.generate(any(UserDetails.class), any(), any())).thenReturn("generated-token");
     when(tokenService.generate(any(UserDetails.class), any())).thenReturn("generated-token");
-    when(tokenService.extractEmail(anyString())).thenReturn("test@example.com");
+    when(tokenService.extractUsername(anyString())).thenReturn("test@example.com");
   }
 
   @Test
   void register_ShouldReturnTokens() {
     // Arrange
-    when(userService.createUser(any(CreateUserDto.class))).thenReturn(user);
-    when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
+    when(userService.createUser(any(CreateUserDto.class))).thenReturn(userDto);
+    when(userService.getUserByEmail("test@example.com")).thenReturn(user);
+    when(userDetailsService.loadUserByUsername("test@example.com")).thenReturn(userDetails);
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
 
     // Act
@@ -153,8 +162,10 @@ public class AuthServiceTest {
   @Test
   void refresh_WithValidToken_ShouldReturnNewTokens() {
     // Arrange
-    when(refreshTokenRepository.findByToken(anyString())).thenReturn(Optional.of(refreshToken));
-    when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
+    when(refreshTokenRepository.existsByToken("refresh-token-123")).thenReturn(true);
+    when(refreshTokenRepository.findByToken("refresh-token-123")).thenReturn(Optional.of(refreshToken));
+    when(userDetailsService.loadUserByUsername("test@example.com")).thenReturn(userDetails);
+    when(tokenService.validate(anyString(), any(UserDetails.class))).thenReturn(true);
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
 
     // Act
@@ -165,6 +176,7 @@ public class AuthServiceTest {
     assertThat(response.getAccessToken()).isEqualTo("generated-token");
     assertThat(response.getRefreshToken()).isEqualTo("generated-token");
 
+    verify(refreshTokenRepository).existsByToken("refresh-token-123");
     verify(refreshTokenRepository).findByToken("refresh-token-123");
     verify(refreshTokenRepository).delete(refreshToken);
     verify(refreshTokenRepository).save(any(RefreshToken.class));
@@ -173,13 +185,14 @@ public class AuthServiceTest {
   @Test
   void refresh_WithInvalidToken_ShouldThrowException() {
     // Arrange
-    when(refreshTokenRepository.findByToken(anyString())).thenReturn(Optional.empty());
+    when(refreshTokenRepository.existsByToken("refresh-token-123")).thenReturn(false);
 
     // Act & Assert
     assertThatThrownBy(() -> authService.refresh(refreshRequest))
         .isInstanceOf(RefreshTokenDoesNotExistException.class);
 
-    verify(refreshTokenRepository).findByToken("refresh-token-123");
+    verify(refreshTokenRepository).existsByToken("refresh-token-123");
+    verify(refreshTokenRepository, never()).findByToken(anyString());
     verify(refreshTokenRepository, never()).delete(any());
     verify(refreshTokenRepository, never()).save(any());
   }
