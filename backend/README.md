@@ -4,7 +4,10 @@
 
 This repository contains the backend service for Krisefikser, built with Spring Boot 3.4. It provides RESTful APIs for
 the Krisefikser crisis management platform, handling user authentication, emergency shelter tracking, crisis
-information, and more.
+information, and resource management functionalities.
+
+**Note:** Please review the complete documentation before beginning development or deployment, and familiarize yourself
+with existing code conventions.
 
 ## Tech Stack
 
