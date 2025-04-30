@@ -5,20 +5,20 @@
  * This API exposes endpoints for the Krisefikser application.
  * OpenAPI spec version: 1.0
  */
-import type { HouseholdItemDto } from './householdItemDto';
-import type { SortObject } from './sortObject';
-import type { PageableObject } from './pageableObject';
+import type { HouseholdItemDto } from './householdItemDto'
+import type { SortObject } from './sortObject'
+import type { PageableObject } from './pageableObject'
 
 export interface PageHouseholdItemDto {
-  totalPages?: number;
-  totalElements?: number;
-  first?: boolean;
-  last?: boolean;
-  size?: number;
-  content?: HouseholdItemDto[];
-  number?: number;
-  sort?: SortObject;
-  pageable?: PageableObject;
-  numberOfElements?: number;
-  empty?: boolean;
+  totalPages?: number
+  totalElements?: number
+  first?: boolean
+  last?: boolean
+  size?: number
+  content?: HouseholdItemDto[]
+  number?: number
+  sort?: SortObject
+  pageable?: PageableObject
+  numberOfElements?: number
+  empty?: boolean
 }

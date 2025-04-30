@@ -5,10 +5,10 @@
  * This API exposes endpoints for the Krisefikser application.
  * OpenAPI spec version: 1.0
  */
-import type { UserDto } from './userDto';
-import type { HouseholdMemberDtoStatus } from './householdMemberDtoStatus';
+import type { UserDto } from './userDto'
+import type { HouseholdMemberDtoStatus } from './householdMemberDtoStatus'
 
 export interface HouseholdMemberDto {
-  user?: UserDto;
-  status?: HouseholdMemberDtoStatus;
+  user?: UserDto
+  status?: HouseholdMemberDtoStatus
 }

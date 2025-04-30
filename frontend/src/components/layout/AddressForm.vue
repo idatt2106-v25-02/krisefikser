@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Home, MapPin, Mail, Building, Globe } from 'lucide-vue-next'
+import { Home, MapPin, Mail, Building } from 'lucide-vue-next'
 
 // Props
 const props = defineProps({
@@ -112,7 +112,10 @@ const onOnlyLetters = (e: KeyboardEvent) => {
 }
 
 // Geocode address
-const geocodeAddress = async (values: any): Promise<{ latitude: number; longitude: number } | null> => {
+const geocodeAddress = async (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  values: any,
+): Promise<{ latitude: number; longitude: number } | null> => {
   try {
     const fullAddress = `${values.address}, ${values.postalCode} ${values.city}`
     const encodedQuery = encodeURIComponent(fullAddress)
@@ -250,7 +253,9 @@ const buttonColorClass = computed(() => {
                 <FormLabel>Postnummer</FormLabel>
                 <FormControl>
                   <div class="relative">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <div
+                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                    >
                       <Mail class="h-5 w-5 text-gray-400" />
                     </div>
                     <Input
@@ -274,7 +279,9 @@ const buttonColorClass = computed(() => {
                 <FormLabel>By/sted</FormLabel>
                 <FormControl>
                   <div class="relative">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <div
+                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                    >
                       <Building class="h-5 w-5 text-gray-400" />
                     </div>
                     <Input

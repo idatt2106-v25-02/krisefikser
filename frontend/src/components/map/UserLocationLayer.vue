@@ -6,6 +6,7 @@ import { EventLevel, EventStatus } from '@/api/generated/model'
 
 // Define props
 const props = defineProps<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   map: any // Using any to avoid Leaflet type issues
   events?: Event[]
 }>()
@@ -28,17 +29,15 @@ function checkUserInEventZone(position: GeolocationPosition) {
   userInCrisisZone.value = false
 
   // Only consider active events (ONGOING or UPCOMING) with YELLOW or RED level
-  const relevantEvents = props.events.filter(event =>
-    (event.status === EventStatus.ONGOING || event.status === EventStatus.UPCOMING) &&
-    (event.level === EventLevel.YELLOW || event.level === EventLevel.RED)
+  const relevantEvents = props.events.filter(
+    (event) =>
+      (event.status === EventStatus.ONGOING || event.status === EventStatus.UPCOMING) &&
+      (event.level === EventLevel.YELLOW || event.level === EventLevel.RED),
   )
 
   for (const event of relevantEvents) {
     if (props.map && event.latitude && event.longitude && event.radius) {
-      const distance = props.map.distance(
-        [latitude, longitude],
-        [event.latitude, event.longitude]
-      )
+      const distance = props.map.distance([latitude, longitude], [event.latitude, event.longitude])
 
       if (distance <= event.radius) {
         userInCrisisZone.value = true
@@ -102,7 +101,7 @@ function startWatchingPosition() {
       userLocationAvailable.value = false
       emit('user-location-available', false)
     },
-    { enableHighAccuracy: true }
+    { enableHighAccuracy: true },
   )
 }
 
@@ -140,32 +139,39 @@ onMounted(() => {
 })
 
 // Watch for map changes
-watch(() => props.map, (newMap) => {
-  if (newMap && userMarker.value) {
-    userMarker.value.addTo(newMap)
-  }
-})
+watch(
+  () => props.map,
+  (newMap) => {
+    if (newMap && userMarker.value) {
+      userMarker.value.addTo(newMap)
+    }
+  },
+)
 
 // Watch for events changes
-watch(() => props.events, () => {
-  if (userMarker.value && props.map) {
-    const position = userMarker.value.getLatLng()
-    const geolocationPosition = {
-      coords: {
-        latitude: position.lat,
-        longitude: position.lng,
-        accuracy: 0,
-        altitude: null,
-        altitudeAccuracy: null,
-        heading: null,
-        speed: null
-      },
-      timestamp: Date.now()
-    } as GeolocationPosition
+watch(
+  () => props.events,
+  () => {
+    if (userMarker.value && props.map) {
+      const position = userMarker.value.getLatLng()
+      const geolocationPosition = {
+        coords: {
+          latitude: position.lat,
+          longitude: position.lng,
+          accuracy: 0,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null,
+        },
+        timestamp: Date.now(),
+      } as GeolocationPosition
 
-    checkUserInEventZone(geolocationPosition)
-  }
-}, { deep: true })
+      checkUserInEventZone(geolocationPosition)
+    }
+  },
+  { deep: true },
+)
 
 // Clean up on unmount
 onUnmounted(() => {
@@ -177,10 +183,3 @@ defineExpose({
   toggleUserLocation,
 })
 </script>
-
-<template>
-</template>
-
-<style>
-
-</style>

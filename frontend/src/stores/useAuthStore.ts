@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLogin, useRegister, useMe } from '@/api/generated/authentication/authentication'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
@@ -45,13 +45,17 @@ export const useAuthStore = defineStore('auth', () => {
     query: {
       enabled: isAuthenticated.value,
       refetchOnMount: true,
-      refetchOnWindowFocus: true
-    }
+      refetchOnWindowFocus: true,
+    },
   })
 
   // Role-based authorization
   const isAdmin = computed(() => {
-    return currentUser.value?.roles?.includes('ADMIN') || currentUser.value?.roles?.includes('SUPER_ADMIN') || false
+    return (
+      currentUser.value?.roles?.includes('ADMIN') ||
+      currentUser.value?.roles?.includes('SUPER_ADMIN') ||
+      false
+    )
   })
 
   const isSuperAdmin = computed(() => {
@@ -152,6 +156,6 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
 
     // Expose for debugging
-    refetchUser
+    refetchUser,
   }
 })
