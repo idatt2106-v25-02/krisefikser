@@ -18,6 +18,13 @@ import org.thymeleaf.context.Context;
 import stud.ntnu.krisefikser.auth.service.TokenService;
 import stud.ntnu.krisefikser.user.entity.User;
 
+/**
+ * Service responsible for sending emails to users.
+ * It uses Thymeleaf to template emails and {@link TokenService} to generate secure tokens
+ * for actions like email verification and password reset.
+ * This service is typically invoked by other services, such as {@link stud.ntnu.krisefikser.auth.service.AuthService}
+ * during user registration.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,6 +39,14 @@ public class EmailService {
   @Value("${app.email.from:noreply@krisefikser.app}")
   private String emailFrom;
 
+  /**
+   * Sends a welcome email with an email verification link.
+   * Called by {@link stud.ntnu.krisefikser.auth.service.AuthService#register(stud.ntnu.krisefikser.auth.dto.RegisterRequest)}.
+   * Generates a verification token using {@link TokenService}.
+   *
+   * @param user The newly registered {@link User} entity (often fetched via {@link stud.ntnu.krisefikser.user.service.UserService}).
+   * @param userDetails UserDetails corresponding to the user, used for token generation.
+   */
   public void sendWelcomeEmail(User user, UserDetails userDetails) {
     // Create verification token that expires in 24 hours
     Map<String, Object> claims = new HashMap<>();
@@ -67,6 +82,13 @@ public class EmailService {
     log.info("Sent welcome email to {}", user.getEmail());
   }
 
+  /**
+   * Sends a password reset email with a link to reset the password.
+   * Generates a password reset token using {@link TokenService}.
+   *
+   * @param user The {@link User} entity requesting the password reset (often fetched via {@link stud.ntnu.krisefikser.user.service.UserService}).
+   * @param userDetails UserDetails corresponding to the user, used for token generation.
+   */
   public void sendPasswordResetEmail(User user, UserDetails userDetails) {
     // Create password reset token that expires in 1 hour
     Map<String, Object> claims = new HashMap<>();
