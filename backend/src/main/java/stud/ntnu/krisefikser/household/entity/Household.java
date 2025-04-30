@@ -7,8 +7,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,35 +26,38 @@ import stud.ntnu.krisefikser.user.entity.User;
 @NoArgsConstructor
 public class Household {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-  @Column(nullable = false)
-  private String name;
+    @Column(nullable = false)
+    private String name;
 
-  @Column(nullable = false)
-  private double latitude;
+    @Column(nullable = false)
+    private double latitude;
 
-  @Column(nullable = false)
-  private double longitude;
+    @Column(nullable = false)
+    private double longitude;
 
-  @Column(nullable = false)
-  private String address;
+    @Column(nullable = false)
+    private String address;
 
-  @Column(nullable = false)
-  private String postalCode;
+    @Column(nullable = false)
+    private String postalCode;
 
-  @Column(nullable = false)
-  private String city;
+    @Column(nullable = false)
+    private String city;
 
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "owner_id")
-  private User owner;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "owner_id")
+    private User owner;
 
-  @CreationTimestamp
-  private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private Double waterLiters = 0.0;
 
-  @UpdateTimestamp
-  private LocalDateTime updatedAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
