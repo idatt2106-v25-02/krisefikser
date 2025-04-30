@@ -249,30 +249,8 @@ onUnmounted(() => {
         </FormItem>
       </FormField>
 
-      <div id="turnstile"></div>
-
       <!-- Cloudflare Turnstile -->
-      <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
-        <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft at du er et menneske</FormLabel>
-          <FormControl>
-            <div class="flex justify-center">
-              <div class="relative w-full flex justify-center">
-                <Shield class="absolute left-2 top-0 text-gray-500 h-4 w-4" />
-                <VueTurnstile
-                  site-key="0x4AAAAAABSTiPNZwrBLQkgr"
-                  v-model="turnstileToken"
-                  theme="light"
-                  @success="onTurnstileSuccess"
-                  @error="onTurnstileError"
-                  @expire="onTurnstileExpire"
-                />
-              </div>
-            </div>
-          </FormControl>
-          <FormMessage class="text-sm text-red-500" />
-        </FormItem>
-      </FormField> -->
+      <div id="turnstile"></div>
 
       <!-- Privacy Policy Dialog -->
       <Dialog :open="isPrivacyPolicyOpen" @update:open="isPrivacyPolicyOpen = $event">
@@ -284,7 +262,7 @@ onUnmounted(() => {
       <!-- Submit button -->
       <Button
         type="submit"
-        :disabled="!meta.valid || isLoading"
+        :disabled="!meta.valid || isLoading || !captchaToken"
         class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
         <template v-if="isLoading">Oppretter konto...</template>
