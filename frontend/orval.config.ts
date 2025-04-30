@@ -1,7 +1,10 @@
 import { defineConfig } from 'orval'
 import { config } from 'dotenv'
 
-config()
+// Only load .env file in development
+if (process.env.NODE_ENV !== 'production') {
+  config()
+}
 
 const openApiUrl = process.env.VITE_API_URL ? `${process.env.VITE_API_URL}/v3/api-docs` : 'http://localhost:8080/v3/api-docs'
 
