@@ -35,6 +35,9 @@ const rawSchema = z
       .regex(/[0-9]/, 'Må inneholde minst ett tall')
       .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
     confirmPassword: z.string(),
+    acceptedPrivacyPolicy: z.literal(true, {
+      errorMap: () => ({ message: 'Du må godta personvernerklæringen' }),
+    }),
     //turnstileToken: z.string().min(1, 'Vennligst fullfør CAPTCHA-verifiseringen')
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -59,7 +62,7 @@ const onSubmit = handleSubmit(async (values) => {
 
   isLoading.value = true
   try {
-    const { confirmPassword, ...registrationData } = values
+    const { confirmPassword, acceptedPrivacyPolicy,...registrationData } = values
     await authStore.register(registrationData)
     toast({
       title: 'Suksess',
@@ -185,6 +188,27 @@ const isPrivacyPolicyOpen = ref(false)
           :showIcon="true"
         />
       </FormField>
+      <!-- Accept Privacy Policy -->
+<FormField v-slot="{ value, handleChange }" name="acceptedPrivacyPolicy" type="checkbox">
+  <FormItem>
+    <div class="flex items-start space-x-2">
+      <FormControl>
+        <input
+          type="checkbox"
+          :checked="value"
+          @change="handleChange(($event.target as HTMLInputElement)?.checked ?? false)"
+          id="acceptedPrivacyPolicy"
+          class="mt-1"
+        />
+      </FormControl>
+      <label for="acceptedPrivacyPolicy" class="text-sm text-gray-700">
+        Jeg godtar <button type="button" @click="isPrivacyPolicyOpen = true" class="text-blue-600 hover:underline">personvernerklæringen</button>
+      </label>
+    </div>
+    <FormMessage class="text-sm text-red-500" />
+  </FormItem>
+</FormField>
+
 
       <!-- Cloudflare Turnstile -->
       <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
@@ -224,6 +248,7 @@ const isPrivacyPolicyOpen = ref(false)
           <PrivacyPolicyView />
         </DialogContent>
       </Dialog>
+
 
       <!-- Submit button -->
       <Button
