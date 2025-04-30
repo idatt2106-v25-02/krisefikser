@@ -123,14 +123,14 @@ onMounted(() => {
       toast({
         title: 'Success',
         description: 'Captcha token received',
-        variant: 'default'
+        variant: 'default',
       })
     },
     'error-callback': () => {
       toast({
         title: 'Error',
         description: 'Captcha token error',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       captchaToken.value = ''
     },
@@ -138,10 +138,10 @@ onMounted(() => {
       toast({
         title: 'Warning',
         description: 'Captcha token expired',
-        variant: 'warning'
+        variant: 'warning',
       })
       captchaToken.value = ''
-    }
+    },
   })
 })
 
