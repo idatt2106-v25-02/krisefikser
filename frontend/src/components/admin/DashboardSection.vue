@@ -6,7 +6,8 @@ import {
   AlertTriangle,
   BookOpen,
   Trophy,
-  Mail
+  Mail,
+  ArrowRight
 } from 'lucide-vue-next';
 
 // Import shadcn Button component
@@ -14,12 +15,12 @@ import { Button } from '@/components/ui/button';
 
 defineEmits(['navigateToMap', 'switchSection']);
 
-// Stats for dashboard
+// Stats for dashboard - keeping orange for active events, but changing other colors to blue variations
 const stats = [
-  { title: 'Aktive hendelser', value: 2, icon: AlertTriangle, color: 'text-orange-500' },
-  { title: 'Kart-elementer', value: 128, icon: Map, color: 'text-blue-500' },
-  { title: 'Scenarioer', value: 3, icon: BookOpen, color: 'text-green-500' },
-  { title: 'Gamification aktiviteter', value: 3, icon: Trophy, color: 'text-purple-500' }
+  { title: 'Aktive hendelser', value: 2, icon: AlertTriangle, color: 'text-orange-500', bgColor: 'bg-orange-100', borderColor: 'border-orange-200' },
+  { title: 'Kart-elementer', value: 128, icon: Map, color: 'text-blue-500', bgColor: 'bg-blue-100', borderColor: 'border-blue-200' },
+  { title: 'Scenarioer', value: 3, icon: BookOpen, color: 'text-blue-600', bgColor: 'bg-blue-100', borderColor: 'border-blue-200' },
+  { title: 'Gamification aktiviteter', value: 3, icon: Trophy, color: 'text-blue-700', bgColor: 'bg-blue-100', borderColor: 'border-blue-200' }
 ];
 
 // Mock data for events
@@ -52,6 +53,15 @@ const getLevelClass = (level: string) => {
     default: return 'bg-gray-100 text-gray-800 border-gray-200';
   }
 };
+
+const getBorderClass = (level: string) => {
+  switch(level.toLowerCase()) {
+    case 'rød': return 'border-l-4 border-l-red-500';
+    case 'gul': return 'border-l-4 border-l-yellow-500';
+    case 'grønn': return 'border-l-4 border-l-green-500';
+    default: return '';
+  }
+};
 </script>
 
 <template>
@@ -60,9 +70,14 @@ const getLevelClass = (level: string) => {
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div v-for="(stat, index) in stats" :key="index" class="bg-white rounded-lg shadow p-6">
+      <div
+        v-for="(stat, index) in stats"
+        :key="index"
+        class="bg-white rounded-lg shadow p-6 transition-all hover:shadow-md"
+        :class="{ 'border-t-4': true, [stat.borderColor]: stat.title === 'Aktive hendelser', 'border-blue-200': stat.title !== 'Aktive hendelser' }"
+      >
         <div class="flex items-center">
-          <div :class="`${stat.color} bg-opacity-10 p-3 rounded-full`">
+          <div :class="`${stat.color} ${stat.bgColor} p-3 rounded-full`">
             <component :is="stat.icon" class="h-6 w-6" />
           </div>
           <div class="ml-4">
@@ -74,19 +89,25 @@ const getLevelClass = (level: string) => {
     </div>
 
     <!-- Recent Events -->
-    <div class="bg-white rounded-lg shadow mb-6">
+    <div class="bg-white rounded-lg shadow mb-6 border-t-2 ">
       <div class="p-4 border-b flex justify-between items-center">
         <h3 class="text-lg font-medium text-gray-800">Nylige hendelser</h3>
         <Button
           @click="$emit('switchSection', 'events')"
           variant="link"
-          class="text-blue-600 hover:text-blue-800 text-sm p-0 h-auto"
+          class="text-blue-600 hover:text-blue-800 text-sm p-0 h-auto flex items-center group"
         >
           Se alle
+          <ArrowRight class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
         </Button>
       </div>
       <div class="p-4">
-        <div v-for="event in events" :key="event.id" class="mb-4 last:mb-0 p-3 border rounded-lg">
+        <div
+          v-for="event in events"
+          :key="event.id"
+          class="mb-4 last:mb-0 p-3 border rounded-lg hover:shadow-sm transition-shadow"
+          :class="getBorderClass(event.level)"
+        >
           <div class="flex justify-between">
             <h4 class="font-medium">{{ event.title }}</h4>
             <span :class="`px-2 py-1 rounded-full text-xs font-medium ${getLevelClass(event.level)}`">
@@ -103,7 +124,7 @@ const getLevelClass = (level: string) => {
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-lg shadow">
+    <div class="bg-white rounded-lg shadow border-t-2 ">
       <div class="p-4 border-b">
         <h3 class="text-lg font-medium text-gray-800">Hurtighandlinger</h3>
       </div>
@@ -111,27 +132,33 @@ const getLevelClass = (level: string) => {
         <Button
           @click="$emit('navigateToMap')"
           variant="outline"
-          class="flex items-center p-3 justify-start h-auto"
+          class="flex items-center p-3 justify-start h-auto border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-colors"
         >
-          <Map class="h-5 w-5 text-blue-600" />
+          <div class="bg-blue-100 p-2 rounded-full">
+            <Map class="h-5 w-5 text-blue-600" />
+          </div>
           <span class="ml-2 text-gray-700">Legg til kartposisjon</span>
         </Button>
 
         <Button
           @click="$emit('switchSection', 'events')"
           variant="outline"
-          class="flex items-center p-3 justify-start h-auto"
+          class="flex items-center p-3 justify-start h-auto border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-colors"
         >
-          <AlertTriangle class="h-5 w-5 text-orange-600" />
+          <div class="bg-orange-100 p-2 rounded-full">
+            <AlertTriangle class="h-5 w-5 text-orange-600" />
+          </div>
           <span class="ml-2 text-gray-700">Registrer hendelse</span>
         </Button>
 
         <Button
           @click="$emit('switchSection', 'admins')"
           variant="outline"
-          class="flex items-center p-3 justify-start h-auto"
+          class="flex items-center p-3 justify-start h-auto border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-colors"
         >
-          <Mail class="h-5 w-5 text-green-600" />
+          <div class="bg-blue-100 p-2 rounded-full">
+            <Mail class="h-5 w-5 text-blue-600" />
+          </div>
           <span class="ml-2 text-gray-700">Inviter admin</span>
         </Button>
       </div>

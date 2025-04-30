@@ -1,16 +1,22 @@
 package stud.ntnu.krisefikser.user.service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.exception.RoleNotFoundException;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
+import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.dto.CreateUserDto;
 import stud.ntnu.krisefikser.user.dto.UserDto;
 import stud.ntnu.krisefikser.user.entity.User;
@@ -20,12 +26,10 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 /**
  * Service responsible for user management operations.
- * It handles creating new users and retrieving existing users.
- * This service is primarily used by {@link stud.ntnu.krisefikser.auth.service.AuthService} during registration
- * and authentication flows, and potentially by {@link stud.ntnu.krisefikser.auth.service.CustomUserDetailsService}
- * to load user data for Spring Security.
+ * Handles creating, retrieving, updating, and deleting users.
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserService {
 
@@ -35,62 +39,114 @@ public class UserService {
 
   /**
    * Retrieves the {@link User} entity for the currently authenticated user.
-   * Uses Spring Security context to identify the user.
-   *
-   * @return The {@link User} entity.
    */
   public User getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String email = authentication.getName();
-
     return getUserByEmail(email);
   }
 
   /**
    * Finds a user by their email address.
-   * Used by various services, including {@link stud.ntnu.krisefikser.auth.service.AuthService},
-   * to fetch user details.
-   *
-   * @param email The email address of the user.
-   * @return The corresponding {@link User} entity.
-   * @throws UserDoesNotExistException if no user is found with the given email.
    */
   public User getUserByEmail(String email) {
-    return userRepository.findByEmail(email).orElseThrow(
-        () -> new UserDoesNotExistException("User with email " + email + " does not exist"));
+    return userRepository.findByEmail(email)
+        .orElseThrow(() -> new UserDoesNotExistException("User with email " + email + " does not exist"));
   }
 
   /**
-   * Creates a new user in the system.
-   * Called by {@link stud.ntnu.krisefikser.auth.service.AuthService#register(stud.ntnu.krisefikser.auth.dto.RegisterRequest)}.
-   * Assigns the default 'USER' role.
-   *
-   * @param data DTO containing the necessary information to create a user.
-   * @return A DTO representing the newly created user.
-   * @throws EmailAlreadyExistsException if the email is already in use.
-   * @throws RoleNotFoundException if the default 'USER' role doesn't exist.
+   * Creates a new user and returns a DTO.
    */
+  @Transactional
   public UserDto createUser(CreateUserDto data) {
     if (userRepository.existsByEmail(data.getEmail())) {
       throw new EmailAlreadyExistsException(
           "User with email " + data.getEmail() + " already exists");
     }
-
     Role userRole = roleRepository.findByName(RoleType.USER)
         .orElseThrow(RoleNotFoundException::new);
-
     Set<Role> roles = new HashSet<>();
     roles.add(userRole);
-
     User user = User.builder()
         .email(data.getEmail())
         .password(passwordEncoder.encode(data.getPassword()))
         .firstName(data.getFirstName())
         .lastName(data.getLastName())
+        .notifications(data.isNotifications())
+        .emailUpdates(data.isEmailUpdates())
+        .locationSharing(data.isLocationSharing())
         .roles(roles)
         .build();
+    User saved = userRepository.save(user);
+    log.info("Created user with email {}", saved.getEmail());
+    return saved.toDto();
+  }
 
-    User savedUser = userRepository.save(user);
-    return savedUser.toDto();
+  /**
+   * Updates an existing user and returns a DTO.
+   */
+  @Transactional
+  public UserDto updateUser(UUID userId, CreateUserDto data) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserDoesNotExistException("User with id " + userId + " does not exist"));
+    if (!user.getEmail().equals(data.getEmail()) && userRepository.existsByEmail(data.getEmail())) {
+      throw new EmailAlreadyExistsException(
+          "User with email " + data.getEmail() + " already exists");
+    }
+    user.setEmail(data.getEmail());
+    user.setFirstName(data.getFirstName());
+    user.setLastName(data.getLastName());
+    user.setNotifications(data.isNotifications());
+    user.setEmailUpdates(data.isEmailUpdates());
+    user.setLocationSharing(data.isLocationSharing());
+    if (data.getPassword() != null && !data.getPassword().isEmpty()) {
+      user.setPassword(passwordEncoder.encode(data.getPassword()));
+    }
+    User updated = userRepository.save(user);
+    log.info("Updated user {}", userId);
+    return updated.toDto();
+  }
+
+  /**
+   * Deletes a user by ID.
+   */
+  @Transactional
+  public void deleteUser(UUID userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserDoesNotExistException("User with id " + userId + " does not exist"));
+    userRepository.delete(user);
+    log.info("Deleted user {}", userId);
+  }
+
+  /**
+   * Retrieves all users as DTOs.
+   */
+  public List<UserDto> getAllUsers() {
+    return userRepository.findAll().stream()
+        .map(User::toDto)
+        .toList();
+  }
+
+  /**
+   * Checks if the current user is admin or the same as the given ID.
+   */
+  public boolean isAdminOrSelf(UUID userId) {
+    User current = getCurrentUser();
+    boolean ok = current.getId().equals(userId) ||
+        current.getRoles().stream()
+            .anyMatch(r -> r.getName() == RoleType.ADMIN || r.getName() == RoleType.SUPER_ADMIN);
+    log.debug("isAdminOrSelf({}, {}) = {}", current.getId(), userId, ok);
+    return ok;
+  }
+
+  /**
+   * Updates the active household for the current user.
+   */
+  @Transactional
+  public void updateActiveHousehold(Household household) {
+    User current = getCurrentUser();
+    current.setActiveHousehold(household);
+    userRepository.save(current);
+    log.info("Updated active household for user {}", current.getId());
   }
 }

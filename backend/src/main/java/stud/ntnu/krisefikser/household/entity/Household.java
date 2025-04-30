@@ -15,7 +15,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.locationtech.jts.geom.Point;
 import stud.ntnu.krisefikser.user.entity.User;
 
 @Entity
@@ -24,6 +23,7 @@ import stud.ntnu.krisefikser.user.entity.User;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Household {
+
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -31,8 +31,20 @@ public class Household {
   @Column(nullable = false)
   private String name;
 
-  @Column(columnDefinition = "POINT", nullable = false)
-  private Point location;
+  @Column(nullable = false)
+  private double latitude;
+
+  @Column(nullable = false)
+  private double longitude;
+
+  @Column(nullable = false)
+  private String address;
+
+  @Column(nullable = false)
+  private String postalCode;
+
+  @Column(nullable = false)
+  private String city;
 
   @ManyToOne(optional = false)
   @JoinColumn(name = "owner_id")

@@ -56,8 +56,10 @@ public class AuthService {
         registerRequest.getEmail(),
         registerRequest.getPassword(),
         registerRequest.getFirstName(),
-        registerRequest.getLastName()
-    ));
+        registerRequest.getLastName(),
+        true,
+        true,
+        true));
 
     // Get UserDetails for token generation
     UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getEmail());
@@ -76,8 +78,7 @@ public class AuthService {
 
     return new RegisterResponse(
         accessToken,
-        refreshToken
-    );
+        refreshToken);
   }
 
   /**
@@ -137,7 +138,7 @@ public class AuthService {
     String newRefreshToken = createRefreshToken(userDetails);
 
     // Update refresh token in repository
-    refreshTokenRepository.delete(refreshTokenRepository.findByToken(token).get());
+    refreshTokenRepository.findByToken(token).ifPresent(refreshTokenRepository::delete);
     refreshTokenRepository.save(RefreshToken.builder().token(newRefreshToken).build());
 
     return new RefreshResponse(accessToken, newRefreshToken);

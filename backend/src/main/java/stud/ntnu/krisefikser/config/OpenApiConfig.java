@@ -36,7 +36,7 @@ public class OpenApiConfig {
 
                 Contact contact = new Contact()
                                 .name("Krisefikser Team")
-                                .email("contact@krisefikser.no");
+                                .email("embret.roas@outlook.com");
 
                 License mitLicense = new License()
                                 .name("MIT License")
