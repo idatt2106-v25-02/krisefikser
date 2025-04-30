@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { User, Mail, Home, Lock, Eye, EyeOff } from 'lucide-vue-next'
+import { User, Mail } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from '@/components/ui/toast/use-toast'
 
@@ -46,7 +46,7 @@ const rawSchema = z
   })
 
 // Set up consts for submit button deactivation
-const { handleSubmit, meta, setFieldValue } = useForm({
+const { handleSubmit, meta } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
@@ -69,6 +69,7 @@ const onSubmit = handleSubmit(async (values) => {
       description: 'Kontoen din er opprettet og du er nå logget inn',
       variant: 'default',
     })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     toast({
       title: 'Feil',

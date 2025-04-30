@@ -7,7 +7,7 @@ import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
-import stud.ntnu.krisefikser.household.repository.HouseholdRepo;
+import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
@@ -17,14 +17,14 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class HouseholdService {
-    private final HouseholdRepo householdRepo;
-    private final HouseHoldMemberService houseHoldMemberService;
+    private final HouseholdRepository householdRepo;
+    private final HouseholdMemberService householdMemberService;
     private final UserService userService;
 
     @Transactional(readOnly = true)
     public List<HouseholdResponse> getUserHouseholds() {
         User currentUser = userService.getCurrentUser();
-        List<HouseholdMember> userMemberships = houseHoldMemberService.getHouseholdsByUser(currentUser);
+        List<HouseholdMember> userMemberships = householdMemberService.getHouseholdsByUser(currentUser);
 
         return userMemberships.stream()
                 .map(member -> toHouseholdResponse(member.getHousehold()))
@@ -33,7 +33,7 @@ public class HouseholdService {
 
     private HouseholdResponse toHouseholdResponse(Household household) {
         User currentUser = userService.getCurrentUser();
-        List<HouseholdMember> members = houseHoldMemberService.getMembers(household.getId());
+        List<HouseholdMember> members = householdMemberService.getMembers(household.getId());
 
         boolean isActive = false;
         if (currentUser.getActiveHousehold() != null) {
@@ -59,11 +59,11 @@ public class HouseholdService {
         Household household = householdRepo.findById(householdId)
                 .orElseThrow(() -> new IllegalArgumentException("Household not found"));
 
-        if (houseHoldMemberService.isMemberOfHousehold(currentUser, household)) {
+        if (householdMemberService.isMemberOfHousehold(currentUser, household)) {
             throw new IllegalArgumentException("Already a member of this household");
         }
 
-        HouseholdMember member = houseHoldMemberService.addMember(household, currentUser);
+        HouseholdMember member = householdMemberService.addMember(household, currentUser);
 
         if (member == null) {
             throw new IllegalArgumentException("Failed to join household");
@@ -78,7 +78,7 @@ public class HouseholdService {
         Household household = householdRepo.findById(householdId)
                 .orElseThrow(() -> new IllegalArgumentException("Household not found"));
 
-        if (!houseHoldMemberService.isMemberOfHousehold(currentUser, household)) {
+        if (!householdMemberService.isMemberOfHousehold(currentUser, household)) {
             throw new IllegalArgumentException("Not a member of this household");
         }
 
@@ -105,12 +105,12 @@ public class HouseholdService {
         Household household = householdRepo.findById(householdId)
                 .orElseThrow(() -> new IllegalArgumentException("Household not found"));
 
-        if (!houseHoldMemberService.isMemberOfHousehold(currentUser, household)) {
+        if (!householdMemberService.isMemberOfHousehold(currentUser, household)) {
             throw new IllegalArgumentException("Not a member of this household");
         }
 
         userService.updateActiveHousehold(null);
-        houseHoldMemberService.removeMember(household, currentUser);
+        householdMemberService.removeMember(household, currentUser);
     }
 
     @Transactional
@@ -125,13 +125,13 @@ public class HouseholdService {
         }
 
         // Clear active household for all members
-        List<HouseholdMember> members = houseHoldMemberService.getMembers(id);
+        List<HouseholdMember> members = householdMemberService.getMembers(id);
         for (HouseholdMember member : members) {
             if (member.getUser().getActiveHousehold() != null &&
                     member.getUser().getActiveHousehold().getId().equals(id)) {
                 userService.updateActiveHousehold(null);
             }
-            houseHoldMemberService.removeMember(household, member.getUser());
+            householdMemberService.removeMember(household, member.getUser());
         }
 
         householdRepo.deleteById(id);
@@ -150,7 +150,7 @@ public class HouseholdService {
         newHousehold.setOwner(currentUser);
 
         householdRepo.save(newHousehold);
-        houseHoldMemberService.addMember(newHousehold, currentUser);
+        householdMemberService.addMember(newHousehold, currentUser);
 
         currentUser.setActiveHousehold(newHousehold);
         userService.updateActiveHousehold(newHousehold);

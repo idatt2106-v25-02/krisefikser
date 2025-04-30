@@ -1,44 +1,36 @@
 <!-- AdminDashboard.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import {
-  Map,
-  AlertTriangle,
-  BookOpen,
-  Trophy,
-  Users,
-  ShieldCheck
-} from 'lucide-vue-next';
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { Map, AlertTriangle, BookOpen, Trophy, Users, ShieldCheck } from 'lucide-vue-next'
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'
 
 // Import our component for the main dashboard view
-import DashboardSection from '@/components/admin/DashboardSection.vue';
-import EventsSection from '@/components/admin/EventSection.vue';
-import ScenariosSection from '@/components/admin/ScenariosSection.vue';
-import GamificationSection from '@/components/admin/GamificationSection.vue';
-import AdminsSection from '@/components/admin/AdminSection.vue';
+import DashboardSection from '@/components/admin/DashboardSection.vue'
+import EventsSection from '@/components/admin/EventSection.vue'
+import ScenariosSection from '@/components/admin/ScenariosSection.vue'
+import GamificationSection from '@/components/admin/GamificationSection.vue'
+import AdminsSection from '@/components/admin/AdminSection.vue'
 
-const router = useRouter();
-const route = useRoute();
-const activeSection = ref('dashboard');
+const router = useRouter()
+const activeSection = ref('dashboard')
 
 // Set user role - in a real app, this would come from auth system
 // Options: 'Super Admin' or 'Admin'
-const userRole = ref('Super Admin');
+const userRole = ref('Super Admin')
 
 // Computed property to check if user is super admin
-const isSuperAdmin = computed(() => userRole.value === 'Super Admin');
+const isSuperAdmin = computed(() => userRole.value === 'Super Admin')
 
 // Function to toggle between admin types (for demonstration)
 const toggleAdminRole = () => {
-  userRole.value = userRole.value === 'Super Admin' ? 'Admin' : 'Super Admin';
-};
+  userRole.value = userRole.value === 'Super Admin' ? 'Admin' : 'Super Admin'
+}
 
 const navigateToMap = () => {
-  router.push('/admin/kart');
-};
+  router.push('/admin/kart')
+}
 </script>
 
 <template>
@@ -52,8 +44,12 @@ const navigateToMap = () => {
         <Button
           @click="activeSection = 'dashboard'"
           variant="ghost"
-          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
-                  activeSection === 'dashboard' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
+          :class="[
+            'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
+            activeSection === 'dashboard'
+              ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
+              : 'text-gray-700',
+          ]"
         >
           <span class="flex-shrink-0 w-6">
             <i class="fas fa-home"></i>
@@ -73,8 +69,12 @@ const navigateToMap = () => {
         <Button
           @click="activeSection = 'events'"
           variant="ghost"
-          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
-                  activeSection === 'events' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
+          :class="[
+            'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
+            activeSection === 'events'
+              ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
+              : 'text-gray-700',
+          ]"
         >
           <AlertTriangle class="h-5 w-5" />
           <span class="ml-2">Hendelser</span>
@@ -83,8 +83,12 @@ const navigateToMap = () => {
         <Button
           @click="activeSection = 'scenarios'"
           variant="ghost"
-          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
-                  activeSection === 'scenarios' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
+          :class="[
+            'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
+            activeSection === 'scenarios'
+              ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
+              : 'text-gray-700',
+          ]"
         >
           <BookOpen class="h-5 w-5" />
           <span class="ml-2">Scenarioer</span>
@@ -93,8 +97,12 @@ const navigateToMap = () => {
         <Button
           @click="activeSection = 'gamification'"
           variant="ghost"
-          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
-                  activeSection === 'gamification' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
+          :class="[
+            'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
+            activeSection === 'gamification'
+              ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
+              : 'text-gray-700',
+          ]"
         >
           <Trophy class="h-5 w-5" />
           <span class="ml-2">Gamification</span>
@@ -103,8 +111,12 @@ const navigateToMap = () => {
         <Button
           @click="activeSection = 'admins'"
           variant="ghost"
-          :class="['flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
-                  activeSection === 'admins' ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' : 'text-gray-700']"
+          :class="[
+            'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
+            activeSection === 'admins'
+              ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
+              : 'text-gray-700',
+          ]"
         >
           <Users class="h-5 w-5" />
           <span class="ml-2">Brukere</span>
@@ -126,7 +138,9 @@ const navigateToMap = () => {
           variant="ghost"
           class="flex items-center p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
         >
-          <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+          <div
+            class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium"
+          >
             <ShieldCheck v-if="isSuperAdmin" class="h-4 w-4" />
             <span v-else>A</span>
           </div>
@@ -144,17 +158,11 @@ const navigateToMap = () => {
         @switch-section="activeSection = $event"
       />
 
-      <EventsSection
-        v-if="activeSection === 'events'"
-      />
+      <EventsSection v-if="activeSection === 'events'" />
 
-      <ScenariosSection
-        v-if="activeSection === 'scenarios'"
-      />
+      <ScenariosSection v-if="activeSection === 'scenarios'" />
 
-      <GamificationSection
-        v-if="activeSection === 'gamification'"
-      />
+      <GamificationSection v-if="activeSection === 'gamification'" />
 
       <AdminsSection
         v-if="activeSection === 'admins'"

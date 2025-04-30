@@ -7,6 +7,6 @@
  */
 
 export interface RefreshResponse {
-  accessToken?: string;
-  refreshToken?: string;
+  accessToken?: string
+  refreshToken?: string
 }

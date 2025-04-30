@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import stud.ntnu.krisefikser.household.dto.ProductTypeDto;
+import stud.ntnu.krisefikser.household.dto.ProductTypeResponse;
 import stud.ntnu.krisefikser.household.entity.ProductType;
 import stud.ntnu.krisefikser.household.repository.ProductTypeRepository;
 
@@ -39,7 +39,7 @@ public class ProductTypeController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductType> createProductType(@RequestBody ProductTypeDto productTypeDto) {
+    public ResponseEntity<ProductType> createProductType(@RequestBody ProductTypeResponse productTypeDto) {
         ProductType productType = ProductType.builder()
                 .name(productTypeDto.getName())
                 .unit(productTypeDto.getUnit())
@@ -51,7 +51,7 @@ public class ProductTypeController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductType> updateProductType(
             @PathVariable UUID id,
-            @RequestBody ProductTypeDto productTypeDto) {
+            @RequestBody ProductTypeResponse productTypeDto) {
         return productTypeRepository.findById(id)
                 .map(existing -> {
                     existing.setName(productTypeDto.getName());

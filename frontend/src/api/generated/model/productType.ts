@@ -7,9 +7,9 @@
  */
 
 export interface ProductType {
-  id?: string;
-  name?: string;
-  unit?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  id?: string
+  name?: string
+  unit?: string
+  createdAt?: string
+  updatedAt?: string
 }
