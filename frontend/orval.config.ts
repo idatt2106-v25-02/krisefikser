@@ -3,6 +3,8 @@ import { config } from 'dotenv'
 
 config()
 
+const openApiUrl = process.env.VITE_API_URL ? `${process.env.VITE_API_URL}/v3/api-docs` : './openapi.json'
+
 export default defineConfig({
   krisefikser: {
     output: {
@@ -13,7 +15,7 @@ export default defineConfig({
       mock: false,
       prettier: true,
       clean: false,
-      baseUrl: process.env.VITE_API_URL,
+      baseUrl: process.env.VITE_API_URL || 'http://localhost:8080',
       override: {
         mutator: {
           path: './src/api/axios.ts',
@@ -22,7 +24,7 @@ export default defineConfig({
       },
     },
     input: {
-      target: `${process.env.VITE_API_URL}/v3/api-docs`,
+      target: openApiUrl,
     },
   },
 })
