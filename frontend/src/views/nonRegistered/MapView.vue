@@ -33,16 +33,16 @@ const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
 
 // Process map data
 function processMapData() {
-  if (!mapPointsData.value?.data || !mapPointTypesData.value?.data) return
+  if (!mapPointsData.value || !mapPointTypesData.value) return
 
   // Get data arrays from the API response
-  const mapPoints = Array.isArray(mapPointsData.value.data)
-    ? mapPointsData.value.data
-    : [mapPointsData.value.data]
+  const mapPoints = Array.isArray(mapPointsData.value)
+    ? mapPointsData.value
+    : [mapPointsData.value]
 
-  const mapPointTypes = Array.isArray(mapPointTypesData.value.data)
-    ? mapPointTypesData.value.data
-    : [mapPointTypesData.value.data]
+  const mapPointTypes = Array.isArray(mapPointTypesData.value)
+    ? mapPointTypesData.value
+    : [mapPointTypesData.value]
 
   // Find shelter type
   const shelterType = mapPointTypes.find((type: MapPointType) =>

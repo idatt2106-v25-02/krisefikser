@@ -56,7 +56,7 @@ const latestArticles = computed(() => {
   if (!articles?.value) return []
 
   // If articles.value.data is an array, use it directly
-  const articleData = articles.value.data
+  const articleData = articles.value
   const articleArray = Array.isArray(articleData) ? articleData : [articleData]
 
   // Sort by date and get the 3 most recent articles
