@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import L from 'leaflet'
+import type { Map } from '@/types/leaflet'
 
 // Define props
 const props = defineProps<{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  map: any
+  map: Map | null
   shelters: Array<{
     id: number
     name: string

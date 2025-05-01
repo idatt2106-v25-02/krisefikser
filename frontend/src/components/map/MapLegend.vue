@@ -4,14 +4,21 @@ const props = defineProps<{
   userLocationAvailable: boolean;
   showUserLocation: boolean;
   userInCrisisZone: boolean;
+  isAddingMeetingPoint: boolean;
+  hasActiveHousehold: boolean;
 }>();
 
 // Define emits
-const emit = defineEmits(['toggleUserLocation']);
+const emit = defineEmits(['toggleUserLocation', 'toggleMeetingPointCreation']);
 
 // Toggle user location
 function toggleUserLocation() {
   emit('toggleUserLocation', !props.showUserLocation);
+}
+
+// Toggle meeting point creation
+function toggleMeetingPointCreation() {
+  emit('toggleMeetingPointCreation', !props.isAddingMeetingPoint);
 }
 </script>
 
@@ -56,6 +63,15 @@ function toggleUserLocation() {
       @click="toggleUserLocation"
     >
       {{ showUserLocation ? 'Skjul min posisjon' : 'Vis min posisjon' }}
+    </button>
+
+    <button
+      v-if="hasActiveHousehold"
+      class="py-2.5 px-4 bg-blue-500 text-white border-none rounded-md cursor-pointer font-bold hover:bg-blue-600"
+      @click="toggleMeetingPointCreation"
+      :class="{ 'bg-blue-600': isAddingMeetingPoint }"
+    >
+      {{ isAddingMeetingPoint ? 'Klikk på kartet for å legge til møtepunkt' : 'Legg til møtepunkt' }}
     </button>
 
     <div v-if="userInCrisisZone" class="bg-[#F44336] text-white p-2.5 rounded-md font-bold text-center animate-blink">

@@ -2,6 +2,8 @@
 import { ref, watch } from 'vue'
 import { useCreateMeetingPoint, useUpdateMeetingPoint, useDeleteMeetingPoint } from '@/api/generated/meeting-points/meeting-points'
 import type { MeetingPointResponse } from '@/api/generated/model'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   householdId: string
@@ -60,79 +62,73 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <div class="fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg w-80 z-50">
-    <h2 class="text-xl font-bold mb-4">
-      {{ point ? 'Rediger møteplass' : 'Ny møteplass' }}
-    </h2>
+
 
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700">Navn</label>
-        <input
+        <Input
           v-model="name"
           type="text"
           required
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          class="mt-1"
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700">Beskrivelse</label>
-        <textarea
+        <Input
           v-model="description"
           required
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        ></textarea>
+          class="mt-1"
+        />
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">Breddegrad</label>
-          <input
+          <Input
             v-model="latitude"
             type="number"
             step="any"
             required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1"
           />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700">Lengdegrad</label>
-          <input
+          <Input
             v-model="longitude"
             type="number"
             step="any"
             required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1"
           />
         </div>
       </div>
 
       <div class="flex justify-between">
-        <button
-          type="submit"
-          class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
+        <Button type="submit">
           {{ point ? 'Oppdater' : 'Lagre' }}
-        </button>
+        </Button>
 
-        <button
+        <Button
           v-if="point"
           type="button"
+          variant="destructive"
           @click="handleDelete"
-          class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
         >
           Slett
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          variant="outline"
           @click="$emit('close')"
-          class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
         >
           Avbryt
-        </button>
+        </Button>
       </div>
     </form>
-  </div>
+
 </template>

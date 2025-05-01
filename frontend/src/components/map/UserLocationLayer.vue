@@ -6,8 +6,7 @@ import { EventLevel, EventStatus } from '@/api/generated/model'
 
 // Define props
 const props = defineProps<{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  map: any // Using any to avoid Leaflet type issues
+  map: L.Map | null
   events?: Event[]
 }>()
 
@@ -61,6 +60,26 @@ function checkUserInEventZone(position: GeolocationPosition) {
   }
 }
 
+// Set initial position
+function setInitialPosition(position: GeolocationPosition) {
+  if (!props.map) return
+
+  const { latitude, longitude } = position.coords
+
+  // Create initial marker
+  userMarker.value = L.marker([latitude, longitude], {
+    icon: L.divIcon({
+      className: 'user-location-marker',
+      html: '<div class="pulse bg-red-500 rounded-full w-10 h-10"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    }),
+  }).addTo(props.map)
+
+  // Check if user is in an event crisis zone
+  checkUserInEventZone(position)
+}
+
 // Watch user position
 function startWatchingPosition() {
   if (!navigator.geolocation) {
@@ -75,14 +94,19 @@ function startWatchingPosition() {
   // Watch position
   watchId.value = navigator.geolocation.watchPosition(
     (position) => {
+      console.log('Position updated', position)
+
       const { latitude, longitude } = position.coords
 
       if (!props.map) return
 
-      // Add or update user marker
+      // Update user marker position
       if (userMarker.value) {
+        console.log('Updating marker position')
         userMarker.value.setLatLng([latitude, longitude])
       } else {
+        // Create marker if it doesn't exist
+        console.log('Creating marker')
         userMarker.value = L.marker([latitude, longitude], {
           icon: L.divIcon({
             className: 'user-location-marker',
@@ -181,5 +205,6 @@ onUnmounted(() => {
 // Define exposed methods
 defineExpose({
   toggleUserLocation,
+  setInitialPosition,
 })
 </script>
