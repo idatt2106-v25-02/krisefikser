@@ -82,7 +82,7 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
-      path: '/admin/register',
+      path: '/admin/registrer',
       name: 'admin-register',
       component: AdminRegisterView,
       meta: { requiresAuth: true, requiresAdmin: true }
@@ -186,7 +186,7 @@ const router = createRouter({
       component: MapView,
     },
     {
-      path: '/register',
+      path: '/registrer',
       name: 'register',
       component: RegisterView,
     },
@@ -241,6 +241,26 @@ const router = createRouter({
       component: NotFoundView,
     },
   ],
+
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+
+    if (to.hash) {
+      return {
+        el: to.hash,
+        top: 80,
+        behavior: 'smooth'
+      };
+    }
+
+    return {
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    };
+  }
 })
 
 // Navigation guards

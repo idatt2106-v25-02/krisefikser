@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
   @Override
   public void commence(
       HttpServletRequest request,
@@ -27,9 +26,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     problemDetail.setType(
         URI.create("https://krisefikser.ntnu.stud/errors/" + HttpStatus.UNAUTHORIZED.value()));
     problemDetail.setTitle(HttpStatus.UNAUTHORIZED.getReasonPhrase());
-
     response.setContentType("application/problem+json");
     response.setStatus(HttpStatus.UNAUTHORIZED.value());
-    response.getWriter().write(new ObjectMapper().writeValueAsString(problemDetail));
+    response.getWriter().write(objectMapper.writeValueAsString(problemDetail));
   }
 }

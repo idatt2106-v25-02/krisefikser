@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import stud.ntnu.krisefikser.config.FrontendConfig;
 
 @Configuration
 @EnableWebSecurity
@@ -23,34 +24,30 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
+  private final JwtAuthenticationFilter jwtAuthFilter;
+  private final AuthenticationProvider authenticationProvider;
+  private final FrontendConfig frontendConfig;
+
   @Bean
-  public DefaultSecurityFilterChain securityFilterChain(
-      HttpSecurity http,
-      AuthenticationProvider authenticationProvider,
-      JwtAuthenticationFilter jwtAuthenticationFilter,
-      JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) throws Exception {
+  public DefaultSecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .authorizeHttpRequests(auth -> auth
-            // Public API docs endpoints
-            .requestMatchers("/api-docs/**", "/api-docs.yaml", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html")
-            .permitAll()
-            // Public GET endpoints
             .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**").permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**")
+            .permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
+            .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
-            // Auth endpoints
-            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh").permitAll()
+            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh")
+            .permitAll()
+            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            // All other requests need authentication
             .anyRequest().authenticated())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider)
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .exceptionHandling(
-            exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
@@ -58,11 +55,10 @@ public class SecurityConfiguration {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+    configuration.setAllowedOrigins(List.of(frontendConfig.getUrl()));
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setAllowedHeaders(List.of("*"));
     configuration.setAllowCredentials(true);
-
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;
