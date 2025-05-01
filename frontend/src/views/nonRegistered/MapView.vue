@@ -99,8 +99,6 @@ onMounted(() => {
   const checkDataLoaded = () => {
     if (!isDataLoading.value) {
       processMapData()
-    } else {
-      setTimeout(checkDataLoaded, 100)
     }
   }
 
@@ -277,4 +275,7 @@ function toggleMeetingPointCreation() {
     </Dialog>
   </div>
 </template>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2dccd169fa6e889d671b2270e6017d1dc53d812d

@@ -36,7 +36,7 @@ public class AuthenticationFlowIntegrationTest {
     // Step 1: Register a new user
     RegisterRequest registerRequest = new RegisterRequest(
         "newuser@example.com",
-        "password123",
+        "Password123!",
         "New",
         "User"
     );
@@ -90,7 +90,7 @@ public class AuthenticationFlowIntegrationTest {
         .andExpect(jsonPath("$.email").value("newuser@example.com"));
 
     // Step 5: Login with the same credentials
-    LoginRequest loginRequest = new LoginRequest("newuser@example.com", "password123");
+    LoginRequest loginRequest = new LoginRequest("newuser@example.com", "Password123!");
     mockMvc.perform(post("/api/auth/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginRequest)))

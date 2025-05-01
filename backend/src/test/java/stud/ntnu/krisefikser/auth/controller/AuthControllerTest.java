@@ -29,7 +29,7 @@ import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
-import stud.ntnu.krisefikser.user.dto.UserDto;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 @WebMvcTest(AuthController.class)
 @Import(TestSecurityConfig.class)
@@ -53,14 +53,15 @@ public class AuthControllerTest {
   private RegisterRequest registerRequest;
   private LoginRequest loginRequest;
   private RefreshRequest refreshRequest;
-  private UserDto userDto;
+  private UserResponse userResponse;
 
   @BeforeEach
   void setUp() {
     registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User");
     loginRequest = new LoginRequest("test@example.com", "password");
     refreshRequest = new RefreshRequest("refresh-token-123");
-    userDto = new UserDto(UUID.randomUUID(), "test@example.com", List.of("USER"), "Test", "User",
+    userResponse = new UserResponse(UUID.randomUUID(), "test@example.com", List.of("USER"), "Test",
+        "User",
         false, false, false);
   }
 
@@ -113,7 +114,7 @@ public class AuthControllerTest {
   @WithMockUser(username = "test@example.com", roles = "USER")
   void me_ShouldReturnUserDetails() throws Exception {
     // Arrange
-    when(authService.me()).thenReturn(userDto);
+    when(authService.me()).thenReturn(userResponse);
 
     // Act & Assert
     mockMvc.perform(get("/api/auth/me"))

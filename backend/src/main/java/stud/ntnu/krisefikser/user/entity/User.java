@@ -11,7 +11,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -26,8 +25,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.household.entity.Household;
-import stud.ntnu.krisefikser.user.dto.UserDto;
-import stud.ntnu.krisefikser.household.entity.HouseholdMember;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 @Entity
 @Data
@@ -74,13 +72,10 @@ public class User {
   @JoinColumn(name = "active_household_id", nullable = true)
   private Household activeHousehold;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<HouseholdMember> householdMemberships = new HashSet<>();
-
-  public UserDto toDto() {
+  public UserResponse toDto() {
     List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
 
-    return new UserDto(
+    return new UserResponse(
         id,
         email,
         roleNames,

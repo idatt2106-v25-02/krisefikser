@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface UserDto {
+export interface UserResponse {
   id?: string
   email?: string
   roles?: string[]

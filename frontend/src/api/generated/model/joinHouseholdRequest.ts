@@ -10,5 +10,5 @@
  * Request containing the household ID to set as active
  */
 export interface JoinHouseholdRequest {
-  householdId?: string
+  householdId: string
 }
