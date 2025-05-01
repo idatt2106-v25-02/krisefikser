@@ -1,16 +1,20 @@
 package stud.ntnu.krisefikser.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +23,7 @@ import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
+import stud.ntnu.krisefikser.auth.service.TurnstileService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -30,6 +35,15 @@ public class AuthenticationFlowIntegrationTest {
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @MockBean
+  private TurnstileService turnstileService;
+
+  @BeforeEach
+  void setUp() {
+    // Mock Turnstile verification to always return true for the test token
+    when(turnstileService.verify(any())).thenReturn(true);
+  }
 
   @Test
   void completeAuthenticationFlow() throws Exception {
@@ -98,5 +112,25 @@ public class AuthenticationFlowIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.accessToken").exists())
         .andExpect(jsonPath("$.refreshToken").exists());
+  }
+
+  @Test
+  void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
+    // Arrange
+    when(turnstileService.verify(any())).thenReturn(false);
+    
+    RegisterRequest registerRequest = new RegisterRequest(
+        "newuser@example.com",
+        "password123",
+        "New",
+        "User",
+        "invalid-turnstile-token"
+    );
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isBadRequest());
   }
 }
