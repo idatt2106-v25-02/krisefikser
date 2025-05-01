@@ -148,7 +148,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version> <!-- Latest as of now -->
+                <version>0.8.13</version> <!-- Latest as of now -->
                 <executions>
                     <execution>
                         <goals>
@@ -166,5 +166,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

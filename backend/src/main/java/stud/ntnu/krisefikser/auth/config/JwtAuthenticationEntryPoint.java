@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.time.Instant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
@@ -25,10 +24,10 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         HttpStatus.UNAUTHORIZED,
         "Unauthorized"
     );
-    problemDetail.setType(URI.create("https://krisefikser.ntnu.stud/errors/" + HttpStatus.UNAUTHORIZED.value()));
+    problemDetail.setType(
+        URI.create("https://krisefikser.ntnu.stud/errors/" + HttpStatus.UNAUTHORIZED.value()));
     problemDetail.setTitle(HttpStatus.UNAUTHORIZED.getReasonPhrase());
-    problemDetail.setProperty("timestamp", Instant.now());
-  
+
     response.setContentType("application/problem+json");
     response.setStatus(HttpStatus.UNAUTHORIZED.value());
     response.getWriter().write(new ObjectMapper().writeValueAsString(problemDetail));
