@@ -50,6 +50,7 @@ class FocusManager {
         }
       }
 
+      // Use the existing Norwegian content - no translation needed
       textToSpeak = label || inputEl.placeholder || inputEl.type;
     }
     // For links, read the text content

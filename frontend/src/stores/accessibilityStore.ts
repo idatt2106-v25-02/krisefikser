@@ -27,16 +27,29 @@ export const useAccessibilityStore = defineStore('accessibility', {
 
       // Set default voice if not already set
       if (!this.selectedVoice && voices.length > 0) {
-        // Try to find a voice in user's language
-        const userLang = navigator.language.split('-')[0];
-        const matchingVoice = voices.find(v => v.lang.startsWith(userLang));
-        this.selectedVoice = matchingVoice || voices[0];
-      }
-    },
+        // Try to find a Norwegian voice first - website is already in Norwegian
+        const norwegianVoice = voices.find(v =>
+          v.lang.toLowerCase().includes('no') ||
+          v.lang.toLowerCase().includes('nb') ||
+          v.lang.toLowerCase().includes('nn')
+        );
 
-    setVoice(voice: SpeechSynthesisVoice) {
-      this.selectedVoice = voice;
-      localStorage.setItem('selectedVoiceName', voice.name);
+        // If no Norwegian voice, try other Scandinavian languages
+        const scandinavianVoice = !norwegianVoice ?
+          voices.find(v =>
+            v.lang.toLowerCase().includes('sv') ||
+            v.lang.toLowerCase().includes('da')
+          ) : null;
+
+        // Fallback to browser language or first voice
+        const userLangVoice = !norwegianVoice && !scandinavianVoice ?
+          voices.find(v => v.lang.startsWith(navigator.language.split('-')[0])) : null;
+
+        this.selectedVoice = norwegianVoice || scandinavianVoice || userLangVoice || voices[0];
+
+        // Save the selected voice
+        localStorage.setItem('selectedVoiceName', this.selectedVoice.name);
+      }
     },
 
     setSpeechRate(rate: number) {
