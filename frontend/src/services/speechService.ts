@@ -46,7 +46,7 @@ class SpeechService {
       if (savedVoiceName) {
         const savedVoice = voices.find(v => v.name === savedVoiceName);
         if (savedVoice) {
-          accessibilityStore.setVoice(savedVoice);
+          accessibilityStore.setSelectedVoice(savedVoice);
         }
       }
     });
