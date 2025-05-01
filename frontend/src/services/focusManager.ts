@@ -5,7 +5,6 @@ class FocusManager {
   private focusableSelector = 'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
   initialize(): void {
-    document.addEventListener('keydown', this.handleKeyDown.bind(this));
     document.addEventListener('focusin', this.handleFocusIn.bind(this));
 
     // Add focus outline styles
@@ -19,9 +18,6 @@ class FocusManager {
     document.head.appendChild(style);
   }
 
-  private handleKeyDown(event: KeyboardEvent): void {
-    // Add any global keyboard navigation enhancements here
-  }
 
   private handleFocusIn(event: FocusEvent): void {
     const target = event.target as HTMLElement;

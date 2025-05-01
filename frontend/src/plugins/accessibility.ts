@@ -3,7 +3,6 @@ import type { App } from 'vue'; // Changed to type-only import
 import { focusManager } from '../services/focusManager';
 import { useAccessibilityStore } from '../stores/accessibilityStore';
 import speechService from '../services/speechService';
-import { onUnmounted } from 'vue';
 
 // Define a proper type for the binding
 interface SpeakDirectiveBinding {
