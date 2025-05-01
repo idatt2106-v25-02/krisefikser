@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -11,6 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import {
   DropdownMenu,
@@ -19,30 +20,44 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { MapPin, ExternalLink, Trash, UserMinus, AlertCircle, Map as MapIcon } from 'lucide-vue-next'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
+  MapPin,
+  ExternalLink,
+  Trash,
+  UserMinus,
+  AlertCircle,
+  Map as MapIcon,
+  Edit,
+} from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
-import { useGetActiveHousehold, useLeaveHousehold, useDeleteHousehold, useJoinHousehold } from '@/api/generated/household/household'
+import {
+  useGetActiveHousehold,
+  useLeaveHousehold,
+  useDeleteHousehold,
+  useJoinHousehold,
+  // useUpdateHousehold, // Commented out for mock implementation
+} from '@/api/generated/household/household'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Badge } from '@/components/ui/badge'
-import type { HouseholdResponse, HouseholdMemberDto, UserDto } from '@/api/generated/model'
-
-interface Member {
-  id: string
-  name: string
-  consumptionFactor?: number
-  email?: string
-}
+import type { HouseholdResponse } from '@/api/generated/model'
 
 interface MeetingPlace {
-  id: string;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  description?: string;
-  type: 'primary' | 'secondary';
+  id: string
+  name: string
+  address: string
+  latitude: number
+  longitude: number
+  description?: string
+  type: 'primary' | 'secondary'
 }
 
 interface Inventory {
@@ -59,9 +74,24 @@ type MemberFormValues = {
   consumptionFactor?: number
 }
 
+// Updated to match CreateHouseholdRequest fields
+type HouseholdFormValues = {
+  name: string
+  address: string
+  addressLine2?: string
+  postalCode: string
+  city: string
+  country: string
+  description?: string
+}
+
 interface ExtendedHouseholdResponse extends HouseholdResponse {
   meetingPlaces?: MeetingPlace[]
   inventory?: Inventory
+  addressLine2?: string
+  postalCode?: string
+  city?: string
+  country?: string
   inventoryItems?: Array<{
     name: string
     expiryDate: string
@@ -74,25 +104,38 @@ interface ExtendedHouseholdResponse extends HouseholdResponse {
 }
 
 // Form schemas
-const memberFormSchema = toTypedSchema(z.object({
-  name: z.string().min(1, 'Navn er påkrevd'),
-  email: z.string().email('Ugyldig e-postadresse').optional(),
-  consumptionFactor: z.number().min(0.1, 'Må være større enn 0').optional()
-}))
+const memberFormSchema = toTypedSchema(
+  z.object({
+    name: z.string().min(1, 'Navn er påkrevd'),
+    email: z.string().email('Ugyldig e-postadresse').optional(),
+    consumptionFactor: z.number().min(0.1, 'Må være større enn 0').optional(),
+  }),
+)
+
+// Updated form schema with complete address fields
+const householdFormSchema = toTypedSchema(
+  z.object({
+    name: z.string().min(1, 'Navn på husstanden er påkrevd'),
+    address: z.string().min(1, 'Adresse er påkrevd'),
+    postalCode: z.string().min(4, 'Postnummer må være minst 4 siffer'),
+    city: z.string().min(1, 'By/sted er påkrevd'),
+  }),
+)
 
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 
-const householdId = computed(() => route.params.id as string)
-
 // Get household data
-const { data: household, isLoading: isLoadingHousehold, refetch: refetchHousehold } = useGetActiveHousehold<ExtendedHouseholdResponse>({
+const {
+  data: household,
+  isLoading: isLoadingHousehold,
+  refetch: refetchHousehold,
+} = useGetActiveHousehold<ExtendedHouseholdResponse>({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
-    refetchOnWindowFocus: true
-  }
+    refetchOnWindowFocus: true,
+  },
 })
 
 // Mutations
@@ -100,16 +143,16 @@ const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       router.push('/husstand')
-    }
-  }
+    },
+  },
 })
 
 const { mutate: deleteHousehold } = useDeleteHousehold({
   mutation: {
     onSuccess: () => {
       router.push('/husstand')
-    }
-  }
+    },
+  },
 })
 
 const { mutate: addMember } = useJoinHousehold({
@@ -117,20 +160,40 @@ const { mutate: addMember } = useJoinHousehold({
     onSuccess: () => {
       refetchHousehold()
       isAddMemberDialogOpen.value = false
-    }
-  }
+    },
+  },
 })
 
 const { mutate: removeMember } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       refetchHousehold()
-    }
-  }
+    },
+  },
 })
+
+// Mock for updating household data
+const updatedHouseholdData = ref({
+  name: household.value?.name || '',
+  address: household.value?.address || '',
+  postalCode: household.value?.postalCode || '',
+  city: household.value?.city || '',
+})
+
+// Get formatted full // const getFormattedAddress = (household) => {
+//   if (!household) return '';
+
+//   const parts = [
+//     household.address,
+//     `${household.postalCode} ${household.city}`,
+//   ].filter(Boolean);
+
+//   return parts.join(', ');
+// }; for display
 
 // State for dialogs
 const isAddMemberDialogOpen = ref(false)
+const isEditHouseholdDialogOpen = ref(false)
 const isMeetingMapDialogOpen = ref(false)
 const memberMode = ref<'invite' | 'add'>('add')
 const mapRef = ref<InstanceType<typeof HouseholdMeetingMap> | null>(null)
@@ -138,31 +201,66 @@ const selectedMeetingPlace = ref<MeetingPlace | null>(null)
 
 // Form handling
 const { handleSubmit: submitMemberForm } = useForm<MemberFormValues>({
-  validationSchema: memberFormSchema
+  validationSchema: memberFormSchema,
+})
+
+const { handleSubmit: submitHouseholdForm } = useForm<HouseholdFormValues>({
+  validationSchema: householdFormSchema,
+  initialValues: {
+    name: household.value?.name || '',
+    address: household.value?.address || '',
+    postalCode: household.value?.postalCode || '',
+    city: household.value?.city || '',
+  },
 })
 
 // Actions
-function onMemberSubmit(values: MemberFormValues) {
+function onMemberSubmit() {
   if (!household.value) return
 
   addMember({
     data: {
-      householdId: household.value.id
-    }
+      householdId: household.value.id,
+    },
   })
+}
+
+// Mock implementation for updating household
+function onHouseholdSubmit(values: HouseholdFormValues) {
+  // Update the local data instead of calling an API
+  if (household.value) {
+    // Update the mock data
+    updatedHouseholdData.value = values;
+
+    // Update the household data directly (instead of refetching from API)
+    household.value.name = values.name;
+    household.value.address = values.address;
+    household.value.postalCode = values.postalCode;
+    household.value.city = values.city;
+
+    // Close the dialog
+    isEditHouseholdDialogOpen.value = false;
+
+    // Show success feedback (optional)
+    alert('Husstandsinformasjon oppdatert!');
+  }
 }
 
 function onRemoveMember(userId?: string) {
   if (!userId) return
   removeMember({
     data: {
-      householdId: household.value?.id
-    }
+      householdId: household.value?.id,
+    },
   })
 }
 
-function navigateToInventory() {
+function navigateToEditHouseholdInfo() {
   router.push(`/husstand/${household.value?.id}/beredskapslager`)
+}
+
+function openEditHouseholdDialog() {
+  isEditHouseholdDialogOpen.value = true
 }
 
 function handleLeaveHousehold() {
@@ -170,17 +268,20 @@ function handleLeaveHousehold() {
   if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
     leaveHousehold({
       data: {
-        householdId: household.value.id
-      }
+        householdId: household.value.id,
+      },
     })
   }
 }
 
 function handleDeleteHousehold() {
   if (!household.value) return
-  if (confirm('Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres.') && household.value.id) {
+  if (
+    confirm('Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres.') &&
+    household.value.id
+  ) {
     deleteHousehold({
-      id: household.value.id
+      id: household.value.id,
     })
   }
 }
@@ -209,19 +310,26 @@ function viewMeetingPlace(placeId: string) {
       </div>
 
       <div v-else-if="household">
-        <!-- Household header -->
+        <!-- Household header with complete address display -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between">
             <div>
               <h1 class="text-4xl font-bold text-gray-900 mb-1">{{ household.name }}</h1>
-              <div class="flex items-center text-gray-600">
-                <MapPin class="h-4 w-4 text-gray-400 mr-1" />
-                <span>{{ household.address }}</span>
-                <ExternalLink class="h-4 w-4 ml-1 text-gray-400 cursor-pointer" />
+              <div class="text-gray-600">
+                <div class="flex items-center">
+                  <MapPin class="h-4 w-4 text-gray-400 mr-1 flex-shrink-0" />
+                  <span class="flex flex-col">
+                    <span>{{ household.address }}</span>
+                    <span v-if="household.addressLine2">{{ household.addressLine2 }}</span>
+                    <span>{{ household.postalCode }} {{ household.city }}</span>
+                    <span v-if="household.country && household.country !== 'Norge'">{{ household.country }}</span>
+                  </span>
+                </div>
               </div>
             </div>
             <div class="mt-4 md:mt-0 space-x-2">
-              <Button variant="outline" size="sm" @click="navigateToInventory">
+              <Button variant="outline" size="sm" @click="openEditHouseholdDialog">
+                <Edit class="h-4 w-4 mr-1" />
                 Endre informasjon
               </Button>
             </div>
@@ -256,22 +364,44 @@ function viewMeetingPlace(placeId: string) {
                   <div class="p-4">
                     <div class="flex justify-between items-start">
                       <div class="flex items-center mb-3">
-                        <div class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0">
-                          <span class="text-md font-medium">{{ member.user?.firstName?.[0] || '?' }}</span>
+                        <div
+                          class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0"
+                        >
+                          <span class="text-md font-medium">{{
+                              member.user?.firstName?.[0] || '?'
+                            }}</span>
                         </div>
-                        <h3 class="text-md font-bold text-gray-900">{{ member.user?.firstName }} {{ member.user?.lastName }}</h3>
+                        <h3 class="text-md font-bold text-gray-900">
+                          {{ member.user?.firstName }} {{ member.user?.lastName }}
+                        </h3>
                       </div>
                       <DropdownMenu v-if="member.user?.id !== authStore.currentUser?.id">
                         <DropdownMenuTrigger as-child>
                           <Button variant="ghost" size="icon" class="h-8 w-8">
                             <span class="sr-only">Medlemsalternativer</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
-                              <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="text-gray-400"
+                            >
+                              <circle cx="12" cy="12" r="1" />
+                              <circle cx="12" cy="5" r="1" />
+                              <circle cx="12" cy="19" r="1" />
                             </svg>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem @click="onRemoveMember(member.user?.id)" class="text-red-600">
+                          <DropdownMenuItem
+                            @click="onRemoveMember(member.user?.id)"
+                            class="text-red-600"
+                          >
                             <UserMinus class="h-4 w-4 mr-2" />
                             Fjern medlem
                           </DropdownMenuItem>
@@ -301,7 +431,7 @@ function viewMeetingPlace(placeId: string) {
                 <Button
                   variant="outline"
                   size="sm"
-                  @click="navigateToInventory"
+                  @click="navigateToEditHouseholdInfo"
                   class="flex items-center gap-1"
                 >
                   <span>Se detaljer</span>
@@ -310,11 +440,22 @@ function viewMeetingPlace(placeId: string) {
 
               <HouseholdEmergencySupplies
                 :inventory="{
-                  food: { current: household.inventory?.food?.current || 0, target: household.inventory?.food?.target || 0, unit: household.inventory?.food?.unit || '' },
-                  water: { current: household.inventory?.water?.current || 0, target: household.inventory?.water?.target || 0, unit: household.inventory?.water?.unit || '' },
-                  other: { current: household.inventory?.other?.current || 0, target: household.inventory?.other?.target || 0 },
+                  food: {
+                    current: household.inventory?.food?.current || 0,
+                    target: household.inventory?.food?.target || 0,
+                    unit: household.inventory?.food?.unit || '',
+                  },
+                  water: {
+                    current: household.inventory?.water?.current || 0,
+                    target: household.inventory?.water?.target || 0,
+                    unit: household.inventory?.water?.unit || '',
+                  },
+                  other: {
+                    current: household.inventory?.other?.current || 0,
+                    target: household.inventory?.other?.target || 0,
+                  },
                   preparedDays: household.inventory?.preparedDays || 0,
-                  targetDays: household.inventory?.targetDays || 7
+                  targetDays: household.inventory?.targetDays || 7,
                 }"
                 :inventory-items="household.inventoryItems || []"
                 :household-id="household.id || ''"
@@ -343,17 +484,15 @@ function viewMeetingPlace(placeId: string) {
               </div>
 
               <div class="divide-y divide-gray-100">
-                <div
-                  v-for="(place, index) in household.meetingPlaces"
-                  :key="place.id"
-                  class="p-4"
-                >
+                <div v-for="place in household.meetingPlaces" :key="place.id" class="p-4">
                   <div class="flex items-start">
                     <div class="flex-shrink-0 mr-3">
-                      <div :class="[
-                        'h-10 w-10 rounded-full flex items-center justify-center',
-                        place.type === 'primary' ? 'bg-red-500' : 'bg-orange-400'
-                      ]">
+                      <div
+                        :class="[
+                          'h-10 w-10 rounded-full flex items-center justify-center',
+                          place.type === 'primary' ? 'bg-red-500' : 'bg-orange-400',
+                        ]"
+                      >
                         <AlertCircle class="h-5 w-5 text-white" />
                       </div>
                     </div>
@@ -396,6 +535,79 @@ function viewMeetingPlace(placeId: string) {
             </div>
           </div>
         </div>
+
+        <!-- Edit Household Dialog -->
+        <Dialog v-model:open="isEditHouseholdDialogOpen">
+          <DialogContent class="sm:max-w-[525px]">
+            <DialogHeader>
+              <DialogTitle>Endre husstandsinformasjon</DialogTitle>
+              <DialogDescription>
+                Oppdater informasjonen om din husstand. Klikk lagre når du er ferdig.
+              </DialogDescription>
+            </DialogHeader>
+
+            <Form :initial-values="{
+                name: household.name,
+                address: household.address,
+                postalCode: household.postalCode || '',
+                city: household.city || '',
+              }"
+                  @submit="submitHouseholdForm(onHouseholdSubmit)"
+            >
+              <div class="grid gap-4 py-4">
+                <FormField name="name">
+                  <FormItem>
+                    <FormLabel>Navn på husstanden</FormLabel>
+                    <FormControl>
+                      <Input placeholder="F.eks. Familien Hansen" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <FormField name="address">
+                  <FormItem>
+                    <FormLabel>Adresse</FormLabel>
+                    <FormControl>
+                      <Input placeholder="F.eks. Østensjøveien 123" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <FormField name="postalCode">
+                    <FormItem>
+                      <FormLabel>Postnummer</FormLabel>
+                      <FormControl>
+                        <Input placeholder="F.eks. 0650" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+
+                  <FormField name="city">
+                    <FormItem>
+                      <FormLabel>By/sted</FormLabel>
+                      <FormControl>
+                        <Input placeholder="F.eks. Oslo" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" @click="isEditHouseholdDialogOpen = false">
+                  Avbryt
+                </Button>
+                <Button type="submit">Lagre endringer</Button>
+              </DialogFooter>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
         <!-- Add Member Dialog -->
         <Dialog v-model:open="isAddMemberDialogOpen">
@@ -446,15 +658,9 @@ function viewMeetingPlace(placeId: string) {
                   <FormItem>
                     <FormLabel>Forbruksfaktor</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                      />
+                      <Input type="number" step="0.1" min="0" />
                     </FormControl>
-                    <FormMessage>
-                      0.5 for halv porsjon, 1 for normal porsjon, osv.
-                    </FormMessage>
+                    <FormMessage> 0.5 for halv porsjon, 1 for normal porsjon, osv. </FormMessage>
                   </FormItem>
                 </FormField>
 
@@ -470,31 +676,36 @@ function viewMeetingPlace(placeId: string) {
             <DialogHeader>
               <DialogTitle>Møteplasser ved krise</DialogTitle>
               <DialogDescription>
-                Kartet viser dine møteplasser ved krisesituasjoner. Klikk på markørene for mer informasjon og veibeskrivelse.
+                Kartet viser dine møteplasser ved krisesituasjoner. Klikk på markørene for mer
+                informasjon og veibeskrivelse.
               </DialogDescription>
             </DialogHeader>
 
             <div class="py-6 px-2">
               <HouseholdMeetingMap
                 ref="mapRef"
-                :meeting-places="household.meetingPlaces?.map(place => ({
-                  ...place,
-                  position: [place.latitude, place.longitude]
-                })) || []"
+                :meeting-places="
+                  household.meetingPlaces?.map((place) => ({
+                    ...place,
+                    position: [place.latitude, place.longitude],
+                  })) || []
+                "
                 :household-position="[household.latitude || 0, household.longitude || 0]"
                 @meeting-place-selected="handleMeetingPlaceSelected"
                 class="min-h-[625px]"
               />
 
               <div class="mt-4 flex gap-3">
-                <div v-for="place in household.meetingPlaces" :key="place.id"
-                     :class="[
-                      'px-3 py-2 rounded-md text-sm cursor-pointer border flex-1',
-                      place.type === 'primary'
-                        ? 'bg-red-50 border-red-200 text-red-800'
-                        : 'bg-orange-50 border-orange-200 text-orange-800'
-                    ]"
-                     @click="viewMeetingPlace(place.id)"
+                <div
+                  v-for="place in household.meetingPlaces"
+                  :key="place.id"
+                  :class="[
+                    'px-3 py-2 rounded-md text-sm cursor-pointer border flex-1',
+                    place.type === 'primary'
+                      ? 'bg-red-50 border-red-200 text-red-800'
+                      : 'bg-orange-50 border-orange-200 text-orange-800',
+                  ]"
+                  @click="viewMeetingPlace(place.id)"
                 >
                   <div class="font-medium">{{ place.name.split(':')[0] }}</div>
                 </div>

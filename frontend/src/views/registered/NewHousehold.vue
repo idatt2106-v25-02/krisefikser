@@ -37,7 +37,7 @@ const isFormVisible = ref(true)
 </script>
 
 <template>
-  <div class="new-household-container">
+  <div class="new-household-container mt-50">
     <transition name="fade">
       <AddressForm
         v-if="isFormVisible"
