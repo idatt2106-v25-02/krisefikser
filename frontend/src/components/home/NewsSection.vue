@@ -44,7 +44,7 @@ export default {
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useGetAllArticles } from '@/api/generated/krisefikserAPI';
+import { useGetAllArticles } from '@/api/generated/article/article';
 
 const {
   data: articles,

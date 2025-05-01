@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useGetArticleById } from '@/api/generated/krisefikserAPI'
+import { useGetArticleById } from '@/api/generated/article/article'
 
 const route = useRoute()
 const articleId = computed(() => Number(route.params.id))

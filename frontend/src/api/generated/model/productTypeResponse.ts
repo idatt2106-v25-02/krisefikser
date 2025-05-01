@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface ProductTypeDto {
-  id?: string;
-  name?: string;
-  unit?: string;
+export interface ProductTypeResponse {
+  id?: string
+  name?: string
+  unit?: string
 }

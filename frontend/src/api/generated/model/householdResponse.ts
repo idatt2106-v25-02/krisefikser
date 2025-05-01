@@ -5,17 +5,17 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { UserDto } from './userDto';
-import type { HouseholdMemberDto } from './householdMemberDto';
+import type { UserDto } from './userDto'
+import type { HouseholdMemberResponse } from './householdMemberResponse'
 
 export interface HouseholdResponse {
-  id?: string;
-  name?: string;
-  latitude?: number;
-  longitude?: number;
-  address?: string;
-  owner?: UserDto;
-  members?: HouseholdMemberDto[];
-  createdAt?: string;
-  active?: boolean;
+  id?: string
+  name?: string
+  latitude?: number
+  longitude?: number
+  address?: string
+  owner?: UserDto
+  members?: HouseholdMemberResponse[]
+  createdAt?: string
+  active?: boolean
 }
