@@ -12,7 +12,7 @@
       <p class="mt-2 text-gray-600">Beklager, men noe gikk galt. Vennligst prøv igjen senere.</p>
     </div>
 
-    <div v-else-if="articles?.data" class="space-y-8">
+    <div v-else-if="articles" class="space-y-8">
       <article
         v-for="article in sortedArticles"
         :key="article.id"
@@ -57,7 +57,7 @@ const sortedArticles = computed(() => {
   if (!articles.value) return []
 
   // If articles.data is an array, use it directly
-  const articleArray = Array.isArray(articles.value.data) ? articles.value.data : [articles.value.data]
+  const articleArray = Array.isArray(articles.value) ? articles.value : [articles.value]
 
   return [...articleArray].sort((a, b) => {
     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
