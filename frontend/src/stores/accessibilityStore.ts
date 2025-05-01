@@ -55,6 +55,11 @@ export const useAccessibilityStore = defineStore('accessibility', {
     setSpeechRate(rate: number) {
       this.speechRate = rate;
       localStorage.setItem('speechRate', String(rate));
+    },
+
+    setSelectedVoice(voice: SpeechSynthesisVoice) {
+      this.selectedVoice = voice;
+      localStorage.setItem('selectedVoiceName', voice.name);
     }
   }
 });

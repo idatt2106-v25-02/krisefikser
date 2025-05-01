@@ -30,7 +30,7 @@ const updateSpeechRate = () => {
 
 const updateVoice = () => {
   if (selectedVoice.value) {
-    store.setVoice(selectedVoice.value);
+    store.setSelectedVoice(selectedVoice.value);
 
     // Test the selected voice
     speechService.speak('Dette er en test av den valgte stemmen');
