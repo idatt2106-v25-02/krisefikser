@@ -1,7 +1,11 @@
 package stud.ntnu.krisefikser.config;
 
 import com.github.javafaker.Faker;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -9,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +27,7 @@ import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.ProductType;
+import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.household.repository.ProductTypeRepository;
 import stud.ntnu.krisefikser.map.entity.Event;
@@ -41,6 +47,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepo;
     private final HouseholdRepository householdRepository;
+    private final HouseholdMemberRepository householdMemberRepository;
     private final ArticleRepository articleRepository;
     private final MapPointTypeRepository mapPointTypeRepository;
     private final MapPointRepository mapPointRepository;
@@ -48,11 +55,15 @@ public class DataSeeder implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final ProductTypeRepository productTypeRepository;
 
-    @Autowired(required = false)
     private PasswordEncoder passwordEncoder;
 
     private final Faker faker = new Faker();
     private final Random random = new Random();
+
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public void run(String... args) throws Exception {
@@ -78,6 +89,18 @@ public class DataSeeder implements CommandLineRunner {
     private void cleanDatabase() {
         // Delete all records in the correct order to avoid foreign key constraints
         System.out.println("Cleaning database...");
+
+        // First, update all users to remove their active_household_id references
+        List<User> users = userRepo.findAll();
+        for (User user : users) {
+            user.setActiveHousehold(null);
+        }
+        userRepo.saveAll(users);
+
+        // Delete household members first
+        householdMemberRepository.deleteAll();
+
+        // Now we can safely delete in the correct order
         mapPointRepository.deleteAll();
         mapPointTypeRepository.deleteAll();
         eventRepository.deleteAll();
@@ -108,6 +131,7 @@ public class DataSeeder implements CommandLineRunner {
         seedMapPointTypes();
         seedMapPoints();
         seedEvents();
+        seedShelters();
     }
 
     private void seedRoles() {
@@ -160,38 +184,46 @@ public class DataSeeder implements CommandLineRunner {
 
         // Common crisis storage items
         String[][] items = {
-                {"Water", "liters"},
-                {"Canned Food", "cans"},
-                {"First Aid Kit", "kits"},
-                {"Batteries", "packs"},
-                {"Flashlight", "pieces"},
-                {"Blankets", "pieces"},
-                {"Gasoline", "liters"},
-                {"Propane", "tanks"},
-                {"Matches", "boxes"},
-                {"Candles", "pieces"},
-                {"Portable Radio", "pieces"},
-                {"Emergency Whistle", "pieces"},
-                {"Duct Tape", "rolls"},
-                {"Rope", "meters"},
-                {"Water Purification Tablets", "tablets"},
-                {"Emergency Blanket", "pieces"},
-                {"Multi-tool", "pieces"},
-                {"Hand Sanitizer", "liters"},
-                {"Face Masks", "pieces"},
-                {"Emergency Food Rations", "days"}
+                { "Water", "liters" },
+                { "Canned Food", "cans" },
+                { "First Aid Kit", "kits" },
+                { "Batteries", "packs" },
+                { "Flashlight", "pieces" },
+                { "Blankets", "pieces" },
+                { "Gasoline", "liters" },
+                { "Propane", "tanks" },
+                { "Matches", "boxes" },
+                { "Candles", "pieces" },
+                { "Portable Radio", "pieces" },
+                { "Emergency Whistle", "pieces" },
+                { "Duct Tape", "rolls" },
+                { "Rope", "meters" },
+                { "Water Purification Tablets", "tablets" },
+                { "Emergency Blanket", "pieces" },
+                { "Multi-tool", "pieces" },
+                { "Hand Sanitizer", "liters" },
+                { "Face Masks", "pieces" },
+                { "Emergency Food Rations", "days" }
         };
 
         for (String[] item : items) {
-            ProductType productType = ProductType.builder()
-                    .name(item[0])
-                    .unit(item[1])
-                    .build();
-            productTypes.add(productType);
+            // Check if product type already exists
+            Optional<ProductType> existingType = productTypeRepository.findByName(item[0]);
+            if (existingType.isEmpty()) {
+                ProductType productType = ProductType.builder()
+                        .name(item[0])
+                        .unit(item[1])
+                        .build();
+                productTypes.add(productType);
+            }
         }
 
-        productTypeRepository.saveAll(productTypes);
-        System.out.println("Seeded " + productTypes.size() + " product types");
+        if (!productTypes.isEmpty()) {
+            productTypeRepository.saveAll(productTypes);
+            System.out.println("Seeded " + productTypes.size() + " new product types");
+        } else {
+            System.out.println("No new product types to seed - all already exist");
+        }
     }
 
     private void seedHouseholds() {
@@ -369,11 +401,11 @@ public class DataSeeder implements CommandLineRunner {
 
         // Event levels and their distribution probability
         EventLevel[] levels = EventLevel.values();
-        int[] levelWeights = {60, 30, 10}; // 60% GREEN, 30% YELLOW, 10% RED
+        int[] levelWeights = { 60, 30, 10 }; // 60% GREEN, 30% YELLOW, 10% RED
 
         // Event statuses and their distribution probability
         EventStatus[] statuses = EventStatus.values();
-        int[] statusWeights = {30, 50, 20}; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
+        int[] statusWeights = { 30, 50, 20 }; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
 
         // Create 15 events
         LocalDateTime now = LocalDateTime.now();
@@ -450,8 +482,66 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("Seeded " + events.size() + " events");
     }
 
+    private void seedShelters() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            InputStream inputStream = getClass().getResourceAsStream("/shelters.json");
+
+            if (inputStream == null) {
+                System.out.println("Could not find shelters.json file");
+                return;
+            }
+
+            // Read the root object that contains the features array
+            JsonNode rootNode = objectMapper.readTree(inputStream);
+            JsonNode featuresNode = rootNode.get("features");
+
+            if (featuresNode == null || !featuresNode.isArray()) {
+                System.out.println("Invalid shelters.json format - missing features array");
+                return;
+            }
+
+            // First, ensure we have a shelter map point type
+            MapPointType shelterType = mapPointTypeRepository.findByTitle("Emergency Shelter")
+                    .orElseGet(() -> {
+                        MapPointType type = MapPointType.builder()
+                                .title("Emergency Shelter")
+                                .iconUrl("/images/icons/shelter.png")
+                                .description("Emergency shelter location")
+                                .openingTime("24/7")
+                                .build();
+                        return mapPointTypeRepository.save(type);
+                    });
+
+            List<MapPoint> mapPoints = new ArrayList<>();
+
+            for (JsonNode feature : featuresNode) {
+                JsonNode geometry = feature.get("geometry");
+                JsonNode coordinates = geometry.get("coordinates");
+                JsonNode properties = feature.get("properties");
+
+                if (coordinates != null && coordinates.isArray() && coordinates.size() >= 2) {
+                    MapPoint mapPoint = MapPoint.builder()
+                            .latitude(coordinates.get(1).asDouble()) // Latitude is second in the coordinates array
+                            .longitude(coordinates.get(0).asDouble()) // Longitude is first in the coordinates array
+                            .type(shelterType)
+                            .build();
+
+                    mapPoints.add(mapPoint);
+                }
+            }
+
+            mapPointRepository.saveAll(mapPoints);
+            System.out.println("Seeded " + mapPoints.size() + " shelters");
+
+        } catch (IOException e) {
+            System.out.println("Error reading shelters.json: " + e.getMessage());
+        }
+    }
+
     /**
-     * Helper method to get a random item from an array based on weighted probabilities
+     * Helper method to get a random item from an array based on weighted
+     * probabilities
      *
      * @param items   Array of items to choose from
      * @param weights Array of weights corresponding to the items

@@ -4,8 +4,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.map.entity.Event;
+import stud.ntnu.krisefikser.map.entity.EventStatus;
 import stud.ntnu.krisefikser.map.repository.EventRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -14,7 +16,10 @@ public class EventService {
     private final EventRepository eventRepository;
 
     public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+        return eventRepository.findActiveEvents(
+                EventStatus.ONGOING,
+                EventStatus.UPCOMING,
+                LocalDateTime.now());
     }
 
     public Event getEventById(Long id) {
