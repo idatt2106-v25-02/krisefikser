@@ -49,8 +49,7 @@ public class HouseholdService {
                 household.getOwner().toDto(),
                 members.stream().map(HouseholdMember::toDto).toList(),
                 household.getCreatedAt(),
-                isActive
-        );
+                isActive);
     }
 
     @Transactional
@@ -135,6 +134,12 @@ public class HouseholdService {
         }
 
         householdRepo.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Household getHouseholdById(UUID id) {
+        return householdRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Household not found"));
     }
 
     @Transactional
