@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { useAccessibilityStore } from '../stores/accessibilityStore';
-import speechService from '../services/speechService';
+import { useAccessibilityStore } from '@/stores/accessibilityStore.ts';
+import speechService from '../../services/speechService.ts';
 
 const store = useAccessibilityStore();
 const isMenuOpen = ref(false);
