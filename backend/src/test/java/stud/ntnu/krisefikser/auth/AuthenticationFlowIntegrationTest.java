@@ -38,7 +38,8 @@ public class AuthenticationFlowIntegrationTest {
         "newuser@example.com",
         "Password123!",
         "New",
-        "User"
+        "User",
+        "turnstile-token"
     );
 
     MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
