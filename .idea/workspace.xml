@@ -5,13 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f3ce8772-e066-4668-96bf-d71e8e417555" name="Changes" comment="feat: added the alerts/components for inviting admin">
-      <change afterPath="$PROJECT_DIR$/backend/src/test/java/stud/ntnu/krisefikser/map/controller/EventControllerTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/test/java/stud/ntnu/krisefikser/map/service/EventWebSocketServiceTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/stud/ntnu/krisefikser/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/stud/ntnu/krisefikser/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/stud/ntnu/krisefikser/auth/config/JwtAuthenticationEntryPoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/stud/ntnu/krisefikser/auth/config/JwtAuthenticationEntryPoint.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/stud/ntnu/krisefikser/map/service/EventWebSocketService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/stud/ntnu/krisefikser/map/service/EventWebSocketService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -217,7 +212,7 @@
       <workItem from="1745618502563" duration="489000" />
       <workItem from="1745999617644" duration="1307000" />
       <workItem from="1746015814752" duration="1478000" />
-      <workItem from="1746083069156" duration="15009000" />
+      <workItem from="1746083069156" duration="16625000" />
     </task>
     <task id="LOCAL−00001" summary="fix: navbar fixed">
       <option name="closed" value="true" />
