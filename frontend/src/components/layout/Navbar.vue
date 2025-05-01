@@ -25,15 +25,17 @@
             <MapIcon class="h-5 w-5 mr-1" />
             <span>Kart</span>
           </router-link>
+
+          <!-- Household link - different destination based on auth status -->
           <router-link
-            to="/husstand"
-            v-if="authStore.isAuthenticated"
+            :to="authStore.isAuthenticated ? '/husstand' : '/bli-med-eller-opprett-husstand'"
             class="flex items-center text-gray-700 hover:text-blue-600 transition"
           >
             <Home class="h-5 w-5 mr-1" />
             <span>Husstand</span>
           </router-link>
 
+          <!-- Emergency supply link - only for authenticated users -->
           <router-link
             to="/husstand/:id/beredskapslager"
             v-if="authStore.isAuthenticated"
@@ -95,15 +97,17 @@
           <MapIcon class="h-5 w-5 mr-2" />
           <span>Kart</span>
         </router-link>
+
+        <!-- Mobile Household link - different destination based on auth status -->
         <router-link
-          to="/husstand"
-          v-if="authStore.isAuthenticated"
+          :to="authStore.isAuthenticated ? '/husstand' : '/bli-med-eller-opprett-husstand'"
           class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
         >
           <Home class="h-5 w-5 mr-2" />
           <span>Husstand</span>
         </router-link>
 
+        <!-- Emergency supply link - only for authenticated users -->
         <router-link
           v-if="authStore.isAuthenticated"
           to="/husstand/:id/beredskapslager"
@@ -113,21 +117,25 @@
           <span>Beredskapslager</span>
         </router-link>
 
-        <!-- Show login button when not authenticated -->
-        <router-link v-if="!authStore.isAuthenticated" to="/logg-inn" class="flex items-center px-3 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700">
-          <LogIn class="h-5 w-5 mr-2" />
-          <span>Logg inn</span>
-        </router-link>
-
         <router-link
           v-if="authStore.isAuthenticated && authStore.isAdmin"
           to="/admin"
-          class="flex items-center text-gray-700 hover:text-blue-600 transition"
+          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
         >
-          <UserIcon class="h-5 w-5 mr-1" />
+          <UserIcon class="h-5 w-5 mr-2" />
           <span>Admin</span>
         </router-link>
 
+        <!-- Authentication options -->
+        <!-- Show login button when not authenticated -->
+        <router-link
+          v-if="!authStore.isAuthenticated"
+          to="/logg-inn"
+          class="flex items-center px-3 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+        >
+          <LogIn class="h-5 w-5 mr-2" />
+          <span>Logg inn</span>
+        </router-link>
 
         <!-- Show user profile when authenticated -->
         <div v-else class="flex items-center justify-between px-3 py-2 mt-2 rounded text-gray-700">
@@ -139,6 +147,12 @@
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
+              <router-link to="/dashboard">
+                <DropdownMenuItem>
+                  <UserIcon class="h-5 w-5 mr-2" />
+                  <span>Min Profil</span>
+                </DropdownMenuItem>
+              </router-link>
               <DropdownMenuItem @select="authStore.logout" variant="destructive">
                 <LogOut class="h-4 w-4 mr-2" />
                 <span>Logg ut</span>
