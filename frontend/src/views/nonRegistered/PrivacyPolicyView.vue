@@ -63,20 +63,13 @@
       <h2 class="text-2xl lg:text-3xl font-semibold mb-4 text-blue-700">Kontakt angående personvern</h2>
       <div class="bg-blue-50 rounded-lg p-6 border border-blue-100 shadow-sm">
         <p class="text-lg text-gray-700 mb-4">
-          For spørsmål om personvern i vårt prosjekt, kontakt prosjektansvarlig:
+          For spørsmål om personvern i vårt prosjekt, kontakt oss:
         </p>
         <div class="space-y-3 text-lg text-gray-700">
-          <p><span class="font-medium">Navn:</span> Embret Roås</p>
           <p>
             <span class="font-medium">E-post:</span>
-            <a href="mailto:embret.roas@outlook.com" class="text-blue-600 hover:text-blue-800 hover:underline underline-offset-2">
-              embret.roas@outlook.com
-            </a>
-          </p>
-          <p>
-            <span class="font-medium">Telefon:</span>
-            <a href="tel:+4791884199" class="text-blue-600 hover:text-blue-800 hover:underline underline-offset-2">
-              +47 918 84 199
+            <a href="mailto:kontakt@krisefikser.app" class="text-blue-600 hover:text-blue-800 hover:underline underline-offset-2">
+              kontakt@krisefikser.app
             </a>
           </p>
         </div>

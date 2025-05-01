@@ -31,18 +31,14 @@
     <section class="mb-8">
       <h2 class="text-2xl lg:text-3xl font-semibold mb-4 text-blue-700">Kontakt oss</h2>
       <div class="bg-gray-50 rounded-lg p-6 shadow-sm">
-        <div class="space-y-3">
-          <p class="text-lg text-gray-700"><span class="font-medium">Kontaktperson:</span> Embret Roås</p>
-          <p class="text-lg text-gray-700">
+        <p class="text-lg text-gray-700 mb-4">
+          For spørsmål om prosjektet eller for mer informasjon, vennligst kontakt oss på e-post:
+        </p>
+        <div class="space-y-3 text-lg text-gray-700">
+          <p>
             <span class="font-medium">E-post:</span>
-            <a href="mailto:embret.roas@outlook.com" class="text-blue-600 hover:text-blue-800 hover:underline underline-offset-2">
-              embret.roas@outlook.com
-            </a>
-          </p>
-          <p class="text-lg text-gray-700">
-            <span class="font-medium">Telefon:</span>
-            <a href="tel:+4791884199" class="text-blue-600 hover:text-blue-800 hover:underline underline-offset-2">
-              +47 918 84 199
+            <a href="mailto:kontakt@krisefikser.app" class="text-blue-600 hover:text-blue-800 hover:underline underline-offset-2">
+              kontakt@krisefikser.app
             </a>
           </p>
         </div>

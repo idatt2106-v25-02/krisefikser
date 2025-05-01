@@ -54,7 +54,7 @@
         <div>
           <h3 class="text-lg font-semibold mb-4">Kontakt</h3>
           <p class="text-blue-200 mb-2">Har du spørsmål eller tilbakemeldinger?</p>
-          <a href="mailto:kontakt@krisefikser.no" class="text-blue-200 hover:text-white transition">kontakt@krisefikser.no</a>
+          <a href="mailto:kontakt@krisefikser.app" class="text-blue-200 hover:text-white transition">kontakt@krisefikser.app</a>
 
           <!-- Show logout option for authenticated users -->
           <div v-if="authStore.isAuthenticated" class="mt-6">
