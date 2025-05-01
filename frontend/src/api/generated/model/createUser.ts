@@ -9,11 +9,11 @@
 /**
  * Updated user data
  */
-export interface CreateUserDto {
-  email?: string
-  password?: string
-  firstName?: string
-  lastName?: string
+export interface CreateUser {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
   notifications?: boolean
   emailUpdates?: boolean
   locationSharing?: boolean
