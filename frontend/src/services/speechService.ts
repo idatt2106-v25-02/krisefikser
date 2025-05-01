@@ -55,8 +55,8 @@ class SpeechService {
   speak(text: string, options?: SpeechOptions): void {
     // Make sure we're initialized
     this.initialize();
-
     if (!('speechSynthesis' in window) || !text) {
+      console.warn('Speech synthesis not supported or no text provided');
       return;
     }
 

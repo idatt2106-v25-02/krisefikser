@@ -69,61 +69,57 @@ watch(() => store.voices, (newVal) => {
   <div class="fixed bottom-4 right-4 z-50 accessibility-menu">
     <button
       @click="toggleMenu"
-      class="bg-gray-800 text-white p-2 rounded-full shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      class="bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       aria-label="Tilgjengelighetsalternativer">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
+     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M11.25 3.018a.75.75 0 00-.53.22L6.72 7.238H4.5A2.25 2.25 0 002.25 9.488v5.025a2.25 2.25 0 002.25 2.25h2.22l4 4.001a.75.75 0 001.28-.53V3.748a.75.75 0 00-.75-.75zm6.72 3.03a.75.75 0 00-1.06 1.06 6.75 6.75 0 010 9.546.75.75 0 101.06 1.06 8.25 8.25 0 000-11.667zm-2.72 2.72a.75.75 0 00-1.06 1.06 3.75 3.75 0 010 5.304.75.75 0 101.06 1.06 5.25 5.25 0 000-7.425z" />
+     </svg>
     </button>
 
-    <div v-if="isMenuOpen" class="absolute bottom-12 right-0 bg-white rounded-lg shadow-xl p-4 w-64">
-      <h3 class="font-medium text-gray-800 mb-3">Tilgjengelighetsalternativer</h3>
+    <div v-if="isMenuOpen" class="absolute bottom-16 right-0 bg-white rounded-lg shadow-xl p-6 w-85">
+      <h3 class="font-medium text-gray-800 mb-4 text-2xl ">Tilgjengelighetsalternativer</h3>
+      <p class="text-lg text-gray-600 mb-4">Trykk <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Alt/Option</kbd>+<kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">T</kbd> for å aktivere/deaktivere tekst-til-tale</p>
 
-      <div class="mb-3">
+      <div class="mb-4">
         <label class="flex items-center cursor-pointer">
           <input
             type="checkbox"
-            class="form-checkbox h-5 w-5 text-blue-600"
+            class="form-checkbox h-6 w-6 text-blue-600"
             v-model="ttsEnabled"
             @change="toggleTTS" />
-          <span class="ml-2 text-gray-700">Tekst-til-tale</span>
+          <span class="ml-3 text-gray-700 text-xl">Tekst-til-tale</span>
         </label>
       </div>
 
-      <div v-if="ttsEnabled" class="space-y-3">
+      <div v-if="ttsEnabled" class="space-y-4">
         <div>
-          <label class="block text-sm text-gray-700 mb-1">Talehastighet</label>
+          <label class="block text-xl text-gray-700 mb-2">Talehastighet</label>
           <div class="flex items-center">
-            <span class="text-xs text-gray-500">Sakte</span>
+            <span class="text-base text-gray-500">Sakte</span>
             <input
               type="range"
               min="0.5"
               max="2"
               step="0.1"
-              class="mx-2 flex-grow"
+              class="mx-4 flex-grow"
               v-model="speechRate"
               @change="updateSpeechRate" />
-            <span class="text-xs text-gray-500">Rask</span>
+            <span class="text-base text-gray-500">Rask</span>
           </div>
         </div>
 
         <div>
-          <label class="block text-sm text-gray-700 mb-1">Stemme</label>
+          <label class="block text-xl text-gray-700 mb-2">Stemme</label>
           <select
             v-model="selectedVoice"
             @change="updateVoice"
-            class="block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md">
+            class="block w-full px-4 py-2 text-lg border border-gray-300 rounded-md">
             <option v-for="voice in voices" :key="voice.name" :value="voice">
               {{ voice.name }} ({{ voice.lang }})
             </option>
           </select>
         </div>
 
-        <button
-          @click="speechService.speak('Dette er en test av tekst-til-tale funksjonaliteten')"
-          class="mt-2 w-full bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm">
-          Test tekst-til-tale
-        </button>
       </div>
     </div>
   </div>

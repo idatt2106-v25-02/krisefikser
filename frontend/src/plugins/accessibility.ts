@@ -3,11 +3,16 @@ import type { App } from 'vue'; // Changed to type-only import
 import { focusManager } from '../services/focusManager';
 import { useAccessibilityStore } from '../stores/accessibilityStore';
 import speechService from '../services/speechService';
+import { onUnmounted } from 'vue';
 
 // Define a proper type for the binding
 interface SpeakDirectiveBinding {
   value?: string;
   modifiers: Record<string, boolean>;
+}
+
+interface ElementWithCleanup extends HTMLElement {
+  _cleanup?: () => void;
 }
 
 export default {
@@ -18,9 +23,44 @@ export default {
     // Initialize focus manager
     focusManager.initialize();
 
+    // Setup global keyboard shortcuts for accessibility
+    const handleKeydown = (event: KeyboardEvent) => {
+      console.log('Key pressed:', {
+        key: event.key,
+        altKey: event.altKey,
+        metaKey: event.metaKey,
+        ctrlKey: event.ctrlKey,
+        shiftKey: event.shiftKey
+      });
+
+      // Check for both 't' and the special character '†' that Option+T generates on macOS
+      if ((event.altKey || event.metaKey) && (event.key.toLowerCase() === 't' || event.key === '†')) {
+        event.preventDefault();
+        console.log('Accessibility shortcut detected: Alt/Option + T');
+
+        const store = useAccessibilityStore();
+        store.toggleTTS();
+
+        const message = store.ttsEnabled
+          ? 'Tekst-til-tale er nå aktivert'
+          : 'Tekst-til-tale er nå deaktivert';
+
+        console.log('Text-to-speech toggled:', store.ttsEnabled);
+        speechService.speak(message);
+      }
+    };
+
+    // Add global event listener
+    document.addEventListener('keydown', handleKeydown);
+
+    // Clean up listener when app is destroyed
+    app.unmount = () => {
+      document.removeEventListener('keydown', handleKeydown);
+    };
+
     // Create custom directive for specific speech requirements
     app.directive('speak', {
-      mounted(el: HTMLElement, binding: SpeakDirectiveBinding) { // Replaced 'any' with specific type
+      mounted(el: ElementWithCleanup, binding: SpeakDirectiveBinding) {
         const value = binding.value;
         const modifiers = binding.modifiers;
 
@@ -36,12 +76,13 @@ export default {
         };
 
         // Add event listener for manual reading
-        el.addEventListener('click', () => {
+        const handleClick = () => {
           const store = useAccessibilityStore();
           if (store.ttsEnabled) {
             speechService.speak(getText());
           }
-        });
+        };
+        el.addEventListener('click', handleClick);
 
         // Add speech button if requested
         if (modifiers.button) {
@@ -63,6 +104,16 @@ export default {
           }
 
           el.appendChild(button);
+        }
+
+        // Cleanup on unmount
+        el._cleanup = () => {
+          el.removeEventListener('click', handleClick);
+        }
+      },
+      unmounted(el: ElementWithCleanup) {
+        if (el._cleanup) {
+          el._cleanup();
         }
       }
     });
