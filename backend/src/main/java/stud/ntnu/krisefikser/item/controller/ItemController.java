@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -124,7 +125,7 @@ public class ItemController {
    * @return ResponseEntity containing the updated checklist item with the new status, with HTTP
    * status 200 (OK)
    * @throws IllegalArgumentException  if the provided ID is invalid
-   * @throws ResourceNotFoundException if no checklist item with the specified ID exists
+   * @throws EntityNotFoundException if no checklist item with the specified ID exists
    * @see ChecklistItemResponse
    */
   @PutMapping("/checklist/{id}")

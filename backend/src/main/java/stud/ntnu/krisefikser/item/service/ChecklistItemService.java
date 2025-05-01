@@ -1,5 +1,6 @@
 package stud.ntnu.krisefikser.item.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ public class ChecklistItemService {
                     item.setChecked(!item.getChecked());
                     return checklistItemRepository.save(item).toResponse();
                 })
-                .orElseThrow(() -> new IllegalArgumentException("Checklist item not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Checklist item not found with id: " + id));
     }
 
     public List<ChecklistItemResponse> getAllChecklistItems() {
