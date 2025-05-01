@@ -1,7 +1,6 @@
 package stud.ntnu.krisefikser.auth.service;
 
 import java.util.Date;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,8 +18,8 @@ import stud.ntnu.krisefikser.auth.entity.RefreshToken;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
-import stud.ntnu.krisefikser.user.dto.CreateUserDto;
-import stud.ntnu.krisefikser.user.dto.UserDto;
+import stud.ntnu.krisefikser.user.dto.CreateUser;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 @Service
@@ -36,7 +35,7 @@ public class AuthService {
   private final RefreshTokenRepository refreshTokenRepository;
 
   public RegisterResponse register(RegisterRequest registerRequest) {
-    userService.createUser(new CreateUserDto(
+    userService.createUser(new CreateUser(
         registerRequest.getEmail(),
         registerRequest.getPassword(),
         registerRequest.getFirstName(),
@@ -98,7 +97,7 @@ public class AuthService {
         refreshToken);
   }
 
-  public UserDto me() {
+  public UserResponse me() {
     return userService.getCurrentUser().toDto();
   }
 

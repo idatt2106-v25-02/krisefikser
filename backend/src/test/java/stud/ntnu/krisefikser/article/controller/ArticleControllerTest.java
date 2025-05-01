@@ -25,7 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
-import stud.ntnu.krisefikser.article.data.ArticleDTO;
+import stud.ntnu.krisefikser.article.dto.ArticleRequest;
+import stud.ntnu.krisefikser.article.dto.ArticleResponse;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.article.service.ArticleService;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
@@ -51,12 +52,12 @@ class ArticleControllerTest {
   @MockBean
   private CustomUserDetailsService userDetailsService;
 
-  private ArticleDTO articleDTO;
+  private ArticleResponse articleResponse;
   private final LocalDateTime now = LocalDateTime.now();
 
   @BeforeEach
   void setUp() {
-    articleDTO = ArticleDTO.builder()
+    articleResponse = ArticleResponse.builder()
         .id(1L)
         .title("Test Article")
         .text("Test Content")
@@ -67,26 +68,26 @@ class ArticleControllerTest {
 
   @Test
   void getAllArticles_ShouldReturnListOfArticles() throws Exception {
-    when(articleService.getAllArticles()).thenReturn(List.of(articleDTO));
+    when(articleService.getAllArticles()).thenReturn(List.of(articleResponse));
 
     mockMvc.perform(get("/api/articles"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$[0].id").value(articleDTO.getId()))
-        .andExpect(jsonPath("$[0].title").value(articleDTO.getTitle()))
-        .andExpect(jsonPath("$[0].text").value(articleDTO.getText()));
+        .andExpect(jsonPath("$[0].id").value(articleResponse.getId()))
+        .andExpect(jsonPath("$[0].title").value(articleResponse.getTitle()))
+        .andExpect(jsonPath("$[0].text").value(articleResponse.getText()));
   }
 
   @Test
   void getArticleById_WhenArticleExists_ShouldReturnArticle() throws Exception {
-    when(articleService.getArticleById(1L)).thenReturn(articleDTO);
+    when(articleService.getArticleById(1L)).thenReturn(articleResponse);
 
     mockMvc.perform(get("/api/articles/1"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(articleDTO.getId()))
-        .andExpect(jsonPath("$.title").value(articleDTO.getTitle()))
-        .andExpect(jsonPath("$.text").value(articleDTO.getText()));
+        .andExpect(jsonPath("$.id").value(articleResponse.getId()))
+        .andExpect(jsonPath("$.title").value(articleResponse.getTitle()))
+        .andExpect(jsonPath("$.text").value(articleResponse.getText()));
   }
 
   @Test
@@ -101,45 +102,46 @@ class ArticleControllerTest {
   @Test
   @WithMockUser(roles = "ADMIN")
   void createArticle_ShouldReturnCreatedArticle() throws Exception {
-    when(articleService.createArticle(any(ArticleDTO.class))).thenReturn(articleDTO);
+    when(articleService.createArticle(any(ArticleRequest.class))).thenReturn(articleResponse);
 
     mockMvc.perform(post("/api/articles")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(articleDTO)))
+            .content(objectMapper.writeValueAsString(articleResponse)))
         .andExpect(status().isCreated())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(articleDTO.getId()))
-        .andExpect(jsonPath("$.title").value(articleDTO.getTitle()))
-        .andExpect(jsonPath("$.text").value(articleDTO.getText()));
+        .andExpect(jsonPath("$.id").value(articleResponse.getId()))
+        .andExpect(jsonPath("$.title").value(articleResponse.getTitle()))
+        .andExpect(jsonPath("$.text").value(articleResponse.getText()));
   }
 
   @Test
   @WithMockUser(roles = "ADMIN")
   void updateArticle_WhenArticleExists_ShouldReturnUpdatedArticle() throws Exception {
-    when(articleService.updateArticle(eq(1L), any(ArticleDTO.class))).thenReturn(articleDTO);
+    when(articleService.updateArticle(eq(1L), any(ArticleRequest.class))).thenReturn(
+        articleResponse);
 
     mockMvc.perform(put("/api/articles/1")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(articleDTO)))
+            .content(objectMapper.writeValueAsString(articleResponse)))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(articleDTO.getId()))
-        .andExpect(jsonPath("$.title").value(articleDTO.getTitle()))
-        .andExpect(jsonPath("$.text").value(articleDTO.getText()));
+        .andExpect(jsonPath("$.id").value(articleResponse.getId()))
+        .andExpect(jsonPath("$.title").value(articleResponse.getTitle()))
+        .andExpect(jsonPath("$.text").value(articleResponse.getText()));
   }
 
   @Test
   @WithMockUser(roles = "ADMIN")
   void updateArticle_WhenArticleDoesNotExist_ShouldReturn404() throws Exception {
-    when(articleService.updateArticle(eq(1L), any(ArticleDTO.class)))
+    when(articleService.updateArticle(eq(1L), any(ArticleRequest.class)))
         .thenThrow(new ArticleNotFoundException("Article not found with id: 1"));
 
     mockMvc.perform(put("/api/articles/1")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(articleDTO)))
+            .content(objectMapper.writeValueAsString(articleResponse)))
         .andExpect(status().isNotFound());
   }
 
@@ -167,7 +169,7 @@ class ArticleControllerTest {
     mockMvc.perform(post("/api/articles")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(articleDTO)))
+            .content(objectMapper.writeValueAsString(articleResponse)))
         .andExpect(status().isUnauthorized());
   }
 
@@ -177,7 +179,7 @@ class ArticleControllerTest {
     mockMvc.perform(post("/api/articles")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(articleDTO)))
+            .content(objectMapper.writeValueAsString(articleResponse)))
         .andExpect(status().isForbidden());
   }
 }

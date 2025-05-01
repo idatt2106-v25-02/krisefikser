@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
-import stud.ntnu.krisefikser.user.dto.UserDto;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class HouseholdMemberResponse {
-    private UserDto user;
-    private HouseholdMemberStatus status;
+
+  private UserResponse user;
+  private HouseholdMemberStatus status;
 }

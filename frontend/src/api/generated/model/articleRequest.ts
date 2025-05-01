@@ -7,11 +7,10 @@
  */
 
 /**
- * Registration details
+ * Article to create
  */
-export interface RegisterRequest {
-  email?: string
-  password?: string
-  firstName: string
-  lastName: string
+export interface ArticleRequest {
+  title: string
+  text: string
+  imageUrl: string
 }

@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { Switch } from '@/components/ui/switch'
 import { useMe } from '@/api/generated/authentication/authentication'
 import { useUpdateUser } from '@/api/generated/user/user'
-import type { CreateUserDto } from '@/api/generated/model'
+import type { CreateUser } from '@/api/generated/model'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 // Get auth store
@@ -50,7 +50,10 @@ const notificationsRef = ref(user.value?.notifications ?? false)
 const emailUpdatesRef = ref(user.value?.emailUpdates ?? false)
 const locationSharingRef = ref(user.value?.locationSharing ?? false)
 
-const handleToggle = (field: 'notifications' | 'emailUpdates' | 'locationSharing', value: boolean) => {
+const handleToggle = (
+  field: 'notifications' | 'emailUpdates' | 'locationSharing',
+  value: boolean,
+) => {
   if (!currentUser.value) return
 
   console.log(`Toggling ${field} to ${value}`)
@@ -74,7 +77,7 @@ const handleToggle = (field: 'notifications' | 'emailUpdates' | 'locationSharing
       notifications: field === 'notifications' ? value : currentUser.value.notifications,
       emailUpdates: field === 'emailUpdates' ? value : currentUser.value.emailUpdates,
       locationSharing: field === 'locationSharing' ? value : currentUser.value.locationSharing,
-    } as CreateUserDto,
+    } as CreateUser,
   })
 }
 </script>
