@@ -17,6 +17,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.common.ProblemDetailUtils;
@@ -60,7 +61,7 @@ import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
  * @since 1.0
  */
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = {"stud.ntnu.krisefikser"})
 public class GlobalExceptionHandler {
 
   // ===== Domain-specific custom exceptions =====
@@ -76,6 +77,19 @@ public class GlobalExceptionHandler {
     log.warn("Household not found: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND,
         exception.getMessage(), "household");
+  }
+
+  /**
+   * Handles exceptions thrown when an article is not found.
+   *
+   * @param exception the article not found exception
+   * @return a problem detail with NOT_FOUND status and the exception message
+   */
+  @ExceptionHandler(ArticleNotFoundException.class)
+  public ProblemDetail handleArticleNotFoundException(ArticleNotFoundException exception) {
+    log.warn("Article not found: {}", exception.getMessage());
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND,
+        exception.getMessage(), "article");
   }
 
   // ===== Authentication-related exceptions =====
