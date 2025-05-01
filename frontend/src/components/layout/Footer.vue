@@ -5,7 +5,7 @@
         <!-- Column 1: Logo and description -->
         <div>
           <div class="flex items-center mb-4">
-            <img src="@/assets/logo.svg" alt="Krisefikser.no" class="h-10 w-auto mr-3" />
+            <img src="/favicon.ico" alt="Krisefikser.app" class="h-6 w-auto mr-2" />
             <span class="text-xl font-bold">Krisefikser.no</span>
           </div>
           <p class="text-blue-200 mb-4">Vi hjelper deg å være forberedt når krisen rammer – før, under og etter.</p>
