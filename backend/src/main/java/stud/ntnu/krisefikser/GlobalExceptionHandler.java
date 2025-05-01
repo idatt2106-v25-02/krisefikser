@@ -22,6 +22,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
+import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
 import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
 import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
@@ -42,6 +43,11 @@ public class GlobalExceptionHandler {
       RefreshTokenDoesNotExistException exception) {
     log.warn("Refresh token does not exist", exception);
     return createProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage());
+  }
+
+  @ExceptionHandler(TurnstileVerificationException.class)
+  public ProblemDetail handleTurnstileVerificationException(TurnstileVerificationException exception) {
+    return createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
   }
 
   // User related exceptions
