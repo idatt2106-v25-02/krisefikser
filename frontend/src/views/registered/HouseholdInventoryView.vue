@@ -14,6 +14,7 @@ import {
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
+import ProductSearch from '@/components/inventory/ProductSearch.vue' // Import the new search component
 
 const AddItemDialog = defineAsyncComponent(() => import('@/components/inventory/ItemDialog.vue'))
 
@@ -186,9 +187,55 @@ function deleteItem(categoryId: string, itemId: string) {
 }
 
 // State for dialogs
-const expandedCategories = ref<string[]>(['food']) // Initially expand food category
+const originalCategoriesState = ref<string[]>([]) // Store the original state
+const expandedCategories = ref<string[]>([]) // Start with all categories closed
 const isAddItemDialogOpen = ref(false)
 const selectedCategory = ref<{ id: string; name: string } | null>(null)
+const isSearchActive = ref(false)
+
+// Jump to a search result
+function jumpToItem(categoryId: string, itemId: string) {
+  // First expand only the category containing the item
+  expandedCategories.value = [categoryId]
+
+  // Small delay to ensure DOM is updated
+  setTimeout(() => {
+    const itemElement = document.getElementById(`item-${itemId}`)
+    if (itemElement) {
+      // Use scrollIntoView with block: "center" to position the item in the middle of the viewport
+      itemElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center' // Position in the middle instead of at the top
+      })
+
+      // Add highlight effect
+      itemElement.classList.add('bg-blue-100')
+      setTimeout(() => {
+        itemElement.classList.remove('bg-blue-100')
+        itemElement.classList.add('bg-blue-50')
+        setTimeout(() => {
+          itemElement.classList.remove('bg-blue-50')
+        }, 1000)
+      }, 1000)
+    }
+  }, 100)
+}
+
+// Handle search state change from the search component
+function handleSearchChanged(isActive: boolean, results: any[]) {
+  isSearchActive.value = isActive;
+
+  // When search starts, store current state
+  if (isActive && !originalCategoriesState.value.length) {
+    originalCategoriesState.value = [...expandedCategories.value];
+  }
+
+  // When search ends, restore original state
+  if (!isActive) {
+    expandedCategories.value = [...originalCategoriesState.value];
+    originalCategoriesState.value = [];
+  }
+}
 </script>
 
 <template>
@@ -206,10 +253,6 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
         <div class="flex items-center justify-between">
           <h1 class="text-3xl font-bold text-gray-900">Beredskapslager</h1>
 
-         <div class="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 flex items-center">
-            <span class="text-blue-700 font-medium mr-1">Felles lager for:</span>
-            <span class="text-blue-900 font-bold">{{ apiResponse.household.name }}</span>
-         </div>
         </div>
 
         <!-- New: Add a clarifying subtitle -->
@@ -226,7 +269,6 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-xl font-semibold text-gray-800">Oversikt</h2>
-
             </div>
             <HouseholdEmergencySupplies
               :inventory="formattedInventory"
@@ -256,14 +298,23 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
                 <span class="font-medium">Mona Sysutvikling</span>
               </li>
             </ul>
-
           </div>
         </div>
 
         <!-- Right column - Products -->
-        <div class="lg:col-span-8">
+        <div class="lg:col-span-8 space-y-6">
+          <!-- Search component in its own card -->
+          <ProductSearch
+            :categories="apiResponse.household.inventory.categories"
+            @jump-to-item="jumpToItem"
+            @search-changed="handleSearchChanged"
+          />
+
+          <!-- Products card -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Produkter</h2>
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold text-gray-800">Produkter</h2>
+            </div>
 
             <!-- Categories -->
             <div class="space-y-3">
@@ -316,7 +367,8 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
                     <div
                       v-for="item in category.items"
                       :key="item.id"
-                      class="flex items-center justify-between py-3 px-4 hover:bg-gray-50"
+                      :id="`item-${item.id}`"
+                      class="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors duration-200"
                     >
                       <div class="flex items-center">
                         <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
@@ -397,13 +449,6 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Floating action button -->
-      <div class="fixed bottom-6 right-6">
-        <Button class="h-14 w-14 rounded-full shadow-lg">
-          <span class="text-2xl">+</span>
-        </Button>
       </div>
 
       <!-- Add Item Dialog -->
