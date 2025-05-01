@@ -1,71 +1,93 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { Search, Filter, Clock } from 'lucide-vue-next';
-import { Input } from '@/components/ui/input';
+import { computed, ref, watch } from 'vue'
+import { Filter, Search } from 'lucide-vue-next'
+import { Input } from '@/components/ui/input'
 
-const props = defineProps<{
-  categories: any[]
-}>();
+// Define proper types for our data structures
+interface InventoryItem {
+  id: string
+  name: string
+  type?: string
+  amount: number
+  unit: string
+  expiryDate?: string | null
+}
 
-const emit = defineEmits(['jumpToItem', 'searchChanged']);
+// Use a more specific type for the icon component
+type ComponentType = object // This is a more constrained type than 'any'
 
-// Search functionality
-const searchQuery = ref('');
-const searchResults = ref<Array<{
+interface Category {
+  id: string
+  name: string
+  icon: ComponentType // Changed from any to ComponentType
+  current: number
+  target: number
+  unit: string
+  items: InventoryItem[]
+}
+
+interface SearchResult {
   categoryId: string
   categoryName: string
-  item: any
-}>>([]);
-const isSearching = computed(() => searchQuery.value.trim().length > 0);
+  item: InventoryItem
+}
+
+const props = defineProps<{
+  categories: Category[]
+}>()
+
+const emit = defineEmits<{
+  jumpToItem: [categoryId: string, itemId: string]
+  searchChanged: [isActive: boolean, results: SearchResult[]]
+}>()
+
+// Search functionality
+const searchQuery = ref('')
+const searchResults = ref<SearchResult[]>([])
+const isSearching = computed(() => searchQuery.value.trim().length > 0)
 
 // Filter options
-const showFilters = ref(false);
-const filterExpiringItems = ref(false); // Filter for items expiring soon
-const filterLowStock = ref(false); // Filter for items with low stock
-const daysThreshold = ref(90); // Default: 90 days for expiring soon
+const showFilters = ref(false)
+const filterExpiringItems = ref(false) // Filter for items expiring soon
+const filterLowStock = ref(false) // Filter for items with low stock
+const daysThreshold = ref(90) // Default: 90 days for expiring soon
 
 // Apply all filters and search
-function applyFiltersAndSearch(query: string) {
+function applyFiltersAndSearch(query: string): void {
   if (query.trim().length === 0 && !filterExpiringItems.value && !filterLowStock.value) {
-    searchResults.value = [];
-    emit('searchChanged', false, []);
-    return;
+    searchResults.value = []
+    emit('searchChanged', false, [])
+    return
   }
 
-  const results: Array<{
-    categoryId: string
-    categoryName: string
-    item: any
-  }> = [];
+  const results: SearchResult[] = []
 
   // Current date and expiration threshold
-  const today = new Date();
-  const expirationThreshold = new Date();
-  expirationThreshold.setDate(today.getDate() + daysThreshold.value);
+  const today = new Date()
+  const expirationThreshold = new Date()
+  expirationThreshold.setDate(today.getDate() + daysThreshold.value)
 
   // Search through all categories and their items
   props.categories.forEach((category) => {
     category.items.forEach((item) => {
-      let matches = true;
+      let matches = true
 
       // Apply text search if query exists
       if (query.trim().length > 0) {
-        matches = item.name.toLowerCase().includes(query.toLowerCase()) ||
-          (item.type && item.type.toLowerCase().includes(query.toLowerCase()));
+        matches =
+          item.name.toLowerCase().includes(query.toLowerCase()) ||
+          (item.type ? item.type.toLowerCase().includes(query.toLowerCase()) : false)
       }
 
       // Apply expiration filter if enabled
       if (matches && filterExpiringItems.value && item.expiryDate) {
-        const expiryDate = new Date(item.expiryDate);
-        matches = expiryDate <= expirationThreshold;
+        const expiryDate = new Date(item.expiryDate)
+        matches = expiryDate <= expirationThreshold
       }
 
       // Apply low stock filter if enabled
       if (matches && filterLowStock.value) {
-        // Determine what "low stock" means for this item
-        // This is a simplified approach - you might want more sophisticated logic
-        const isLowStock = item.amount <= 2; // Consider 2 or fewer as low stock
-        matches = isLowStock;
+        matches = item.amount <= 2
       }
 
       if (matches) {
@@ -73,61 +95,61 @@ function applyFiltersAndSearch(query: string) {
           categoryId: category.id,
           categoryName: category.name,
           item,
-        });
+        })
       }
-    });
-  });
+    })
+  })
 
-  searchResults.value = results;
-  emit('searchChanged', results.length > 0, results);
+  searchResults.value = results
+  emit('searchChanged', results.length > 0, results)
 }
 
 // Watch for changes to search query or filters
 watch([searchQuery, filterExpiringItems, filterLowStock, daysThreshold], () => {
-  applyFiltersAndSearch(searchQuery.value);
-});
+  applyFiltersAndSearch(searchQuery.value)
+})
 
-function clearSearch() {
-  searchQuery.value = '';
-  filterExpiringItems.value = false;
-  filterLowStock.value = false;
-  searchResults.value = [];
-  emit('searchChanged', false, []);
+function clearSearch(): void {
+  searchQuery.value = ''
+  filterExpiringItems.value = false
+  filterLowStock.value = false
+  searchResults.value = []
+  emit('searchChanged', false, [])
 }
 
-function handleJumpToItem(categoryId: string, itemId: string) {
-  emit('jumpToItem', categoryId, itemId);
+function handleJumpToItem(categoryId: string, itemId: string): void {
+  emit('jumpToItem', categoryId, itemId)
 }
 
 // Get category icon for search results
-function getCategoryIcon(categoryId: string) {
-  const category = props.categories.find(cat => cat.id === categoryId);
-  return category ? category.icon : null;
+function getCategoryIcon(categoryId: string): ComponentType | null {
+  const category = props.categories.find((cat) => cat.id === categoryId)
+  return category ? category.icon : null
 }
 
 // Format date in Norwegian format
-function formatDate(dateString: string) {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 // Check if an item is expiring soon
-function isExpiringSoon(dateString: string) {
-  if (!dateString) return false;
-  const expiryDate = new Date(dateString);
-  const today = new Date();
-  const expirationThreshold = new Date();
-  expirationThreshold.setDate(today.getDate() + daysThreshold.value);
-  return expiryDate <= expirationThreshold && expiryDate >= today;
+function isExpiringSoon(dateString: string | null | undefined): boolean {
+  if (!dateString) return false
+  const expiryDate = new Date(dateString)
+  const today = new Date()
+  const expirationThreshold = new Date()
+  expirationThreshold.setDate(today.getDate() + daysThreshold.value)
+  return expiryDate <= expirationThreshold && expiryDate >= today
 }
 
 // Check if an item is expired
-function isExpired(dateString: string) {
-  if (!dateString) return false;
-  const expiryDate = new Date(dateString);
-  const today = new Date();
-  return expiryDate < today;
+function isExpired(dateString: string | null | undefined): boolean {
+  if (!dateString) return false
+  const expiryDate = new Date(dateString)
+  const today = new Date()
+  return expiryDate < today
 }
 </script>
 
@@ -174,9 +196,7 @@ function isExpired(dateString: string) {
             v-model="filterExpiringItems"
             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
           />
-          <span class="ml-2 text-base text-gray-600 flex items-center">
-            Utløper snart
-          </span>
+          <span class="ml-2 text-base text-gray-600 flex items-center"> Utløper snart </span>
         </label>
 
         <div v-if="filterExpiringItems" class="ml-6 mt-1">
@@ -208,7 +228,9 @@ function isExpired(dateString: string) {
     <!-- Search results -->
     <div v-if="searchResults.length > 0" class="mt-3">
       <div class="flex items-center justify-between mb-2 text-gray-700">
-        <h3 class="text-base font-medium">{{ searchResults.length }} resultat{{ searchResults.length !== 1 ? 'er' : '' }}</h3>
+        <h3 class="text-base font-medium">
+          {{ searchResults.length }} resultat{{ searchResults.length !== 1 ? 'er' : '' }}
+        </h3>
         <button
           @click="clearSearch"
           class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
@@ -224,7 +246,10 @@ function isExpired(dateString: string) {
           @click="handleJumpToItem(result.categoryId, result.item.id)"
         >
           <div class="flex items-center">
-            <div v-if="getCategoryIcon(result.categoryId)" class="flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center mr-2 bg-blue-100 text-blue-700">
+            <div
+              v-if="getCategoryIcon(result.categoryId)"
+              class="flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center mr-2 bg-blue-100 text-blue-700"
+            >
               <component :is="getCategoryIcon(result.categoryId)" class="h-4 w-4" />
             </div>
             <div>
@@ -233,8 +258,10 @@ function isExpired(dateString: string) {
                 <span
                   :class="{
                     'text-red-600': isExpired(result.item.expiryDate),
-                    'text-amber-600': !isExpired(result.item.expiryDate) && isExpiringSoon(result.item.expiryDate),
-                    'text-gray-500': !isExpired(result.item.expiryDate) && !isExpiringSoon(result.item.expiryDate)
+                    'text-amber-600':
+                      !isExpired(result.item.expiryDate) && isExpiringSoon(result.item.expiryDate),
+                    'text-gray-500':
+                      !isExpired(result.item.expiryDate) && !isExpiringSoon(result.item.expiryDate),
                   }"
                 >
                   Utløper: {{ formatDate(result.item.expiryDate) }}
@@ -246,8 +273,19 @@ function isExpired(dateString: string) {
             <span class="px-3 py-1 bg-gray-100 rounded-full text-sm">
               {{ result.item.amount }} {{ result.item.unit }}
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
-              <path d="m9 18 6-6-6-6"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="text-gray-400"
+            >
+              <path d="m9 18 6-6-6-6" />
             </svg>
           </div>
         </li>
@@ -255,7 +293,10 @@ function isExpired(dateString: string) {
     </div>
 
     <!-- No results message -->
-    <div v-else-if="isSearching || filterExpiringItems || filterLowStock" class="text-center py-4 text-gray-500 mt-2">
+    <div
+      v-else-if="isSearching || filterExpiringItems || filterLowStock"
+      class="text-center py-4 text-gray-500 mt-2"
+    >
       <p class="text-base">Ingen produkter funnet</p>
       <p v-if="searchQuery" class="text-sm text-gray-400">Søkeord: "{{ searchQuery }}"</p>
     </div>

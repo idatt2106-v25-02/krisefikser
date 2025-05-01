@@ -12,7 +12,6 @@ import {
   Package,
   Plus,
 } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 import ProductSearch from '@/components/inventory/ProductSearch.vue' // Import the new search component
 
@@ -222,7 +221,7 @@ function jumpToItem(categoryId: string, itemId: string) {
 }
 
 // Handle search state change from the search component
-function handleSearchChanged(isActive: boolean, results: any[]) {
+function handleSearchChanged(isActive: boolean) {
   isSearchActive.value = isActive;
 
   // When search starts, store current state
