@@ -51,6 +51,7 @@ public class Household {
   private User owner;
 
   @Column(nullable = false)
+  @Builder.Default
   private Double waterLiters = 0.0;
 
   @CreationTimestamp
