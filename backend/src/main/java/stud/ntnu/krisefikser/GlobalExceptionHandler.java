@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(InvalidTokenException.class)
   public ProblemDetail handleInvalidTokenException(InvalidTokenException exception) {
-    log.warn("Invalid token: {}", exception.getMessage());
+    log.error("Invalid token: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage(), "auth");
   }
 
@@ -100,7 +100,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(RefreshTokenDoesNotExistException.class)
   public ProblemDetail handleRefreshTokenDoesNotExistException(
     RefreshTokenDoesNotExistException exception) {
-    log.warn("Refresh token does not exist: {}", exception.getMessage());
+    log.error("Refresh token does not exist: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage(), "auth");
   }
 
@@ -165,7 +165,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(SignatureException.class)
   public ProblemDetail handleSignatureException(SignatureException exception) {
-    log.warn("Invalid JWT signature: {}", exception.getMessage());
+    log.error("Invalid JWT signature: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, "Invalid JWT signature", "auth");
   }
 
@@ -192,7 +192,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
   public ProblemDetail handleAccessDeniedException(
     org.springframework.security.access.AccessDeniedException exception) {
-    log.warn("Access denied: {}", exception.getMessage());
+    log.error("Access denied: {}", exception.getMessage());
     return ProblemDetailUtils.createProblemDetail(HttpStatus.FORBIDDEN, "Access denied");
   }
 
@@ -204,7 +204,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(BadCredentialsException.class)
   public ProblemDetail handleBadCredentialsException(BadCredentialsException exception) {
-    log.warn("Invalid credentials: {}", exception.getMessage());
+    log.error("Invalid credentials: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, "Invalid credentials", "auth");
   }
 
@@ -318,7 +318,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(UnauthorizedAccessException.class)
   public ProblemDetail handleUnauthorizedAccessException(UnauthorizedAccessException exception) {
-    log.warn("Unauthorized access: {}", exception.getMessage());
+    log.error("Unauthorized access: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage(), "user");
   }
 
