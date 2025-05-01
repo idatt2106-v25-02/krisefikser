@@ -33,12 +33,16 @@ const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
 
 // Process map data
 function processMapData() {
-  if (!mapPointsData || !mapPointTypesData) return
+  if (!mapPointsData.value || !mapPointTypesData.value) return
 
-  // Get data arrays from the API response - check if array or direct data
-  const mapPoints = Array.isArray(mapPointsData) ? mapPointsData : [mapPointsData]
+  // Get data arrays from the API response
+  const mapPoints = Array.isArray(mapPointsData.value)
+    ? mapPointsData.value
+    : [mapPointsData.value]
 
-  const mapPointTypes = Array.isArray(mapPointTypesData) ? mapPointTypesData : [mapPointTypesData]
+  const mapPointTypes = Array.isArray(mapPointTypesData.value)
+    ? mapPointTypesData.value
+    : [mapPointTypesData.value]
 
   // Find shelter type
   const shelterType = mapPointTypes.find((type: MapPointType) =>
@@ -56,17 +60,8 @@ function processMapData() {
     }))
 
   // Process events if available
-  if (eventsData) {
-    // Ensure we're working with the actual event data, not reactive refs
-    const eventItems = Array.isArray(eventsData) ? eventsData : [eventsData]
-
-    // Map to extract actual Event objects if needed
-    events.value = eventItems
-      .map((eventItem) => {
-        // If it's a ref, use its value, otherwise use the raw data
-        return 'value' in eventItem ? eventItem.value : eventItem
-      })
-      .filter((event) => event !== undefined) // Filter out any undefined values
+  if (eventsData.value) {
+    events.value = Array.isArray(eventsData.value) ? eventsData.value : [eventsData.value]
   }
 
   isLoading.value = false

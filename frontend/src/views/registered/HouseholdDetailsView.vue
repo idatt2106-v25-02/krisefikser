@@ -11,6 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import {
   DropdownMenu,
@@ -34,6 +35,7 @@ import {
   UserMinus,
   AlertCircle,
   Map as MapIcon,
+  Edit,
 } from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
@@ -42,6 +44,7 @@ import {
   useLeaveHousehold,
   useDeleteHousehold,
   useJoinHousehold,
+  // useUpdateHousehold, // Commented out for mock implementation
 } from '@/api/generated/household/household'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Badge } from '@/components/ui/badge'
@@ -71,9 +74,24 @@ type MemberFormValues = {
   consumptionFactor?: number
 }
 
+// Updated to match CreateHouseholdRequest fields
+type HouseholdFormValues = {
+  name: string
+  address: string
+  addressLine2?: string
+  postalCode: string
+  city: string
+  country: string
+  description?: string
+}
+
 interface ExtendedHouseholdResponse extends HouseholdResponse {
   meetingPlaces?: MeetingPlace[]
   inventory?: Inventory
+  addressLine2?: string
+  postalCode?: string
+  city?: string
+  country?: string
   inventoryItems?: Array<{
     name: string
     expiryDate: string
@@ -91,6 +109,16 @@ const memberFormSchema = toTypedSchema(
     name: z.string().min(1, 'Navn er påkrevd'),
     email: z.string().email('Ugyldig e-postadresse').optional(),
     consumptionFactor: z.number().min(0.1, 'Må være større enn 0').optional(),
+  }),
+)
+
+// Updated form schema with complete address fields
+const householdFormSchema = toTypedSchema(
+  z.object({
+    name: z.string().min(1, 'Navn på husstanden er påkrevd'),
+    address: z.string().min(1, 'Adresse er påkrevd'),
+    postalCode: z.string().min(4, 'Postnummer må være minst 4 siffer'),
+    city: z.string().min(1, 'By/sted er påkrevd'),
   }),
 )
 
@@ -144,8 +172,28 @@ const { mutate: removeMember } = useLeaveHousehold({
   },
 })
 
+// Mock for updating household data
+const updatedHouseholdData = ref({
+  name: household.value?.name || '',
+  address: household.value?.address || '',
+  postalCode: household.value?.postalCode || '',
+  city: household.value?.city || '',
+})
+
+// Get formatted full // const getFormattedAddress = (household) => {
+//   if (!household) return '';
+
+//   const parts = [
+//     household.address,
+//     `${household.postalCode} ${household.city}`,
+//   ].filter(Boolean);
+
+//   return parts.join(', ');
+// }; for display
+
 // State for dialogs
 const isAddMemberDialogOpen = ref(false)
+const isEditHouseholdDialogOpen = ref(false)
 const isMeetingMapDialogOpen = ref(false)
 const memberMode = ref<'invite' | 'add'>('add')
 const mapRef = ref<InstanceType<typeof HouseholdMeetingMap> | null>(null)
@@ -154,6 +202,16 @@ const selectedMeetingPlace = ref<MeetingPlace | null>(null)
 // Form handling
 const { handleSubmit: submitMemberForm } = useForm<MemberFormValues>({
   validationSchema: memberFormSchema,
+})
+
+const { handleSubmit: submitHouseholdForm } = useForm<HouseholdFormValues>({
+  validationSchema: householdFormSchema,
+  initialValues: {
+    name: household.value?.name || '',
+    address: household.value?.address || '',
+    postalCode: household.value?.postalCode || '',
+    city: household.value?.city || '',
+  },
 })
 
 // Actions
@@ -167,6 +225,27 @@ function onMemberSubmit() {
   })
 }
 
+// Mock implementation for updating household
+function onHouseholdSubmit(values: HouseholdFormValues) {
+  // Update the local data instead of calling an API
+  if (household.value) {
+    // Update the mock data
+    updatedHouseholdData.value = values;
+
+    // Update the household data directly (instead of refetching from API)
+    household.value.name = values.name;
+    household.value.address = values.address;
+    household.value.postalCode = values.postalCode;
+    household.value.city = values.city;
+
+    // Close the dialog
+    isEditHouseholdDialogOpen.value = false;
+
+    // Show success feedback (optional)
+    alert('Husstandsinformasjon oppdatert!');
+  }
+}
+
 function onRemoveMember(userId?: string) {
   if (!userId) return
   if (!household.value) return
@@ -177,8 +256,12 @@ function onRemoveMember(userId?: string) {
   })
 }
 
-function navigateToInventory() {
+function navigateToEditHouseholdInfo() {
   router.push(`/husstand/${household.value?.id}/beredskapslager`)
+}
+
+function openEditHouseholdDialog() {
+  isEditHouseholdDialogOpen.value = true
 }
 
 function handleLeaveHousehold() {
@@ -228,19 +311,26 @@ function viewMeetingPlace(placeId: string) {
       </div>
 
       <div v-else-if="household">
-        <!-- Household header -->
+        <!-- Household header with complete address display -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between">
             <div>
               <h1 class="text-4xl font-bold text-gray-900 mb-1">{{ household.name }}</h1>
-              <div class="flex items-center text-gray-600">
-                <MapPin class="h-4 w-4 text-gray-400 mr-1" />
-                <span>{{ household.address }}</span>
-                <ExternalLink class="h-4 w-4 ml-1 text-gray-400 cursor-pointer" />
+              <div class="text-gray-600">
+                <div class="flex items-center">
+                  <MapPin class="h-4 w-4 text-gray-400 mr-1 flex-shrink-0" />
+                  <span class="flex flex-col">
+                    <span>{{ household.address }}</span>
+                    <span v-if="household.addressLine2">{{ household.addressLine2 }}</span>
+                    <span>{{ household.postalCode }} {{ household.city }}</span>
+                    <span v-if="household.country && household.country !== 'Norge'">{{ household.country }}</span>
+                  </span>
+                </div>
               </div>
             </div>
             <div class="mt-4 md:mt-0 space-x-2">
-              <Button variant="outline" size="sm" @click="navigateToInventory">
+              <Button variant="outline" size="sm" @click="openEditHouseholdDialog">
+                <Edit class="h-4 w-4 mr-1" />
                 Endre informasjon
               </Button>
             </div>
@@ -279,8 +369,8 @@ function viewMeetingPlace(placeId: string) {
                           class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0"
                         >
                           <span class="text-md font-medium">{{
-                            member.user?.firstName?.[0] || '?'
-                          }}</span>
+                              member.user?.firstName?.[0] || '?'
+                            }}</span>
                         </div>
                         <h3 class="text-md font-bold text-gray-900">
                           {{ member.user?.firstName }} {{ member.user?.lastName }}
@@ -342,7 +432,7 @@ function viewMeetingPlace(placeId: string) {
                 <Button
                   variant="outline"
                   size="sm"
-                  @click="navigateToInventory"
+                  @click="navigateToEditHouseholdInfo"
                   class="flex items-center gap-1"
                 >
                   <span>Se detaljer</span>
@@ -446,6 +536,79 @@ function viewMeetingPlace(placeId: string) {
             </div>
           </div>
         </div>
+
+        <!-- Edit Household Dialog -->
+        <Dialog v-model:open="isEditHouseholdDialogOpen">
+          <DialogContent class="sm:max-w-[525px]">
+            <DialogHeader>
+              <DialogTitle>Endre husstandsinformasjon</DialogTitle>
+              <DialogDescription>
+                Oppdater informasjonen om din husstand. Klikk lagre når du er ferdig.
+              </DialogDescription>
+            </DialogHeader>
+
+            <Form :initial-values="{
+                name: household.name,
+                address: household.address,
+                postalCode: household.postalCode || '',
+                city: household.city || '',
+              }"
+                  @submit="submitHouseholdForm(onHouseholdSubmit)"
+            >
+              <div class="grid gap-4 py-4">
+                <FormField name="name">
+                  <FormItem>
+                    <FormLabel>Navn på husstanden</FormLabel>
+                    <FormControl>
+                      <Input placeholder="F.eks. Familien Hansen" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <FormField name="address">
+                  <FormItem>
+                    <FormLabel>Adresse</FormLabel>
+                    <FormControl>
+                      <Input placeholder="F.eks. Østensjøveien 123" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <FormField name="postalCode">
+                    <FormItem>
+                      <FormLabel>Postnummer</FormLabel>
+                      <FormControl>
+                        <Input placeholder="F.eks. 0650" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+
+                  <FormField name="city">
+                    <FormItem>
+                      <FormLabel>By/sted</FormLabel>
+                      <FormControl>
+                        <Input placeholder="F.eks. Oslo" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" @click="isEditHouseholdDialogOpen = false">
+                  Avbryt
+                </Button>
+                <Button type="submit">Lagre endringer</Button>
+              </DialogFooter>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
         <!-- Add Member Dialog -->
         <Dialog v-model:open="isAddMemberDialogOpen">

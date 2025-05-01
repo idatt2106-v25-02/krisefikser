@@ -82,7 +82,7 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
-      path: '/admin/register',
+      path: '/admin/registrer',
       name: 'admin-register',
       component: AdminRegisterView,
       meta: { requiresAuth: true, requiresAdmin: true }
@@ -186,7 +186,7 @@ const router = createRouter({
       component: MapView,
     },
     {
-      path: '/register',
+      path: '/registrer',
       name: 'register',
       component: RegisterView,
     },
