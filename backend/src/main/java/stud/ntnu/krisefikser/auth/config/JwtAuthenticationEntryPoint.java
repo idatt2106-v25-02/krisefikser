@@ -5,8 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.time.Instant;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
@@ -14,15 +13,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
   private final ObjectMapper objectMapper;
-
-  @Autowired
-  public JwtAuthenticationEntryPoint(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
-  }
-
   @Override
   public void commence(
       HttpServletRequest request,
@@ -33,10 +26,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         HttpStatus.UNAUTHORIZED,
         "Unauthorized"
     );
-    problemDetail.setType(URI.create("https://krisefikser.ntnu.stud/errors/" + HttpStatus.UNAUTHORIZED.value()));
+    problemDetail.setType(
+        URI.create("https://krisefikser.ntnu.stud/errors/" + HttpStatus.UNAUTHORIZED.value()));
     problemDetail.setTitle(HttpStatus.UNAUTHORIZED.getReasonPhrase());
-    problemDetail.setProperty("timestamp", Instant.now());
-
     response.setContentType("application/problem+json");
     response.setStatus(HttpStatus.UNAUTHORIZED.value());
     response.getWriter().write(objectMapper.writeValueAsString(problemDetail));
