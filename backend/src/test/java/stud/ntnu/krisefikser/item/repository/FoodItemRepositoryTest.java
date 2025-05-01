@@ -68,7 +68,7 @@ class FoodItemRepositoryTest {
     // Flush changes to the database
     entityManager.flush();
 
-    // Verify item was saved with an ID
+    // Verify the item was saved with an ID
     assertThat(savedItem.getId()).isNotNull();
     assertThat(savedItem.getName()).isEqualTo("Rice");
   }

@@ -66,7 +66,7 @@ class ChecklistItemRepositoryTest {
     // Flush changes to the database
     entityManager.flush();
 
-    // Verify item was saved with an ID
+    // Verify the item was saved with an ID
     assertThat(savedItem.getId()).isNotNull();
     assertThat(savedItem.getName()).isEqualTo("First Aid Kit");
     assertThat(savedItem.getType()).isEqualTo(ChecklistType.HEALTH);
@@ -262,7 +262,7 @@ class ChecklistItemRepositoryTest {
     // Find the updated item
     Optional<ChecklistItem> updatedItem = checklistItemRepository.findById(persistedItem.getId());
 
-    // Verify item was updated
+    // Verify the item was updated
     assertThat(updatedItem).isPresent();
     assertThat(updatedItem.get().getChecked()).isTrue();
   }
