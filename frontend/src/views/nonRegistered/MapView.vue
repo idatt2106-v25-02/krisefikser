@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import ShelterLayer from '@/components/map/ShelterLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
@@ -68,17 +68,14 @@ function processMapData() {
 }
 
 // Watch for data load completion
-onMounted(() => {
-  const checkDataLoaded = () => {
-    if (!isLoadingMapPoints.value && !isLoadingMapPointTypes.value && !isLoadingEvents.value) {
+watch(
+  [isLoadingMapPoints, isLoadingMapPointTypes, isLoadingEvents],
+  ([mapPointsLoading, mapPointTypesLoading, eventsLoading]) => {
+    if (!mapPointsLoading && !mapPointTypesLoading && !eventsLoading) {
       processMapData()
-    } else {
-      setTimeout(checkDataLoaded, 100)
     }
-  }
-
-  checkDataLoaded()
-})
+  },
+)
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
@@ -137,7 +134,3 @@ function onUserLocationStatus(available: boolean) {
     />
   </div>
 </template>
-
-<style scoped>
-/* No styles needed as we're using Tailwind classes */
-</style>
