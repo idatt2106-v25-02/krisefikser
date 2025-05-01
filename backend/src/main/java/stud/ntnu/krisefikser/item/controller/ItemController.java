@@ -124,8 +124,8 @@ public class ItemController {
    *           exists in the system.
    * @return ResponseEntity containing the updated checklist item with the new status, with HTTP
    * status 200 (OK)
-   * @throws IllegalArgumentException  if the provided ID is invalid
-   * @throws EntityNotFoundException if no checklist item with the specified ID exists
+   * @throws IllegalArgumentException if the provided ID is invalid
+   * @throws EntityNotFoundException  if no checklist item with the specified ID exists
    * @see ChecklistItemResponse
    */
   @PutMapping("/checklist/{id}")

@@ -74,7 +74,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(HouseholdNotFoundException.class)
   public ProblemDetail handleHouseholdNotFoundException(HouseholdNotFoundException exception) {
     log.warn("Household not found: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND, exception.getMessage(), "household");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND,
+        exception.getMessage(), "household");
   }
 
   // ===== Authentication-related exceptions =====
@@ -88,7 +89,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidTokenException.class)
   public ProblemDetail handleInvalidTokenException(InvalidTokenException exception) {
     log.error("Invalid token: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage(), "auth");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        exception.getMessage(), "auth");
   }
 
   /**
@@ -99,9 +101,10 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(RefreshTokenDoesNotExistException.class)
   public ProblemDetail handleRefreshTokenDoesNotExistException(
-    RefreshTokenDoesNotExistException exception) {
+      RefreshTokenDoesNotExistException exception) {
     log.error("Refresh token does not exist: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage(), "auth");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        exception.getMessage(), "auth");
   }
 
   // ===== User related exceptions =====
@@ -116,7 +119,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(EmailAlreadyExistsException.class)
   public ProblemDetail handleEmailAlreadyExistsException(EmailAlreadyExistsException exception) {
     log.warn("Email already exists: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.CONFLICT, exception.getMessage(), "user");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.CONFLICT, exception.getMessage(),
+        "user");
   }
 
   /**
@@ -128,7 +132,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(UserDoesNotExistException.class)
   public ProblemDetail handleUserDoesNotExistException(UserDoesNotExistException exception) {
     log.warn("User does not exist: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND, exception.getMessage(), "user");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND,
+        exception.getMessage(), "user");
   }
 
   // ===== JWT specific exceptions =====
@@ -142,7 +147,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(ExpiredJwtException.class)
   public ProblemDetail handleExpiredJwtException(ExpiredJwtException exception) {
     log.warn("JWT token has expired: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, "JWT token has expired", "auth");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        "JWT token has expired", "auth");
   }
 
   /**
@@ -154,7 +160,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MalformedJwtException.class)
   public ProblemDetail handleMalformedJwtException(MalformedJwtException exception) {
     log.warn("Invalid JWT token format: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, "Invalid JWT token format", "auth");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        "Invalid JWT token format", "auth");
   }
 
   /**
@@ -166,7 +173,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(SignatureException.class)
   public ProblemDetail handleSignatureException(SignatureException exception) {
     log.error("Invalid JWT signature: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, "Invalid JWT signature", "auth");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        "Invalid JWT signature", "auth");
   }
 
   /**
@@ -178,7 +186,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(UnsupportedJwtException.class)
   public ProblemDetail handleUnsupportedJwtException(UnsupportedJwtException exception) {
     log.warn("Unsupported JWT token: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, "Unsupported JWT token", "auth");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        "Unsupported JWT token", "auth");
   }
 
   // ===== Spring Security exceptions =====
@@ -191,7 +200,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
   public ProblemDetail handleAccessDeniedException(
-    org.springframework.security.access.AccessDeniedException exception) {
+      org.springframework.security.access.AccessDeniedException exception) {
     log.error("Access denied: {}", exception.getMessage());
     return ProblemDetailUtils.createProblemDetail(HttpStatus.FORBIDDEN, "Access denied");
   }
@@ -205,7 +214,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(BadCredentialsException.class)
   public ProblemDetail handleBadCredentialsException(BadCredentialsException exception) {
     log.error("Invalid credentials: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, "Invalid credentials", "auth");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        "Invalid credentials", "auth");
   }
 
   // ===== Bean validation exceptions =====
@@ -222,9 +232,9 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ProblemDetail handleValidationException(MethodArgumentNotValidException exception) {
     String errorMessage = exception.getBindingResult().getFieldErrors()
-      .stream()
-      .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
-      .collect(Collectors.joining(", "));
+        .stream()
+        .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+        .collect(Collectors.joining(", "));
     log.warn("Validation error: {}", errorMessage);
     return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, errorMessage);
   }
@@ -239,11 +249,11 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
   public ProblemDetail handleMethodNotSupportedException(
-    HttpRequestMethodNotSupportedException exception) {
+      HttpRequestMethodNotSupportedException exception) {
     log.warn("Method not supported: {} for path {}", exception.getMethod(), exception.getMessage());
     return ProblemDetailUtils.createProblemDetail(
-      HttpStatus.METHOD_NOT_ALLOWED,
-      "Method " + exception.getMethod() + " is not supported for this request"
+        HttpStatus.METHOD_NOT_ALLOWED,
+        "Method " + exception.getMethod() + " is not supported for this request"
     );
   }
 
@@ -255,11 +265,11 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
   public ProblemDetail handleMediaTypeNotSupportedException(
-    HttpMediaTypeNotSupportedException exception) {
+      HttpMediaTypeNotSupportedException exception) {
     log.warn("Media type not supported: {}", exception.getContentType());
     return ProblemDetailUtils.createProblemDetail(
-      HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-      "Media type " + exception.getContentType() + " is not supported"
+        HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+        "Media type " + exception.getContentType() + " is not supported"
     );
   }
 
@@ -272,11 +282,11 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ProblemDetail handleMissingParameterException(
-    MissingServletRequestParameterException exception) {
+      MissingServletRequestParameterException exception) {
     log.warn("Missing required parameter: {}", exception.getParameterName());
     return ProblemDetailUtils.createProblemDetail(
-      HttpStatus.BAD_REQUEST,
-      "Required parameter '" + exception.getParameterName() + "' is missing"
+        HttpStatus.BAD_REQUEST,
+        "Required parameter '" + exception.getParameterName() + "' is missing"
     );
   }
 
@@ -304,8 +314,8 @@ public class GlobalExceptionHandler {
   public ProblemDetail handleNoHandlerFoundException(NoHandlerFoundException exception) {
     log.warn("No handler found: {} {}", exception.getHttpMethod(), exception.getRequestURL());
     return ProblemDetailUtils.createProblemDetail(
-      HttpStatus.NOT_FOUND,
-      "No handler found for " + exception.getHttpMethod() + " " + exception.getRequestURL()
+        HttpStatus.NOT_FOUND,
+        "No handler found for " + exception.getHttpMethod() + " " + exception.getRequestURL()
     );
   }
 
@@ -319,7 +329,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(UnauthorizedAccessException.class)
   public ProblemDetail handleUnauthorizedAccessException(UnauthorizedAccessException exception) {
     log.error("Unauthorized access: {}", exception.getMessage());
-    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED, exception.getMessage(), "user");
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        exception.getMessage(), "user");
   }
 
   // ===== General exceptions =====
@@ -337,8 +348,8 @@ public class GlobalExceptionHandler {
   public ProblemDetail handleException(Exception exception) {
     log.error("Unhandled exception occurred", exception);
     return ProblemDetailUtils.createProblemDetail(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      "An unexpected error occurred"
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "An unexpected error occurred"
     );
   }
 }
