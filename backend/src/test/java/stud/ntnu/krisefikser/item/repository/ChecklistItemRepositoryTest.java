@@ -163,7 +163,7 @@ class ChecklistItemRepositoryTest {
     entityManager.flush();
 
     // Find all checklist items
-    List<ChecklistItem> items = (List<ChecklistItem>) checklistItemRepository.findAll();
+    List<ChecklistItem> items = checklistItemRepository.findAll();
 
     // Verify items were found (note: there might be items from other tests)
     assertThat(items).hasSizeGreaterThanOrEqualTo(2);
