@@ -5,7 +5,8 @@ import ShelterLayer from '@/components/map/ShelterLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
 import UserLocationLayer from '@/components/map/UserLocationLayer.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
-import { useGetAllMapPoints, useGetAllMapPointTypes } from '@/api/generated/krisefikserAPI'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
+import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 import { useGetAllEvents } from '@/api/generated/event/event'
 import type { MapPoint, MapPointType } from '@/api/generated/model'
 import type { Event } from '@/api/generated/model'
@@ -32,16 +33,16 @@ const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
 
 // Process map data
 function processMapData() {
-  if (!mapPointsData.value?.data || !mapPointTypesData.value?.data) return
+  if (!mapPointsData.value || !mapPointTypesData.value) return
 
   // Get data arrays from the API response
-  const mapPoints = Array.isArray(mapPointsData.value.data)
-    ? mapPointsData.value.data
-    : [mapPointsData.value.data]
+  const mapPoints = Array.isArray(mapPointsData.value)
+    ? mapPointsData.value
+    : [mapPointsData.value]
 
-  const mapPointTypes = Array.isArray(mapPointTypesData.value.data)
-    ? mapPointTypesData.value.data
-    : [mapPointTypesData.value.data]
+  const mapPointTypes = Array.isArray(mapPointTypesData.value)
+    ? mapPointTypesData.value
+    : [mapPointTypesData.value]
 
   // Find shelter type
   const shelterType = mapPointTypes.find((type: MapPointType) =>

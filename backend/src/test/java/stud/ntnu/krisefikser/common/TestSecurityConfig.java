@@ -22,6 +22,7 @@ import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.auth.service.TokenService;
+import stud.ntnu.krisefikser.config.FrontendConfig;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
@@ -30,24 +31,28 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 public class TestSecurityConfig {
 
   @Bean
+  public FrontendConfig frontendConfig() {
+    FrontendConfig config = new FrontendConfig();
+    config.setUrl("http://localhost:5173");
+    return config;
+  }
+
+  @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth ->
-            auth
-                .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**")
-                .permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
-                .permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh")
-                .permitAll()
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .anyRequest().authenticated()
-        )
-        .exceptionHandling(exception ->
-            exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-        );
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**")
+            .permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
+            .permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
+            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh")
+            .permitAll()
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .anyRequest().authenticated())
+        .exceptionHandling(
+            exception -> exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
     return http.build();
   }
 
@@ -67,8 +72,7 @@ public class TestSecurityConfig {
         org.springframework.security.core.userdetails.User.withUsername("user@example.com")
             .password("{noop}password")
             .roles("USER")
-            .build()
-    );
+            .build());
   }
 
   @Bean

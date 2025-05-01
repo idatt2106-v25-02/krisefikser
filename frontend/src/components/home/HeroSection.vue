@@ -1,7 +1,14 @@
 <script lang="ts">
-export default {
-  name: 'HeroSection'
-}
+import { defineComponent } from 'vue';
+import { useAuthStore } from '@/stores/useAuthStore';
+
+export default defineComponent({
+  name: 'HeroSection',
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  }
+});
 </script>
 
 <template>
@@ -10,9 +17,24 @@ export default {
       <div class="max-w-3xl">
         <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Vær forberedt når krisen rammer</h1>
         <p class="text-xl mb-8">Krisefikser.no hjelper deg å øke din egenberedskap og gir deg tilgang til viktig informasjon før, under og etter en krise.</p>
-        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-          <router-link to="/register" class="bg-white text-blue-900 font-bold py-3 px-6 rounded-md text-center hover:bg-blue-100 transition">Kom i gang nå</router-link>
-          <router-link to="/kart" class="bg-transparent border-2 border-white py-3 px-6 rounded-md text-center hover:bg-blue-800 transition">Se kart</router-link>
+
+        <!-- Different button sets based on authentication status -->
+        <div v-if="!authStore.isAuthenticated" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+          <router-link to="/registrer" class="bg-white text-blue-900 font-bold py-3 px-6 rounded-md text-center hover:bg-blue-100 transition">
+            Kom i gang nå
+          </router-link>
+          <router-link to="/kart" class="bg-transparent border-2 border-white py-3 px-6 rounded-md text-center hover:bg-blue-800 transition">
+            Se kart
+          </router-link>
+        </div>
+
+        <div v-else class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+          <router-link to="/husstand" class="bg-white text-blue-900 font-bold py-3 px-6 rounded-md text-center hover:bg-blue-100 transition">
+            Min husstand
+          </router-link>
+          <router-link to="/kart" class="bg-transparent border-2 border-white py-3 px-6 rounded-md text-center hover:bg-blue-800 transition">
+            Se kart
+          </router-link>
         </div>
       </div>
     </div>
@@ -24,4 +46,3 @@ export default {
     </div>
   </header>
 </template>
-

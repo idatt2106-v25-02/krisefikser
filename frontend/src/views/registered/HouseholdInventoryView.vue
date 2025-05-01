@@ -194,7 +194,6 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
 <template>
   <div class="bg-gray-50 min-h-screen">
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Header with breadcrumb -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div class="flex items-center text-sm text-gray-500 mb-2">
           <button @click="navigateToHousehold" class="hover:text-blue-600 flex items-center">
@@ -204,21 +203,60 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
           <span class="mx-2">/</span>
           <span class="text-gray-800">Beredskapslager</span>
         </div>
-        <h1 class="text-3xl font-bold text-gray-900">Beredskapslager</h1>
+        <div class="flex items-center justify-between">
+          <h1 class="text-3xl font-bold text-gray-900">Beredskapslager</h1>
+
+         <div class="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 flex items-center">
+            <span class="text-blue-700 font-medium mr-1">Felles lager for:</span>
+            <span class="text-blue-900 font-bold">{{ apiResponse.household.name }}</span>
+         </div>
+        </div>
+
+        <!-- New: Add a clarifying subtitle -->
+        <p class="text-gray-600 mt-2">
+          Dette beredskapslageret er felles for alle medlemmer i husstanden og kan redigeres av alle husstandsmedlemmer.
+        </p>
       </div>
 
       <!-- Main content area -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Left column - Overview -->
         <div class="lg:col-span-4 space-y-6">
-          <!-- Summary card -->
+          <!-- Enhanced summary card with household context -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Oversikt</h2>
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold text-gray-800">Oversikt</h2>
+
+            </div>
             <HouseholdEmergencySupplies
               :inventory="formattedInventory"
               :household-id="apiResponse.household.id"
               :show-details-button="false"
             />
+          </div>
+
+          <!-- New: Add a card showing household members -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Husstandsmedlemmer</h2>
+            <p class="text-gray-600 mb-3">Alle disse personene har tilgang til beredskapslageret:</p>
+
+            <!-- Mock list of household members -->
+            <ul class="space-y-2">
+              <li class="flex items-center p-2 bg-gray-50 rounded">
+                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                  <span class="text-blue-700 font-bold">TS</span>
+                </div>
+                <span class="font-medium">Truls Sysutvikling</span>
+                <span class="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Du</span>
+              </li>
+              <li class="flex items-center p-2 bg-gray-50 rounded">
+                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                  <span class="text-blue-700 font-bold">MS</span>
+                </div>
+                <span class="font-medium">Mona Sysutvikling</span>
+              </li>
+            </ul>
+
           </div>
         </div>
 
@@ -310,10 +348,10 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
                             {{
                               item.expiryDate
                                 ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                  })
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
                                 : 'Ingen dato'
                             }}
                           </span>
