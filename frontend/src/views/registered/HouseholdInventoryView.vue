@@ -277,7 +277,9 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
                   class="flex items-center justify-between p-4 cursor-pointer transition-colors bg-blue-50 hover:bg-blue-100"
                   @click="
                     expandedCategories.includes(category.id)
-                      ? (expandedCategories = expandedCategories.filter((id) => id !== category.id))
+                      ? (expandedCategories = expandedCategories.filter(
+                          (id: any) => id !== category.id,
+                        ))
                       : expandedCategories.push(category.id)
                   "
                 >

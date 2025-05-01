@@ -26,7 +26,7 @@ const { mutate: setActiveHousehold } = useSetActiveHousehold({
   }
 })
 
-const handleLeaveHousehold = (householdId: string | undefined) => {
+const handleLeaveHousehold = (householdId: string) => {
   if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
     leaveHousehold({
       data: {
@@ -36,7 +36,7 @@ const handleLeaveHousehold = (householdId: string | undefined) => {
   }
 }
 
-const handleSetActiveHousehold = (householdId: string | undefined) => {
+const handleSetActiveHousehold = (householdId: string) => {
   setActiveHousehold({
     data: {
       householdId
@@ -219,7 +219,7 @@ const closeModal = () => {
   </div>
 
   <!-- Join Household Dialog -->
-  <Dialog :open="showJoinModal" @update:open="(val) => !val && closeModal()">
+  <Dialog :open="showJoinModal" @update:open="(val: any) => !val && closeModal()">
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>Bli med i husstand</DialogTitle>

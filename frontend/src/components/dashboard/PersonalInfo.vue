@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { useMe } from '@/api/generated/authentication/authentication'
 import { useUpdateUser } from '@/api/generated/user/user'
-import type { CreateUserDto } from '@/api/generated/model'
+import type { CreateUser } from '@/api/generated/model'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 // Get auth store
@@ -66,7 +66,7 @@ const saveProfile = () => {
       firstName: editedUser.value.firstName,
       lastName: editedUser.value.lastName,
       email: editedUser.value.email,
-    } as CreateUserDto,
+    } as CreateUser,
   })
 
   isEditing.value = false

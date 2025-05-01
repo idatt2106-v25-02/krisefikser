@@ -28,8 +28,8 @@ import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
-import stud.ntnu.krisefikser.user.dto.CreateUserDto;
-import stud.ntnu.krisefikser.user.dto.UserDto;
+import stud.ntnu.krisefikser.user.dto.CreateUser;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
@@ -54,8 +54,8 @@ class UserControllerTest {
 
   private User testUser;
   private UUID testUserId;
-  private CreateUserDto testUserDto;
-  private UserDto testUserDtoResponse;
+  private CreateUser testUserDto;
+  private UserResponse testUserResponseResponse;
 
   @BeforeEach
   void setUp() {
@@ -72,7 +72,7 @@ class UserControllerTest {
         .roles(new HashSet<>(Arrays.asList(userRole)))
         .build();
 
-    testUserDto = new CreateUserDto(
+    testUserDto = new CreateUser(
         "test@example.com",
         "password",
         "Test",
@@ -81,7 +81,7 @@ class UserControllerTest {
         true,
         true);
 
-    testUserDtoResponse = testUser.toDto();
+    testUserResponseResponse = testUser.toDto();
   }
 
   @Test
@@ -95,9 +95,9 @@ class UserControllerTest {
     mockMvc.perform(get("/api/users"))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$[0].email").value(testUserDtoResponse.getEmail()))
-        .andExpect(jsonPath("$[0].firstName").value(testUserDtoResponse.getFirstName()))
-        .andExpect(jsonPath("$[0].lastName").value(testUserDtoResponse.getLastName()));
+        .andExpect(jsonPath("$[0].email").value(testUserResponseResponse.getEmail()))
+        .andExpect(jsonPath("$[0].firstName").value(testUserResponseResponse.getFirstName()))
+        .andExpect(jsonPath("$[0].lastName").value(testUserResponseResponse.getLastName()));
   }
 
   @Test
@@ -114,9 +114,9 @@ class UserControllerTest {
             .content(objectMapper.writeValueAsString(testUserDto)))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.email").value(testUserDtoResponse.getEmail()))
-        .andExpect(jsonPath("$.firstName").value(testUserDtoResponse.getFirstName()))
-        .andExpect(jsonPath("$.lastName").value(testUserDtoResponse.getLastName()));
+        .andExpect(jsonPath("$.email").value(testUserResponseResponse.getEmail()))
+        .andExpect(jsonPath("$.firstName").value(testUserResponseResponse.getFirstName()))
+        .andExpect(jsonPath("$.lastName").value(testUserResponseResponse.getLastName()));
   }
 
   @Test

@@ -5,10 +5,10 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { UserDto } from './userDto'
+import type { UserResponse } from './userResponse'
 import type { HouseholdMemberResponseStatus } from './householdMemberResponseStatus'
 
 export interface HouseholdMemberResponse {
-  user?: UserDto
+  user?: UserResponse
   status?: HouseholdMemberResponseStatus
 }

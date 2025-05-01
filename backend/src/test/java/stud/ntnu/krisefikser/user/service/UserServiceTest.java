@@ -29,9 +29,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
-import stud.ntnu.krisefikser.user.dto.CreateUserDto;
+import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.entity.User;
-import stud.ntnu.krisefikser.user.dto.UserDto;
 import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
@@ -59,8 +58,7 @@ class UserServiceTest {
 
   private User testUser;
   private UUID testUserId;
-  private CreateUserDto testUserDto;
-  private UserDto testUserDtoResponse;
+  private CreateUser testUserDto;
 
   @BeforeEach
   void setUp() {
@@ -74,7 +72,7 @@ class UserServiceTest {
         .roles(new HashSet<>())
         .build();
 
-    testUserDto = new CreateUserDto(
+    testUserDto = new CreateUser(
         "test@example.com",
         "password",
         "Test",
@@ -82,16 +80,6 @@ class UserServiceTest {
         true,
         true,
         true);
-
-    testUserDtoResponse = new UserDto(
-        testUserId,
-        "test@example.com",
-        List.of(RoleType.USER.name()),
-        "Test",
-        "User",
-        true,
-        true,
-        false);
 
     SecurityContextHolder.setContext(securityContext);
   }
@@ -101,19 +89,17 @@ class UserServiceTest {
     // Arrange
     when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
     when(userRepository.existsByEmail(any())).thenReturn(false);
-    when(userRepository.save(any(User.class))).thenReturn(testUser);
+    when(userRepository.save(any())).thenReturn(testUser);
     when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
 
-    // Remove the circular mock of the method under test
-
     // Act
-    UserDto updatedUserDto = userService.updateUser(testUserId, testUserDto);
+    User updatedUser = userService.updateUser(testUserId, testUserDto);
 
     // Assert
-    assertNotNull(updatedUserDto);
-    assertEquals(testUserDto.getEmail(), updatedUserDto.getEmail());
-    assertEquals(testUserDto.getFirstName(), updatedUserDto.getFirstName());
-    assertEquals(testUserDto.getLastName(), updatedUserDto.getLastName());
+    assertNotNull(updatedUser);
+    assertEquals(testUserDto.getEmail(), updatedUser.getEmail());
+    assertEquals(testUserDto.getFirstName(), updatedUser.getFirstName());
+    assertEquals(testUserDto.getLastName(), updatedUser.getLastName());
     verify(userRepository).save(any(User.class));
   }
 
@@ -131,14 +117,14 @@ class UserServiceTest {
   void deleteUser_Success() {
     // Arrange
     when(userRepository.existsById(testUserId)).thenReturn(true);
-    when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
     // Act
     userService.deleteUser(testUserId);
 
     // Assert
-    verify(userRepository).delete(testUser); // Change this line to match actual implementation
+    verify(userRepository).deleteById(testUserId);
   }
+
   @Test
   void deleteUser_UserNotFound() {
     // Arrange
@@ -152,17 +138,15 @@ class UserServiceTest {
   @Test
   void getAllUsers_Success() {
     // Arrange
-    List<User> users = Arrays.asList(testUser);
-    when(userRepository.findAll()).thenReturn(users);
-    // Remove the circular mock of the method under test
+    List<User> expectedUsers = Arrays.asList(testUser);
+    when(userRepository.findAll()).thenReturn(expectedUsers);
 
     // Act
-    List<UserDto> actualUsers = userService.getAllUsers();
+    List<User> actualUsers = userService.getAllUsers();
 
     // Assert
-    assertEquals(1, actualUsers.size());
-    assertEquals(testUser.getEmail(), actualUsers.get(0).getEmail());
-    verify(userRepository).findAll();
+    assertEquals(expectedUsers.size(), actualUsers.size());
+    assertEquals(expectedUsers.get(0), actualUsers.get(0));
   }
 
   @Test

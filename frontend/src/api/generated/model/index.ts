@@ -6,9 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export * from './articleDTO'
+export * from './articleRequest'
+export * from './articleResponse'
 export * from './createHouseholdRequest'
-export * from './createUserDto'
+export * from './createUser'
 export * from './event'
 export * from './eventLevel'
 export * from './eventStatus'
@@ -37,4 +38,4 @@ export * from './registerRequest'
 export * from './registerResponse'
 export * from './searchProductTypesParams'
 export * from './sortObject'
-export * from './userDto'
+export * from './userResponse'

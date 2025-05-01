@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useGetArticleById } from '@/api/generated/article/article'
+
+const route = useRoute()
+const articleId = computed(() => Number(route.params.id))
+
+const { data: article, isLoading, error } = useGetArticleById(articleId)
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return ''
+
+  const date = new Date(dateString)
+  return date.toLocaleDateString('no-NO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+</script>
+
 <template>
   <div class="max-w-3xl mx-auto px-4 py-8">
     <router-link
@@ -8,7 +30,9 @@
     </router-link>
 
     <div v-if="isLoading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"
+      ></div>
       <p class="text-gray-600">Laster artikkel...</p>
     </div>
 
@@ -22,7 +46,12 @@
       <h1 class="text-4xl font-bold text-gray-800">{{ article.title }}</h1>
       <div class="prose prose-lg max-w-none text-gray-600">
         <p>{{ article.text }}</p>
-        <img v-if="article.imageUrl" :src="article.imageUrl" alt="" class="mt-4 rounded-lg max-w-full h-auto">
+        <img
+          v-if="article.imageUrl"
+          :src="article.imageUrl"
+          alt=""
+          class="mt-4 rounded-lg max-w-full h-auto"
+        />
       </div>
     </div>
 
@@ -32,29 +61,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { useGetArticleById } from '@/api/generated/article/article'
-
-const route = useRoute()
-const articleId = computed(() => Number(route.params.id))
-
-const {
-  data: article,
-  isLoading,
-  error
-} = useGetArticleById(articleId)
-
-const formatDate = (dateString?: string) => {
-  if (!dateString) return ''
-
-  const date = new Date(dateString)
-  return date.toLocaleDateString('no-NO', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-}
-</script>

@@ -18,17 +18,10 @@ import stud.ntnu.krisefikser.auth.entity.RefreshToken;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
-import stud.ntnu.krisefikser.email.service.EmailService;
-import stud.ntnu.krisefikser.user.dto.CreateUserDto;
-import stud.ntnu.krisefikser.user.dto.UserDto;
-import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.dto.CreateUser;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.service.UserService;
 
-/**
- * Service responsible for handling authentication processes like registration, login, and token refreshing.
- * It interacts with {@link UserService} to manage user data, {@link CustomUserDetailsService}
- * for loading user details during authentication, and {@link EmailService} for sending relevant emails.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -40,19 +33,9 @@ public class AuthService {
   private final TokenService tokenService;
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
-  private final EmailService emailService; // Added EmailService
 
-  /**
-   * Registers a new user.
-   * Creates the user via {@link UserService}, then loads the user details to generate authentication tokens.
-   * Retrieves the created {@link User} entity using {@link UserService} to send a welcome email via {@link EmailService}.
-   *
-   * @param registerRequest DTO containing registration details.
-   * @return RegisterResponse containing access and refresh tokens.
-   */
   public RegisterResponse register(RegisterRequest registerRequest) {
-    // Create user and capture the result
-    UserDto createdUserDto = userService.createUser(new CreateUserDto(
+    userService.createUser(new CreateUser(
         registerRequest.getEmail(),
         registerRequest.getPassword(),
         registerRequest.getFirstName(),
@@ -61,16 +44,8 @@ public class AuthService {
         true,
         true));
 
-    // Get UserDetails for token generation
     UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getEmail());
 
-    // Get User entity for email service
-    User user = userService.getUserByEmail(registerRequest.getEmail());
-
-    // Send welcome email with verification link
-    emailService.sendWelcomeEmail(user, userDetails);
-
-    // Continue with normal registration flow
     String accessToken = createAccessToken(userDetails);
     String refreshToken = createRefreshToken(userDetails);
 
@@ -81,76 +56,48 @@ public class AuthService {
         refreshToken);
   }
 
-  /**
-   * Handles user login.
-   * Authenticates the user using Spring Security's {@link AuthenticationManager}.
-   * Loads user details via {@link CustomUserDetailsService} (which likely uses {@link UserService})
-   * to generate access and refresh tokens.
-   *
-   * @param loginRequest DTO containing login credentials.
-   * @return LoginResponse containing access and refresh tokens.
-   */
   public LoginResponse login(LoginRequest loginRequest) {
-    // Authenticate user
     authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-    );
+        new UsernamePasswordAuthenticationToken(
+            loginRequest.getEmail(),
+            loginRequest.getPassword()));
 
-    // Load user details and generate tokens
     UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
+
     String accessToken = createAccessToken(userDetails);
     String refreshToken = createRefreshToken(userDetails);
 
-    // Save refresh token
     refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
 
-    // Return response
-    return new LoginResponse(accessToken, refreshToken);
+    return new LoginResponse(
+        accessToken,
+        refreshToken);
   }
 
-  /**
-   * Refreshes the authentication tokens using a valid refresh token.
-   * Validates the provided refresh token and extracts user details.
-   * Uses {@link CustomUserDetailsService} (likely interacting with {@link UserService}) to load user details.
-   * Generates new access and refresh tokens.
-   *
-   * @param refreshRequest DTO containing the refresh token.
-   * @return RefreshResponse containing new access and refresh tokens.
-   */
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
-    // Validate refresh token exists
-    String token = refreshRequest.getRefreshToken();
-    if (!refreshTokenRepository.existsByToken(token)) {
-      throw new RefreshTokenDoesNotExistException("Refresh token does not exist");
+    RefreshToken existingToken = refreshTokenRepository.findByToken(
+        refreshRequest.getRefreshToken()).orElseThrow(
+            RefreshTokenDoesNotExistException::new);
+
+    String email = tokenService.extractEmail(existingToken.getToken());
+    if (email == null) {
+      throw new InvalidTokenException();
     }
 
-    // Verify and extract user details
-    String email = tokenService.extractUsername(token);
     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-    // Validate token
-    if (!tokenService.validate(token, userDetails)) {
-      throw new InvalidTokenException("Invalid refresh token");
-    }
-
-    // Generate new tokens
     String accessToken = createAccessToken(userDetails);
-    String newRefreshToken = createRefreshToken(userDetails);
+    String refreshToken = createRefreshToken(userDetails);
 
-    // Update refresh token in repository
-    refreshTokenRepository.findByToken(token).ifPresent(refreshTokenRepository::delete);
-    refreshTokenRepository.save(RefreshToken.builder().token(newRefreshToken).build());
+    refreshTokenRepository.delete(existingToken);
+    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
 
-    return new RefreshResponse(accessToken, newRefreshToken);
+    return new RefreshResponse(
+        accessToken,
+        refreshToken);
   }
 
-  /**
-   * Retrieves the details of the currently authenticated user.
-   * Delegates the retrieval to {@link UserService#getCurrentUser()}.
-   *
-   * @return UserDto representing the current user.
-   */
-  public UserDto me() {
+  public UserResponse me() {
     return userService.getCurrentUser().toDto();
   }
 

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,11 +19,10 @@ import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
-import stud.ntnu.krisefikser.email.service.EmailService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test") // Ensure test profile is active
+@ActiveProfiles("test")
 public class AuthenticationFlowIntegrationTest {
 
   @Autowired
@@ -33,20 +31,16 @@ public class AuthenticationFlowIntegrationTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  @MockBean
-  private EmailService emailService;
-
   @Test
   void completeAuthenticationFlow() throws Exception {
     // Step 1: Register a new user
     RegisterRequest registerRequest = new RegisterRequest(
-        "test-user-" + System.currentTimeMillis() + "@example.com", // Use unique email
-        "password123",
+        "newuser@example.com",
+        "Password123!",
         "New",
         "User"
     );
 
-    // Now proceed with the actual test assertion
     MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(registerRequest)))
@@ -55,7 +49,6 @@ public class AuthenticationFlowIntegrationTest {
         .andExpect(jsonPath("$.refreshToken").exists())
         .andReturn();
 
-    // Continue with rest of the test...
     LoginResponse registerResponse = objectMapper.readValue(
         registerResult.getResponse().getContentAsString(),
         LoginResponse.class
@@ -70,7 +63,7 @@ public class AuthenticationFlowIntegrationTest {
     mockMvc.perform(get("/api/auth/me")
             .header("Authorization", "Bearer " + accessToken))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.email").value(registerRequest.getEmail()))
+        .andExpect(jsonPath("$.email").value("newuser@example.com"))
         .andExpect(jsonPath("$.firstName").value("New"))
         .andExpect(jsonPath("$.lastName").value("User"));
 
@@ -94,10 +87,10 @@ public class AuthenticationFlowIntegrationTest {
     mockMvc.perform(get("/api/auth/me")
             .header("Authorization", "Bearer " + newAccessToken))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.email").value(registerRequest.getEmail()));
+        .andExpect(jsonPath("$.email").value("newuser@example.com"));
 
     // Step 5: Login with the same credentials
-    LoginRequest loginRequest = new LoginRequest(registerRequest.getEmail(), "password123");
+    LoginRequest loginRequest = new LoginRequest("newuser@example.com", "Password123!");
     mockMvc.perform(post("/api/auth/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginRequest)))

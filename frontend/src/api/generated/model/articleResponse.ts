@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface ArticleDTO {
-  id?: number;
-  title?: string;
-  text?: string;
-  createdAt?: string;
-  imageUrl?: string;
+export interface ArticleResponse {
+  id: number
+  title: string
+  text: string
+  createdAt: string
+  imageUrl: string
 }

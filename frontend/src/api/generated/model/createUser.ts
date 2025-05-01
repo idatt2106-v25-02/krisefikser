@@ -7,11 +7,14 @@
  */
 
 /**
- * Registration details
+ * Updated user data
  */
-export interface RegisterRequest {
-  email?: string
-  password?: string
+export interface CreateUser {
+  email: string
+  password: string
   firstName: string
   lastName: string
+  notifications?: boolean
+  emailUpdates?: boolean
+  locationSharing?: boolean
 }
