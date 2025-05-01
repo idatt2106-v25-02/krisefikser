@@ -4,8 +4,8 @@
       <div class="flex justify-between items-center">
         <div class="flex items-center">
           <router-link to="/" class="flex items-center">
-            <img src="@/assets/logo.svg" alt="Krisefikser.no" class="h-8 w-auto mr-2" />
-            <span class="text-xl font-bold text-blue-700">Krisefikser.no</span>
+            <img src="@/assets/logo.svg" alt="Krisefikser.app" class="h-8 w-auto mr-2" />
+            <span class="text-xl font-bold text-blue-700">Krisefikser.app</span>
           </router-link>
         </div>
 
