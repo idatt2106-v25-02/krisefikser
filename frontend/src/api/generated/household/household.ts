@@ -29,7 +29,7 @@ import type { ErrorType, BodyType } from '../../axios'
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
- * Creates a new household
+ * Creates a new household and sets it as active
  * @summary Create household
  */
 export const createHousehold = (
@@ -203,7 +203,7 @@ export const useLeaveHousehold = <TError = ErrorType<void>, TContext = unknown>(
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Joins a household by its ID
+ * Joins a household by its ID and sets it as active.
  * @summary Join household by ID
  */
 export const joinHousehold = (

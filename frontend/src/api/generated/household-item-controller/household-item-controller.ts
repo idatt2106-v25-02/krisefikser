@@ -25,8 +25,8 @@ import type {
   GetExpiringItemsParams,
   GetHouseholdItemsParams,
   GetHouseholdSummary200,
-  HouseholdItemDto,
-  PageHouseholdItemDto,
+  HouseholdItemResponse,
+  PageHouseholdItemResponse,
 } from '.././model'
 
 import { customInstance } from '../../axios'
@@ -37,19 +37,19 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 export const updateHouseholdItem = (
   householdId: MaybeRef<string>,
   itemId: MaybeRef<string>,
-  householdItemDto: MaybeRef<HouseholdItemDto>,
+  householdItemResponse: MaybeRef<HouseholdItemResponse>,
   options?: SecondParameter<typeof customInstance>,
 ) => {
   householdId = unref(householdId)
   itemId = unref(itemId)
-  householdItemDto = unref(householdItemDto)
+  householdItemResponse = unref(householdItemResponse)
 
-  return customInstance<HouseholdItemDto>(
+  return customInstance<HouseholdItemResponse>(
     {
       url: `http://localhost:8080/api/households/${householdId}/items/${itemId}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      data: householdItemDto,
+      data: householdItemResponse,
     },
     options,
   )
@@ -62,14 +62,14 @@ export const getUpdateHouseholdItemMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateHouseholdItem>>,
     TError,
-    { householdId: string; itemId: string; data: BodyType<HouseholdItemDto> },
+    { householdId: string; itemId: string; data: BodyType<HouseholdItemResponse> },
     TContext
   >
   request?: SecondParameter<typeof customInstance>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateHouseholdItem>>,
   TError,
-  { householdId: string; itemId: string; data: BodyType<HouseholdItemDto> },
+  { householdId: string; itemId: string; data: BodyType<HouseholdItemResponse> },
   TContext
 > => {
   const mutationKey = ['updateHouseholdItem']
@@ -81,7 +81,7 @@ export const getUpdateHouseholdItemMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateHouseholdItem>>,
-    { householdId: string; itemId: string; data: BodyType<HouseholdItemDto> }
+    { householdId: string; itemId: string; data: BodyType<HouseholdItemResponse> }
   > = (props) => {
     const { householdId, itemId, data } = props ?? {}
 
@@ -94,7 +94,7 @@ export const getUpdateHouseholdItemMutationOptions = <
 export type UpdateHouseholdItemMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateHouseholdItem>>
 >
-export type UpdateHouseholdItemMutationBody = BodyType<HouseholdItemDto>
+export type UpdateHouseholdItemMutationBody = BodyType<HouseholdItemResponse>
 export type UpdateHouseholdItemMutationError = ErrorType<unknown>
 
 export const useUpdateHouseholdItem = <TError = ErrorType<unknown>, TContext = unknown>(
@@ -102,7 +102,7 @@ export const useUpdateHouseholdItem = <TError = ErrorType<unknown>, TContext = u
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateHouseholdItem>>,
       TError,
-      { householdId: string; itemId: string; data: BodyType<HouseholdItemDto> },
+      { householdId: string; itemId: string; data: BodyType<HouseholdItemResponse> },
       TContext
     >
     request?: SecondParameter<typeof customInstance>
@@ -111,7 +111,7 @@ export const useUpdateHouseholdItem = <TError = ErrorType<unknown>, TContext = u
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof updateHouseholdItem>>,
   TError,
-  { householdId: string; itemId: string; data: BodyType<HouseholdItemDto> },
+  { householdId: string; itemId: string; data: BodyType<HouseholdItemResponse> },
   TContext
 > => {
   const mutationOptions = getUpdateHouseholdItemMutationOptions(options)
@@ -207,7 +207,7 @@ export const getHouseholdItems = (
   householdId = unref(householdId)
   params = unref(params)
 
-  return customInstance<PageHouseholdItemDto>(
+  return customInstance<PageHouseholdItemResponse>(
     {
       url: `http://localhost:8080/api/households/${householdId}/items`,
       method: 'GET',
@@ -289,19 +289,19 @@ export function useGetHouseholdItems<
 
 export const createHouseholdItem = (
   householdId: MaybeRef<string>,
-  householdItemDto: MaybeRef<HouseholdItemDto>,
+  householdItemResponse: MaybeRef<HouseholdItemResponse>,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
   householdId = unref(householdId)
-  householdItemDto = unref(householdItemDto)
+  householdItemResponse = unref(householdItemResponse)
 
-  return customInstance<HouseholdItemDto>(
+  return customInstance<HouseholdItemResponse>(
     {
       url: `http://localhost:8080/api/households/${householdId}/items`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      data: householdItemDto,
+      data: householdItemResponse,
       signal,
     },
     options,
@@ -315,14 +315,14 @@ export const getCreateHouseholdItemMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createHouseholdItem>>,
     TError,
-    { householdId: string; data: BodyType<HouseholdItemDto> },
+    { householdId: string; data: BodyType<HouseholdItemResponse> },
     TContext
   >
   request?: SecondParameter<typeof customInstance>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createHouseholdItem>>,
   TError,
-  { householdId: string; data: BodyType<HouseholdItemDto> },
+  { householdId: string; data: BodyType<HouseholdItemResponse> },
   TContext
 > => {
   const mutationKey = ['createHouseholdItem']
@@ -334,7 +334,7 @@ export const getCreateHouseholdItemMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createHouseholdItem>>,
-    { householdId: string; data: BodyType<HouseholdItemDto> }
+    { householdId: string; data: BodyType<HouseholdItemResponse> }
   > = (props) => {
     const { householdId, data } = props ?? {}
 
@@ -347,7 +347,7 @@ export const getCreateHouseholdItemMutationOptions = <
 export type CreateHouseholdItemMutationResult = NonNullable<
   Awaited<ReturnType<typeof createHouseholdItem>>
 >
-export type CreateHouseholdItemMutationBody = BodyType<HouseholdItemDto>
+export type CreateHouseholdItemMutationBody = BodyType<HouseholdItemResponse>
 export type CreateHouseholdItemMutationError = ErrorType<unknown>
 
 export const useCreateHouseholdItem = <TError = ErrorType<unknown>, TContext = unknown>(
@@ -355,7 +355,7 @@ export const useCreateHouseholdItem = <TError = ErrorType<unknown>, TContext = u
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createHouseholdItem>>,
       TError,
-      { householdId: string; data: BodyType<HouseholdItemDto> },
+      { householdId: string; data: BodyType<HouseholdItemResponse> },
       TContext
     >
     request?: SecondParameter<typeof customInstance>
@@ -364,7 +364,7 @@ export const useCreateHouseholdItem = <TError = ErrorType<unknown>, TContext = u
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof createHouseholdItem>>,
   TError,
-  { householdId: string; data: BodyType<HouseholdItemDto> },
+  { householdId: string; data: BodyType<HouseholdItemResponse> },
   TContext
 > => {
   const mutationOptions = getCreateHouseholdItemMutationOptions(options)
@@ -453,7 +453,7 @@ export const getExpiringItems = (
   householdId = unref(householdId)
   params = unref(params)
 
-  return customInstance<HouseholdItemDto[]>(
+  return customInstance<HouseholdItemResponse[]>(
     {
       url: `http://localhost:8080/api/households/${householdId}/items/expiring-soon`,
       method: 'GET',
