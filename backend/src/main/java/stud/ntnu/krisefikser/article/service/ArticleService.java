@@ -19,14 +19,14 @@ public class ArticleService {
 
   public List<ArticleResponse> getAllArticles() {
     return articleRepository.findAll().stream()
-        .map(this::convertToDTO)
+        .map(this::convertToDto)
         .collect(Collectors.toList());
   }
 
   public ArticleResponse getArticleById(Long id) {
     Article article = articleRepository.findById(id)
         .orElseThrow(() -> new ArticleNotFoundException("Article not found with id: " + id));
-    return convertToDTO(article);
+    return convertToDto(article);
   }
 
   public ArticleResponse createArticle(ArticleRequest articleRequest) {
@@ -38,7 +38,7 @@ public class ArticleService {
         .build();
 
     Article savedArticle = articleRepository.save(article);
-    return convertToDTO(savedArticle);
+    return convertToDto(savedArticle);
   }
 
   public ArticleResponse updateArticle(Long id, ArticleRequest articleRequest) {
@@ -50,7 +50,7 @@ public class ArticleService {
     existingArticle.setImageUrl(articleRequest.getImageUrl());
 
     Article updatedArticle = articleRepository.save(existingArticle);
-    return convertToDTO(updatedArticle);
+    return convertToDto(updatedArticle);
   }
 
   public void deleteArticle(Long id) {
@@ -60,7 +60,7 @@ public class ArticleService {
     articleRepository.deleteById(id);
   }
 
-  private ArticleResponse convertToDTO(Article article) {
+  private ArticleResponse convertToDto(Article article) {
     return ArticleResponse.builder()
         .id(article.getId())
         .title(article.getTitle())

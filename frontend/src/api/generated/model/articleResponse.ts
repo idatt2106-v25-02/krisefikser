@@ -7,9 +7,9 @@
  */
 
 export interface ArticleResponse {
-  id?: number
-  title?: string
-  text?: string
-  createdAt?: string
-  imageUrl?: string
+  id: number
+  title: string
+  text: string
+  createdAt: string
+  imageUrl: string
 }

@@ -277,7 +277,7 @@ export const getAllArticles = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<ArticleResponse>(
+  return customInstance<ArticleResponse[]>(
     { url: `http://localhost:8080/api/articles`, method: 'GET', signal },
     options,
   )

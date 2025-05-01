@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.article.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -48,7 +49,15 @@ public class ArticleController {
    */
   @Operation(summary = "Get all articles", description = "Retrieves a list of all articles in the system")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved articles", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ArticleResponse.class)))
+      @ApiResponse(
+          responseCode = "200",
+          description = "Successfully retrieved articles",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(
+                  schema = @Schema(implementation = ArticleResponse.class)
+              )
+          )
+      )
   })
   @GetMapping
   public ResponseEntity<List<ArticleResponse>> getAllArticles() {

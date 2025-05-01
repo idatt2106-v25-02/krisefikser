@@ -169,9 +169,10 @@ function onMemberSubmit() {
 
 function onRemoveMember(userId?: string) {
   if (!userId) return
+  if (!household.value) return
   removeMember({
     data: {
-      householdId: household.value?.id,
+      householdId: household.value.id,
     },
   })
 }
@@ -522,7 +523,7 @@ function viewMeetingPlace(placeId: string) {
               <HouseholdMeetingMap
                 ref="mapRef"
                 :meeting-places="
-                  household.meetingPlaces?.map((place) => ({
+                  household.meetingPlaces?.map((place: any) => ({
                     ...place,
                     position: [place.latitude, place.longitude],
                   })) || []

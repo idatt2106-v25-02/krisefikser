@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import ShelterLayer from '@/components/map/ShelterLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
@@ -33,16 +33,12 @@ const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
 
 // Process map data
 function processMapData() {
-  if (!mapPointsData.value?.data || !mapPointTypesData.value?.data) return
+  if (!mapPointsData || !mapPointTypesData) return
 
-  // Get data arrays from the API response
-  const mapPoints = Array.isArray(mapPointsData.value.data)
-    ? mapPointsData.value.data
-    : [mapPointsData.value.data]
+  // Get data arrays from the API response - check if array or direct data
+  const mapPoints = Array.isArray(mapPointsData) ? mapPointsData : [mapPointsData]
 
-  const mapPointTypes = Array.isArray(mapPointTypesData.value.data)
-    ? mapPointTypesData.value.data
-    : [mapPointTypesData.value.data]
+  const mapPointTypes = Array.isArray(mapPointTypesData) ? mapPointTypesData : [mapPointTypesData]
 
   // Find shelter type
   const shelterType = mapPointTypes.find((type: MapPointType) =>
@@ -60,25 +56,31 @@ function processMapData() {
     }))
 
   // Process events if available
-  if (eventsData.value) {
-    events.value = Array.isArray(eventsData.value) ? eventsData.value : [eventsData.value]
+  if (eventsData) {
+    // Ensure we're working with the actual event data, not reactive refs
+    const eventItems = Array.isArray(eventsData) ? eventsData : [eventsData]
+
+    // Map to extract actual Event objects if needed
+    events.value = eventItems
+      .map((eventItem) => {
+        // If it's a ref, use its value, otherwise use the raw data
+        return 'value' in eventItem ? eventItem.value : eventItem
+      })
+      .filter((event) => event !== undefined) // Filter out any undefined values
   }
 
   isLoading.value = false
 }
 
 // Watch for data load completion
-onMounted(() => {
-  const checkDataLoaded = () => {
-    if (!isLoadingMapPoints.value && !isLoadingMapPointTypes.value && !isLoadingEvents.value) {
+watch(
+  [isLoadingMapPoints, isLoadingMapPointTypes, isLoadingEvents],
+  ([mapPointsLoading, mapPointTypesLoading, eventsLoading]) => {
+    if (!mapPointsLoading && !mapPointTypesLoading && !eventsLoading) {
       processMapData()
-    } else {
-      setTimeout(checkDataLoaded, 100)
     }
-  }
-
-  checkDataLoaded()
-})
+  },
+)
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
@@ -137,7 +139,3 @@ function onUserLocationStatus(available: boolean) {
     />
   </div>
 </template>
-
-<style scoped>
-/* No styles needed as we're using Tailwind classes */
-</style>
