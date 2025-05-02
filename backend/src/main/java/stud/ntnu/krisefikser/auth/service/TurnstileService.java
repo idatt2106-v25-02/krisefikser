@@ -18,14 +18,18 @@ import java.util.Map;
 public class TurnstileService {
 
     /** The URL endpoint for Cloudflare Turnstile verification */
-    private static final String VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+    public static final String VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
     /** RestTemplate instance for making HTTP requests */
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     /** The secret key for Turnstile verification, injected from application properties */
-    @Value("${turnstile.secret}")
+    @Value("${turnstile.secret:test-secret-key}")
     private String secretKey;
+
+    public TurnstileService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     /**
      * Verifies a Turnstile token with Cloudflare's verification service.
@@ -34,16 +38,24 @@ public class TurnstileService {
      * @return true if the token is valid and verification is successful, false otherwise
      */
     public boolean verify(String token) {
+        if (token == null || token.isEmpty()) {
+            return false;
+        }
+
         Map<String, String> body = new HashMap<>();
         body.put("secret", secretKey);
         body.put("response", token);
 
-        ResponseEntity<TurnstileResponse> response = restTemplate.postForEntity(
-            VERIFY_URL,
-            body,
-            TurnstileResponse.class
-        );
+        try {
+            ResponseEntity<TurnstileResponse> response = restTemplate.postForEntity(
+                VERIFY_URL,
+                body,
+                TurnstileResponse.class
+            );
 
-        return response.getBody() != null && response.getBody().isSuccess();
+            return response.getBody() != null && response.getBody().isSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
