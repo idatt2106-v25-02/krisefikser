@@ -9,16 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ref, watch } from 'vue'
 
-// Define props and interface
-interface Event {
-  id: string
-  title: string
-  description: string
-  level: string
-  location: string
-  timestamp: string
-  active: boolean
-}
+// Import types
+import type { Event } from '@/api/generated/model/event'
+import { EventLevel } from '@/api/generated/model/eventLevel'
+import { EventStatus } from '@/api/generated/model/eventStatus'
 
 const props = defineProps<{
   event: Event | null
@@ -42,14 +36,17 @@ watch(
 const emit = defineEmits(['save', 'cancel'])
 
 // Convert ISO string to datetime-local format for input
-const formatDateTimeForInput = (isoString: string) => {
+const formatDateTimeForInput = (isoString?: string) => {
+  if (!isoString) return ''
   const date = new Date(isoString)
   return date.toISOString().slice(0, 16) // Format: YYYY-MM-DDThh:mm
 }
 
 // Handle save
 const handleSave = () => {
-  emit('save', props.event)
+  if (localEvent.value) {
+    emit('save', localEvent.value)
+  }
 }
 
 // Handle cancel
@@ -87,9 +84,9 @@ const handleCancel = () => {
               v-model="localEvent.level"
               class="w-full border rounded-lg px-3 py-2 text-gray-700"
             >
-              <option value="rød">Rød</option>
-              <option value="gul">Gul</option>
-              <option value="grønn">Grønn</option>
+              <option :value="EventLevel.RED">Rød</option>
+              <option :value="EventLevel.YELLOW">Gul</option>
+              <option :value="EventLevel.GREEN">Grønn</option>
             </select>
           </div>
 
@@ -97,30 +94,53 @@ const handleCancel = () => {
             <Label for="status">Status</Label>
             <select
               id="status"
-              v-model="localEvent.active"
+              v-model="localEvent.status"
               class="w-full border rounded-lg px-3 py-2 text-gray-700"
             >
-              <option :value="true">Aktiv</option>
-              <option :value="false">Inaktiv</option>
+              <option :value="EventStatus.UPCOMING">Kommende</option>
+              <option :value="EventStatus.ONGOING">Pågående</option>
+              <option :value="EventStatus.FINISHED">Avsluttet</option>
             </select>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="space-y-2">
-            <Label for="location">Plassering</Label>
-            <Input id="location" v-model="localEvent.location" placeholder="Sted" />
+            <Label for="latitude">Breddegrad</Label>
+            <Input id="latitude" v-model="localEvent.latitude" type="number" placeholder="Breddegrad" />
           </div>
 
           <div class="space-y-2">
-            <Label for="timestamp">Tidspunkt</Label>
+            <Label for="longitude">Lengdegrad</Label>
+            <Input id="longitude" v-model="localEvent.longitude" type="number" placeholder="Lengdegrad" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <Label for="startTime">Starttid</Label>
             <Input
-              id="timestamp"
+              id="startTime"
               type="datetime-local"
-              v-model="localEvent.timestamp"
-              :value="formatDateTimeForInput(localEvent.timestamp)"
+              v-model="localEvent.startTime"
+              :value="formatDateTimeForInput(localEvent.startTime)"
             />
           </div>
+
+          <div class="space-y-2">
+            <Label for="endTime">Sluttid</Label>
+            <Input
+              id="endTime"
+              type="datetime-local"
+              v-model="localEvent.endTime"
+              :value="formatDateTimeForInput(localEvent.endTime)"
+            />
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="radius">Radius (meter)</Label>
+          <Input id="radius" v-model="localEvent.radius" type="number" placeholder="Radius" />
         </div>
       </form>
     </CardContent>

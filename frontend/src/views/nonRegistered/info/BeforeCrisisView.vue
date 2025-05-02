@@ -1,6 +1,6 @@
 <script lang="ts">
-/* eslint-disable vue/no-unused-components */
-import { Plus, Coffee, Flashlight, ClipboardList, Radio, Info, AlertTriangle } from 'lucide-vue-next';
+ 
+import { Plus, Coffee, Flashlight, ClipboardList, Radio, Info, AlertTriangle, BookOpen } from 'lucide-vue-next';
 import QuizComponent from '@/components/quiz/QuizComponent.vue';
 import PageLayout from '@/components/layout/PageLayout.vue';
 import ContentCard from '@/components/ui/ContentCard.vue';
@@ -20,6 +20,7 @@ export default {
     Radio,
     Info,
     AlertTriangle,
+    BookOpen,
     QuizComponent,
     Plus // Make sure Plus is registered
   },
@@ -33,7 +34,8 @@ export default {
         ClipboardList,
         Radio,
         Info,
-        AlertTriangle
+        AlertTriangle,
+        BookOpen
       },
       quizQuestions: [
         {
@@ -78,8 +80,25 @@ export default {
     :iconComponent="iconComponents.Plus"
     iconBgColor="blue"
   >
-    <!-- Introduction -->
+    <!-- Introduction with Quiz Highlight -->
     <ContentCard fullWidth>
+      <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
+        <div class="flex items-center mb-2">
+          <component :is="iconComponents.BookOpen" class="h-6 w-6 text-blue-600 mr-2" />
+          <h3 class="text-lg font-semibold text-gray-800">Test din kunnskap</h3>
+        </div>
+        <p class="text-gray-700">
+          Denne siden inneholder en quiz nederst hvor du kan teste din kunnskap om hva du bør
+          gjøre før en krisesituasjon. Du får umiddelbar tilbakemelding og kan lære mens du tester deg selv.
+        </p>
+        <a href="#quiz-section" class="inline-flex items-center text-blue-600 font-medium mt-2 hover:underline">
+          Gå til quiz
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </a>
+      </div>
+
       <h2 class="text-2xl font-semibold text-gray-800 mb-4">Forbered deg og din husstand</h2>
       <p class="text-gray-700 mb-4">
         Å være forberedt før en krise inntreffer kan være avgjørende for hvordan du og
@@ -170,20 +189,59 @@ export default {
         I en krisesituasjon er pålitelig informasjon avgjørende. Kjenn til disse kildene i forkant:
       </p>
       <ul class="list-disc list-inside text-gray-700 mb-4 space-y-1">
-        <li>NRK P1 er beredskapskanalen på radio (ha en batteridrevet radio)</li>
-        <li>Offisielle nettsider: DSB.no, Helsedirektoratet.no, Politiet.no</li>
-        <li>Kommunens nettsider og sosiale mediekanaler</li>
-        <li>Nødnumre: 110 (brann), 112 (politi), 113 (ambulanse), 116 117 (legevakt)</li>
-        <li>Last ned appen "Hjelp 113" for å kunne dele nøyaktig posisjon med nødetatene</li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span><strong>NRK P1</strong> er beredskapskanalen på radio (ha en batteridrevet radio) -
+        <a href="https://radio.nrk.no/direkte/p1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Lytt direkte</a>
+      </span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Offisielle nettsider:
+        <a href="https://www.dsb.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">DSB.no</a>,
+        <a href="https://www.helsedirektoratet.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Helsedirektoratet.no</a>,
+        <a href="https://www.politiet.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Politiet.no</a>
+      </span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Kommunens nettsider og sosiale mediekanaler - Søk opp din kommune</span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Nødnumre: <strong class="text-red-600">110</strong> (brann), <strong class="text-red-600">112</strong> (politi), <strong class="text-red-600">113</strong> (ambulanse), <strong class="text-blue-600">116 117</strong> (legevakt)</span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Last ned appen "Hjelp 113" for å kunne dele nøyaktig posisjon med nødetatene -
+        <a href="https://www.hjelp113.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Hjelp113.no</a>
+      </span>
+        </li>
+        <li class="flex items-start">
+          <span class="inline-block mt-1 mr-2">•</span>
+          <span>Kriseinfo samler viktig informasjon under kriser -
+        <a href="https://www.kriseinfo.no/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Kriseinfo.no</a>
+      </span>
+        </li>
       </ul>
       <AlertBox type="warning" :iconComponent="iconComponents.AlertTriangle">
         Vær kritisk til informasjon på sosiale medier. Stol på offisielle kanaler
         og informasjon fra myndighetene.
       </AlertBox>
     </ContentCard>
-
     <!-- Quiz section -->
-    <ContentCard fullWidth>
+    <ContentCard fullWidth id="quiz-section">
+      <div class="bg-blue-50 p-6 rounded-lg mb-6">
+        <h3 class="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+          <component :is="iconComponents.BookOpen" class="h-6 w-6 text-blue-600 mr-2" />
+          Test din kunnskap om kriseberedskap
+        </h3>
+        <p class="text-gray-700 mb-4">
+          Svar på spørsmålene nedenfor for å teste din kunnskap om hva du bør gjøre før en krisesituasjon.
+          Hver riktig besvarelse styrker din mentale beredskap.
+        </p>
+      </div>
+
       <QuizComponent
         title="Test din kunnskap"
         description="Svar på spørsmålene nedenfor for å se hvor godt forberedt du er på en krisesituasjon."
@@ -196,10 +254,16 @@ export default {
     <CTASection
       title="Hold oversikt over beredskapslager"
       description="Registrer deg for å bygge og holde oversikt over ditt eget beredskapslager. Få påminnelser når varer i beredskapslageret nærmer seg utløpsdato, og del med husstanden din."
+      authTitle="Administrer ditt beredskapslager"
+      authDescription="Sjekk utløpsdatoer, oppdater beholdningen og legg til nye varer i ditt beredskapslager. Hold hele husstanden oppdatert og beredt."
       primaryButtonText="Registrer deg nå"
-      primaryButtonRoute="/register"
+      primaryButtonRoute="/registrer"
       secondaryButtonText="Logg inn"
       secondaryButtonRoute="/logg-inn"
+      authPrimaryButtonText="Gå til beredskapslager"
+      authPrimaryButtonRoute="/husstand/:id/beredskapslager"
+      authSecondaryButtonText="Administrer husstand"
+      authSecondaryButtonRoute="/husstand"
       colorTheme="blue"
     />
   </PageLayout>

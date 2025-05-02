@@ -277,7 +277,7 @@ export const getAllMapPoints = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<MapPoint>(
+  return customInstance<unknown>(
     { url: `http://localhost:8080/api/map-points`, method: 'GET', signal },
     options,
   )

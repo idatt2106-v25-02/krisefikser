@@ -34,7 +34,7 @@ import stud.ntnu.krisefikser.auth.entity.RefreshToken;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
-import stud.ntnu.krisefikser.user.dto.CreateUserDto;
+import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,7 +71,7 @@ public class AuthServiceTest {
 
   @BeforeEach
   void setUp() {
-    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User");
+    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User", "turnstile-token");
     loginRequest = new LoginRequest("test@example.com", "password");
     refreshRequest = new RefreshRequest("refresh-token-123");
 
@@ -111,7 +111,7 @@ public class AuthServiceTest {
   @Test
   void register_ShouldReturnTokens() {
     // Arrange
-    when(userService.createUser(any(CreateUserDto.class))).thenReturn(user);
+    when(userService.createUser(any(CreateUser.class))).thenReturn(user);
     when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
 
@@ -123,7 +123,7 @@ public class AuthServiceTest {
     assertThat(response.getAccessToken()).isEqualTo("generated-token");
     assertThat(response.getRefreshToken()).isEqualTo("generated-token");
 
-    verify(userService).createUser(any(CreateUserDto.class));
+    verify(userService).createUser(any(CreateUser.class));
     verify(userDetailsService).loadUserByUsername("test@example.com");
     verify(refreshTokenRepository).save(any(RefreshToken.class));
   }

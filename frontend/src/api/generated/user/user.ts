@@ -21,7 +21,7 @@ import type {
 import { unref } from 'vue'
 import type { MaybeRef } from 'vue'
 
-import type { CreateUserDto, UserDto } from '.././model'
+import type { CreateUser, UserResponse } from '.././model'
 
 import { customInstance } from '../../axios'
 import type { ErrorType, BodyType } from '../../axios'
@@ -34,38 +34,38 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  */
 export const updateUser = (
   userId: MaybeRef<string>,
-  createUserDto: MaybeRef<CreateUserDto>,
+  createUser: MaybeRef<CreateUser>,
   options?: SecondParameter<typeof customInstance>,
 ) => {
   userId = unref(userId)
-  createUserDto = unref(createUserDto)
+  createUser = unref(createUser)
 
-  return customInstance<UserDto>(
+  return customInstance<UserResponse>(
     {
       url: `http://localhost:8080/api/users/${userId}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      data: createUserDto,
+      data: createUser,
     },
     options,
   )
 }
 
 export const getUpdateUserMutationOptions = <
-  TError = ErrorType<UserDto>,
+  TError = ErrorType<UserResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateUser>>,
     TError,
-    { userId: string; data: BodyType<CreateUserDto> },
+    { userId: string; data: BodyType<CreateUser> },
     TContext
   >
   request?: SecondParameter<typeof customInstance>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateUser>>,
   TError,
-  { userId: string; data: BodyType<CreateUserDto> },
+  { userId: string; data: BodyType<CreateUser> },
   TContext
 > => {
   const mutationKey = ['updateUser']
@@ -77,7 +77,7 @@ export const getUpdateUserMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateUser>>,
-    { userId: string; data: BodyType<CreateUserDto> }
+    { userId: string; data: BodyType<CreateUser> }
   > = (props) => {
     const { userId, data } = props ?? {}
 
@@ -88,18 +88,18 @@ export const getUpdateUserMutationOptions = <
 }
 
 export type UpdateUserMutationResult = NonNullable<Awaited<ReturnType<typeof updateUser>>>
-export type UpdateUserMutationBody = BodyType<CreateUserDto>
-export type UpdateUserMutationError = ErrorType<UserDto>
+export type UpdateUserMutationBody = BodyType<CreateUser>
+export type UpdateUserMutationError = ErrorType<UserResponse>
 
 /**
  * @summary Update user
  */
-export const useUpdateUser = <TError = ErrorType<UserDto>, TContext = unknown>(
+export const useUpdateUser = <TError = ErrorType<UserResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateUser>>,
       TError,
-      { userId: string; data: BodyType<CreateUserDto> },
+      { userId: string; data: BodyType<CreateUser> },
       TContext
     >
     request?: SecondParameter<typeof customInstance>
@@ -108,7 +108,7 @@ export const useUpdateUser = <TError = ErrorType<UserDto>, TContext = unknown>(
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof updateUser>>,
   TError,
-  { userId: string; data: BodyType<CreateUserDto> },
+  { userId: string; data: BodyType<CreateUser> },
   TContext
 > => {
   const mutationOptions = getUpdateUserMutationOptions(options)
@@ -202,7 +202,7 @@ export const getAllUsers = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<UserDto>(
+  return customInstance<unknown>(
     { url: `http://localhost:8080/api/users`, method: 'GET', signal },
     options,
   )
@@ -214,7 +214,7 @@ export const getGetAllUsersQueryKey = () => {
 
 export const getGetAllUsersQueryOptions = <
   TData = Awaited<ReturnType<typeof getAllUsers>>,
-  TError = ErrorType<UserDto[]>,
+  TError = ErrorType<UserResponse[]>,
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllUsers>>, TError, TData>>
   request?: SecondParameter<typeof customInstance>
@@ -234,7 +234,7 @@ export const getGetAllUsersQueryOptions = <
 }
 
 export type GetAllUsersQueryResult = NonNullable<Awaited<ReturnType<typeof getAllUsers>>>
-export type GetAllUsersQueryError = ErrorType<UserDto[]>
+export type GetAllUsersQueryError = ErrorType<UserResponse[]>
 
 /**
  * @summary Get all users
@@ -242,7 +242,7 @@ export type GetAllUsersQueryError = ErrorType<UserDto[]>
 
 export function useGetAllUsers<
   TData = Awaited<ReturnType<typeof getAllUsers>>,
-  TError = ErrorType<UserDto[]>,
+  TError = ErrorType<UserResponse[]>,
 >(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllUsers>>, TError, TData>>

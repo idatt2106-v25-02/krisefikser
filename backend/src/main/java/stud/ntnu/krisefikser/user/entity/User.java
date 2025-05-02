@@ -19,20 +19,25 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import stud.ntnu.krisefikser.auth.entity.Role;
+import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.household.entity.Household;
-import stud.ntnu.krisefikser.user.dto.UserDto;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
+@ToString(exclude = { "activeHousehold" })
 public class User {
 
   @Id
@@ -43,10 +48,7 @@ public class User {
   private String email;
 
   @ManyToMany(fetch = FetchType.EAGER)
-  @JoinTable(name = "user_roles",
-      joinColumns = @JoinColumn(name = "user_id"),
-      inverseJoinColumns = @JoinColumn(name = "role_id")
-  )
+  @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
   @Column(nullable = false)
@@ -72,13 +74,22 @@ public class User {
   private LocalDateTime updatedAt;
 
   @ManyToOne(cascade = CascadeType.MERGE)
-  @JoinColumn(name = "active_household_id", nullable = true)
+  @JoinColumn(name = "active_household_id")
   private Household activeHousehold;
 
-  public UserDto toDto() {
+  public boolean isSuperAdmin() {
+    return roles.stream().anyMatch(role -> role.getName() == RoleType.SUPER_ADMIN);
+  }
+
+  /**
+   * Converts the User entity to a UserResponse DTO.
+   *
+   * @return a UserResponse DTO containing user information.
+   */
+  public UserResponse toDto() {
     List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
 
-    return new UserDto(
+    return new UserResponse(
         id,
         email,
         roleNames,

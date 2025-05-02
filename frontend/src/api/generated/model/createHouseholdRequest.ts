@@ -7,13 +7,13 @@
  */
 
 /**
- * Household data
+ * Updated household data
  */
 export interface CreateHouseholdRequest {
-  name?: string
-  latitude?: number
-  longitude?: number
-  address?: string
-  city?: string
-  postalCode?: string
+  name: string
+  latitude: number
+  longitude: number
+  address: string
+  city: string
+  postalCode: string
 }

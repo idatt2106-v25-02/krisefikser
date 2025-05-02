@@ -29,7 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
-import stud.ntnu.krisefikser.user.dto.CreateUserDto;
+import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
@@ -58,7 +58,7 @@ class UserServiceTest {
 
   private User testUser;
   private UUID testUserId;
-  private CreateUserDto testUserDto;
+  private CreateUser testUserDto;
 
   @BeforeEach
   void setUp() {
@@ -72,7 +72,7 @@ class UserServiceTest {
         .roles(new HashSet<>())
         .build();
 
-    testUserDto = new CreateUserDto(
+    testUserDto = new CreateUser(
         "test@example.com",
         "password",
         "Test",

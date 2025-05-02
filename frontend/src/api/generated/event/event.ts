@@ -270,14 +270,14 @@ export const useDeleteEvent = <TError = ErrorType<void>, TContext = unknown>(
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Retrieves a list of all events in the system
- * @summary Get all events
+ * Retrieves a list of all ongoing and upcoming events in the system
+ * @summary Get active events
  */
 export const getAllEvents = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<Event>(
+  return customInstance<unknown>(
     { url: `http://localhost:8080/api/events`, method: 'GET', signal },
     options,
   )
@@ -312,7 +312,7 @@ export type GetAllEventsQueryResult = NonNullable<Awaited<ReturnType<typeof getA
 export type GetAllEventsQueryError = ErrorType<unknown>
 
 /**
- * @summary Get all events
+ * @summary Get active events
  */
 
 export function useGetAllEvents<

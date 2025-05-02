@@ -1,17 +1,27 @@
 package stud.ntnu.krisefikser.household.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateHouseholdRequest {
-    private String name;
-    private double latitude;
-    private double longitude;
-    private String address;
-    private String city;
-    private String postalCode;
+
+  @NotBlank(message = "Household name is required")
+  private String name;
+  @NotBlank(message = "Latitude is required")
+  private double latitude;
+  @NotBlank(message = "Longitude is required")
+  private double longitude;
+  @NotBlank(message = "Address is required")
+  private String address;
+  @NotBlank(message = "City is required")
+  private String city;
+  @NotBlank(message = "State is required")
+  private String postalCode;
 }
