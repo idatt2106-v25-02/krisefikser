@@ -77,8 +77,14 @@ watch(() => store.voices, (newVal) => {
     </button>
 
     <div v-if="isMenuOpen" class="absolute bottom-16 right-0 bg-white rounded-lg shadow-xl p-6 w-85">
-      <h3 class="font-medium text-gray-800 mb-4 text-2xl ">Tilgjengelighetsalternativer</h3>
-      <p class="text-lg text-gray-600 mb-4">Trykk <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Alt/Option</kbd>+<kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">T</kbd> for å aktivere/deaktivere tekst-til-tale</p>
+      <h3 class="font-medium text-gray-800 mb-4 text-2xl">Tilgjengelighetsalternativer</h3>
+      <ul class="text-lg text-gray-600 mb-4 space-y-2">
+        <li><kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Alt/Option</kbd> + <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">T</kbd> for å aktivere/deaktivere tekst-til-tale</li>
+        <li><kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Alt/Option</kbd> + <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">R</kbd> for å skru av/på lesing av alt</li>
+        <li><kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Piltaster</kbd> for å navigere frem og tilbake</li>
+        <li><kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">Alt/Option</kbd> + <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">↑</kbd> / <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">↓</kbd> for å justere talehastighet</li>
+        <li><kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded">1-4</kbd> for å velge svar på quiz</li>
+      </ul>
 
       <div class="mb-4">
         <label class="flex items-center cursor-pointer">
@@ -119,7 +125,6 @@ watch(() => store.voices, (newVal) => {
             </option>
           </select>
         </div>
-
       </div>
     </div>
   </div>
