@@ -22,7 +22,7 @@ import stud.ntnu.krisefikser.common.TestDataFactory;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.item.dto.ChecklistItemResponse;
 import stud.ntnu.krisefikser.item.entity.ChecklistItem;
-import stud.ntnu.krisefikser.item.enums.ChecklistType;
+import stud.ntnu.krisefikser.item.enums.ChecklistCategory;
 import stud.ntnu.krisefikser.item.repository.ChecklistItemRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,17 +47,17 @@ class ChecklistItemServiceTest {
     household.setName("Test Household");
 
     checklistItem = TestDataFactory.createTestChecklistItem(
-        "First Aid Kit", 
-        ChecklistType.HEALTH, 
-        false, 
+        "First Aid Kit",
+        ChecklistCategory.HEALTH_HYGIENE,
+        false,
         household
     );
     checklistItem.setId(itemId);
 
     toggledItem = TestDataFactory.createTestChecklistItem(
-        "First Aid Kit", 
-        ChecklistType.HEALTH, 
-        true, 
+        "First Aid Kit",
+        ChecklistCategory.HEALTH_HYGIENE,
+        true,
         household
     );
     toggledItem.setId(itemId);
@@ -68,17 +68,17 @@ class ChecklistItemServiceTest {
   void toggleChecklistItem_ShouldToggleStatus(boolean initialCheckedState) {
     // Arrange
     ChecklistItem testItem = TestDataFactory.createTestChecklistItem(
-        "First Aid Kit", 
-        ChecklistType.HEALTH, 
-        initialCheckedState, 
+        "First Aid Kit",
+        ChecklistCategory.HEALTH_HYGIENE,
+        initialCheckedState,
         household
     );
     testItem.setId(itemId);
 
     ChecklistItem expectedItem = TestDataFactory.createTestChecklistItem(
-        "First Aid Kit", 
-        ChecklistType.HEALTH, 
-        !initialCheckedState, 
+        "First Aid Kit",
+        ChecklistCategory.HEALTH_HYGIENE,
+        !initialCheckedState,
         household
     );
     expectedItem.setId(itemId);
@@ -93,7 +93,7 @@ class ChecklistItemServiceTest {
     assertThat(result).isNotNull();
     assertThat(result.getId()).isEqualTo(itemId);
     assertThat(result.getName()).isEqualTo("First Aid Kit");
-    assertThat(result.getIcon()).isEqualTo("health_icon");
+    assertThat(result.getIcon()).isEqualTo("health_hygiene_icon");
     assertThat(result.getChecked()).isEqualTo(!initialCheckedState);
 
     verify(checklistItemRepository).findById(itemId);
@@ -127,7 +127,7 @@ class ChecklistItemServiceTest {
     assertThat(result).isNotNull().hasSize(1);
     assertThat(result.getFirst().getId()).isEqualTo(itemId);
     assertThat(result.getFirst().getName()).isEqualTo("First Aid Kit");
-    assertThat(result.getFirst().getIcon()).isEqualTo("health_icon");
+    assertThat(result.getFirst().getIcon()).isEqualTo("health_hygiene_icon");
     assertThat(result.getFirst().getChecked()).isFalse();
 
     verify(checklistItemRepository).findAll();

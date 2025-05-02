@@ -18,7 +18,7 @@ import stud.ntnu.krisefikser.common.AbstractIntegrationTest;
 import stud.ntnu.krisefikser.common.TestDataFactory;
 import stud.ntnu.krisefikser.item.dto.CreateFoodItemRequest;
 import stud.ntnu.krisefikser.item.entity.ChecklistItem;
-import stud.ntnu.krisefikser.item.enums.ChecklistType;
+import stud.ntnu.krisefikser.item.enums.ChecklistCategory;
 import stud.ntnu.krisefikser.item.repository.ChecklistItemRepository;
 import stud.ntnu.krisefikser.item.repository.FoodItemRepository;
 
@@ -145,7 +145,7 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
     // Arrange - Create a checklist item
     ChecklistItem checklistItem = TestDataFactory.createTestChecklistItem(
         "Test Checklist Item",
-        ChecklistType.HEALTH,
+        ChecklistCategory.HEALTH_HYGIENE,
         false,
         getTestHousehold()
     );
@@ -167,7 +167,7 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
     // Arrange - Create an unchecked checklist item
     ChecklistItem checklistItem = TestDataFactory.createTestChecklistItem(
         "Toggle Test Item",
-        ChecklistType.HEALTH,
+        ChecklistCategory.HEALTH_HYGIENE,
         false,
         getTestHousehold()
     );
