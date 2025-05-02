@@ -1,5 +1,7 @@
 package stud.ntnu.krisefikser.item.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,16 +23,20 @@ public class CreateFoodItemRequest {
   /**
    * Name or description of the food item.
    */
+  @NotBlank(message = "Name is required")
   private String name;
 
   /**
    * Icon identifier representing the food item visually.
    */
+  @NotBlank(message = "Icon is required")
   private String icon;
 
   /**
-   * Nutritional value in kilocalories.
+   * Nutritional value in kilocalories. More than zero.
    */
+  @Positive
+  @NotBlank(message = "Kcal is required")
   private Integer kcal;
 
   /**
