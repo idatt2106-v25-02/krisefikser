@@ -158,4 +158,23 @@ public class HouseholdService {
 
     return toHouseholdResponse(newHousehold);
   }
+
+  /**
+   * Sets the water amount for the active household of the current user. Throws an exception if the
+   * user does not have an active household.
+   *
+   * @param liters the new water amount
+   */
+  @Transactional
+  public void setWaterAmount(double liters) {
+    User currentUser = userService.getCurrentUser();
+    Household household = currentUser.getActiveHousehold();
+
+    if (household == null) {
+      throw new HouseholdNotFoundException();
+    }
+
+    household.setWaterLiters(liters);
+    householdRepo.save(household);
+  }
 }

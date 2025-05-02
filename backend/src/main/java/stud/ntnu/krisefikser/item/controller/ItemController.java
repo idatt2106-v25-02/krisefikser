@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.household.service.HouseholdService;
 import stud.ntnu.krisefikser.item.dto.ChecklistItemResponse;
 import stud.ntnu.krisefikser.item.dto.CreateFoodItemRequest;
 import stud.ntnu.krisefikser.item.dto.FoodItemResponse;
@@ -62,6 +63,7 @@ public class ItemController {
    * retrieval of emergency checklist items.
    */
   private final ChecklistItemService checklistItemService;
+  private final HouseholdService householdService;
 
   /**
    * Creates a new food item in the system.
@@ -214,14 +216,26 @@ public class ItemController {
   }
 
   /**
-   * Get total water from household in liters
+   * Set the total amount of water in liters for your active household
    *
-   * <p>This endpoint returns the total amount of water in liters from all households.</p>
+   * <p>This endpoint allows users to set the total amount of water in liters for their active
+   * household. The amount is specified in the request path and should be a positive number.
    *
-   * @return ResponseEntity containing the total amount of water in liters with HTTP status 200
-   * (OK)
+   * <p>Example: /water/100 sets the water amount to 100 liters.</p>
+   *
+   * @param amount the amount of water in liters to set. Must be a positive number
    */
-//  @GetMapping("/water")
+  @PutMapping("/water/{amount}")
+  @Operation(summary = "Set the total amount of water in liters for your active household")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Water amount set successfully"),
+      @ApiResponse(responseCode = "404", description = "Household not found")
+  })
+  public ResponseEntity<Void> setWaterAmount(
+      @Parameter(description = "Amount of water in liters") @PathVariable double amount) {
+    householdService.setWaterAmount(amount);
+    return ResponseEntity.ok().build();
+  }
 
 
 }
