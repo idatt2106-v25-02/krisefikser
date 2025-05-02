@@ -21,19 +21,30 @@ const { data: meetingPointsData, isLoading } = useGetMeetingPoints(props.househo
 const createMarkerIcon = () => {
   return L.divIcon({
     className: 'meeting-point-marker',
-    html: '<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white"></div>',
-    iconSize: [16, 16],
-    iconAnchor: [8, 8]
+    html: `
+      <div class="relative">
+        <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
+          Møtepunkt
+        </div>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
   })
 }
 
-// Update markers when meeting points change
-watch(meetingPointsData, (newPoints) => {
-  if (!newPoints) return
-
-  // Clear existing markers
+// Clear all markers
+function clearMarkers() {
   markers.value.forEach(marker => marker.remove())
   markers.value = []
+}
+
+// Update markers when meeting points change
+watch([meetingPointsData, () => props.map], ([newPoints, map]) => {
+  if (!newPoints || !map) return
+
+  // Clear existing markers
+  clearMarkers()
 
   // Create new markers
   meetingPoints.value = Array.isArray(newPoints) ? newPoints : [newPoints]
@@ -44,26 +55,40 @@ watch(meetingPointsData, (newPoints) => {
       icon: createMarkerIcon()
     })
 
-    marker.bindPopup(`
+    const popup = L.popup({
+      className: 'meeting-point-popup'
+    }).setContent(`
       <div class="p-2">
         <h3 class="font-bold">${point.name}</h3>
         <p>${point.description}</p>
+        <button
+          class="mt-2 w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+          data-action="edit"
+        >
+          Rediger
+        </button>
       </div>
     `)
 
-    marker.on('click', () => {
-      emit('meeting-point-clicked', point)
+    marker.bindPopup(popup)
+
+    marker.on('popupopen', () => {
+      const button = document.querySelector('.meeting-point-popup [data-action="edit"]')
+      if (button) {
+        button.addEventListener('click', () => {
+          emit('meeting-point-clicked', point)
+        })
+      }
     })
 
-    marker.addTo(props.map!)
+    marker.addTo(map)
     markers.value.push(marker)
   })
-})
+}, { immediate: true })
 
 // Clean up markers when component is unmounted
 onUnmounted(() => {
-  markers.value.forEach(marker => marker.remove())
-  markers.value = []
+  clearMarkers()
 })
 </script>
 

@@ -71,7 +71,7 @@ function toggleMeetingPointCreation() {
       @click="toggleMeetingPointCreation"
       :class="{ 'bg-blue-600': isAddingMeetingPoint }"
     >
-      {{ isAddingMeetingPoint ? 'Klikk på kartet for å legge til møtepunkt' : 'Legg til møtepunkt' }}
+      {{ isAddingMeetingPoint ? 'Klikk på kartet' : 'Legg til møtepunkt' }}
     </button>
 
     <div v-if="userInCrisisZone" class="bg-[#F44336] text-white p-2.5 rounded-md font-bold text-center animate-blink">
@@ -79,7 +79,6 @@ function toggleMeetingPointCreation() {
     </div>
   </div>
 </template>
-
 <style scoped>
 .shelter-icon {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMyA5bDkgLTcgOSA3djExYTIgMiAwIDAgMSAtMiAyaC0xNGEyIDIgMCAwIDEgLTIgLTJ6Ij48L3BhdGg+PHBvbHlsaW5lIHBvaW50cz0iOSAyMiA5IDEyIDE1IDEyIDE1IDIyIj48L3BvbHlsaW5lPjwvc3ZnPg==');
@@ -95,3 +94,4 @@ function toggleMeetingPointCreation() {
   animation: blink 1s infinite;
 }
 </style>
+

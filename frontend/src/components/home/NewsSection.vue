@@ -77,7 +77,7 @@ const getExcerpt = (text?: string) => {
           <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ article.title }}</h3>
           <p class="text-gray-600 mb-4">{{ getExcerpt(article.text) }}</p>
           <router-link
-            :to="`/nyheter/${article.id}`"
+            :to="`/artikkel/${article.id}`"
             class="text-blue-600 font-medium hover:underline"
             >Les mer</router-link
           >

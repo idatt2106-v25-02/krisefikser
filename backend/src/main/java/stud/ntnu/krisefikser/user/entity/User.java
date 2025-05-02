@@ -19,20 +19,25 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import stud.ntnu.krisefikser.auth.entity.Role;
+import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
+@ToString(exclude = { "activeHousehold" })
 public class User {
 
   @Id
@@ -71,6 +76,10 @@ public class User {
   @ManyToOne(cascade = CascadeType.MERGE)
   @JoinColumn(name = "active_household_id", nullable = true)
   private Household activeHousehold;
+
+  public boolean isSuperAdmin() {
+    return roles.stream().anyMatch(role -> role.getName() == RoleType.SUPER_ADMIN);
+  }
 
   public UserResponse toDto() {
     List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();

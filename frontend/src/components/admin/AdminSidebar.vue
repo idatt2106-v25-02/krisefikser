@@ -19,7 +19,7 @@ const tabs: { id: AdminTab; label: string }[] = [
 </script>
 
 <template>
-  <div class="w-96 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+  <div class="w-128 bg-white border-r border-gray-200 p-4 overflow-y-auto">
     <h2 class="text-2xl font-bold mb-6">Kartstyring</h2>
 
     <!-- Tab Navigation -->

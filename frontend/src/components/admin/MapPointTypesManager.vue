@@ -2,22 +2,52 @@
 import { ref } from 'vue'
 import type { MapPointType } from '@/api/generated/model'
 import { useCreateMapPointType, useGetAllMapPointTypes, useUpdateMapPointType, useDeleteMapPointType } from '@/api/generated/map-point-type/map-point-type'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useAuthStore } from '@/stores/useAuthStore'
+import MapPointTypeForm from './MapPointTypeForm.vue'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const authStore = useAuthStore()
-const { data: mapPointTypes, refetch: refetchMapPointTypes } = useGetAllMapPointTypes()
+const { data: mapPointTypes, refetch: refetchMapPointTypes } = useGetAllMapPointTypes<MapPointType[]>()
+const { refetch: refetchMapPoints } = useGetAllMapPoints()
 
-const newMapPointType = ref<Partial<MapPointType>>({
+const newMapPointType = ref({
   title: '',
   description: '',
   iconUrl: '',
   openingTime: '',
 })
 const editingMapPointType = ref<MapPointType | null>(null)
+const isDialogOpen = ref(false)
 
-const { mutate: createMapPointType } = useCreateMapPointType()
-const { mutate: updateMapPointType } = useUpdateMapPointType()
-const { mutate: deleteMapPointType } = useDeleteMapPointType()
+const { mutate: createMapPointType } = useCreateMapPointType({
+  mutation: {
+    onSuccess: () => {
+      refetchMapPointTypes()
+
+    },
+  },
+})
+const { mutate: updateMapPointType } = useUpdateMapPointType({
+  mutation: {
+    onSuccess: () => {
+      refetchMapPointTypes()
+      refetchMapPoints()
+    },
+  },
+})
+const { mutate: deleteMapPointType } = useDeleteMapPointType({
+  mutation: {
+    onSuccess: () => {
+      refetchMapPointTypes()
+    },
+  },
+})
 
 async function handleAddMapPointType() {
   if (!authStore.isAdmin) {
@@ -31,7 +61,7 @@ async function handleAddMapPointType() {
   }
 
   try {
-    await createMapPointType({
+    createMapPointType({
       data: newMapPointType.value,
     })
     refetchMapPointTypes()
@@ -48,62 +78,67 @@ async function handleAddMapPointType() {
 
 async function handleDeleteMapPointType(id: number) {
   try {
-    await deleteMapPointType({ id })
-    refetchMapPointTypes()
+    deleteMapPointType({ id })
   } catch (error) {
     console.error('Error deleting map point type:', error)
   }
+}
+
+async function handleUpdateMapPointType() {
+  if (!authStore.isAdmin) {
+    console.error('User must have ADMIN role to update a map point type')
+    return
+  }
+
+  if (!editingMapPointType.value?.id || !editingMapPointType.value.title) {
+    console.error('ID and title are required')
+    return
+  }
+
+  try {
+    updateMapPointType({
+      id: editingMapPointType.value.id,
+      data: {
+        title: editingMapPointType.value.title,
+        description: editingMapPointType.value.description,
+        iconUrl: '/icons/' + editingMapPointType.value.iconUrl + '.svg',
+        openingTime: editingMapPointType.value.openingTime,
+      },
+    })
+    refetchMapPointTypes()
+    editingMapPointType.value = null
+    isDialogOpen.value = false
+  } catch (error) {
+    console.error('Error updating map point type:', error)
+  }
+}
+
+function handleEditClick(type: MapPointType | undefined) {
+  if (!type) return
+  editingMapPointType.value = { ...type }
+  isDialogOpen.value = true
+}
+
+function handleDialogCancel() {
+  editingMapPointType.value = null
+  isDialogOpen.value = false
 }
 </script>
 
 <template>
   <div class="space-y-4">
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Tittel</label>
-      <input
-        v-model="newMapPointType.title"
-        type="text"
-        class="w-full px-3 py-2 border rounded-lg"
-        placeholder="Tittel på kartpunkttype"
-      />
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Beskrivelse</label>
-      <textarea
-        v-model="newMapPointType.description"
-        class="w-full px-3 py-2 border rounded-lg"
-        rows="3"
-        placeholder="Beskriv kartpunkttypen"
-      ></textarea>
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Ikon URL</label>
-      <input
-        v-model="newMapPointType.iconUrl"
-        type="text"
-        class="w-full px-3 py-2 border rounded-lg"
-        placeholder="URL til ikon"
-      />
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Åpningstid</label>
-      <input
-        v-model="newMapPointType.openingTime"
-        type="text"
-        class="w-full px-3 py-2 border rounded-lg"
-        placeholder="Åpningstid"
-      />
-    </div>
-
-    <button
-      @click="handleAddMapPointType"
-      class="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90"
-    >
-      Legg til kartpunkttype
-    </button>
+    <!-- Add Form -->
+    <MapPointTypeForm
+      v-model="newMapPointType"
+      title="Legg til ny kartpunkttype"
+      @submit="handleAddMapPointType"
+      @cancel="newMapPointType = {
+        title: '',
+        description: '',
+        iconUrl: '',
+        openingTime: '',
+      }"
+    />
 
     <!-- List of Map Point Types -->
     <div class="mt-6 space-y-4">
@@ -116,7 +151,7 @@ async function handleDeleteMapPointType(id: number) {
           </div>
           <div class="flex space-x-2">
             <button
-              @click="editingMapPointType = { ...type }"
+              @click="handleEditClick(type)"
               class="text-primary hover:text-primary/80"
             >
               Rediger
@@ -132,5 +167,21 @@ async function handleDeleteMapPointType(id: number) {
         </div>
       </div>
     </div>
+
+    <!-- Edit Dialog -->
+    <Dialog v-model:open="isDialogOpen">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rediger kartpunkttype</DialogTitle>
+        </DialogHeader>
+        <MapPointTypeForm
+          v-if="editingMapPointType"
+          v-model="editingMapPointType"
+          title=""
+          @submit="handleUpdateMapPointType"
+          @cancel="handleDialogCancel"
+        />
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

@@ -3,10 +3,19 @@ import { ref } from 'vue'
 import type { Event } from '@/api/generated/model'
 import { EventLevel, EventStatus } from '@/api/generated/model'
 import { useCreateEvent, useGetAllEvents, useUpdateEvent, useDeleteEvent } from '@/api/generated/event/event'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useAuthStore } from '@/stores/useAuthStore'
+import EventForm from './EventForm.vue'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const authStore = useAuthStore()
 const { data: events, refetch: refetchEvents } = useGetAllEvents()
+const { refetch: refetchMapPoints } = useGetAllMapPoints()
 
 const newEvent = ref<Partial<Event>>({
   title: '',
@@ -19,19 +28,56 @@ const newEvent = ref<Partial<Event>>({
   status: EventStatus.UPCOMING,
 })
 const editingEvent = ref<Event | null>(null)
+const isDialogOpen = ref(false)
+const isMapSelectionMode = ref(false)
 
-const { mutate: createEvent } = useCreateEvent()
-const { mutate: updateEvent } = useUpdateEvent()
-const { mutate: deleteEvent } = useDeleteEvent()
+const { mutate: createEvent } = useCreateEvent({
+  mutation: {
+    onSuccess: () => {
+      refetchEvents()
+      refetchMapPoints()
+    },
+  },
+})
+const { mutate: updateEvent } = useUpdateEvent({
+  mutation: {
+    onSuccess: () => {
+      refetchEvents()
+      refetchMapPoints()
+    },
+  },
+})
+const { mutate: deleteEvent } = useDeleteEvent({
+  mutation: {
+    onSuccess: () => {
+      refetchEvents()
+      refetchMapPoints()
+    },
+  },
+})
 
 const emit = defineEmits<{
   (e: 'map-click', lat: number, lng: number): void
+  (e: 'map-selection-mode-change', isActive: boolean): void
 }>()
 
 function handleMapClick(lat: number, lng: number) {
-  newEvent.value.latitude = lat
-  newEvent.value.longitude = lng
-  emit('map-click', lat, lng)
+  if (!isMapSelectionMode.value) return
+
+  if (editingEvent.value) {
+    editingEvent.value.latitude = lat
+    editingEvent.value.longitude = lng
+  } else {
+    newEvent.value.latitude = lat
+    newEvent.value.longitude = lng
+  }
+  isMapSelectionMode.value = false
+  emit('map-selection-mode-change', false)
+}
+
+function handleStartMapSelection() {
+  isMapSelectionMode.value = true
+  emit('map-selection-mode-change', true)
 }
 
 async function handleAddEvent() {
@@ -59,7 +105,6 @@ async function handleAddEvent() {
         status: newEvent.value.status,
       },
     })
-    refetchEvents()
     newEvent.value = {
       title: '',
       description: '',
@@ -76,15 +121,23 @@ async function handleAddEvent() {
 }
 
 async function handleUpdateEvent() {
-  if (!editingEvent.value?.id) return
+  if (!authStore.isAdmin) {
+    console.error('User must have ADMIN role to update an event')
+    return
+  }
+
+  if (!editingEvent.value?.id) {
+    console.error('ID is required')
+    return
+  }
 
   try {
     await updateEvent({
       id: editingEvent.value.id,
       data: editingEvent.value,
     })
-    refetchEvents()
     editingEvent.value = null
+    isDialogOpen.value = false
   } catch (error) {
     console.error('Error updating event:', error)
   }
@@ -93,108 +146,42 @@ async function handleUpdateEvent() {
 async function handleDeleteEvent(id: number) {
   try {
     await deleteEvent({ id })
-    refetchEvents()
   } catch (error) {
     console.error('Error deleting event:', error)
   }
+}
+
+function handleEditClick(event: Event | undefined) {
+  if (!event) return
+  editingEvent.value = { ...event }
+  isDialogOpen.value = true
+}
+
+function handleDialogCancel() {
+  editingEvent.value = null
+  isDialogOpen.value = false
 }
 </script>
 
 <template>
   <div class="space-y-4">
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Navn</label>
-      <input
-        v-model="newEvent.title"
-        type="text"
-        class="w-full px-3 py-2 border rounded-lg"
-        placeholder="Navn på hendelse"
-      />
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Beskrivelse</label>
-      <textarea
-        v-model="newEvent.description"
-        class="w-full px-3 py-2 border rounded-lg"
-        rows="3"
-        placeholder="Beskriv hendelsen"
-      ></textarea>
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Radius (meter)</label>
-      <input
-        v-model="newEvent.radius"
-        type="number"
-        class="w-full px-3 py-2 border rounded-lg"
-        placeholder="Radius i meter"
-      />
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Alvorlighetsgrad</label>
-      <select v-model="newEvent.level" class="w-full px-3 py-2 border rounded-lg">
-        <option :value="EventLevel.GREEN">Lav</option>
-        <option :value="EventLevel.YELLOW">Middels</option>
-        <option :value="EventLevel.RED">Høy</option>
-      </select>
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Status</label>
-      <select v-model="newEvent.status" class="w-full px-3 py-2 border rounded-lg">
-        <option :value="EventStatus.UPCOMING">Kommende</option>
-        <option :value="EventStatus.ONGOING">Pågående</option>
-        <option :value="EventStatus.FINISHED">Avsluttet</option>
-      </select>
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Start tidspunkt</label>
-      <input
-        v-model="newEvent.startTime"
-        type="datetime-local"
-        class="w-full px-3 py-2 border rounded-lg"
-      />
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Slutt tidspunkt (valgfritt)</label>
-      <input
-        v-model="newEvent.endTime"
-        type="datetime-local"
-        class="w-full px-3 py-2 border rounded-lg"
-      />
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Plassering</label>
-      <div class="flex space-x-2">
-        <input
-          :value="newEvent.latitude?.toFixed(4)"
-          readonly
-          type="text"
-          class="w-1/2 px-3 py-2 border rounded-lg bg-gray-50"
-          placeholder="Breddegrad"
-        />
-        <input
-          :value="newEvent.longitude?.toFixed(4)"
-          readonly
-          type="text"
-          class="w-1/2 px-3 py-2 border rounded-lg bg-gray-50"
-          placeholder="Lengdegrad"
-        />
-      </div>
-      <p class="text-sm text-gray-500">Klikk på kartet for å velge plassering</p>
-    </div>
-
-    <button
-      @click="handleAddEvent"
-      class="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90"
-    >
-      Legg til krisehendelse
-    </button>
+    <!-- Add Form -->
+    <EventForm
+      v-model="newEvent"
+      title="Legg til ny krisehendelse"
+      @submit="handleAddEvent"
+      @cancel="newEvent = {
+        title: '',
+        description: '',
+        radius: 500,
+        latitude: 63.4305,
+        longitude: 10.3951,
+        level: EventLevel.GREEN,
+        startTime: new Date().toISOString(),
+        status: EventStatus.UPCOMING,
+      }"
+      @start-map-selection="handleStartMapSelection"
+    />
 
     <!-- List of Events -->
     <div class="mt-6 space-y-4">
@@ -210,7 +197,7 @@ async function handleDeleteEvent(id: number) {
           </div>
           <div class="flex space-x-2">
             <button
-              @click="editingEvent = { ...event }"
+              @click="handleEditClick(event)"
               class="text-primary hover:text-primary/80"
             >
               Rediger
@@ -226,5 +213,22 @@ async function handleDeleteEvent(id: number) {
         </div>
       </div>
     </div>
+
+    <!-- Edit Dialog -->
+    <Dialog v-model:open="isDialogOpen">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rediger krisehendelse</DialogTitle>
+        </DialogHeader>
+        <EventForm
+          v-if="editingEvent"
+          v-model="editingEvent"
+          title=""
+          @submit="handleUpdateEvent"
+          @cancel="handleDialogCancel"
+          @start-map-selection="handleStartMapSelection"
+        />
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

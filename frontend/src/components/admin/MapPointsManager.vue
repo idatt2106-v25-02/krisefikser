@@ -3,11 +3,20 @@ import { ref } from 'vue'
 import type { MapPoint, MapPointType } from '@/api/generated/model'
 import { useCreateMapPoint, useGetAllMapPoints, useUpdateMapPoint, useDeleteMapPoint } from '@/api/generated/map-point/map-point'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
+import { useGetAllEvents } from '@/api/generated/event/event'
 import { useAuthStore } from '@/stores/useAuthStore'
+import MapPointForm from './MapPointForm.vue'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const authStore = useAuthStore()
 const { data: mapPoints, refetch: refetchMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypes } = useGetAllMapPointTypes()
+const { refetch: refetchEvents } = useGetAllEvents()
 
 const newMapPoint = ref<Partial<MapPoint>>({
   latitude: 63.4305,
@@ -15,19 +24,56 @@ const newMapPoint = ref<Partial<MapPoint>>({
   type: undefined,
 })
 const editingMapPoint = ref<MapPoint | null>(null)
+const isDialogOpen = ref(false)
+const isMapSelectionMode = ref(false)
 
-const { mutate: createMapPoint } = useCreateMapPoint()
-const { mutate: updateMapPoint } = useUpdateMapPoint()
-const { mutate: deleteMapPoint } = useDeleteMapPoint()
+const { mutate: createMapPoint } = useCreateMapPoint({
+  mutation: {
+    onSuccess: () => {
+      refetchMapPoints()
+      refetchEvents()
+    },
+  },
+})
+const { mutate: updateMapPoint } = useUpdateMapPoint({
+  mutation: {
+    onSuccess: () => {
+      refetchMapPoints()
+      refetchEvents()
+    },
+  },
+})
+const { mutate: deleteMapPoint } = useDeleteMapPoint({
+  mutation: {
+    onSuccess: () => {
+      refetchMapPoints()
+      refetchEvents()
+    },
+  },
+})
 
 const emit = defineEmits<{
   (e: 'map-click', lat: number, lng: number): void
+  (e: 'map-selection-mode-change', isActive: boolean): void
 }>()
 
 function handleMapClick(lat: number, lng: number) {
-  newMapPoint.value.latitude = lat
-  newMapPoint.value.longitude = lng
-  emit('map-click', lat, lng)
+  if (!isMapSelectionMode.value) return
+
+  if (editingMapPoint.value) {
+    editingMapPoint.value.latitude = lat
+    editingMapPoint.value.longitude = lng
+  } else {
+    newMapPoint.value.latitude = lat
+    newMapPoint.value.longitude = lng
+  }
+  isMapSelectionMode.value = false
+  emit('map-selection-mode-change', false)
+}
+
+function handleStartMapSelection() {
+  isMapSelectionMode.value = true
+  emit('map-selection-mode-change', true)
 }
 
 async function handleAddMapPoint() {
@@ -49,7 +95,6 @@ async function handleAddMapPoint() {
         type: { id: newMapPoint.value.type.id },
       },
     })
-    refetchMapPoints()
     newMapPoint.value = {
       latitude: 63.4305,
       longitude: 10.3951,
@@ -61,15 +106,23 @@ async function handleAddMapPoint() {
 }
 
 async function handleUpdateMapPoint() {
-  if (!editingMapPoint.value?.id) return
+  if (!authStore.isAdmin) {
+    console.error('User must have ADMIN role to update a map point')
+    return
+  }
+
+  if (!editingMapPoint.value?.id) {
+    console.error('ID is required')
+    return
+  }
 
   try {
     await updateMapPoint({
       id: editingMapPoint.value.id,
       data: editingMapPoint.value,
     })
-    refetchMapPoints()
     editingMapPoint.value = null
+    isDialogOpen.value = false
   } catch (error) {
     console.error('Error updating map point:', error)
   }
@@ -78,10 +131,20 @@ async function handleUpdateMapPoint() {
 async function handleDeleteMapPoint(id: number) {
   try {
     await deleteMapPoint({ id })
-    refetchMapPoints()
   } catch (error) {
     console.error('Error deleting map point:', error)
   }
+}
+
+function handleEditClick(point: MapPoint | undefined) {
+  if (!point) return
+  editingMapPoint.value = { ...point }
+  isDialogOpen.value = true
+}
+
+function handleDialogCancel() {
+  editingMapPoint.value = null
+  isDialogOpen.value = false
 }
 
 function getMapPointTypeTitle(type: MapPointType | undefined): string {
@@ -91,50 +154,18 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
 
 <template>
   <div class="space-y-4">
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Kartpunkttype</label>
-      <select
-        v-model="newMapPoint.type"
-        class="w-full px-3 py-2 border rounded-lg"
-      >
-        <option :value="undefined">Velg type</option>
-        <option
-          v-for="type in mapPointTypes"
-          :key="type?.id"
-          :value="type?.id ? { id: type?.id } : undefined"
-        >
-          {{ type?.title || 'Ukjent tittel' }}
-        </option>
-      </select>
-    </div>
-
-    <div class="space-y-2">
-      <label class="text-sm font-medium">Plassering</label>
-      <div class="flex space-x-2">
-        <input
-          :value="newMapPoint.latitude?.toFixed(4)"
-          readonly
-          type="text"
-          class="w-1/2 px-3 py-2 border rounded-lg bg-gray-50"
-          placeholder="Breddegrad"
-        />
-        <input
-          :value="newMapPoint.longitude?.toFixed(4)"
-          readonly
-          type="text"
-          class="w-1/2 px-3 py-2 border rounded-lg bg-gray-50"
-          placeholder="Lengdegrad"
-        />
-      </div>
-      <p class="text-sm text-gray-500">Klikk på kartet for å velge plassering</p>
-    </div>
-
-    <button
-      @click="handleAddMapPoint"
-      class="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90"
-    >
-      Legg til kartpunkt
-    </button>
+    <!-- Add Form -->
+    <MapPointForm
+      v-model="newMapPoint"
+      title="Legg til nytt kartpunkt"
+      @submit="handleAddMapPoint"
+      @cancel="newMapPoint = {
+        latitude: 63.4305,
+        longitude: 10.3951,
+        type: undefined,
+      }"
+      @start-map-selection="handleStartMapSelection"
+    />
 
     <!-- List of Map Points -->
     <div class="mt-6 space-y-4">
@@ -149,7 +180,7 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
           </div>
           <div class="flex space-x-2">
             <button
-              @click="editingMapPoint = point"
+              @click="handleEditClick(point)"
               class="text-primary hover:text-primary/80"
             >
               Rediger
@@ -165,5 +196,22 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
         </div>
       </div>
     </div>
+
+    <!-- Edit Dialog -->
+    <Dialog v-model:open="isDialogOpen">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rediger kartpunkt</DialogTitle>
+        </DialogHeader>
+        <MapPointForm
+          v-if="editingMapPoint"
+          v-model="editingMapPoint"
+          title=""
+          @submit="handleUpdateMapPoint"
+          @cancel="handleDialogCancel"
+          @start-map-selection="handleStartMapSelection"
+        />
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

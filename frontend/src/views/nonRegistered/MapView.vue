@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import ShelterLayer from '@/components/map/ShelterLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
@@ -35,7 +35,7 @@ const mapRef = ref<InstanceType<typeof MapComponent> | null>(null)
 const userLocationRef = ref<InstanceType<typeof UserLocationLayer> | null>(null)
 const mapInstance = ref<L.Map | null>(null)
 const userLocationAvailable = ref(false)
-const showUserLocation = ref(false)
+const showUserLocation = ref(true)
 const userInCrisisZone = ref(false)
 
 // Meeting point state
@@ -44,10 +44,7 @@ const selectedMeetingPoint = ref<MeetingPointResponse | undefined>(undefined)
 const clickedPosition = ref<{ lat: number; lng: number } | undefined>(undefined)
 const isAddingMeetingPoint = ref(false)
 
-// Get active household
-const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
-
-// Data fetching and state
+// Data state
 const isLoading = ref(true)
 const shelters = ref<Shelter[]>([])
 const events = ref<Event[]>([])
@@ -56,6 +53,7 @@ const events = ref<Event[]>([])
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
 const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
+const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
 
 // Computed properties
 const isDataLoading = computed(() => isLoadingMapPoints.value || isLoadingMapPointTypes.value || isLoadingEvents.value)
@@ -94,16 +92,12 @@ function processMapData() {
   isLoading.value = false
 }
 
-// Watch for data load completion
-onMounted(() => {
-  const checkDataLoaded = () => {
-    if (!isDataLoading.value) {
-      processMapData()
-    }
+// Watch for data and map instance changes
+watch([isDataLoading, mapInstance], ([dataLoaded, map]) => {
+  if (!dataLoaded && map) {
+    processMapData()
   }
-
-  checkDataLoaded()
-})
+}, { immediate: true })
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
@@ -122,22 +116,16 @@ function onMapCreated(map: L.Map) {
 // Handle user location toggle
 function toggleUserLocation(show: boolean) {
   if (show) {
-    // Request location access
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          console.log('Location access granted')
-          // Location access granted, update state and start watching
           showUserLocation.value = true
-          // Pass the initial position to UserLocationLayer
           if (userLocationRef.value) {
             userLocationRef.value.setInitialPosition(position)
             userLocationRef.value.toggleUserLocation(true)
           }
         },
         (error) => {
-          console.error('Error getting location:', error)
-          // Show error in dialog
           locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
           showLocationError.value = true
           showUserLocation.value = false
@@ -149,7 +137,6 @@ function toggleUserLocation(show: boolean) {
       showUserLocation.value = false
     }
   } else {
-    // Just stop watching when toggling off
     showUserLocation.value = false
     userLocationRef.value?.toggleUserLocation(false)
   }
@@ -184,6 +171,30 @@ function handleMeetingPointFormClose() {
 function toggleMeetingPointCreation() {
   isAddingMeetingPoint.value = !isAddingMeetingPoint.value
 }
+
+// Initialize location on mount
+onMounted(() => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        showUserLocation.value = true
+        if (userLocationRef.value) {
+          userLocationRef.value.setInitialPosition(position)
+          userLocationRef.value.toggleUserLocation(true)
+        }
+      },
+      (error) => {
+        locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
+        showLocationError.value = true
+        showUserLocation.value = false
+      }
+    )
+  } else {
+    locationError.value = 'Din nettleser støtter ikke geolokasjon'
+    showLocationError.value = true
+    showUserLocation.value = false
+  }
+})
 </script>
 
 <template>
@@ -275,7 +286,3 @@ function toggleMeetingPointCreation() {
     </Dialog>
   </div>
 </template>
-<<<<<<< HEAD
-
-=======
->>>>>>> 2dccd169fa6e889d671b2270e6017d1dc53d812d

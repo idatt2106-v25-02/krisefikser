@@ -12,7 +12,6 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshToken = ref<string | null>(null)
 
   // Initialize tokens from localStorage
-  const initializeTokens = () => {
     console.log('Initializing tokens from localStorage')
     const storedAccessToken = localStorage.getItem('accessToken')
     const storedRefreshToken = localStorage.getItem('refreshToken')
@@ -22,10 +21,6 @@ export const useAuthStore = defineStore('auth', () => {
       accessToken.value = storedAccessToken
       refreshToken.value = storedRefreshToken
     }
-  }
-
-  // Call initialize immediately
-  initializeTokens()
 
   // Computed
   const isAuthenticated = computed(() => {
@@ -57,11 +52,14 @@ export const useAuthStore = defineStore('auth', () => {
       false
     )
   })
+  console.log('currentUser', currentUser)
+  console.log('currentUser.value', currentUser.value)
+  console.log('isAdmin', isAdmin.value)
 
   const isSuperAdmin = computed(() => {
     return currentUser.value?.roles?.includes('SUPER_ADMIN') || false
   })
-
+  console.log('isSuperAdmin', isSuperAdmin.value)
   // Actions
   async function login(credentials: LoginRequest) {
     try {
@@ -71,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.accessToken) {
         // Store tokens
         accessToken.value = response.accessToken
-        refreshToken.value = response.refreshToken || null
+        refreshToken.value = response.refreshToken ?? null
 
         // Save to localStorage
         localStorage.setItem('accessToken', response.accessToken)
@@ -100,7 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.accessToken) {
         // Store tokens directly from registration response
         accessToken.value = response.accessToken
-        refreshToken.value = response.refreshToken || null
+        refreshToken.value = response.refreshToken ?? null
 
         // Save to localStorage
         localStorage.setItem('accessToken', response.accessToken)

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useCreateMeetingPoint, useUpdateMeetingPoint, useDeleteMeetingPoint } from '@/api/generated/meeting-points/meeting-points'
+import { useCreateMeetingPoint, useUpdateMeetingPoint, useDeleteMeetingPoint, useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
 import type { MeetingPointResponse } from '@/api/generated/model'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -21,9 +21,28 @@ const description = ref(props.point?.description || '')
 const latitude = ref(props.point?.latitude || props.position?.lat || 0)
 const longitude = ref(props.point?.longitude || props.position?.lng || 0)
 
-const { mutate: createMeetingPoint } = useCreateMeetingPoint()
-const { mutate: updateMeetingPoint } = useUpdateMeetingPoint()
-const { mutate: deleteMeetingPoint } = useDeleteMeetingPoint()
+const { refetch: refetchMeetingPoints } = useGetMeetingPoints(props.householdId)
+const { mutate: createMeetingPoint } = useCreateMeetingPoint({
+  mutation: {
+    onSuccess: () => {
+      refetchMeetingPoints()
+    }
+  }
+})
+const { mutate: updateMeetingPoint } = useUpdateMeetingPoint({
+  mutation: {
+    onSuccess: () => {
+      refetchMeetingPoints()
+    }
+  }
+})
+const { mutate: deleteMeetingPoint } = useDeleteMeetingPoint({
+  mutation: {
+    onSuccess: () => {
+      refetchMeetingPoints()
+    }
+  }
+})
 
 const handleSubmit = async () => {
   const data = {
@@ -34,13 +53,13 @@ const handleSubmit = async () => {
   }
 
   if (props.point) {
-    await updateMeetingPoint({
+    updateMeetingPoint({
       householdId: props.householdId,
       id: props.point.id || '',
       data
     })
   } else {
-    await createMeetingPoint({
+    createMeetingPoint({
       householdId: props.householdId,
       data
     })

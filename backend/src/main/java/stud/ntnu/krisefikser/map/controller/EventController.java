@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.map.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,7 +41,7 @@ public class EventController {
          */
         @Operation(summary = "Get active events", description = "Retrieves a list of all ongoing and upcoming events in the system")
         @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "Successfully retrieved active events", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Event.class)))
+                        @ApiResponse(responseCode = "200", description = "Successfully retrieved active events", content = @Content(mediaType = "application/json", array = @ArraySchema(items = @Schema(implementation = Event.class))))
         })
         @GetMapping
         public ResponseEntity<List<Event>> getAllEvents() {

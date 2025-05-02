@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +40,7 @@ public class MapPointTypeController {
          */
         @Operation(summary = "Get all map point types", description = "Retrieves a list of all map point types in the system")
         @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "Successfully retrieved map point types", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MapPointType.class))),
+                        @ApiResponse(responseCode = "200", description = "Successfully retrieved map point types", content = @Content(mediaType = "application/json", array = @ArraySchema(items = @Schema(implementation = MapPointType.class)))),
                         @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required", content = @Content)
         })
         @GetMapping

@@ -11,15 +11,13 @@ import NotFoundView from "@/views/errors/NotFoundView.vue";
 
 // Admin views
 import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
-import AdminEventsView from "@/views/admin/AdminEventsView.vue";
 import AdminMapView from "@/views/admin/AdminMapView.vue";
-import AdminSearchView from "@/views/admin/AdminSearchView.vue";
 import AdminResetPasswordLink from "@/views/admin/AdminResetPasswordLink.vue";
 import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
+import AdminScenariosView from '@/views/admin/ScenariosView.vue';
+import AdminGamificationView from '@/views/admin/GamificationView.vue';
 
-// Super Admin views
-import SuperAdminDashboardView from "@/views/superAdmin/SuperAdminDashboardView.vue";
-import ManageAdminsView from "@/views/superAdmin/ManageAdminsView.vue";
+import ManageAdminsView from "@/views/admin/ManageAdminsView.vue";
 
 // Registered User views
 import DashboardView from "@/views/registered/DashboardView.vue";
@@ -88,12 +86,6 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
-      path: '/admin/hendelser',
-      name: 'admin-events',
-      component: AdminEventsView,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
       path: '/admin/kart',
       name: 'admin-map',
       component: AdminMapView,
@@ -104,21 +96,20 @@ const router = createRouter({
       name : 'admin-reset-passord-link',
       component: AdminResetPasswordLink,
     },
-
     {
-      path: '/admin/sok',
-      name: 'admin-search',
-      component: AdminSearchView,
+      path: '/admin/scenarios',
+      name: 'admin-scenarios',
+      component: AdminScenariosView,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/gamification',
+      name: 'admin-gamification',
+      component: AdminGamificationView,
       meta: { requiresAuth: true, requiresAdmin: true }
     },
 
-    // Super Admin routes
-    {
-      path: '/super-admin',
-      name: 'super-admin-dashboard',
-      component: SuperAdminDashboardView,
-      meta: { requiresAuth: true, requiresSuperAdmin: true }
-    },
+
     {
       path: '/super-admin/behandle-administratorer',
       name: 'manage-admins',
@@ -201,7 +192,7 @@ const router = createRouter({
       component: NewsView,
     },
     {
-      path: '/artikkel',
+      path: '/artikkel/:id',
       name: 'article',
       component: ArticleView,
     },
@@ -258,11 +249,13 @@ router.beforeEach((to, from, next) => {
 
   // Check if the route requires admin privileges
   if (to.meta.requiresAdmin && !auth.isAdmin) {
+    console.log('requiresAdmin')
     return next({ name: 'not-found' })
   }
 
   // Check if the route requires super admin privileges
   if (to.meta.requiresSuperAdmin && !auth.isSuperAdmin) {
+    console.log('requiresSuperAdmin')
     return next({ name: 'not-found' })
   }
 

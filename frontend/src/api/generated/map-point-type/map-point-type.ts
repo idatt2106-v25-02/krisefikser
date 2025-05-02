@@ -284,7 +284,7 @@ export const getAllMapPointTypes = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<MapPointType>(
+  return customInstance<unknown>(
     { url: `http://localhost:8080/api/map-point-types`, method: 'GET', signal },
     options,
   )

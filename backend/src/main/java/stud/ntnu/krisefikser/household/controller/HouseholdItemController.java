@@ -29,17 +29,30 @@ import stud.ntnu.krisefikser.household.entity.ProductType;
 import stud.ntnu.krisefikser.household.repository.HouseholdItemRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.household.repository.ProductTypeRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/households/{householdId}/items")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Household Item", description = "Household Item management APIs")
 public class HouseholdItemController {
 
   private final HouseholdItemRepository householdItemRepository;
   private final HouseholdRepository householdRepo;
   private final ProductTypeRepository productTypeRepository;
 
+  @Operation(summary = "Get household items", description = "Retrieves a list of items for a household")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved household items", content = @Content(mediaType = "application/json", array = @ArraySchema(items = @Schema(implementation = HouseholdItemResponse.class))))
+  })
   @GetMapping
   public ResponseEntity<Page<HouseholdItemResponse>> getHouseholdItems(
       @PathVariable UUID householdId,
@@ -61,6 +74,10 @@ public class HouseholdItemController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  @Operation(summary = "Get expiring items", description = "Retrieves a list of items that will expire before a given date")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved expiring items", content = @Content(mediaType = "application/json", array = @ArraySchema(items = @Schema(implementation = HouseholdItemResponse.class))))
+  })
   @GetMapping("/expiring-soon")
   public ResponseEntity<List<HouseholdItemResponse>> getExpiringItems(
       @PathVariable UUID householdId,
