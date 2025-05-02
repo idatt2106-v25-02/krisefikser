@@ -353,6 +353,17 @@ const readQuestionAndOptions = () => {
         </div>
 
         <div class="mt-6 flex justify-between">
+          <button
+            v-if="currentQuestionIndex > 1"
+            @click="previousQuestion"
+            class="text-gray-600 flex items-center hover:text-gray-800"
+            aria-label="Gå til forrige spørsmål"
+          >
+            <ChevronLeft class="w-4 h-4 mr-1" aria-hidden="true" />
+            Forrige
+          </button>
+          <div v-else></div>
+
           <div class="flex space-x-3">
             <button
               v-if="!answerSubmitted"
@@ -376,17 +387,6 @@ const readQuestionAndOptions = () => {
               {{ isLastQuestion ? 'Se resultater' : 'Neste spørsmål' }}
             </button>
           </div>
-
-          <button
-            v-if="currentQuestionIndex > 1"
-            @click="previousQuestion"
-            class="text-gray-600 flex items-center hover:text-gray-800"
-            aria-label="Gå til forrige spørsmål"
-          >
-            <ChevronLeft class="w-4 h-4 mr-1" aria-hidden="true" />
-            Forrige
-          </button>
-          <div v-else></div>
         </div>
       </div>
     </div>
@@ -405,7 +405,7 @@ const readQuestionAndOptions = () => {
             <ThumbsUp v-else class="w-10 h-10 text-white" />
           </div>
 
-          <h3 class="text-2xl font-bold mt-4" role="status">
+          <h3 class="text-2xl font-bold mt-4" role="tab">
             {{ score }} av {{ questions.length }} riktige svar!
           </h3>
 
