@@ -21,8 +21,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.map.dto.EventRequest;
 import stud.ntnu.krisefikser.map.dto.EventResponse;
-import stud.ntnu.krisefikser.map.entity.Event;
+import stud.ntnu.krisefikser.map.dto.UpdateEventRequest;
 import stud.ntnu.krisefikser.map.service.EventService;
 
 /**
@@ -101,7 +102,7 @@ public class EventController {
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<EventResponse> createEvent(
-      @Parameter(description = "Event to create") @RequestBody Event event) {
+      @Parameter(description = "Event to create") @RequestBody EventRequest event) {
     return ResponseEntity.ok(eventService.createEvent(event));
   }
 
@@ -125,7 +126,7 @@ public class EventController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<EventResponse> updateEvent(
       @Parameter(description = "ID of the event to update") @PathVariable Long id,
-      @Parameter(description = "Updated event details") @RequestBody Event event) {
+      @Parameter(description = "Updated event details") @RequestBody UpdateEventRequest event) {
     return ResponseEntity.ok(eventService.updateEvent(id, event));
   }
 

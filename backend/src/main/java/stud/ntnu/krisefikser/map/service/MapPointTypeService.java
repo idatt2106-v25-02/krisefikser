@@ -4,7 +4,9 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import stud.ntnu.krisefikser.map.dto.MapPointTypeRequest;
 import stud.ntnu.krisefikser.map.dto.MapPointTypeResponse;
+import stud.ntnu.krisefikser.map.dto.UpdateMapPointTypeRequest;
 import stud.ntnu.krisefikser.map.entity.MapPointType;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 
@@ -18,22 +20,46 @@ public class MapPointTypeService {
     return mapPointTypeRepository.findAll().stream().map(MapPointType::toResponse).toList();
   }
 
-  public MapPointTypeResponse getMapPointTypeById(Long id) {
+  public MapPointType getMapPointTypeById(Long id) {
     MapPointType mapPointType = mapPointTypeRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("MapPointType not found with id: " + id));
 
-    return mapPointType.toResponse();
+    return mapPointType;
   }
 
-  public MapPointTypeResponse createMapPointType(MapPointType mapPointType) {
+  public MapPointTypeResponse createMapPointType(MapPointTypeRequest mapPointTypeRequest) {
+    MapPointType mapPointType = MapPointType.builder()
+        .title(mapPointTypeRequest.getTitle())
+        .iconUrl(mapPointTypeRequest.getIconUrl())
+        .description(mapPointTypeRequest.getDescription())
+        .openingTime(mapPointTypeRequest.getOpeningTime())
+        .build();
+
     return mapPointTypeRepository.save(mapPointType).toResponse();
   }
 
-  public MapPointTypeResponse updateMapPointType(Long id, MapPointType mapPointType) {
-    if (!mapPointTypeRepository.existsById(id)) {
-      throw new EntityNotFoundException("MapPointType not found with id: " + id);
+  public MapPointTypeResponse updateMapPointType(Long id,
+      UpdateMapPointTypeRequest mapPointTypeRequest) {
+
+    MapPointType mapPointType = mapPointTypeRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("MapPointType not found with id: " + id));
+
+    if (mapPointTypeRequest.getTitle() != null) {
+      mapPointType.setTitle(mapPointTypeRequest.getTitle());
     }
-    mapPointType.setId(id);
+
+    if (mapPointTypeRequest.getIconUrl() != null) {
+      mapPointType.setIconUrl(mapPointTypeRequest.getIconUrl());
+    }
+
+    if (mapPointTypeRequest.getDescription() != null) {
+      mapPointType.setDescription(mapPointTypeRequest.getDescription());
+    }
+
+    if (mapPointTypeRequest.getOpeningTime() != null) {
+      mapPointType.setOpeningTime(mapPointTypeRequest.getOpeningTime());
+    }
+
     return mapPointTypeRepository.save(mapPointType).toResponse();
   }
 

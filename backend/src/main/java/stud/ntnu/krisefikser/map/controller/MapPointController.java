@@ -22,8 +22,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.map.dto.MapPointRequest;
 import stud.ntnu.krisefikser.map.dto.MapPointResponse;
-import stud.ntnu.krisefikser.map.entity.MapPoint;
+import stud.ntnu.krisefikser.map.dto.UpdateMapPointRequest;
 import stud.ntnu.krisefikser.map.service.MapPointService;
 
 /**
@@ -129,7 +130,7 @@ public class MapPointController {
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<MapPointResponse> createMapPoint(
-      @Parameter(description = "Map point to create") @RequestBody MapPoint mapPoint) {
+      @Parameter(description = "Map point to create") @RequestBody MapPointRequest mapPoint) {
     MapPointResponse createdPoint = mapPointService.createMapPoint(mapPoint);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdPoint);
   }
@@ -168,7 +169,7 @@ public class MapPointController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<MapPointResponse> updateMapPoint(
       @Parameter(description = "ID of the map point to update") @PathVariable Long id,
-      @Parameter(description = "Updated map point details") @RequestBody MapPoint mapPoint) {
+      @Parameter(description = "Updated map point details") @RequestBody UpdateMapPointRequest mapPoint) {
     return ResponseEntity.ok(mapPointService.updateMapPoint(id, mapPoint));
   }
 

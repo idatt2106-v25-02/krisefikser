@@ -1,7 +1,5 @@
 package stud.ntnu.krisefikser.map.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,31 +12,15 @@ import stud.ntnu.krisefikser.map.entity.EventStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EventRequest {
+public class UpdateEventRequest {
 
-  @NotBlank
   private String title;
-
-  @NotBlank
   private String description;
-
-  @NotNull
   private Double radius;
-
-  @NotNull
   private Double latitude;
-
-  @NotNull
   private Double longitude;
-
-  @NotNull
   private EventLevel level;
-
-  @NotNull
   private ZonedDateTime startTime;
-
   private ZonedDateTime endTime;
-
-  @NotNull
   private EventStatus status;
 }

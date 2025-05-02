@@ -81,7 +81,7 @@ public class MapPointTypeController {
   @GetMapping("/{id}")
   public ResponseEntity<MapPointTypeResponse> getMapPointTypeById(
       @Parameter(description = "ID of the map point type to retrieve") @PathVariable Long id) {
-    return ResponseEntity.ok(mapPointTypeService.getMapPointTypeById(id));
+    return ResponseEntity.ok(mapPointTypeService.getMapPointTypeById(id).toResponse());
   }
 
   /**
