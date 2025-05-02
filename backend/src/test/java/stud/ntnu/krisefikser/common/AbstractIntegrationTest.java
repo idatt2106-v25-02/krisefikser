@@ -34,7 +34,7 @@ public abstract class AbstractIntegrationTest {
 
   @Autowired
   private UserRepository userRepository;
-  
+
   @Autowired
   private HouseholdRepository householdRepository;
 
@@ -49,7 +49,6 @@ public abstract class AbstractIntegrationTest {
 
   public void setUpUser() throws Exception {
     // Clean up any previous test data
-    householdRepository.deleteAll();
     userRepository.deleteAll();
 
     // Create User
