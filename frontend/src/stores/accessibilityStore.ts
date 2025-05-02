@@ -10,7 +10,7 @@ interface AccessibilityState {
 
 export const useAccessibilityStore = defineStore('accessibility', {
   state: (): AccessibilityState => ({
-    ttsEnabled: localStorage.getItem('ttsEnabled') === 'true',
+    ttsEnabled: localStorage.getItem('ttsEnabled') === 'true' || false,
     speechRate: Number(localStorage.getItem('speechRate')) || 1,
     selectedVoice: null,
     voices: []
