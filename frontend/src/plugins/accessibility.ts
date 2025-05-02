@@ -33,9 +33,13 @@ export default {
       });
 
       // Check for both 't' and the special character '†' that Option+T generates on macOS
-      if ((event.altKey || event.metaKey) && (event.key.toLowerCase() === 't' || event.key === '†')) {
+      if (event.key.toLowerCase() === 't' && 
+          !event.altKey && 
+          !event.ctrlKey && 
+          !event.metaKey && 
+          !event.shiftKey) {
         event.preventDefault();
-        console.log('Accessibility shortcut detected: Alt/Option + T');
+        console.log('Accessibility shortcut detected: Fn + T');
 
         const store = useAccessibilityStore();
         store.toggleTTS();
