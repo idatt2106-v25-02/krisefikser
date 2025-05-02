@@ -79,7 +79,7 @@ public class ChecklistItemService {
             .name("Varme klær/Tepper")
             .description(
                 "Ha tilgjengelig varme klær, pledd, dyner eller soveposer for å holde varmen ved strømbrudd.")
-            .icon("icon/shirt.svg")
+            .icon("shirt")
             .type(ChecklistCategory.HEAT_LIGHT)
             .build(),
 
@@ -87,7 +87,7 @@ public class ChecklistItemService {
             .household(household)
             .name("Fyrstikker/Stearinlys")
             .description("Fyrstikker og stearinlys for belysning og varme ved strømbrudd.")
-            .icon("icon/flame.svg")
+            .icon("flame")
             .type(ChecklistCategory.HEAT_LIGHT)
             .build(),
 
@@ -95,7 +95,7 @@ public class ChecklistItemService {
             .household(household)
             .name("Ved (til ovn/peis)")
             .description("Hvis du har vedovn eller peis, sørg for å ha tilstrekkelig med ved.")
-            .icon("icon/flame-kindling.svg")
+            .icon("flame")
             .type(ChecklistCategory.HEAT_LIGHT)
             .build(),
 
@@ -104,7 +104,7 @@ public class ChecklistItemService {
             .name("Varmeovn (gass/parafin)")
             .description(
                 "En alternativ varmekilde som gass- eller parafinovn beregnet for innendørs bruk.")
-            .icon("icon/heater.svg")
+            .icon("heater")
             .type(ChecklistCategory.HEAT_LIGHT)
             .build(),
 
@@ -113,7 +113,7 @@ public class ChecklistItemService {
             .name("Lommelykt/Hodelykt")
             .description(
                 "Lommelykter eller hodelykter som går på batterier, sveiv eller solceller.")
-            .icon("icon/flashlight.svg")
+            .icon("flashlight")
             .type(ChecklistCategory.HEAT_LIGHT)
             .build(),
 
@@ -122,7 +122,7 @@ public class ChecklistItemService {
             .name("Batterier/Nødlader")
             .description(
                 "Ekstra batterier og oppladet batteribank til lommelykter og annet utstyr.")
-            .icon("icon/battery-charging.svg")
+            .icon("battery")
             .type(ChecklistCategory.HEAT_LIGHT)
             .build(),
 
@@ -132,7 +132,7 @@ public class ChecklistItemService {
             .name("Radio (DAB)")
             .description(
                 "En DAB-radio som går på batterier, sveiv eller solceller for å holde deg oppdatert.")
-            .icon("icon/radio.svg")
+            .icon("radio")
             .type(ChecklistCategory.INFORMATION)
             .build(),
 
@@ -141,7 +141,7 @@ public class ChecklistItemService {
             .name("Viktige telefonnummer (papir)")
             .description(
                 "Liste på papir med viktige telefonnummer som nødnummer, legevakt, veterinær, familie, venner og naboer.")
-            .icon("icon/list-check.svg")
+            .icon("list")
             .type(ChecklistCategory.INFORMATION)
             .build(),
 
@@ -150,7 +150,7 @@ public class ChecklistItemService {
             .household(household)
             .name("Medisiner/Førstehjelp")
             .description("Førstehjelpsutstyr og nødvendige medisiner for alle i husstanden.")
-            .icon("icon/first-aid.svg")
+            .icon("first")
             .type(ChecklistCategory.HEALTH_HYGIENE)
             .build(),
 
@@ -159,7 +159,7 @@ public class ChecklistItemService {
             .name("Jodtabletter")
             .description(
                 "Jodtabletter for barn og voksne under 40 år, gravide og ammende ved atomhendelser.")
-            .icon("icon/pill.svg")
+            .icon("pill")
             .type(ChecklistCategory.HEALTH_HYGIENE)
             .build(),
 
@@ -168,7 +168,7 @@ public class ChecklistItemService {
             .name("Hygieneartikler")
             .description(
                 "Hygieneartikler som våtservietter, håndsprit, bleier, toalettpapir, bind og tamponger.")
-            .icon("icon/bath.svg")
+            .icon("bath")
             .type(ChecklistCategory.HEALTH_HYGIENE)
             .build(),
 
@@ -177,7 +177,7 @@ public class ChecklistItemService {
             .household(household)
             .name("Kokeapparat/Grill")
             .description("Grill, kokeapparat eller stormkjøkken for tilberedning av mat.")
-            .icon("icon/cooking-pot.svg")
+            .icon("cooking")
             .type(ChecklistCategory.OTHER)
             .build(),
 
@@ -185,7 +185,7 @@ public class ChecklistItemService {
             .household(household)
             .name("Ekstra brennstoff")
             .description("Ekstra gassbeholder eller brennstoff til kokeapparat.")
-            .icon("icon/fuel.svg")
+            .icon("fuel")
             .type(ChecklistCategory.OTHER)
             .build(),
 
@@ -194,7 +194,7 @@ public class ChecklistItemService {
             .name("Kontanter/Betalingskort")
             .description(
                 "Litt kontanter og flere betalingskort i tilfelle elektroniske betalingssystemer ikke fungerer.")
-            .icon("icon/credit-card.svg")
+            .icon("credit")
             .type(ChecklistCategory.OTHER)
             .build(),
 
@@ -203,7 +203,7 @@ public class ChecklistItemService {
             .name("Avtale om overnatting")
             .description(
                 "Ha en avtale på plass om hvor du kan overnatte hvis du ikke kan bo hjemme.")
-            .icon("icon/hotel.svg")
+            .icon("hotel")
             .type(ChecklistCategory.OTHER)
             .build()
     );
