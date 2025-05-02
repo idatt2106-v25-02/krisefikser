@@ -268,15 +268,43 @@ router.beforeEach((to, from, next) => {
   }
 
   // Check if the route requires admin privileges
-  if (to.meta.requiresAdmin && !auth.isAdmin) {
-    console.log('requiresAdmin')
-    return next({ name: 'not-found' })
+  if (to.meta.requiresAdmin) {
+    // If currentUser is still loading, wait for it
+    if (!auth.currentUser) {
+      // Wait for the currentUser query to complete
+      auth.refetchUser().then(() => {
+        if (!auth.isAdmin) {
+          next({ name: 'not-found' })
+        } else {
+          next()
+        }
+      })
+      return
+    }
+
+    if (!auth.isAdmin) {
+      return next({ name: 'not-found' })
+    }
   }
 
   // Check if the route requires super admin privileges
-  if (to.meta.requiresSuperAdmin && !auth.isSuperAdmin) {
-    console.log('requiresSuperAdmin')
-    return next({ name: 'not-found' })
+  if (to.meta.requiresSuperAdmin) {
+    // If currentUser is still loading, wait for it
+    if (!auth.currentUser) {
+      // Wait for the currentUser query to complete
+      auth.refetchUser().then(() => {
+        if (!auth.isSuperAdmin) {
+          next({ name: 'not-found' })
+        } else {
+          next()
+        }
+      })
+      return
+    }
+
+    if (!auth.isSuperAdmin) {
+      return next({ name: 'not-found' })
+    }
   }
 
   // Check if the route requires guest access (like login page)
