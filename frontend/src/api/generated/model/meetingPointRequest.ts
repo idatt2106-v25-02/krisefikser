@@ -7,10 +7,11 @@
  */
 
 /**
- * Updated map point details
+ * Meeting point data
  */
-export interface UpdateMapPointRequest {
+export interface MeetingPointRequest {
+  name?: string
+  description?: string
   latitude?: number
   longitude?: number
-  typeId?: number
 }

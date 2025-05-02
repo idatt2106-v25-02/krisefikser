@@ -6,11 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-/**
- * Updated map point details
- */
-export interface UpdateMapPointRequest {
+export interface MeetingPointResponse {
+  id?: string
+  name?: string
+  description?: string
   latitude?: number
   longitude?: number
-  typeId?: number
+  householdId?: string
 }
