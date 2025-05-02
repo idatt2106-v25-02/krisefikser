@@ -21,8 +21,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.map.dto.MapPointTypeRequest;
 import stud.ntnu.krisefikser.map.dto.MapPointTypeResponse;
-import stud.ntnu.krisefikser.map.entity.MapPointType;
+import stud.ntnu.krisefikser.map.dto.UpdateMapPointTypeRequest;
 import stud.ntnu.krisefikser.map.service.MapPointTypeService;
 
 /**
@@ -107,7 +108,7 @@ public class MapPointTypeController {
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<MapPointTypeResponse> createMapPointType(
-      @Parameter(description = "Map point type to create") @RequestBody MapPointType mapPointType) {
+      @Parameter(description = "Map point type to create") @RequestBody MapPointTypeRequest mapPointType) {
     MapPointTypeResponse createdType = mapPointTypeService.createMapPointType(mapPointType);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdType);
   }
@@ -140,7 +141,7 @@ public class MapPointTypeController {
   public ResponseEntity<MapPointTypeResponse> updateMapPointType(
       @Parameter(description = "ID of the map point type to update") @PathVariable Long id,
       @Parameter(
-          description = "Updated map point type details") @RequestBody MapPointType mapPointType
+          description = "Updated map point type details") @RequestBody UpdateMapPointTypeRequest mapPointType
   ) {
     return ResponseEntity.ok(mapPointTypeService.updateMapPointType(id, mapPointType));
   }
