@@ -50,7 +50,7 @@ public class AuthControllerTest {
   @MockitoBean
   private CustomUserDetailsService userDetailsService;
 
-  @MockBean
+  @MockitoBean
   private TurnstileService turnstileService;
 
   private RegisterRequest registerRequest;
