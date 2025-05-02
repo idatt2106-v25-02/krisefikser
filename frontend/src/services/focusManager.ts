@@ -74,7 +74,7 @@ class FocusManager {
 
     // Check if we're in a dialog
     const dialog = currentElement.closest('[data-slot="dialog-content"]');
-    
+
     // Get all focusable elements, filtered by dialog context if in a dialog
     const focusableElements = Array.from(document.querySelectorAll(this.focusableSelector))
       .filter(el => {
@@ -126,7 +126,7 @@ class FocusManager {
 
   private handleClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    
+
     // Check if we're opening a dialog
     if (target.closest('[data-slot="dialog-content"]')) {
       // Find the dialog title
@@ -141,7 +141,7 @@ class FocusManager {
     }
   }
 
-  private handleFocusIn(event: FocusEvent): void {
+private handleFocusIn(event: FocusEvent): void {
     const target = event.target as HTMLElement;
 
     // Determine what text to speak when element is focused
@@ -153,20 +153,11 @@ class FocusManager {
     }
     // For buttons, read the text content and any parent label text
     else if (target.tagName === 'BUTTON') {
-      // Get the button's text
       const buttonText = target.textContent?.trim() || '';
-      
-      // Check if button is inside a label
       const parentLabel = target.closest('label');
-      if (parentLabel) {
-        // Get the full label text, excluding the button text
-        const labelText = parentLabel.textContent?.trim() || '';
-        textToSpeak = labelText;
-      } else {
-        textToSpeak = buttonText;
-      }
+      textToSpeak = parentLabel?.textContent?.trim() || buttonText;
     }
-    // For inputs, read label or placeholder
+    // For inputs, read label, placeholder, and current value
     else if (target.tagName === 'INPUT') {
       const inputEl = target as HTMLInputElement;
       let label = '';
@@ -196,33 +187,6 @@ class FocusManager {
         }
       }
 
-      // If still no label, try to find the closest FormLabel component
-      if (!label) {
-        // Look for the closest FormItem parent
-        const formItem = inputEl.closest('[data-slot="form-item"]');
-        if (formItem) {
-          // Find the FormLabel within the FormItem
-          const formLabel = formItem.querySelector('[data-slot="form-label"]');
-          if (formLabel) {
-            label = formLabel.textContent?.trim() || '';
-          }
-        }
-      }
-
-      // If still no label, try to find any label in the form
-      if (!label) {
-        const form = inputEl.closest('form');
-        if (form) {
-          const labels = form.querySelectorAll('label');
-          for (const labelEl of labels) {
-            if (labelEl.textContent?.includes(inputEl.name || '')) {
-              label = labelEl.textContent?.trim() || '';
-              break;
-            }
-          }
-        }
-      }
-
       // If still no label, try to find FormLabel by class
       if (!label) {
         const formLabel = inputEl.closest('.form-label') || inputEl.previousElementSibling?.querySelector('.form-label');
@@ -231,13 +195,17 @@ class FocusManager {
         }
       }
 
-      // If we have a label, use it
-      if (label) {
-        textToSpeak = label;
-      } else {
-        // Fallback to placeholder or type
-        textToSpeak = inputEl.placeholder || inputEl.type;
-      }
+      // Speak the label when the input is focused
+      textToSpeak = label || inputEl.placeholder || inputEl.type;
+
+      // Add input event listener to read each character aloud
+      inputEl.addEventListener('input', (e) => {
+        const inputEvent = e.target as HTMLInputElement;
+        const lastChar = inputEvent.value.slice(-1); // Get the last typed character
+        if (lastChar) {
+          speechService.speak(lastChar);
+        }
+      });
     }
     // For links, read the text content
     else if (target.tagName === 'A') {
@@ -248,8 +216,7 @@ class FocusManager {
     if (textToSpeak) {
       speechService.speak(textToSpeak);
     }
-  }
-}
+  }}
 
 export const focusManager = new FocusManager();
 export default focusManager;
