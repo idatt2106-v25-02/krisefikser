@@ -124,7 +124,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(TurnstileVerificationException.class)
   public ProblemDetail handleTurnstileVerificationException(TurnstileVerificationException exception) {
-    return createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+    return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
   }
 
   // ===== User related exceptions =====
