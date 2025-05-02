@@ -14,8 +14,10 @@ app.use(createPinia())
 app.use(router)
 app.use(accessibilityPlugin)
 
-if (import.meta.env.NODE_ENV === 'production') {
+if (import.meta.env.VITE_POSTHOG_ENABLED === "true") {
   app.use(posthogPlugin)
+} else {
+  console.log("PostHog is disabled")
 }
 
 setupVueQuery(app)
