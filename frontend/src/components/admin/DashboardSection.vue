@@ -9,6 +9,7 @@ import {
   Mail,
   ArrowRight
 } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
 
 // Import shadcn Button component
 import { Button } from '@/components/ui/button';
@@ -80,6 +81,24 @@ const formatLocation = (event: Event) => {
 };
 
 const authStore = useAuthStore()
+const router = useRouter();
+
+const handleStatClick = (title: string) => {
+  switch(title) {
+    case 'Kart-elementer':
+      router.push('/admin/kart');
+      break;
+    case 'Scenarioer':
+      router.push('/admin/scenarioer');
+      break;
+    case 'Gamification aktiviteter':
+      router.push('/admin/gamification');
+      break;
+    // Aktive hendelser will not navigate anywhere
+    default:
+      break;
+  }
+};
 </script>
 
 <template>
@@ -91,8 +110,12 @@ const authStore = useAuthStore()
       <div
         v-for="(stat, index) in updatedStats"
         :key="index"
-        class="bg-white rounded-lg shadow p-6 transition-all hover:shadow-md"
-        :class="{ 'border-t-4': true, [stat.borderColor]: stat.title === 'Aktive hendelser', 'border-blue-200': stat.title !== 'Aktive hendelser' }"
+        class="bg-white rounded-lg shadow p-6 transition-all"
+        :class="[
+          { 'border-t-4': true, [stat.borderColor]: stat.title === 'Aktive hendelser', 'border-blue-200': stat.title !== 'Aktive hendelser' },
+          stat.title === 'Aktive hendelser' ? '' : 'hover:shadow-md cursor-pointer'
+        ]"
+        @click="stat.title !== 'Aktive hendelser' ? handleStatClick(stat.title) : null"
       >
         <div class="flex items-center">
           <div :class="`${stat.color} ${stat.bgColor} p-3 rounded-full`">
