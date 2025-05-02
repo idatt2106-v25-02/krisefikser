@@ -92,7 +92,7 @@ const handleSelect = (userId: string) => {
             <CommandItem
               v-for="user in filteredUsers"
               :key="user.id"
-              :value="user.id"
+              :value="user.id || ''"
               @select="handleSelect(user.id || '')"
             >
               <div class="flex flex-col">
