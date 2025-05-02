@@ -1,5 +1,5 @@
 <script lang="ts">
-/* eslint-disable vue/no-unused-components */
+ 
 import { CheckCircle, Info, Heart, PhoneCall, Users, BookOpen, Calendar, ClipboardCheck } from 'lucide-vue-next';
 import QuizComponent from '@/components/quiz/QuizComponent.vue';
 import PageLayout from '@/components/layout/PageLayout.vue';

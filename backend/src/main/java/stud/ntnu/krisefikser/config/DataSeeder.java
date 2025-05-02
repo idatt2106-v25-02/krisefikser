@@ -1,6 +1,11 @@
 package stud.ntnu.krisefikser.config;
 
 import com.github.javafaker.Faker;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -8,6 +13,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -19,7 +28,9 @@ import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.entity.Household;
+import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
+import stud.ntnu.krisefikser.household.repository.MeetingPointRepository;
 import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.map.entity.EventLevel;
 import stud.ntnu.krisefikser.map.entity.EventStatus;
@@ -30,6 +41,13 @@ import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
+import stud.ntnu.krisefikser.item.entity.FoodItem;
+import stud.ntnu.krisefikser.item.repository.FoodItemRepository;
+import stud.ntnu.krisefikser.item.entity.ChecklistItem;
+import stud.ntnu.krisefikser.item.repository.ChecklistItemRepository;
+import stud.ntnu.krisefikser.auth.entity.RefreshToken;
+import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.item.enums.ChecklistType;
 
 @Component
 @RequiredArgsConstructor
@@ -37,13 +55,18 @@ public class DataSeeder implements CommandLineRunner {
 
   private final UserRepository userRepo;
   private final HouseholdRepository householdRepository;
+  private final HouseholdMemberRepository householdMemberRepository;
+  private final MeetingPointRepository meetingPointRepository;
   private final ArticleRepository articleRepository;
   private final MapPointTypeRepository mapPointTypeRepository;
   private final MapPointRepository mapPointRepository;
   private final EventRepository eventRepository;
   private final RoleRepository roleRepository;
+  private final FoodItemRepository foodItemRepository;
+  private final ChecklistItemRepository checklistItemRepository;
+  private final RefreshTokenRepository refreshTokenRepository;
 
-  @Autowired(required = false)
+  @Autowired
   private PasswordEncoder passwordEncoder;
 
   private final Faker faker = new Faker();
@@ -56,10 +79,13 @@ public class DataSeeder implements CommandLineRunner {
     if (reseedDatabase) {
       // Clean the database and re-seed
       cleanDatabase();
+      seedDatabase();
+
       System.out.println("Database cleaned and re-seeded successfully!");
+      return;
     }
-    // Seed data only if repositories are empty and not reseed mode
-    else if (userRepo.count() == 0 && householdRepository.count() == 0
+
+    if (userRepo.count() == 0 && householdRepository.count() == 0
         && articleRepository.count() == 0 && mapPointTypeRepository.count() == 0
         && eventRepository.count() == 0 && roleRepository.count() == 0) {
       seedDatabase();
@@ -67,12 +93,50 @@ public class DataSeeder implements CommandLineRunner {
     }
   }
 
+  private void seedDatabase() {
+    seedHouseholds();
+    seedArticles();
+    seedMapPointTypes();
+    seedMapPoints();
+    seedEvents();
+    seedRoles();
+    seedUsers();
+    seedShelters();
+    seedFoodItems();
+    seedChecklistItems();
+  }
+
   /**
-   * Cleans the entire database by deleting all records and then re-seeds it
+   * Cleans the entire database by deleting all records and then re-seeds it.
    */
   private void cleanDatabase() {
     // Delete all records in the correct order to avoid foreign key constraints
     System.out.println("Cleaning database...");
+
+    // First, update all users to remove their active_household_id references
+    List<User> users = userRepo.findAll();
+    for (User user : users) {
+      user.setActiveHousehold(null);
+    }
+    userRepo.saveAll(users);
+
+    // Delete household members first
+    householdMemberRepository.deleteAll();
+
+    // Delete households
+    householdRepository.deleteAll();
+
+    // Delete meeting points before households
+    meetingPointRepository.deleteAll();
+
+    // Delete food items and checklist items
+    foodItemRepository.deleteAll();
+    checklistItemRepository.deleteAll();
+
+    // Delete refresh tokens
+    refreshTokenRepository.deleteAll();
+
+    // Now we can safely delete in the correct order
     mapPointRepository.deleteAll();
     mapPointTypeRepository.deleteAll();
     eventRepository.deleteAll();
@@ -80,28 +144,6 @@ public class DataSeeder implements CommandLineRunner {
     householdRepository.deleteAll();
     userRepo.deleteAll();
     roleRepository.deleteAll();
-
-    // Re-seed the database
-    seedDatabase();
-  }
-
-  /**
-   * Seeds the database with initial data
-   */
-  private void seedDatabase() {
-    System.out.println("Seeding database...");
-    seedRoles();
-    if (passwordEncoder != null) {
-      seedUsers();
-    } else {
-      System.out.println("PasswordEncoder not available, skipping user seeding");
-    }
-
-    seedHouseholds();
-    seedArticles();
-    seedMapPointTypes();
-    seedMapPoints();
-    seedEvents();
   }
 
   private void seedRoles() {
@@ -324,11 +366,11 @@ public class DataSeeder implements CommandLineRunner {
 
     // Event levels and their distribution probability
     EventLevel[] levels = EventLevel.values();
-    int[] levelWeights = {60, 30, 10}; // 60% GREEN, 30% YELLOW, 10% RED
+    int[] levelWeights = { 60, 30, 10 }; // 60% GREEN, 30% YELLOW, 10% RED
 
     // Event statuses and their distribution probability
     EventStatus[] statuses = EventStatus.values();
-    int[] statusWeights = {30, 50, 20}; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
+    int[] statusWeights = { 30, 50, 20 }; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
 
     // Create 15 events
     LocalDateTime now = LocalDateTime.now();
@@ -405,8 +447,121 @@ public class DataSeeder implements CommandLineRunner {
     System.out.println("Seeded " + events.size() + " events");
   }
 
+  private void seedShelters() {
+    try {
+      ObjectMapper objectMapper = new ObjectMapper();
+      InputStream inputStream = getClass().getResourceAsStream("/shelters.json");
+
+      if (inputStream == null) {
+        System.out.println("Could not find shelters.json file");
+        return;
+      }
+
+      // Read the root object that contains the features array
+      JsonNode rootNode = objectMapper.readTree(inputStream);
+      JsonNode featuresNode = rootNode.get("features");
+
+      if (featuresNode == null || !featuresNode.isArray()) {
+        System.out.println("Invalid shelters.json format - missing features array");
+        return;
+      }
+
+      // First, ensure we have a shelter map point type
+      MapPointType shelterType = mapPointTypeRepository.findByTitle("Emergency Shelter")
+          .orElseGet(() -> {
+            MapPointType type = MapPointType.builder()
+                .title("Emergency Shelter")
+                .iconUrl("/images/icons/shelter.png")
+                .description("Emergency shelter location")
+                .openingTime("24/7")
+                .build();
+            return mapPointTypeRepository.save(type);
+          });
+
+      List<MapPoint> mapPoints = new ArrayList<>();
+
+      for (JsonNode feature : featuresNode) {
+        JsonNode geometry = feature.get("geometry");
+        JsonNode coordinates = geometry.get("coordinates");
+
+        if (coordinates != null && coordinates.isArray() && coordinates.size() >= 2) {
+          MapPoint mapPoint = MapPoint.builder()
+              .latitude(coordinates.get(1).asDouble())// Latitude is second in the coordinates array
+              .longitude(coordinates.get(0).asDouble())// Longitude in the coordinates array
+              .type(shelterType)
+              .build();
+
+          mapPoints.add(mapPoint);
+        }
+      }
+
+      mapPointRepository.saveAll(mapPoints);
+      System.out.println("Seeded " + mapPoints.size() + " shelters");
+
+    } catch (IOException e) {
+      System.out.println("Error reading shelters.json: " + e.getMessage());
+    }
+  }
+
+  private void seedFoodItems() {
+    List<FoodItem> foodItems = new ArrayList<>();
+    List<Household> households = householdRepository.findAll();
+
+    if (households.isEmpty()) {
+      System.out.println("Cannot seed food items: no households found");
+      return;
+    }
+
+    // Create 5 food items per household
+    for (Household household : households) {
+      for (int i = 0; i < 5; i++) {
+        FoodItem foodItem = FoodItem.builder()
+            .household(household)
+            .name(faker.food().ingredient())
+            .icon("food-icon-" + i)
+            .kcal(random.nextInt(1000) + 100)
+            .expirationDate(Instant.now().plus(random.nextInt(30), ChronoUnit.DAYS))
+            .build();
+
+        foodItems.add(foodItem);
+      }
+    }
+
+    foodItemRepository.saveAll(foodItems);
+    System.out.println("Seeded " + foodItems.size() + " food items");
+  }
+
+  private void seedChecklistItems() {
+    List<ChecklistItem> checklistItems = new ArrayList<>();
+    List<Household> households = householdRepository.findAll();
+
+    if (households.isEmpty()) {
+      System.out.println("Cannot seed checklist items: no households found");
+      return;
+    }
+
+    // Create 10 checklist items per household
+    for (Household household : households) {
+      for (int i = 0; i < 10; i++) {
+        ChecklistItem checklistItem = ChecklistItem.builder()
+            .household(household)
+            .name(faker.commerce().productName())
+            .icon("checklist-icon-" + i)
+            .checked(random.nextBoolean())
+            .type(ChecklistType.values()[random.nextInt(ChecklistType.values().length)])
+            .build();
+
+        checklistItems.add(checklistItem);
+      }
+    }
+
+    checklistItemRepository.saveAll(checklistItems);
+    System.out.println("Seeded " + checklistItems.size() + " checklist items");
+  }
+
   /**
-   * Helper method to get a random item from an array based on weighted probabilities
+   * Helper method to get a random item from an array based on weighted
+   * probabilities.
    *
    * @param items   Array of items to choose from
    * @param weights Array of weights corresponding to the items

@@ -20,6 +20,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
+import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.common.ProblemDetailUtils;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
@@ -121,6 +122,11 @@ public class GlobalExceptionHandler {
         exception.getMessage(), "auth");
   }
 
+  @ExceptionHandler(TurnstileVerificationException.class)
+  public ProblemDetail handleTurnstileVerificationException(TurnstileVerificationException exception) {
+    return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+  }
+
   // ===== User related exceptions =====
 
   /**
@@ -130,6 +136,7 @@ public class GlobalExceptionHandler {
    * @param exception the email already exists exception
    * @return a problem detail with CONFLICT status and the exception message
    */
+
   @ExceptionHandler(EmailAlreadyExistsException.class)
   public ProblemDetail handleEmailAlreadyExistsException(EmailAlreadyExistsException exception) {
     log.warn("Email already exists: {}", exception.getMessage());
