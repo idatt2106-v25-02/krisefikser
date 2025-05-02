@@ -1,5 +1,4 @@
-//./plugins/posthog.js
-import posthog, { PostHog } from "posthog-js";
+import posthog from "posthog-js";
 import type { Plugin } from 'vue';
 
 const posthogPlugin: Plugin = {
