@@ -19,12 +19,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 import stud.ntnu.krisefikser.item.dto.ChecklistItemResponse;
 import stud.ntnu.krisefikser.item.dto.CreateFoodItemRequest;
 import stud.ntnu.krisefikser.item.dto.FoodItemResponse;
+import stud.ntnu.krisefikser.item.dto.InventorySummaryResponse;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.item.service.FoodItemService;
+import stud.ntnu.krisefikser.item.service.SummaryService;
 
 /**
  * REST controller for managing emergency items within the crisis management system.
@@ -64,6 +67,7 @@ public class ItemController {
    */
   private final ChecklistItemService checklistItemService;
   private final HouseholdService householdService;
+  private final SummaryService summaryService;
 
   /**
    * Creates a new food item in the system.
@@ -235,5 +239,22 @@ public class ItemController {
       @Parameter(description = "Amount of water in liters") @PathVariable double amount) {
     householdService.setWaterAmount(amount);
     return ResponseEntity.ok().build();
+  }
+
+  /**
+   * Get a summary of the inventory, including food, water and checklist items.
+   *
+   * @return InventorySummaryResponse containing the inventory summary with HTTP status 200 (OK)
+   * @throws HouseholdNotFoundException if the household is not found
+   */
+  @GetMapping("/summary")
+  @Operation(summary = "Get inventory summary")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Inventory summary retrieved successfully"),
+      @ApiResponse(responseCode = "404", description = "Household not found")
+  })
+  public ResponseEntity<InventorySummaryResponse> getInventorySummary() {
+    InventorySummaryResponse summary = summaryService.getInventorySummary();
+    return ResponseEntity.ok(summary);
   }
 }
