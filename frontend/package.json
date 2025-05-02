@@ -16,6 +16,7 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.1.1",
     "@tailwindcss/vite": "^4.1.4",
     "@tanstack/vue-query": "^5.74.6",
     "@types/leaflet": "^1.9.17",
@@ -32,6 +33,8 @@
     "pinia": "^3.0.1",
     "reka-ui": "^2.2.0",
     "rollup": "^4.40.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "sockjs": "^0.3.24",
     "sockjs-client": "^1.6.1",
     "stompjs": "^2.3.3",
@@ -52,6 +55,7 @@
     "@tsconfig/node22": "^22.0.1",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.14.1",
+    "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vitest/eslint-plugin": "^1.1.39",
     "@vue/eslint-config-prettier": "^10.2.0",

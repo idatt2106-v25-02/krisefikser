@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch } from 'vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import ShelterLayer from '@/components/map/ShelterLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
@@ -11,7 +11,7 @@ import { useGetAllEvents } from '@/api/generated/event/event'
 import type { MapPoint, MapPointType } from '@/api/generated/model'
 import L from 'leaflet'
 import type { Event } from '@/api/generated/model'
-import SockJS from 'sockjs-client'
+import { WebSocketService } from '@/api/WebSocketService.ts'
 
 // Map and related refs
 const mapRef = ref<InstanceType<typeof MapComponent> | null>(null)
@@ -25,8 +25,12 @@ const userInCrisisZone = ref(false)
 const isLoading = ref(true)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const shelters = ref<any[]>([])
-let socket = null
 const events = ref<Event[]>([])
+new WebSocketService(['/topic/events', '/topic/events/new', '/topic/events/delete']).connect<Event>(
+  (event) => {
+    events.value.push(event)
+  },
+)
 
 // Fetch map data from API
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
@@ -99,19 +103,6 @@ function handleUserCrisisZoneChange(inZone: boolean) {
 function onUserLocationStatus(available: boolean) {
   userLocationAvailable.value = available
 }
-
-onMounted(async () => {
- socket = new SockJS('http://localhost:8080/ws')
-  socket.onopen = () => {
-    console.log('Connected to server')
-  }
-  socket.onmessage = (e) => {
-    console.log('Received message from server: ', e.data)
-  }
-  socket.onclose = () => {
-    console.log('Disconnected from server')
-  }
-})
 </script>
 
 <template>

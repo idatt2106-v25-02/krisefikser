@@ -57,7 +57,7 @@ public class EventWebSocketServiceTest {
 
   @Test
   public void testNotifyEventDeletion() {
-    webSocketService.notifyEventDeletion(1L);
-    verify(messagingTemplate).convertAndSend(eq("/topic/events/delete"), eq(1L));
+    webSocketService.notifyEventDeletion(testEvent);
+    verify(messagingTemplate).convertAndSend(eq("/topic/events/delete"), any(Event.class));
   }
 }

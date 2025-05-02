@@ -99,10 +99,9 @@ public class EventService {
    * @throws EntityNotFoundException If no event with the specified ID exists
    */
   public void deleteEvent(Long id) {
-    if (!eventRepository.existsById(id)) {
-      throw new EntityNotFoundException("Event not found with id: " + id);
-    }
-    eventWebSocketService.notifyEventDeletion(id);
+    Event event = eventRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Event not found with id: " + id));
+    eventWebSocketService.notifyEventDeletion(event);
     eventRepository.deleteById(id);
   }
 }

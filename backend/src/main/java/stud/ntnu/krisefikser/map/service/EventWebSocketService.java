@@ -58,7 +58,7 @@ public class EventWebSocketService {
    *
    * @param eventId The ID of the deleted event to broadcast to clients
    */
-  public void notifyEventDeletion(Long eventId) {
-    messagingTemplate.convertAndSend("/topic/events/delete", eventId);
+  public void notifyEventDeletion(Event event) {
+    messagingTemplate.convertAndSend("/topic/events/delete", event);
   }
 }
