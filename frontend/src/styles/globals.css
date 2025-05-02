@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* In your global.css file */
+a, [role="link"], button, [role="button"], input, select, textarea, [tabindex]:not([tabindex="-1"]) {
+  &:focus-visible {
+    outline: 2px solid #4285f4 !important;
+    outline-offset: 2px !important;
+  }
+}
 
+/* Make all router-links and interactive items focusable */
+a, button, .router-link-active, .router-link-exact-active, [to], [role="button"], [role="link"] {
+  cursor: pointer;
+
+  /* Make sure they can receive focus */
+  &:not([tabindex="-1"]) {
+    tabindex: 0;
+  }
+}
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

@@ -11,9 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,25 +27,26 @@ import stud.ntnu.krisefikser.user.entity.User;
 @NoArgsConstructor
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "household_id"})})
 public class HouseholdMember {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
-    private User user;
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "household_id")
-    private Household household;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private HouseholdMemberStatus status;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "user_id")
+  private User user;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "household_id")
+  private Household household;
 
-    public HouseholdMemberResponse toDto() {
-        return new HouseholdMemberResponse(
-                user.toDto(),
-                status
-        );
-    }
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private HouseholdMemberStatus status;
+
+  public HouseholdMemberResponse toDto() {
+    return new HouseholdMemberResponse(
+        user.toDto(),
+        status
+    );
+  }
 }

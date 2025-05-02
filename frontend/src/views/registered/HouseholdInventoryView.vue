@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, defineAsyncComponent, computed } from 'vue'
+import { ref, computed } from 'vue'
+import type { FunctionalComponent } from 'vue';
+
 import { useRouter } from 'vue-router'
 import {
   Home,
@@ -12,15 +14,72 @@ import {
   Package,
   Plus,
 } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
+import ProductSearch from '@/components/inventory/ProductSearch.vue' // Import the new search component
+import WaterItemDialog from '@/components/inventory/WaterItemDialog.vue'
+import FoodItemDialog from '@/components/inventory/FoodItemDialog.vue'
+import ChecklistItemDialog from '@/components/inventory/ChecklistItemDialog.vue'
+import MiscItemDialog from '@/components/inventory/MiscItemDialog.vue'
 
-const AddItemDialog = defineAsyncComponent(() => import('@/components/inventory/ItemDialog.vue'))
+// Define types for our data structures
+interface InventoryItem {
+  id: string;
+  name: string;
+  amount: number;
+  unit: string;
+  type?: string;
+  expiryDate?: string | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: FunctionalComponent;
+  current: number;
+  target: number;
+  unit: string;
+  items: InventoryItem[];
+}
+
+interface Inventory {
+  preparedDays: number;
+  targetDays: number;
+  categories: Category[];
+}
+
+interface Household {
+  id: string;
+  name: string;
+  inventory: Inventory;
+}
+
+interface ApiResponse {
+  household: Household;
+}
+
+interface FormattedCategory {
+  current: number;
+  target: number;
+  unit: string;
+}
+
+interface FormattedInventory {
+  food: FormattedCategory;
+  water: FormattedCategory;
+  other: {
+    current: number;
+    target: number;
+  };
+  preparedDays: number;
+  targetDays: number;
+}
+
+//const AddItemDialog = defineAsyncComponent(() => import('@/components/inventory/ItemDialog.vue'))
 
 const router = useRouter()
 
 // Mock API response for inventory
-const apiResponse = ref({
+const apiResponse = ref<ApiResponse>({
   household: {
     id: '1',
     name: 'Familien Sysutvikling',
@@ -111,7 +170,7 @@ const apiResponse = ref({
 })
 
 // Create a computed property to format data for the HouseholdEmergencySupplies component
-const formattedInventory = computed(() => {
+const formattedInventory = computed<FormattedInventory>(() => {
   const categories = apiResponse.value.household.inventory.categories
 
   // Find food, water, and other categories
@@ -151,17 +210,35 @@ const formattedInventory = computed(() => {
   }
 })
 
-function navigateToHousehold() {
+function navigateToHousehold(): void {
   router.push(`/husstand/${apiResponse.value.household.id}`)
 }
 
-function openAddItemDialog(categoryId: string, categoryName: string) {
+function openAddItemDialog(categoryId: string, categoryName: string): void {
   selectedCategory.value = { id: categoryId, name: categoryName }
   isAddItemDialogOpen.value = true
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleAddItem(newItem: any) {
+function getDialogComponent(
+  categoryId: string
+): typeof WaterItemDialog | typeof FoodItemDialog | typeof ChecklistItemDialog | typeof MiscItemDialog | null {
+  switch (categoryId) {
+    case 'water':
+      return WaterItemDialog;
+    case 'food':
+      return FoodItemDialog;
+    case 'power':
+    case 'comm':
+    case 'health':
+      return ChecklistItemDialog;
+    case 'misc':
+      return MiscItemDialog;
+    default:
+      return null;
+  }
+}
+
+function handleAddItem(newItem: InventoryItem): void {
   if (selectedCategory.value) {
     const category = apiResponse.value.household.inventory.categories.find(
       (c) => c.id === selectedCategory.value!.id,
@@ -176,19 +253,86 @@ function handleAddItem(newItem: any) {
   selectedCategory.value = null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function deleteItem(categoryId: string, itemId: string) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const category = apiResponse.value.household.inventory.categories.find((c) => c.id === categoryId)
-  // if (category) {
-  //   category.items = category.items.filter(item => item.id !== itemId)
-  // }
-}
+function deleteItem(categoryId: string, itemId: string): void {
+ console.log(`Deleting item with ID ${itemId} from category ${categoryId}`)
+  }
 
 // State for dialogs
-const expandedCategories = ref<string[]>(['food']) // Initially expand food category
+const originalCategoriesState = ref<string[]>([]) // Store the original state
+const expandedCategories = ref<string[]>([]) // Start with all categories closed
 const isAddItemDialogOpen = ref(false)
 const selectedCategory = ref<{ id: string; name: string } | null>(null)
+const isSearchActive = ref(false)
+
+// Jump to a search result
+function jumpToItem(categoryId: string, itemId: string): void {
+  // First expand only the category containing the item
+  expandedCategories.value = [categoryId]
+
+  // Small delay to ensure DOM is updated
+  setTimeout(() => {
+    const itemElement = document.getElementById(`item-${itemId}`)
+    if (itemElement) {
+      // Use scrollIntoView with block: "center" to position the item in the middle of the viewport
+      itemElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center' // Position in the middle instead of at the top
+      })
+
+      // Add highlight effect
+      itemElement.classList.add('bg-blue-100')
+      setTimeout(() => {
+        itemElement.classList.remove('bg-blue-100')
+        itemElement.classList.add('bg-blue-50')
+        setTimeout(() => {
+          itemElement.classList.remove('bg-blue-50')
+        }, 1000)
+      }, 1000)
+    }
+  }, 100)
+}
+
+// Handle search state change from the search component
+function handleSearchChanged(isActive: boolean): void {
+  isSearchActive.value = isActive;
+
+  // When search starts, store current state
+  if (isActive && !originalCategoriesState.value.length) {
+    originalCategoriesState.value = [...expandedCategories.value];
+  }
+
+  // When search ends, restore original state
+  if (!isActive) {
+    expandedCategories.value = [...originalCategoriesState.value];
+    originalCategoriesState.value = [];
+  }
+}
+
+// Inline editing state
+const editingItemId = ref<string | null>(null)
+const editingName = ref('')
+const editingAmount = ref<number | null>(null)
+
+function startEdit(item: InventoryItem): void {
+  editingItemId.value = item.id
+  editingName.value = item.name
+  editingAmount.value = item.amount
+}
+
+function cancelEdit(): void {
+  editingItemId.value = null
+  editingName.value = ''
+  editingAmount.value = null
+}
+
+function saveEdit(category: Category, item: InventoryItem): void {
+  const idx = category.items.findIndex((i) => i.id === item.id)
+  if (idx !== -1) {
+    category.items[idx].name = editingName.value
+    category.items[idx].amount = editingAmount.value as number
+  }
+  cancelEdit()
+}
 </script>
 
 <template>
@@ -206,10 +350,6 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
         <div class="flex items-center justify-between">
           <h1 class="text-3xl font-bold text-gray-900">Beredskapslager</h1>
 
-         <div class="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 flex items-center">
-            <span class="text-blue-700 font-medium mr-1">Felles lager for:</span>
-            <span class="text-blue-900 font-bold">{{ apiResponse.household.name }}</span>
-         </div>
         </div>
 
         <!-- New: Add a clarifying subtitle -->
@@ -226,7 +366,6 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-xl font-semibold text-gray-800">Oversikt</h2>
-
             </div>
             <HouseholdEmergencySupplies
               :inventory="formattedInventory"
@@ -256,14 +395,23 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
                 <span class="font-medium">Mona Sysutvikling</span>
               </li>
             </ul>
-
           </div>
         </div>
 
         <!-- Right column - Products -->
-        <div class="lg:col-span-8">
+        <div class="lg:col-span-8 space-y-6">
+          <!-- Search component in its own card -->
+          <ProductSearch
+            :categories="apiResponse.household.inventory.categories"
+            @jump-to-item="jumpToItem"
+            @search-changed="handleSearchChanged"
+          />
+
+          <!-- Products card -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Produkter</h2>
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold text-gray-800">Produkter</h2>
+            </div>
 
             <!-- Categories -->
             <div class="space-y-3">
@@ -278,7 +426,7 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
                   @click="
                     expandedCategories.includes(category.id)
                       ? (expandedCategories = expandedCategories.filter(
-                          (id: any) => id !== category.id,
+                          (id) => id !== category.id,
                         ))
                       : expandedCategories.push(category.id)
                   "
@@ -316,49 +464,65 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
                     <div
                       v-for="item in category.items"
                       :key="item.id"
-                      class="flex items-center justify-between py-3 px-4 hover:bg-gray-50"
+                      :id="`item-${item.id}`"
+                      class="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors duration-200"
                     >
                       <div class="flex items-center">
                         <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
-                        <span class="text-gray-800">{{ item.name }}</span>
+                        <template v-if="category.id === 'misc' && editingItemId === item.id && item.amount !== undefined && !item.expiryDate">
+                          <input v-model="editingName" class="border rounded px-2 py-1 text-sm mr-2 w-32" />
+                          <input v-model.number="editingAmount" type="number" min="0.1" step="0.1" class="border rounded px-2 py-1 text-sm w-16" />
+                        </template>
+                        <template v-else>
+                          <span
+                            class="text-gray-800"
+                            :class="{ 'cursor-pointer underline decoration-dotted': category.id === 'misc' && item.amount !== undefined && !item.expiryDate }"
+                            @click="category.id === 'misc' && item.amount !== undefined && !item.expiryDate ? startEdit(item) : null"
+                          >
+                            {{ item.name }}
+                          </span>
+                        </template>
                       </div>
-
                       <div class="flex items-center space-x-6">
                         <div class="text-right">
-                          <span
-                            class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-                          >
-                            {{ item.amount }} {{ item.unit }}
-                          </span>
+                          <template v-if="category.id === 'misc' && editingItemId === item.id && true && !item.expiryDate">
+                            <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ editingAmount }}</span>
+                          </template>
+                          <template v-else>
+                            <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ item.amount }} {{ item.unit }}</span>
+                          </template>
                         </div>
-
-                        <div class="flex items-center">
-                          <span class="text-gray-600 mr-2 text-sm">Utløpsdato:</span>
-                          <span
-                            :class="[
-                              !item.expiryDate
-                                ? 'text-gray-500'
-                                : new Date(item.expiryDate) < new Date()
-                                  ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded'
-                                  : new Date(item.expiryDate) <
-                                      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                                    ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'
-                                    : 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded',
-                            ]"
-                            class="text-sm"
-                          >
-                            {{
-                              item.expiryDate
-                                ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
-                                : 'Ingen dato'
-                            }}
-                          </span>
-                        </div>
-
+                        <template v-if="category.id === 'misc' && editingItemId === item.id && true && !item.expiryDate">
+                          <button @click="saveEdit(category, item)" class="text-green-600 hover:text-green-800 mr-2">✓</button>
+                          <button @click="cancelEdit" class="text-gray-500 hover:text-red-600">✗</button>
+                        </template>
+                        <template v-if="item.expiryDate">
+                          <div class="flex items-center">
+                            <span class="text-gray-600 mr-2 text-sm">Utløpsdato:</span>
+                            <span
+                              :class="[
+                                !item.expiryDate
+                                  ? 'text-gray-500'
+                                  : new Date(item.expiryDate) < new Date()
+                                    ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded'
+                                    : new Date(item.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                                      ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'
+                                      : 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded',
+                              ]"
+                              class="text-sm"
+                            >
+                              {{
+                                item.expiryDate
+                                  ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                  })
+                                  : 'Ingen dato'
+                              }}
+                            </span>
+                          </div>
+                        </template>
                         <button
                           class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
                           @click="deleteItem(category.id, item.id)"
@@ -399,18 +563,13 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
         </div>
       </div>
 
-      <!-- Floating action button -->
-      <div class="fixed bottom-6 right-6">
-        <Button class="h-14 w-14 rounded-full shadow-lg">
-          <span class="text-2xl">+</span>
-        </Button>
-      </div>
-
       <!-- Add Item Dialog -->
-      <AddItemDialog
+      <component
+        :is="getDialogComponent(selectedCategory?.id || '')"
+        v-if="selectedCategory"
         :is-open="isAddItemDialogOpen"
-        :category-id="selectedCategory?.id"
-        :category-name="selectedCategory?.name"
+        :category-id="selectedCategory.id"
+        :category-name="selectedCategory.name"
         @close="isAddItemDialogOpen = false"
         @add-item="handleAddItem"
       />
