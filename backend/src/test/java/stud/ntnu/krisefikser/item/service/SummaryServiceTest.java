@@ -149,10 +149,10 @@ class SummaryServiceTest {
         assertThat(result.getTotalItems()).isEqualTo(expectedTotalItems);
         
         // Verify method calls
-        verify(householdService).getActiveHousehold();
-        verify(householdService).toHouseholdResponse(testHousehold);
+        verify(householdService, times(3)).getActiveHousehold();
+        verify(householdService, times(2)).toHouseholdResponse(testHousehold);
         verify(foodItemService).getAllFoodItems();
-        verify(checklistItemService).getAllChecklistItems();
+        verify(checklistItemService, times(2)).getAllChecklistItems();
     }
     
     @Test
@@ -177,9 +177,9 @@ class SummaryServiceTest {
         assertThat(result.getTotalItems()).isEqualTo(0);
         
         // Verify method calls
-        verify(householdService).getActiveHousehold();
-        verify(householdService).toHouseholdResponse(testHousehold);
+        verify(householdService, times(3)).getActiveHousehold();
+        verify(householdService, times(2)).toHouseholdResponse(testHousehold);
         verify(foodItemService).getAllFoodItems();
-        verify(checklistItemService).getAllChecklistItems();
+        verify(checklistItemService, times(2)).getAllChecklistItems();
     }
 } 
