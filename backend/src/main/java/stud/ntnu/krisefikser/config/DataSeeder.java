@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.Optional;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,13 @@ import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
+import stud.ntnu.krisefikser.item.entity.FoodItem;
+import stud.ntnu.krisefikser.item.repository.FoodItemRepository;
+import stud.ntnu.krisefikser.item.entity.ChecklistItem;
+import stud.ntnu.krisefikser.item.repository.ChecklistItemRepository;
+import stud.ntnu.krisefikser.auth.entity.RefreshToken;
+import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.item.enums.ChecklistType;
 
 @Component
 @RequiredArgsConstructor
@@ -53,6 +62,9 @@ public class DataSeeder implements CommandLineRunner {
   private final MapPointRepository mapPointRepository;
   private final EventRepository eventRepository;
   private final RoleRepository roleRepository;
+  private final FoodItemRepository foodItemRepository;
+  private final ChecklistItemRepository checklistItemRepository;
+  private final RefreshTokenRepository refreshTokenRepository;
 
   @Autowired
   private PasswordEncoder passwordEncoder;
@@ -67,10 +79,13 @@ public class DataSeeder implements CommandLineRunner {
     if (reseedDatabase) {
       // Clean the database and re-seed
       cleanDatabase();
+      seedDatabase();
+
       System.out.println("Database cleaned and re-seeded successfully!");
+      return;
     }
-    // Seed data only if repositories are empty and not reseed mode
-    else if (userRepo.count() == 0 && householdRepository.count() == 0
+
+    if (userRepo.count() == 0 && householdRepository.count() == 0
         && articleRepository.count() == 0 && mapPointTypeRepository.count() == 0
         && eventRepository.count() == 0 && roleRepository.count() == 0) {
       seedDatabase();
@@ -84,11 +99,15 @@ public class DataSeeder implements CommandLineRunner {
     seedMapPointTypes();
     seedMapPoints();
     seedEvents();
+    seedRoles();
+    seedUsers();
     seedShelters();
+    seedFoodItems();
+    seedChecklistItems();
   }
 
   /**
-   * Cleans the entire database by deleting all records and then re-seeds it
+   * Cleans the entire database by deleting all records and then re-seeds it.
    */
   private void cleanDatabase() {
     // Delete all records in the correct order to avoid foreign key constraints
@@ -104,8 +123,18 @@ public class DataSeeder implements CommandLineRunner {
     // Delete household members first
     householdMemberRepository.deleteAll();
 
+    // Delete households
+    householdRepository.deleteAll();
+
     // Delete meeting points before households
     meetingPointRepository.deleteAll();
+
+    // Delete food items and checklist items
+    foodItemRepository.deleteAll();
+    checklistItemRepository.deleteAll();
+
+    // Delete refresh tokens
+    refreshTokenRepository.deleteAll();
 
     // Now we can safely delete in the correct order
     mapPointRepository.deleteAll();
@@ -472,6 +501,62 @@ public class DataSeeder implements CommandLineRunner {
     } catch (IOException e) {
       System.out.println("Error reading shelters.json: " + e.getMessage());
     }
+  }
+
+  private void seedFoodItems() {
+    List<FoodItem> foodItems = new ArrayList<>();
+    List<Household> households = householdRepository.findAll();
+
+    if (households.isEmpty()) {
+      System.out.println("Cannot seed food items: no households found");
+      return;
+    }
+
+    // Create 5 food items per household
+    for (Household household : households) {
+      for (int i = 0; i < 5; i++) {
+        FoodItem foodItem = FoodItem.builder()
+            .household(household)
+            .name(faker.food().ingredient())
+            .icon("food-icon-" + i)
+            .kcal(random.nextInt(1000) + 100)
+            .expirationDate(Instant.now().plus(random.nextInt(30), ChronoUnit.DAYS))
+            .build();
+
+        foodItems.add(foodItem);
+      }
+    }
+
+    foodItemRepository.saveAll(foodItems);
+    System.out.println("Seeded " + foodItems.size() + " food items");
+  }
+
+  private void seedChecklistItems() {
+    List<ChecklistItem> checklistItems = new ArrayList<>();
+    List<Household> households = householdRepository.findAll();
+
+    if (households.isEmpty()) {
+      System.out.println("Cannot seed checklist items: no households found");
+      return;
+    }
+
+    // Create 10 checklist items per household
+    for (Household household : households) {
+      for (int i = 0; i < 10; i++) {
+        ChecklistItem checklistItem = ChecklistItem.builder()
+            .household(household)
+            .name(faker.commerce().productName())
+            .icon("checklist-icon-" + i)
+            .checked(random.nextBoolean())
+            .type(ChecklistType.values()[random.nextInt(ChecklistType.values().length)])
+            .build();
+
+        checklistItems.add(checklistItem);
+      }
+    }
+
+    checklistItemRepository.saveAll(checklistItems);
+    System.out.println("Seeded " + checklistItems.size() + " checklist items");
   }
 
   /**

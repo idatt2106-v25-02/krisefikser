@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import L from 'leaflet'
-import type { Map } from '@/types/leaflet'
 
 // Define props
 const props = defineProps<{
-  map: Map | null
+  map: L.Map | null
   shelters: Array<{
     id: number
     name: string
