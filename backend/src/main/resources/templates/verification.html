@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Hi {{name}},</h2>
+        <p>Thanks for signing up! Please verify your email address by clicking the button below:</p>
+        <p>
+            <a href="{{link}}" class="button">Verify Email</a>
+        </p>
+        <p>If you did not sign up for this account, you can ignore this email.</p>
+        <p>Best regards,<br>The Team</p>
+    </div>
+</body>
+</html> 
