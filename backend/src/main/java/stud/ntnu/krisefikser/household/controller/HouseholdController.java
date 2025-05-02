@@ -10,7 +10,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +33,6 @@ import stud.ntnu.krisefikser.household.service.HouseholdService;
 @RequestMapping("/api/households")
 @RequiredArgsConstructor
 @Tag(name = "Household", description = "Household management APIs")
-@Validated
 public class HouseholdController {
 
   /**
@@ -107,7 +105,8 @@ public class HouseholdController {
   })
   @GetMapping("/active")
   public ResponseEntity<HouseholdResponse> getActiveHousehold() {
-    return ResponseEntity.ok(householdService.getActiveHousehold());
+    return ResponseEntity.ok(
+        householdService.toHouseholdResponse(householdService.getActiveHousehold()));
   }
 
   /**

@@ -16,8 +16,8 @@ export default {
     <div class="grid md:grid-cols-3 gap-8">
       <!-- Før krisen -->
       <div class="bg-white p-6 rounded-lg shadow-md transition hover:shadow-lg relative">
-        <!-- Quiz badge positioned at top right -->
-        <span class="absolute top-2 right-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center">
+        <!-- Quiz badge  -->
+        <span class="absolute top-2 right-2 bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -41,8 +41,8 @@ export default {
 
       <!-- Under krisen -->
       <div class="bg-white p-6 rounded-lg shadow-md transition hover:shadow-lg relative">
-        <!-- Quiz badge positioned at top right -->
-        <span class="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center">
+        <!-- Quiz badge  -->
+        <span class="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -66,8 +66,8 @@ export default {
 
       <!-- Etter krisen -->
       <div class="bg-white p-6 rounded-lg shadow-md transition hover:shadow-lg relative">
-        <!-- Quiz badge positioned at top right -->
-        <span class="absolute top-2 right-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center">
+        <!-- Quiz badge -->
+        <span class="absolute top-2 right-2 bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>

@@ -58,6 +58,10 @@ public class Household {
   @JoinColumn(name = "owner_id")
   private User owner;
 
+  @Column(nullable = false)
+  @Builder.Default
+  private Double waterLiters = 0.0;
+
   @CreationTimestamp
   private LocalDateTime createdAt;
 

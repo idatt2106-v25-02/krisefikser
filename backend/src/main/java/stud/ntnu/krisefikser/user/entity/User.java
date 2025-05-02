@@ -74,13 +74,18 @@ public class User {
   private LocalDateTime updatedAt;
 
   @ManyToOne(cascade = CascadeType.MERGE)
-  @JoinColumn(name = "active_household_id", nullable = true)
+  @JoinColumn(name = "active_household_id")
   private Household activeHousehold;
 
   public boolean isSuperAdmin() {
     return roles.stream().anyMatch(role -> role.getName() == RoleType.SUPER_ADMIN);
   }
 
+  /**
+   * Converts the User entity to a UserResponse DTO.
+   *
+   * @return a UserResponse DTO containing user information.
+   */
   public UserResponse toDto() {
     List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
 
