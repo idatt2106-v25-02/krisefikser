@@ -172,10 +172,10 @@ public class ItemController {
    * The updated item's details are provided in the request body, which includes fields such as
    * name, icon, kcal, and expiration date.</p>
    *
-   * @param id the unique identifier of the food item to update. Must be a valid UUID that
-   *           exists in the system.
-   * @param putRequest the DTO containing the updated food item details. Must not be null
-   *                  and should contain valid data.
+   * @param id         the unique identifier of the food item to update. Must be a valid UUID that
+   *                   exists in the system.
+   * @param putRequest the DTO containing the updated food item details. Must not be null and should
+   *                   contain valid data.
    * @return ResponseEntity containing the updated food item with HTTP status 200 (OK)
    * @see FoodItemResponse
    */
@@ -185,19 +185,20 @@ public class ItemController {
       @ApiResponse(responseCode = "404", description = "Food item not found")
   })
   @PutMapping("/food/{id}")
-  public ResponseEntity<FoodItemResponse> updateFoodItem(@PathVariable String id, @RequestBody CreateFoodItemRequest putRequest) {
-      FoodItemResponse updatedItem = foodItemService.updateFoodItem(id, putRequest);
-      return ResponseEntity.ok(updatedItem);
+  public ResponseEntity<FoodItemResponse> updateFoodItem(@PathVariable String id,
+      @RequestBody CreateFoodItemRequest putRequest) {
+    FoodItemResponse updatedItem = foodItemService.updateFoodItem(id, putRequest);
+    return ResponseEntity.ok(updatedItem);
   }
 
   /**
    * Deletes a food item with the specified ID.
    *
-   * <p>This endpoint allows users to remove a food item from the system by specifying its unique ID.
-   * The item is permanently deleted from the system.</p>
+   * <p>This endpoint allows users to remove a food item from the system by specifying its unique
+   * ID. The item is permanently deleted from the system.</p>
    *
-   * @param id the unique identifier of the food item to delete. Must be a valid UUID that
-   *           exists in the system.
+   * @param id the unique identifier of the food item to delete. Must be a valid UUID that exists in
+   *           the system.
    * @return ResponseEntity with HTTP status 204 (No Content) if the item is successfully deleted
    * @see FoodItemResponse
    */
@@ -211,4 +212,16 @@ public class ItemController {
     foodItemService.deleteFoodItem(id);
     return ResponseEntity.noContent().build();
   }
+
+  /**
+   * Get total water from household in liters
+   *
+   * <p>This endpoint returns the total amount of water in liters from all households.</p>
+   *
+   * @return ResponseEntity containing the total amount of water in liters with HTTP status 200
+   * (OK)
+   */
+//  @GetMapping("/water")
+
+
 }

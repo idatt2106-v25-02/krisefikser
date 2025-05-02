@@ -2,9 +2,11 @@ package stud.ntnu.krisefikser.item.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -220,6 +222,87 @@ class ItemControllerTest {
   void getAllChecklistItems_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
     // Act & Assert
     mockMvc.perform(get("/api/items/checklist"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser
+  void updateFoodItem_whenAuthenticated_shouldReturnUpdatedItem() throws Exception {
+    // Arrange
+    String itemId = validId.toString();
+    FoodItemResponse updatedResponse = TestDataFactory.createTestFoodItemResponse(
+        validId,
+        "Updated Rations",
+        3000,
+        Instant.now().plusSeconds(86400 * 730) // 2 years from now
+    );
+
+    when(foodItemService.updateFoodItem(itemId, createFoodItemRequest))
+        .thenReturn(updatedResponse);
+
+    // Act & Assert
+    mockMvc.perform(put("/api/items/food/" + itemId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(createFoodItemRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(validId.toString()))
+        .andExpect(jsonPath("$.name").value("Updated Rations"))
+        .andExpect(jsonPath("$.icon").value("food_icon"))
+        .andExpect(jsonPath("$.kcal").value(3000));
+  }
+
+  @Test
+  @WithMockUser
+  void updateFoodItem_whenItemNotFound_shouldReturnNotFound() throws Exception {
+    // Arrange
+    String nonExistentId = UUID.randomUUID().toString();
+    when(foodItemService.updateFoodItem(nonExistentId, createFoodItemRequest))
+        .thenThrow(new EntityNotFoundException("Food item not found with id: " + nonExistentId));
+
+    // Act & Assert
+    mockMvc.perform(put("/api/items/food/" + nonExistentId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(createFoodItemRequest)))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void updateFoodItem_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
+    // Act & Assert
+    mockMvc.perform(put("/api/items/food/" + validId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(createFoodItemRequest)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser
+  void deleteFoodItem_whenAuthenticated_shouldReturnNoContent() throws Exception {
+    // Arrange
+    String itemId = validId.toString();
+
+    // Act & Assert
+    mockMvc.perform(delete("/api/items/food/" + itemId))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  @WithMockUser
+  void deleteFoodItem_whenItemNotFound_shouldReturnNotFound() throws Exception {
+    // Arrange
+    String nonExistentId = UUID.randomUUID().toString();
+    doThrow(new EntityNotFoundException("Food item not found with id: " + nonExistentId))
+        .when(foodItemService).deleteFoodItem(nonExistentId);
+
+    // Act & Assert
+    mockMvc.perform(delete("/api/items/food/" + nonExistentId))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void deleteFoodItem_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
+    // Act & Assert
+    mockMvc.perform(delete("/api/items/food/" + validId))
         .andExpect(status().isUnauthorized());
   }
 } 

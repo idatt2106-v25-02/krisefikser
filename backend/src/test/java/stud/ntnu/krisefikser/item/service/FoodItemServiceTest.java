@@ -151,4 +151,92 @@ class FoodItemServiceTest {
 
     verify(householdService).getActiveHousehold();
   }
+
+  @Test
+  void updateFoodItem_WhenItemExists_ShouldReturnUpdatedItem() {
+    // Arrange
+    UUID itemId = UUID.randomUUID();
+    String itemIdString = itemId.toString();
+    
+    CreateFoodItemRequest updateRequest = new CreateFoodItemRequest(
+        "Updated Rations",
+        "new_icon",
+        3000,
+        expirationDate.plusSeconds(86400 * 365) // 1 more year
+    );
+    
+    FoodItem existingItem = FoodItem.builder()
+        .id(itemId)
+        .name("Emergency Rations")
+        .icon("food_icon")
+        .kcal(2000)
+        .expirationDate(expirationDate)
+        .household(household)
+        .build();
+    
+    FoodItem updatedItem = FoodItem.builder()
+        .id(itemId)
+        .name("Updated Rations")
+        .icon("new_icon")
+        .kcal(3000)
+        .expirationDate(expirationDate.plusSeconds(86400 * 365))
+        .household(household)
+        .build();
+    
+    when(foodItemRepository.findById(itemId)).thenReturn(java.util.Optional.of(existingItem));
+    when(foodItemRepository.save(any(FoodItem.class))).thenReturn(updatedItem);
+    
+    // Act
+    FoodItemResponse result = foodItemService.updateFoodItem(itemIdString, updateRequest);
+    
+    // Assert
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(itemId);
+    assertThat(result.getName()).isEqualTo("Updated Rations");
+    assertThat(result.getIcon()).isEqualTo("new_icon");
+    assertThat(result.getKcal()).isEqualTo(3000);
+    
+    verify(foodItemRepository).findById(itemId);
+    verify(foodItemRepository).save(any(FoodItem.class));
+  }
+  
+  @Test
+  void updateFoodItem_WhenItemNotFound_ShouldThrowException() {
+    // Arrange
+    UUID itemId = UUID.randomUUID();
+    String itemIdString = itemId.toString();
+    
+    when(foodItemRepository.findById(itemId)).thenReturn(java.util.Optional.empty());
+    
+    // Act & Assert
+    assertThatThrownBy(() -> foodItemService.updateFoodItem(itemIdString, createRequest))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Item not found");
+    
+    verify(foodItemRepository).findById(itemId);
+  }
+  
+  @Test
+  void deleteFoodItem_ShouldDeleteItem() {
+    // Arrange
+    UUID itemId = UUID.randomUUID();
+    String itemIdString = itemId.toString();
+    
+    // Act
+    foodItemService.deleteFoodItem(itemIdString);
+    
+    // Assert
+    verify(foodItemRepository).deleteById(itemId);
+  }
+  
+  @Test
+  void deleteFoodItem_WhenInvalidUUID_ShouldThrowException() {
+    // Arrange
+    String invalidId = "invalid-uuid";
+    
+    // Act & Assert
+    assertThatThrownBy(() -> foodItemService.deleteFoodItem(invalidId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Invalid UUID string");
+  }
 } 
