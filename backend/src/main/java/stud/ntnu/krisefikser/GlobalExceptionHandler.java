@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -230,6 +231,19 @@ public class GlobalExceptionHandler {
     log.error("Invalid credentials: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
         "Invalid credentials", "auth");
+  }
+
+  /**
+   * Handles authentication exceptions thrown by Spring Security when no valid authentication is present.
+   *
+   * @param exception the authentication exception
+   * @return a problem detail with UNAUTHORIZED status and an authentication required message
+   */
+  @ExceptionHandler(AuthenticationException.class)
+  public ProblemDetail handleAuthenticationException(AuthenticationException exception) {
+    log.error("Authentication required: {}", exception.getMessage());
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        "Authentication required", "auth");
   }
 
   // ===== Bean validation exceptions =====

@@ -36,6 +36,8 @@ import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.item.service.FoodItemService;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
+import stud.ntnu.krisefikser.item.dto.InventorySummaryResponse;
+import stud.ntnu.krisefikser.item.service.SummaryService;
 
 @WebMvcTest(controllers = ItemController.class)
 @Import(TestSecurityConfig.class)
@@ -61,6 +63,9 @@ class ItemControllerTest {
 
   @MockitoBean
   private HouseholdService householdService;
+
+  @MockitoBean
+  private SummaryService summaryService;
 
   private CreateFoodItemRequest createFoodItemRequest;
   private FoodItemResponse foodItemResponse;
@@ -342,6 +347,51 @@ class ItemControllerTest {
   void setWaterAmount_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
     // Act & Assert
     mockMvc.perform(put("/api/items/water/150.0"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser
+  void getInventorySummary_whenAuthenticated_shouldReturnSummary() throws Exception {
+    // Arrange
+    InventorySummaryResponse summaryResponse = InventorySummaryResponse.builder()
+        .kcal(5000)
+        .kcalGoal(30000)
+        .waterLiters(15.0)
+        .waterLitersGoal(40.0)
+        .checkedItems(8)
+        .totalItems(10)
+        .build();
+    
+    when(summaryService.getInventorySummary()).thenReturn(summaryResponse);
+
+    // Act & Assert
+    mockMvc.perform(get("/api/items/summary"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.kcal").value(5000))
+        .andExpect(jsonPath("$.kcalGoal").value(30000))
+        .andExpect(jsonPath("$.waterLiters").value(15.0))
+        .andExpect(jsonPath("$.waterLitersGoal").value(40.0))
+        .andExpect(jsonPath("$.checkedItems").value(8))
+        .andExpect(jsonPath("$.totalItems").value(10));
+  }
+
+  @Test
+  @WithMockUser
+  void getInventorySummary_whenHouseholdNotFound_shouldReturnNotFound() throws Exception {
+    // Arrange
+    when(summaryService.getInventorySummary())
+        .thenThrow(new HouseholdNotFoundException());
+
+    // Act & Assert
+    mockMvc.perform(get("/api/items/summary"))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void getInventorySummary_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
+    // Act & Assert
+    mockMvc.perform(get("/api/items/summary"))
         .andExpect(status().isUnauthorized());
   }
 } 
