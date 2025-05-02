@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,17 +15,17 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.entity.Household;
-import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
+@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest {
 
-  private static final String TEST_USER_EMAIL = "test-items@example.com";
-  private static final String DEFAULT_PASSWORD = "password123";
-  private static final String TEST_HOUSEHOLD_NAME = "Test Household for Items";
+  private static final String TEST_USER_EMAIL = "brotherman@testern.no";
+  private static final String DEFAULT_PASSWORD = "password";
+  private static final String TEST_HOUSEHOLD_NAME = "Test Household";
 
   @Autowired
   private MockMvc mockMvc;
@@ -35,21 +36,21 @@ public abstract class AbstractIntegrationTest {
   @Autowired
   private UserRepository userRepository;
 
-  @Autowired
-  private HouseholdRepository householdRepository;
-
   private String accessToken;
 
   @Getter
   private User testUser;
+
+  @Autowired
+  private DatabaseCleanupService databaseCleanupService;
 
   public MockHttpServletRequestBuilder withJwtAuth(MockHttpServletRequestBuilder requestBuilder) {
     return requestBuilder.header("Authorization", "Bearer " + accessToken);
   }
 
   public void setUpUser() throws Exception {
-    // Clean up any previous test data
-    userRepository.deleteAll();
+    // Delete brotherman testern if exists
+    databaseCleanupService.clearDatabase();
 
     // Create User
     RegisterRequest request = new RegisterRequest(
@@ -97,6 +98,14 @@ public abstract class AbstractIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createHouseholdRequest))
         )).andReturn();
+
+    // Re-fetch the user with the active household
+    this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
+        .orElseThrow(() -> new RuntimeException("Test user not found"));
+
+    log.info("Access token: {}", accessToken);
+    log.info("Test user: {}", testUser);
+    log.info("Test household: {}", getTestHousehold());
   }
 
   public Household getTestHousehold() {
