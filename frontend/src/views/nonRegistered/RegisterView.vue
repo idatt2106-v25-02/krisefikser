@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -86,7 +86,10 @@ const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
   try {
     const { confirmPassword, acceptedPrivacyPolicy, ...registrationData } = values
-    await authStore.register(registrationData)
+    await authStore.register({
+      ...registrationData,
+      turnstileToken: captchaToken.value
+    })
     toast({
       title: 'Suksess',
       description: 'Kontoen din er opprettet og du er nå logget inn',
@@ -102,6 +105,48 @@ const onSubmit = handleSubmit(async (values) => {
     })
   } finally {
     isLoading.value = false
+  }
+})
+
+// Captcha logic
+const captchaToken = ref('')
+const turnstileWidgetId = ref<string>('')
+
+// Initialise Cloudflare Turnstile
+onMounted(() => {
+  turnstileWidgetId.value = turnstile.render('#turnstile', {
+    sitekey: '0x4AAAAAABSTiPNZwrBLQkgr',
+    callback: (token: string) => {
+      captchaToken.value = token
+      toast({
+        title: 'Success',
+        description: 'Captcha token received',
+        variant: 'default',
+      })
+    },
+    'error-callback': () => {
+      toast({
+        title: 'Error',
+        description: 'Captcha token error',
+        variant: 'destructive',
+      })
+      captchaToken.value = ''
+    },
+    'expired-callback': () => {
+      toast({
+        title: 'Warning',
+        description: 'Captcha token expired',
+        variant: 'warning',
+      })
+      captchaToken.value = ''
+    },
+  })
+})
+
+// Clean up Turnstile on component unmount
+onUnmounted(() => {
+  if (turnstileWidgetId.value) {
+    turnstile.remove(turnstileWidgetId.value)
   }
 })
 </script>
@@ -236,32 +281,12 @@ const onSubmit = handleSubmit(async (values) => {
       </FormField>
 
       <!-- Cloudflare Turnstile -->
-      <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
-        <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft at du er et menneske</FormLabel>
-          <FormControl>
-            <div class="flex justify-center">
-              <div class="relative w-full flex justify-center">
-                <Shield class="absolute left-2 top-0 text-gray-500 h-4 w-4" />
-                <VueTurnstile
-                  site-key="0x4AAAAAABSTiPNZwrBLQkgr"
-                  v-model="turnstileToken"
-                  theme="light"
-                  @success="onTurnstileSuccess"
-                  @error="onTurnstileError"
-                  @expire="onTurnstileExpire"
-                />
-              </div>
-            </div>
-          </FormControl>
-          <FormMessage class="text-sm text-red-500" />
-        </FormItem>
-      </FormField> -->
+      <div id="turnstile"></div>
 
       <!-- Submit button -->
       <Button
         type="submit"
-        :disabled="!meta.valid || isLoading"
+        :disabled="!meta.valid || isLoading || !captchaToken"
         class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
         <template v-if="isLoading">Oppretter konto...</template>
