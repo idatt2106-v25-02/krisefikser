@@ -11,7 +11,7 @@ import stud.ntnu.krisefikser.item.entity.FoodItem;
 import stud.ntnu.krisefikser.item.repository.FoodItemRepository;
 
 import java.util.List;
-
+import java.util.UUID;
 /**
  * Service responsible for managing food items in the emergency preparedness system.
  * 
@@ -70,5 +70,37 @@ public class FoodItemService {
         Household activeHousehold = householdService.getActiveHousehold();
 
         return foodItemRepository.findByHousehold(activeHousehold).stream().map(FoodItem::toResponse).toList();
+    }
+
+    /**
+     * Updates a food item with the specified ID.
+     * 
+     * <p>This method updates the details of a food item identified by its unique ID
+     * with the provided request details.</p>
+     *
+     * @param id the unique identifier of the food item to update
+     * @param putRequest the request object containing the updated food item details
+     * @return a response object containing the updated food item's details
+     * @throws RuntimeException if the item is not found
+     */
+    public FoodItemResponse updateFoodItem(String id, CreateFoodItemRequest putRequest) {
+        FoodItem item = foodItemRepository.findById(UUID.fromString(id)).orElseThrow(() -> new RuntimeException("Item not found"));
+        item.setName(putRequest.getName());
+        item.setIcon(putRequest.getIcon());
+        item.setKcal(putRequest.getKcal());
+        item.setExpirationDate(putRequest.getExpirationDate());
+        return foodItemRepository.save(item).toResponse();
+    }
+
+    /**
+     * Deletes a food item with the specified ID.
+     * 
+     * <p>This method deletes a food item identified by its unique ID from the system.</p>
+     *
+     * @param id the unique identifier of the food item to delete
+     * @throws RuntimeException if the item is not found
+     */
+    public void deleteFoodItem(String id) {
+        foodItemRepository.deleteById(UUID.fromString(id));
     }
 }

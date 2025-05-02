@@ -11,6 +11,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -162,5 +163,52 @@ public class ItemController {
   public ResponseEntity<List<ChecklistItemResponse>> getAllChecklistItems() {
     List<ChecklistItemResponse> checklistItems = checklistItemService.getAllChecklistItems();
     return ResponseEntity.ok(checklistItems);
+  }
+
+  /**
+   * Updates a food item with the specified ID.
+   *
+   * <p>This endpoint allows updating the details of a food item identified by its unique ID.
+   * The updated item's details are provided in the request body, which includes fields such as
+   * name, icon, kcal, and expiration date.</p>
+   *
+   * @param id the unique identifier of the food item to update. Must be a valid UUID that
+   *           exists in the system.
+   * @param putRequest the DTO containing the updated food item details. Must not be null
+   *                  and should contain valid data.
+   * @return ResponseEntity containing the updated food item with HTTP status 200 (OK)
+   * @see FoodItemResponse
+   */
+  @Operation(summary = "Update a food item")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Food item updated successfully"),
+      @ApiResponse(responseCode = "404", description = "Food item not found")
+  })
+  @PutMapping("/food/{id}")
+  public ResponseEntity<FoodItemResponse> updateFoodItem(@PathVariable String id, @RequestBody CreateFoodItemRequest putRequest) {
+      FoodItemResponse updatedItem = foodItemService.updateFoodItem(id, putRequest);
+      return ResponseEntity.ok(updatedItem);
+  }
+
+  /**
+   * Deletes a food item with the specified ID.
+   *
+   * <p>This endpoint allows users to remove a food item from the system by specifying its unique ID.
+   * The item is permanently deleted from the system.</p>
+   *
+   * @param id the unique identifier of the food item to delete. Must be a valid UUID that
+   *           exists in the system.
+   * @return ResponseEntity with HTTP status 204 (No Content) if the item is successfully deleted
+   * @see FoodItemResponse
+   */
+  @DeleteMapping("/food/{id}")
+  @Operation(summary = "Delete a food item")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "204", description = "Food item deleted successfully"),
+      @ApiResponse(responseCode = "404", description = "Food item not found")
+  })
+  public ResponseEntity<Void> deleteFoodItem(@PathVariable String id) {
+    foodItemService.deleteFoodItem(id);
+    return ResponseEntity.noContent().build();
   }
 }
