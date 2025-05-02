@@ -27,6 +27,7 @@ import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
 import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
+import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
@@ -49,6 +50,9 @@ public class AuthControllerTest {
   @MockitoBean
   private CustomUserDetailsService userDetailsService;
 
+  @MockitoBean
+  private TurnstileService turnstileService;
+
   private RegisterRequest registerRequest;
   private LoginRequest loginRequest;
   private RefreshRequest refreshRequest;
@@ -56,7 +60,7 @@ public class AuthControllerTest {
 
   @BeforeEach
   void setUp() {
-    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User");
+    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User", "turnstile-token");
     loginRequest = new LoginRequest("test@example.com", "password");
     refreshRequest = new RefreshRequest("refresh-token-123");
     userResponse = new UserResponse(UUID.randomUUID(), "test@example.com", List.of("USER"), "Test",
@@ -65,9 +69,10 @@ public class AuthControllerTest {
   }
 
   @Test
-  void register_ShouldReturnOkWithTokens() throws Exception {
+  void register_WithValidTurnstileToken_ShouldReturnOkWithTokens() throws Exception {
     // Arrange
     RegisterResponse response = new RegisterResponse("access-token", "refresh-token");
+    when(turnstileService.verify(any(String.class))).thenReturn(true);
     when(authService.register(any(RegisterRequest.class))).thenReturn(response);
 
     // Act & Assert
@@ -77,6 +82,18 @@ public class AuthControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.accessToken").value("access-token"))
         .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+  }
+
+  @Test
+  void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
+    // Arrange
+    when(turnstileService.verify(any(String.class))).thenReturn(false);
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isBadRequest());
   }
 
   @Test

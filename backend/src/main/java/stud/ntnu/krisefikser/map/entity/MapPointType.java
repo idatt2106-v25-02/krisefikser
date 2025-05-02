@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import stud.ntnu.krisefikser.map.dto.MapPointTypeResponse;
 
 @Entity
@@ -35,6 +37,10 @@ public class MapPointType {
 
   private String openingTime;
 
+  @OneToMany(mappedBy = "type", cascade = CascadeType.ALL, orphanRemoval = true)
+  @JsonIgnore
+  private List<MapPoint> mapPoints;
+
   public MapPointTypeResponse toResponse() {
     return MapPointTypeResponse.builder()
         .id(this.id)
@@ -44,4 +50,6 @@ public class MapPointType {
         .openingTime(this.openingTime)
         .build();
   }
+    private String openingTime;
+
 }

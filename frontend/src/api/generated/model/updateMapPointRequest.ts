@@ -7,10 +7,20 @@
  */
 
 /**
+<<<<<<<< HEAD:frontend/src/api/generated/model/updateMapPointRequest.ts
  * Updated map point details
  */
 export interface UpdateMapPointRequest {
   latitude?: number
   longitude?: number
   typeId?: number
+========
+ * Food item data
+ */
+export interface CreateFoodItemRequest {
+  name: string
+  icon: string
+  kcal: number
+  expirationDate?: string
+>>>>>>>> ead9d026a366b3aaf2898bd9c817996006fa55ea:frontend/src/api/generated/model/createFoodItemRequest.ts
 }

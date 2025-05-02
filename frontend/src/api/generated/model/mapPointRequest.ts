@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
+<<<<<<<< HEAD:frontend/src/api/generated/model/mapPointRequest.ts
 /**
  * Map point to create
  */
@@ -13,4 +14,13 @@ export interface MapPointRequest {
   latitude: number
   longitude: number
   typeId: number
+========
+export interface MeetingPointResponse {
+  id?: string
+  name?: string
+  description?: string
+  latitude?: number
+  longitude?: number
+  householdId?: string
+>>>>>>>> ead9d026a366b3aaf2898bd9c817996006fa55ea:frontend/src/api/generated/model/meetingPointResponse.ts
 }

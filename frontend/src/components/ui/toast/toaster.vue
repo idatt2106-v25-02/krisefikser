@@ -10,12 +10,7 @@ const { toasts } = useToast()
     class="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]"
   >
     <TransitionGroup name="toast">
-      <Toast
-        v-for="toast in toasts"
-        :key="toast.id"
-        :class="toast.class"
-        :variant="toast.variant"
-      >
+      <Toast v-for="toast in toasts" :key="toast.id" :class="toast.class" :variant="toast.variant">
         <div class="flex w-full flex-1 items-start gap-4">
           <div class="flex-1 space-y-1">
             <div v-if="toast.title" class="text-sm font-semibold">

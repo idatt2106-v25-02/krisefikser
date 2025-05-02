@@ -42,9 +42,11 @@ public class EventController {
   private final EventService eventService;
 
   /**
-   * Retrieves all events from the system.
+   * Retrieves all ongoing and upcoming events from the system.
+   * Only events with status ONGOING or UPCOMING and with a start time in the
+   * future are returned.
    *
-   * @return ResponseEntity containing a list of all events.
+   * @return ResponseEntity containing a list of active events.
    * @since 1.0
    */
   @Operation(summary = "Get all events", description = "Retrieves a list of all events in the "
