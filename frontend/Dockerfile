@@ -20,6 +20,7 @@ RUN rm -rf src/api/generated/*
 
 # Generate API client
 ARG VITE_API_URL
+ARG VITE_POSTHOG_ENABLED
 RUN pnpm orval
 
 # Build the application (ignoring type errors)
