@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import type { PropType } from 'vue';
 import { CheckCircle, XCircle, Info, ChevronLeft, Trophy, Award, ThumbsUp } from 'lucide-vue-next';
 
@@ -88,9 +88,57 @@ const resultFeedback = computed(() => {
   }
 });
 
+// Speech synthesis setup
+const speechRate = ref(1.0);
+const synth = window.speechSynthesis;
+
+// Keyboard event handler for speech rate
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (event.altKey) {
+    if (event.key === 'ArrowUp') {
+      speechRate.value = Math.min(speechRate.value + 0.1, 2.0);
+      speakText(`Talefart økt til ${Math.round(speechRate.value * 100)} prosent`);
+    } else if (event.key === 'ArrowDown') {
+      speechRate.value = Math.max(speechRate.value - 0.1, 0.5);
+      speakText(`Talefart redusert til ${Math.round(speechRate.value * 100)} prosent`);
+    }
+  } else if (currentState.value === 'question' && !answerSubmitted.value) {
+    // Number keys 1-4 for selecting answers
+    const numKey = parseInt(event.key);
+    if (numKey >= 1 && numKey <= currentQuestion.value.options.length) {
+      selectAnswer(numKey - 1);
+    }
+  }
+};
+
+// Speech function
+const speakText = (text: string) => {
+  if (synth.speaking) {
+    synth.cancel();
+  }
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'nb-NO';
+  utterance.rate = speechRate.value;
+  synth.speak(utterance);
+};
+
+// Cleanup on component unmount
+onUnmounted(() => {
+  if (synth.speaking) {
+    synth.cancel();
+  }
+  window.removeEventListener('keydown', handleKeyPress);
+});
+
+// Setup keyboard listener
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyPress);
+});
+
 // Methods
 const startQuiz = () => {
   currentState.value = 'question';
+  speakText(`Quiz startet. ${currentQuestion.value.question}`);
 };
 
 const resetQuiz = () => {
@@ -107,6 +155,7 @@ const selectAnswer = (index: number) => {
   // Only allow selection if answer hasn't been submitted yet
   if (!answerSubmitted.value) {
     selectedAnswerIndex.value = index;
+    speakText(`Valgt alternativ ${index + 1}: ${currentQuestion.value.options[index]}`);
   }
 };
 
@@ -118,9 +167,13 @@ const submitAnswer = () => {
     // Save the answer
     userAnswers.value[currentQuestionIndex.value - 1] = selectedAnswerIndex.value;
 
-    // Update score if correct
+    // Update score if correct and provide voice feedback
     if (selectedAnswerIndex.value === currentQuestion.value.correctAnswer) {
       score.value++;
+      speakText(`Riktig svar! Du valgte: ${currentQuestion.value.options[selectedAnswerIndex.value]}. ${currentQuestion.value.explanation || ''}`);
+    } else {
+      const correctAnswer = currentQuestion.value.options[currentQuestion.value.correctAnswer];
+      speakText(`Feil svar. Du valgte: ${currentQuestion.value.options[selectedAnswerIndex.value]}. Riktig svar var: ${correctAnswer}. ${currentQuestion.value.explanation || ''}`);
     }
   }
 };
@@ -130,6 +183,8 @@ const previousQuestion = () => {
     currentQuestionIndex.value--;
     selectedAnswerIndex.value = userAnswers.value[currentQuestionIndex.value - 1];
     answerSubmitted.value = answeredQuestions.value[currentQuestionIndex.value - 1];
+    // Read the previous question and options
+    readQuestionAndOptions();
   }
 };
 
@@ -137,6 +192,7 @@ const nextQuestion = () => {
   if (answerSubmitted.value) {
     if (isLastQuestion.value) {
       calculateResults();
+      speakText(`Quiz fullført. Du fikk ${score.value} av ${props.questions.length} riktige svar. ${resultFeedback.value}`);
     } else {
       // Move to next question
       currentQuestionIndex.value++;
@@ -144,6 +200,8 @@ const nextQuestion = () => {
       selectedAnswerIndex.value = userAnswers.value[currentQuestionIndex.value - 1];
       // Reset submission status for the new question
       answerSubmitted.value = answeredQuestions.value[currentQuestionIndex.value - 1];
+      // Read the new question and options
+      readQuestionAndOptions();
     }
   }
 };
@@ -197,26 +255,43 @@ const getOptionIconClass = (index: number) => {
     }
   }
 };
+
+// Add function to read question and options
+const readQuestionAndOptions = () => {
+  const question = currentQuestion.value;
+  let text = `Spørsmål ${currentQuestionIndex.value}: ${question.question}. Alternativer: `;
+  question.options.forEach((option, index) => {
+    text += `${index + 1}: ${option}. `;
+  });
+  speakText(text);
+};
 </script>
 
 <template>
-  <div class="quiz-container">
+  <div class="quiz-container" role="region" :aria-label="title">
+    <!-- Add keyboard shortcut info -->
+    <div class="text-sm text-gray-500 mb-4">
+      <p>Trykk Alt + ↑ for raskere tale, Alt + ↓ for saktere tale</p>
+      <p>Bruk talltastene 1-4 for å velge svar</p>
+    </div>
+
     <!-- Quiz intro -->
-    <div v-if="currentState === 'intro'" class="text-center mb-8">
+    <div v-if="currentState === 'intro'" class="text-center mb-8" role="region" aria-label="Quiz introduksjon">
       <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ title }}</h3>
       <p class="text-gray-700 mb-6">{{ description }}</p>
       <button
         @click="startQuiz"
         class="px-6 py-2 rounded-md transition text-white font-medium"
         :class="buttonColorClass"
+        aria-label="Start quizen"
       >
         Start Quiz
       </button>
     </div>
 
     <!-- Question display -->
-    <div v-else-if="currentState === 'question'" class="quiz-content">
-      <div class="mb-6">
+    <div v-else-if="currentState === 'question'" class="quiz-content" role="form" :aria-label="'Spørsmål ' + currentQuestionIndex + ' av ' + questions.length">
+      <div class="mb-6" role="progressbar" :aria-valuenow="progressValue" :aria-valuemin="0" :aria-valuemax="100">
         <div class="w-full h-2 bg-gray-200 rounded-full">
           <div
             class="h-2 rounded-full transition-all duration-300"
@@ -232,22 +307,28 @@ const getOptionIconClass = (index: number) => {
 
       <!-- Current question -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h4 class="font-medium text-gray-800 text-lg mb-4">
+        <h4 class="font-medium text-gray-800 text-lg mb-4" id="current-question">
           {{ currentQuestion.question }}
         </h4>
 
-        <div class="space-y-3">
+        <div class="space-y-3" role="radiogroup" :aria-labelledby="'current-question'">
           <div
             v-for="(option, index) in currentQuestion.options"
             :key="index"
             @click="selectAnswer(index)"
+            @keydown.space.prevent="selectAnswer(index)"
+            @keydown.enter.prevent="selectAnswer(index)"
             class="p-3 rounded-lg border transition-all cursor-pointer"
             :class="getOptionClass(index)"
+            role="radio"
+            :aria-checked="selectedAnswerIndex === index"
+            tabindex="0"
           >
             <div class="flex items-center">
               <div
                 class="w-5 h-5 rounded-full flex items-center justify-center mr-3 border"
                 :class="getOptionIconClass(index)"
+                aria-hidden="true"
               >
                 <CheckCircle
                   v-if="selectedAnswerIndex === index && (!answerSubmitted || index === currentQuestion.correctAnswer)"
@@ -259,14 +340,14 @@ const getOptionIconClass = (index: number) => {
                   class="w-4 h-4 text-white"
                 />
               </div>
-              <span class="text-gray-800">{{ option }}</span>
+              <span>{{ option }}</span>
             </div>
           </div>
         </div>
 
-        <div v-if="answerSubmitted" class="mt-4 p-3 bg-blue-50 text-blue-800 rounded-md">
+        <div v-if="answerSubmitted" class="mt-4 p-3 bg-blue-50 text-blue-800 rounded-md" role="alert">
           <div class="flex items-start">
-            <Info class="w-4 h-4 mt-1 mr-2 flex-shrink-0" />
+            <Info class="w-4 h-4 mt-1 mr-2 flex-shrink-0" aria-hidden="true" />
             <p class="text-sm">{{ currentQuestion.explanation }}</p>
           </div>
         </div>
@@ -276,8 +357,9 @@ const getOptionIconClass = (index: number) => {
             v-if="currentQuestionIndex > 1"
             @click="previousQuestion"
             class="text-gray-600 flex items-center hover:text-gray-800"
+            aria-label="Gå til forrige spørsmål"
           >
-            <ChevronLeft class="w-4 h-4 mr-1" />
+            <ChevronLeft class="w-4 h-4 mr-1" aria-hidden="true" />
             Forrige
           </button>
           <div v-else></div>
@@ -291,6 +373,7 @@ const getOptionIconClass = (index: number) => {
                 selectedAnswerIndex !== null ? buttonColorClass : 'bg-gray-300 cursor-not-allowed'
               ]"
               :disabled="selectedAnswerIndex === null"
+              :aria-label="selectedAnswerIndex === null ? 'Velg et svar før du sjekker' : 'Sjekk svaret ditt'"
             >
               Sjekk svar
             </button>
@@ -299,6 +382,7 @@ const getOptionIconClass = (index: number) => {
               @click="nextQuestion"
               class="px-6 py-2 rounded-md transition text-white font-medium"
               :class="buttonColorClass"
+              :aria-label="isLastQuestion ? 'Se resultater' : 'Gå til neste spørsmål'"
             >
               {{ isLastQuestion ? 'Se resultater' : 'Neste spørsmål' }}
             </button>
@@ -308,23 +392,24 @@ const getOptionIconClass = (index: number) => {
     </div>
 
     <!-- Results display -->
-    <div v-else-if="currentState === 'results'" class="quiz-results">
+    <div v-else-if="currentState === 'results'" class="quiz-results" role="region" aria-label="Quiz resultater">
       <div class="bg-white rounded-lg shadow-md p-6 mb-6 text-center">
         <div class="mb-6">
           <div
             class="w-24 h-24 rounded-full mx-auto flex items-center justify-center"
             :class="resultCircleColorClass"
+            aria-hidden="true"
           >
             <Trophy v-if="score === questions.length" class="w-10 h-10 text-white" />
             <Award v-else-if="score > questions.length / 2" class="w-10 h-10 text-white" />
             <ThumbsUp v-else class="w-10 h-10 text-white" />
           </div>
 
-          <h3 class="text-2xl font-bold mt-4">
+          <h3 class="text-2xl font-bold mt-4" role="tab">
             {{ score }} av {{ questions.length }} riktige svar!
           </h3>
 
-          <p class="text-gray-600 mt-2">
+          <p class="text-gray-600 mt-2" role="status">
             {{ resultFeedback }}
           </p>
         </div>
@@ -333,6 +418,7 @@ const getOptionIconClass = (index: number) => {
           <button
             @click="resetQuiz"
             class="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50 transition"
+            aria-label="Start quizen på nytt"
           >
             Prøv igjen
           </button>
@@ -340,6 +426,7 @@ const getOptionIconClass = (index: number) => {
             @click="viewAnswers"
             class="px-6 py-2 rounded-md transition text-white font-medium"
             :class="buttonColorClass"
+            aria-label="Se gjennomgang av alle svarene"
           >
             Se svarene
           </button>
@@ -348,13 +435,14 @@ const getOptionIconClass = (index: number) => {
     </div>
 
     <!-- Answers review -->
-    <div v-else-if="currentState === 'review'" class="quiz-review">
+    <div v-else-if="currentState === 'review'" class="quiz-review" role="region" aria-label="Gjennomgang av svar">
       <div class="mb-6 flex justify-between items-center">
         <h3 class="text-xl font-semibold text-gray-800">Dine svar</h3>
         <button
           @click="resetQuiz"
           class="px-6 py-2 rounded-md transition text-white font-medium"
           :class="buttonColorClass"
+          aria-label="Start quizen på nytt"
         >
           Prøv igjen
         </button>
@@ -365,6 +453,8 @@ const getOptionIconClass = (index: number) => {
           v-for="(question, qIndex) in questions"
           :key="qIndex"
           class="bg-white rounded-lg shadow-md overflow-hidden"
+          role="region"
+          :aria-label="'Spørsmål ' + (qIndex + 1)"
         >
           <div
             class="p-4 text-white font-medium"
@@ -373,7 +463,7 @@ const getOptionIconClass = (index: number) => {
             ]"
           >
             <div class="flex items-start">
-              <div class="mr-3 mt-1">
+              <div class="mr-3 mt-1" aria-hidden="true">
                 <CheckCircle v-if="userAnswers[qIndex] === question.correctAnswer" class="w-5 h-5" />
                 <XCircle v-else class="w-5 h-5" />
               </div>
@@ -390,17 +480,20 @@ const getOptionIconClass = (index: number) => {
                 oIndex === question.correctAnswer ? 'bg-green-100 text-green-800' :
                 oIndex === userAnswers[qIndex] && oIndex !== question.correctAnswer ? 'bg-red-100 text-red-800' : ''
               ]"
+              role="listitem"
             >
               <div class="flex items-center">
                 <div
                   v-if="oIndex === question.correctAnswer"
                   class="mr-2 text-green-600"
+                  aria-hidden="true"
                 >
                   <CheckCircle class="w-4 h-4" />
                 </div>
                 <div
                   v-else-if="oIndex === userAnswers[qIndex] && oIndex !== question.correctAnswer"
                   class="mr-2 text-red-600"
+                  aria-hidden="true"
                 >
                   <XCircle class="w-4 h-4" />
                 </div>
@@ -409,9 +502,9 @@ const getOptionIconClass = (index: number) => {
               </div>
             </div>
 
-            <div v-if="question.explanation" class="mt-3 p-3 bg-blue-50 text-blue-800 rounded-md">
+            <div v-if="question.explanation" class="mt-3 p-3 bg-blue-50 text-blue-800 rounded-md" role="alert">
               <div class="flex items-start">
-                <Info class="w-4 h-4 mt-1 mr-2 flex-shrink-0" />
+                <Info class="w-4 h-4 mt-1 mr-2 flex-shrink-0" aria-hidden="true" />
                 <p class="text-sm">{{ question.explanation }}</p>
               </div>
             </div>
