@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.map.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,14 +39,17 @@ public class EventController {
   private final EventService eventService;
 
   /**
-   * Retrieves all events from the system.
+   * Retrieves all ongoing and upcoming events from the system.
+   * Only events with status ONGOING or UPCOMING and with a start time in the
+   * future are returned.
    *
-   * @return ResponseEntity containing a list of all events.
+   * @return ResponseEntity containing a list of active events.
    * @since 1.0
    */
-  @Operation(summary = "Get all events", description = "Retrieves a list of all events in the system")
+  @Operation(summary = "Get active events", description = "Retrieves a list of all ongoing and upcoming events in the system")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved events", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Event.class)))})
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved active events", content = @Content(mediaType = "application/json", array = @ArraySchema(items = @Schema(implementation = Event.class))))
+  })
   @GetMapping
   public ResponseEntity<List<Event>> getAllEvents() {
     return ResponseEntity.ok(eventService.getAllEvents());
@@ -61,7 +65,8 @@ public class EventController {
   @Operation(summary = "Get an event by ID", description = "Retrieves a specific event by its ID")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the event", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Event.class))),
-      @ApiResponse(responseCode = "404", description = "Event not found")})
+      @ApiResponse(responseCode = "404", description = "Event not found")
+  })
   @GetMapping("/{id}")
   public ResponseEntity<Event> getEventById(
       @Parameter(description = "ID of the event to retrieve") @PathVariable Long id) {
@@ -79,7 +84,8 @@ public class EventController {
   @Operation(summary = "Create a new event", description = "Creates a new event in the system")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully created the event", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Event.class))),
-      @ApiResponse(responseCode = "403", description = "Access denied")})
+      @ApiResponse(responseCode = "403", description = "Access denied")
+  })
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Event> createEvent(
@@ -100,7 +106,8 @@ public class EventController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully updated the event", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Event.class))),
       @ApiResponse(responseCode = "404", description = "Event not found"),
-      @ApiResponse(responseCode = "403", description = "Access denied")})
+      @ApiResponse(responseCode = "403", description = "Access denied")
+  })
   @PutMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Event> updateEvent(
@@ -121,7 +128,8 @@ public class EventController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Successfully deleted the event"),
       @ApiResponse(responseCode = "404", description = "Event not found"),
-      @ApiResponse(responseCode = "403", description = "Access denied")})
+      @ApiResponse(responseCode = "403", description = "Access denied")
+  })
   @DeleteMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deleteEvent(

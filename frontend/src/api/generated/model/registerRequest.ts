@@ -7,11 +7,12 @@
  */
 
 /**
- * Registration details
+ * Registration details including Turnstile token
  */
 export interface RegisterRequest {
   email?: string
   password?: string
   firstName: string
   lastName: string
+  turnstileToken?: string
 }

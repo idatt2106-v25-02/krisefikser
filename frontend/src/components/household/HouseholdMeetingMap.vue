@@ -43,6 +43,8 @@ const showUserLocation = ref(false)
 const userInCrisisZone = ref(false)
 const selectedMeetingPlace = ref<MeetingPlace | null>(null)
 const directionsVisible = ref(false)
+const isAddingMeetingPoint = ref(false)
+const hasActiveHousehold = ref(true)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const directionsRoute = ref<any[]>([])
 
@@ -217,6 +219,8 @@ defineExpose({
       :user-location-available="userLocationAvailable"
       :show-user-location="showUserLocation"
       :user-in-crisis-zone="userInCrisisZone"
+      :is-adding-meeting-point="isAddingMeetingPoint"
+      :has-active-household="hasActiveHousehold"
       @toggle-user-location="toggleUserLocation"
     />
 

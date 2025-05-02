@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -21,6 +22,9 @@ import stud.ntnu.krisefikser.item.entity.ChecklistItem;
 import stud.ntnu.krisefikser.item.enums.ChecklistCategory;
 import stud.ntnu.krisefikser.item.repository.ChecklistItemRepository;
 import stud.ntnu.krisefikser.item.repository.FoodItemRepository;
+import stud.ntnu.krisefikser.auth.service.TurnstileService;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 class ItemFlowIntegrationTest extends AbstractIntegrationTest {
 
@@ -36,8 +40,13 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
   @Autowired
   private ChecklistItemRepository checklistItemRepository;
 
+  @MockBean
+  private TurnstileService turnstileService;
+
   @BeforeEach
   void setUp() throws Exception {
+    // Mock Turnstile verification to always return true for the test token
+    when(turnstileService.verify(any())).thenReturn(true);
     setUpUser();
 
     foodItemRepository.deleteAll();

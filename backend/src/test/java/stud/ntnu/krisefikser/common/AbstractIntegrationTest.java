@@ -80,7 +80,8 @@ public abstract class AbstractIntegrationTest {
         TEST_USER_EMAIL,
         DEFAULT_PASSWORD,
         "Test",
-        "User"
+        "User",
+        "turnstile-token"
     );
 
     Map<String, String> responseMap = getPostResponse(

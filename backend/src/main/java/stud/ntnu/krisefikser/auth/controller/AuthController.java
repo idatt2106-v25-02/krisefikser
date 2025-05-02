@@ -21,7 +21,9 @@ import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RefreshResponse;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
+import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
+import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 @RestController
@@ -30,20 +32,28 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 @Tag(name = "Authentication", description = "Authentication management APIs")
 @Validated
 public class AuthController {
+    private final AuthService authService;
+    private final TurnstileService turnstileService;
 
-  private final AuthService authService;
-
-  @Operation(summary = "Register a new user", description = "Creates a new user account in the system")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully registered user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RegisterResponse.class))),
-      @ApiResponse(responseCode = "400", description = "Invalid registration data")
-  })
-  @PostMapping("/register")
-  public ResponseEntity<RegisterResponse> register(
-      @Parameter(description = "Registration details") @RequestBody RegisterRequest request) {
-    RegisterResponse response = authService.register(request);
-    return ResponseEntity.ok(response);
-  }
+    @Operation(
+        summary = "Register a new user", description = "Creates a new user account after CAPTCHA verification and input validation"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully registered user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RegisterResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA verification failed", content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "500", description = "Unexpected server error", content = @Content(mediaType = "application/json"))
+    })
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponse> register(
+            @Parameter(description = "Registration details including Turnstile token", required = true)
+            @RequestBody RegisterRequest request) {
+        boolean isHuman = turnstileService.verify(request.getTurnstileToken());
+        if (!isHuman) {
+            throw new TurnstileVerificationException(); // Will trigger 400 with message if @RestControllerAdvice is used
+        }
+        RegisterResponse response = authService.register(request);
+        return ResponseEntity.ok(response);
+    }
 
   @Operation(summary = "Login user", description = "Authenticates a user and returns access tokens")
   @ApiResponses(value = {

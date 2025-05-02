@@ -177,4 +177,88 @@ public class HouseholdService {
     household.setWaterLiters(liters);
     householdRepo.save(household);
   }
+
+  @Transactional(readOnly = true)
+  public Household getHouseholdById(UUID id) {
+    return householdRepo.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+  }
+
+  @Transactional(readOnly = true)
+  public List<HouseholdResponse> getAllHouseholds() {
+    List<Household> households = householdRepo.findAll();
+    return households.stream()
+        .map(this::toHouseholdResponse)
+        .toList();
+  }
+
+  @Transactional
+  public HouseholdResponse addMemberToHousehold(UUID householdId, UUID userId) {
+    Household household = householdRepo.findById(householdId)
+        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+    User user = userService.getUserById(userId);
+
+    if (householdMemberService.isMemberOfHousehold(user, household)) {
+      throw new IllegalArgumentException("User is already a member of this household");
+    }
+
+    householdMemberService.addMember(household, user);
+    return toHouseholdResponse(household);
+  }
+
+  @Transactional
+  public HouseholdResponse removeMemberFromHousehold(UUID householdId, UUID userId) {
+    Household household = householdRepo.findById(householdId)
+        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+    User user = userService.getUserById(userId);
+
+    if (!householdMemberService.isMemberOfHousehold(user, household)) {
+      throw new IllegalArgumentException("User is not a member of this household");
+    }
+
+    // If the user's active household is this one, clear it
+    if (user.getActiveHousehold() != null && user.getActiveHousehold().getId().equals(householdId)) {
+      user.setActiveHousehold(null);
+      userService.updateActiveHousehold(null);
+    }
+
+    householdMemberService.removeMember(household, user);
+    return toHouseholdResponse(household);
+  }
+
+  @Transactional
+  public HouseholdResponse updateHousehold(UUID id, CreateHouseholdRequest request) {
+    Household household = householdRepo.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+    household.setName(request.getName());
+    household.setLatitude(request.getLatitude());
+    household.setLongitude(request.getLongitude());
+    household.setAddress(request.getAddress());
+    household.setPostalCode(request.getPostalCode());
+    household.setCity(request.getCity());
+
+    householdRepo.save(household);
+    return toHouseholdResponse(household);
+  }
+
+  @Transactional
+  public void deleteHouseholdAdmin(UUID id) {
+    Household household = householdRepo.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+    // Clear active household for all members
+    List<HouseholdMember> members = householdMemberService.getMembers(id);
+    for (HouseholdMember member : members) {
+      if (member.getUser().getActiveHousehold() != null &&
+          member.getUser().getActiveHousehold().getId().equals(id)) {
+        userService.updateActiveHousehold(null);
+      }
+    }
+
+    // Delete the household (cascade will handle household members)
+    householdRepo.deleteById(id);
+  }
 }
