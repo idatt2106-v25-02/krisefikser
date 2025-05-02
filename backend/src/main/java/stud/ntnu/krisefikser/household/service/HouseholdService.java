@@ -11,6 +11,7 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
+import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
@@ -21,6 +22,7 @@ public class HouseholdService {
   private final HouseholdRepository householdRepo;
   private final HouseholdMemberService householdMemberService;
   private final UserService userService;
+  private final ChecklistItemService checklistItemService;
 
   @Transactional(readOnly = true)
   public List<HouseholdResponse> getUserHouseholds() {
@@ -139,15 +141,15 @@ public class HouseholdService {
   }
 
   @Transactional
-  public HouseholdResponse createHousehold(CreateHouseholdRequest household) {
+  public HouseholdResponse createHousehold(CreateHouseholdRequest createHouseholdRequest) {
     User currentUser = userService.getCurrentUser();
     Household newHousehold = new Household();
-    newHousehold.setName(household.getName());
-    newHousehold.setLatitude(household.getLatitude());
-    newHousehold.setLongitude(household.getLongitude());
-    newHousehold.setAddress(household.getAddress());
-    newHousehold.setPostalCode(household.getPostalCode());
-    newHousehold.setCity(household.getCity());
+    newHousehold.setName(createHouseholdRequest.getName());
+    newHousehold.setLatitude(createHouseholdRequest.getLatitude());
+    newHousehold.setLongitude(createHouseholdRequest.getLongitude());
+    newHousehold.setAddress(createHouseholdRequest.getAddress());
+    newHousehold.setPostalCode(createHouseholdRequest.getPostalCode());
+    newHousehold.setCity(createHouseholdRequest.getCity());
     newHousehold.setOwner(currentUser);
 
     householdRepo.save(newHousehold);
@@ -155,6 +157,9 @@ public class HouseholdService {
 
     currentUser.setActiveHousehold(newHousehold);
     userService.updateActiveHousehold(newHousehold);
+
+    // Create default checklist items for the new household
+    checklistItemService.createDefaultChecklistItems(newHousehold);
 
     return toHouseholdResponse(newHousehold);
   }
@@ -219,7 +224,8 @@ public class HouseholdService {
     }
 
     // If the user's active household is this one, clear it
-    if (user.getActiveHousehold() != null && user.getActiveHousehold().getId().equals(householdId)) {
+    if (user.getActiveHousehold() != null && user.getActiveHousehold().getId()
+        .equals(householdId)) {
       user.setActiveHousehold(null);
       userService.updateActiveHousehold(null);
     }
