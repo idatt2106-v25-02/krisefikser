@@ -39,12 +39,14 @@ onUnmounted(() => {
     <MapComponent ref="mapRef" @map-created="onMapCreated" />
 
     <MapPointLayer
-      :map="mapInstance"
+      v-if="mapInstance && mapPoints"
+      :map="mapInstance as L.Map"
       :map-points="mapPoints"
     />
 
     <EventLayer
-      :map="mapInstance"
+      v-if="mapInstance && events"
+      :map="mapInstance as L.Map"
       :events="events"
     />
 

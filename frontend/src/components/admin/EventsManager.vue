@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/dialog'
 
 const authStore = useAuthStore()
-const { data: events, refetch: refetchEvents } = useGetAllEvents()
+const { data: eventsData, refetch: refetchEvents } = useGetAllEvents()
+const events = ref<Event[]>(Array.isArray(eventsData.value) ? eventsData.value : [])
 const { refetch: refetchMapPoints } = useGetAllMapPoints()
 
 const newEvent = ref<Partial<Event>>({
@@ -186,13 +187,13 @@ function handleDialogCancel() {
     <!-- List of Events -->
     <div class="mt-6 space-y-4">
       <h3 class="text-lg font-semibold">Eksisterende hendelser</h3>
-      <div v-for="event in events" :key="event?.id" class="border rounded-lg p-4">
+      <div v-for="event in events" :key="event.id" class="border rounded-lg p-4">
         <div class="flex justify-between items-start">
           <div>
-            <h4 class="font-medium">{{ event?.title || 'Ukjent tittel' }}</h4>
-            <p class="text-sm text-gray-600">{{ event?.description || 'Ingen beskrivelse' }}</p>
+            <h4 class="font-medium">{{ event.title || 'Ukjent tittel' }}</h4>
+            <p class="text-sm text-gray-600">{{ event.description || 'Ingen beskrivelse' }}</p>
             <p class="text-sm text-gray-600">
-              {{ event?.latitude?.toFixed(4) }}, {{ event?.longitude?.toFixed(4) }}
+              {{ event.latitude?.toFixed(4) }}, {{ event.longitude?.toFixed(4) }}
             </p>
           </div>
           <div class="flex space-x-2">
@@ -203,7 +204,7 @@ function handleDialogCancel() {
               Rediger
             </button>
             <button
-              v-if="event?.id"
+              v-if="event.id"
               @click="handleDeleteEvent(event.id)"
               class="text-red-500 hover:text-red-600"
             >
