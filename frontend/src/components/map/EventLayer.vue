@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import L from 'leaflet'
-import type { Event } from '@/api/generated/model'
-import { EventLevel, EventStatus } from '@/api/generated/model'
+import type { EventResponse } from '@/api/generated/model'
+import {
+  EventResponseLevel as EventLevel,
+  EventResponseStatus as EventStatus,
+} from '@/api/generated/model'
 
 // Define props
 const props = defineProps<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   map: any // Using any to avoid Leaflet type issues
-  events: Event[]
+  events: EventResponse[]
 }>()
 
 const circles: L.Circle[] = []

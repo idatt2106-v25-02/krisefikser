@@ -5,8 +5,10 @@ import ShelterLayer from '@/components/map/ShelterLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
 import { type Shelter } from '@/components/map/mapData'
-import type { Event } from '@/api/generated/model'
-import { EventLevel, EventStatus } from '@/api/generated/model'
+import {
+  EventResponseLevel as EventLevel,
+  EventResponseStatus as EventStatus,
+} from '@/api/generated/model'
 import L from 'leaflet'
 import { useCreateMapPoint, useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useGetAllEvents } from '@/api/generated/event/event'
@@ -28,7 +30,7 @@ const newShelter = ref<Partial<Shelter>>({
   capacity: 0,
   position: [63.4305, 10.3951], // Default to Trondheim center
 })
-const newEvent = ref<Partial<Event>>({
+const newEvent = ref({
   title: '',
   description: '',
   radius: 500,
@@ -36,6 +38,7 @@ const newEvent = ref<Partial<Event>>({
   longitude: 10.3951,
   level: EventLevel.GREEN,
   startTime: new Date().toISOString(),
+  endTime: undefined,
   status: EventStatus.UPCOMING,
 })
 
@@ -99,9 +102,7 @@ async function handleAddShelter() {
             data: {
               latitude: newShelter.value.position[0],
               longitude: newShelter.value.position[1],
-              type: {
-                id: data.id,
-              },
+              typeId: data.id,
             },
           })
         },
@@ -167,6 +168,7 @@ async function handleAddEvent() {
       longitude: 10.3951,
       level: EventLevel.GREEN,
       startTime: new Date().toISOString(),
+      endTime: undefined,
       status: EventStatus.UPCOMING,
     }
   } catch (error) {

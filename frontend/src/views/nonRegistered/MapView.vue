@@ -8,8 +8,11 @@ import MapLegend from '@/components/map/MapLegend.vue'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 import { useGetAllEvents } from '@/api/generated/event/event'
-import type { MapPoint, MapPointType } from '@/api/generated/model'
-import type { Event } from '@/api/generated/model'
+import type {
+  MapPointResponse as MapPoint,
+  MapPointTypeResponse as MapPointType,
+} from '@/api/generated/model'
+import type { EventResponse as Event } from '@/api/generated/model'
 import L from 'leaflet'
 
 // Map and related refs
@@ -36,9 +39,7 @@ function processMapData() {
   if (!mapPointsData.value || !mapPointTypesData.value) return
 
   // Get data arrays from the API response
-  const mapPoints = Array.isArray(mapPointsData.value)
-    ? mapPointsData.value
-    : [mapPointsData.value]
+  const mapPoints = Array.isArray(mapPointsData.value) ? mapPointsData.value : [mapPointsData.value]
 
   const mapPointTypes = Array.isArray(mapPointTypesData.value)
     ? mapPointTypesData.value

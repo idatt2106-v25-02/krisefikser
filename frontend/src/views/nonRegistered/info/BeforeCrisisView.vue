@@ -1,5 +1,5 @@
 <script lang="ts">
-/* eslint-disable vue/no-unused-components */
+ 
 import { Plus, Coffee, Flashlight, ClipboardList, Radio, Info, AlertTriangle, BookOpen } from 'lucide-vue-next';
 import QuizComponent from '@/components/quiz/QuizComponent.vue';
 import PageLayout from '@/components/layout/PageLayout.vue';
