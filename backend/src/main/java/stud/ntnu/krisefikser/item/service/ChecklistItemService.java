@@ -68,7 +68,7 @@ public class ChecklistItemService {
    * <p>This method creates a set of recommended checklist items organized by category
    * for the specified household, based on official emergency preparedness guidelines.</p>
    *
-   * @param householdId the ID of the household to create checklist items for
+   * @param household the household to create checklist items for
    */
   @Transactional
   public void createDefaultChecklistItems(Household household) {
