@@ -14,6 +14,10 @@ import {
 } from 'lucide-vue-next'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 import ProductSearch from '@/components/inventory/ProductSearch.vue' // Import the new search component
+import WaterItemDialog from '@/components/inventory/WaterItemDialog.vue'
+import FoodItemDialog from '@/components/inventory/FoodItemDialog.vue'
+import ChecklistItemDialog from '@/components/inventory/ChecklistItemDialog.vue'
+import MiscItemDialog from '@/components/inventory/MiscItemDialog.vue'
 
 const AddItemDialog = defineAsyncComponent(() => import('@/components/inventory/ItemDialog.vue'))
 
@@ -158,6 +162,24 @@ function navigateToHousehold() {
 function openAddItemDialog(categoryId: string, categoryName: string) {
   selectedCategory.value = { id: categoryId, name: categoryName }
   isAddItemDialogOpen.value = true
+}
+
+// Get the appropriate dialog component based on category
+function getDialogComponent(categoryId: string) {
+  switch (categoryId) {
+    case 'water':
+      return WaterItemDialog
+    case 'food':
+      return FoodItemDialog
+    case 'power':
+    case 'comm':
+    case 'health':
+      return ChecklistItemDialog
+    case 'misc':
+      return MiscItemDialog
+    default:
+      return null
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -451,10 +473,12 @@ function handleSearchChanged(isActive: boolean) {
       </div>
 
       <!-- Add Item Dialog -->
-      <AddItemDialog
+      <component
+        :is="getDialogComponent(selectedCategory?.id || '')"
+        v-if="selectedCategory"
         :is-open="isAddItemDialogOpen"
-        :category-id="selectedCategory?.id"
-        :category-name="selectedCategory?.name"
+        :category-id="selectedCategory.id"
+        :category-name="selectedCategory.name"
         @close="isAddItemDialogOpen = false"
         @add-item="handleAddItem"
       />
