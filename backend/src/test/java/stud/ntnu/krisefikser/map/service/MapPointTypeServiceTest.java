@@ -14,9 +14,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(MockitoExtension.class)
 class MapPointTypeServiceTest {
@@ -41,84 +45,114 @@ class MapPointTypeServiceTest {
     }
 
     @Test
-    void getAllMapPointTypes_ShouldReturnList() {
-        List<MapPointType> expected = Arrays.asList(testMapPointType);
+    void getAllMapPointTypes_ShouldReturnAllTypes() {
+        // Arrange
+        List<MapPointType> expected = List.of(testMapPointType);
         when(mapPointTypeRepository.findAll()).thenReturn(expected);
 
-        List<MapPointType> actual = mapPointTypeService.getAllMapPointTypes();
+        // Act
+        List<MapPointType> result = mapPointTypeService.getAllMapPointTypes();
 
-        assertEquals(expected, actual);
+        // Assert
+        assertThat(result).isNotNull().hasSize(1);
+        assertThat(result.getFirst()).isEqualTo(testMapPointType);
         verify(mapPointTypeRepository).findAll();
     }
 
     @Test
     void getMapPointTypeById_WithValidId_ShouldReturnMapPointType() {
+        // Arrange
         when(mapPointTypeRepository.findById(1L)).thenReturn(Optional.of(testMapPointType));
 
-        MapPointType actual = mapPointTypeService.getMapPointTypeById(1L);
+        // Act
+        MapPointType result = mapPointTypeService.getMapPointTypeById(1L);
 
-        assertEquals(testMapPointType, actual);
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(testMapPointType);
         verify(mapPointTypeRepository).findById(1L);
     }
 
     @Test
     void getMapPointTypeById_WithInvalidId_ShouldThrowException() {
+        // Arrange
         when(mapPointTypeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class,
-                () -> mapPointTypeService.getMapPointTypeById(1L));
+        // Act & Assert
+        assertThatThrownBy(() -> mapPointTypeService.getMapPointTypeById(1L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("MapPointType not found with id: 1");
         verify(mapPointTypeRepository).findById(1L);
     }
 
     @Test
     void createMapPointType_ShouldReturnCreatedMapPointType() {
+        // Arrange
         when(mapPointTypeRepository.save(any(MapPointType.class))).thenReturn(testMapPointType);
 
-        MapPointType actual = mapPointTypeService.createMapPointType(testMapPointType);
+        // Act
+        MapPointType result = mapPointTypeService.createMapPointType(testMapPointType);
 
-        assertEquals(testMapPointType, actual);
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(testMapPointType);
         verify(mapPointTypeRepository).save(testMapPointType);
     }
 
     @Test
     void updateMapPointType_WithValidId_ShouldReturnUpdatedMapPointType() {
+        // Arrange
         when(mapPointTypeRepository.existsById(1L)).thenReturn(true);
+        when(mapPointTypeRepository.findById(1L)).thenReturn(Optional.of(testMapPointType));
         when(mapPointTypeRepository.save(any(MapPointType.class))).thenReturn(testMapPointType);
 
-        MapPointType actual = mapPointTypeService.updateMapPointType(1L, testMapPointType);
+        // Act
+        MapPointType result = mapPointTypeService.updateMapPointType(1L, testMapPointType);
 
-        assertEquals(testMapPointType, actual);
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(testMapPointType);
         verify(mapPointTypeRepository).existsById(1L);
+        verify(mapPointTypeRepository).findById(1L);
         verify(mapPointTypeRepository).save(testMapPointType);
     }
 
     @Test
     void updateMapPointType_WithInvalidId_ShouldThrowException() {
+        // Arrange
         when(mapPointTypeRepository.existsById(1L)).thenReturn(false);
 
-        assertThrows(EntityNotFoundException.class,
-                () -> mapPointTypeService.updateMapPointType(1L, testMapPointType));
+        // Act & Assert
+        assertThatThrownBy(() -> mapPointTypeService.updateMapPointType(1L, testMapPointType))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("MapPointType not found with id: 1");
         verify(mapPointTypeRepository).existsById(1L);
         verify(mapPointTypeRepository, never()).save(any());
     }
 
     @Test
     void deleteMapPointType_WithValidId_ShouldDeleteMapPointType() {
+        // Arrange
         when(mapPointTypeRepository.existsById(1L)).thenReturn(true);
         doNothing().when(mapPointTypeRepository).deleteById(1L);
 
+        // Act
         mapPointTypeService.deleteMapPointType(1L);
 
+        // Assert
         verify(mapPointTypeRepository).existsById(1L);
         verify(mapPointTypeRepository).deleteById(1L);
     }
 
     @Test
     void deleteMapPointType_WithInvalidId_ShouldThrowException() {
+        // Arrange
         when(mapPointTypeRepository.existsById(1L)).thenReturn(false);
 
-        assertThrows(EntityNotFoundException.class,
-                () -> mapPointTypeService.deleteMapPointType(1L));
+        // Act & Assert
+        assertThatThrownBy(() -> mapPointTypeService.deleteMapPointType(1L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("MapPointType not found with id: 1");
         verify(mapPointTypeRepository).existsById(1L);
         verify(mapPointTypeRepository, never()).deleteById(any());
     }

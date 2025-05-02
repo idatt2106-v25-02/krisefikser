@@ -1,171 +1,163 @@
 <!-- EventFormComponent.vue -->
 <script setup lang="ts">
-import { ref } from 'vue';
-import { AlertTriangle } from 'lucide-vue-next';
+import { ref, watch } from 'vue'
+import type { Event } from '@/api/generated/model'
+import { EventLevel, EventStatus } from '@/api/generated/model'
 
-// Import our UI components
-import { Button } from '@/components/ui/button'
+const props = defineProps<{
+  modelValue: Partial<Event>
+  title?: string
+}>()
 
-const props = defineProps({
-  editMode: {
-    type: Boolean,
-    default: false
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: Partial<Event>): void
+  (e: 'submit'): void
+  (e: 'cancel'): void
+  (e: 'start-map-selection'): void
+}>()
+
+const localValue = ref<Partial<Event>>({ ...props.modelValue })
+
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    localValue.value = { ...newValue }
   },
-  eventData: {
-    type: Object,
-    default: () => ({
-      title: '',
-      description: '',
-      level: 'gul',
-      location: '',
-      timestamp: '',
-      active: true
-    })
-  }
-});
+  { deep: true }
+)
 
-const emit = defineEmits(['save', 'cancel']);
+watch(
+  localValue,
+  (newValue) => {
+    emit('update:modelValue', newValue)
+  },
+  { deep: true }
+)
 
-// Create a local copy of the data
-const formData = ref({...props.eventData});
-
-const levels = [
-  { value: 'rød', label: 'RØD', description: 'Kritisk hendelse' },
-  { value: 'gul', label: 'GUL', description: 'Alvorlig hendelse' },
-  { value: 'grønn', label: 'GRØNN', description: 'Mindre hendelse' }
-];
-
-const getCurrentDateTime = () => {
-  const now = new Date();
-  return now.toISOString().slice(0, 16); // Format: "YYYY-MM-DDThh:mm"
-};
-
-// Initialize timestamp if not provided
-if (!formData.value.timestamp) {
-  formData.value.timestamp = getCurrentDateTime();
+function handleSubmit() {
+  emit('submit')
 }
 
-const saveEvent = () => {
-  emit('save', formData.value);
-};
+function handleCancel() {
+  emit('cancel')
+}
 
-const cancelForm = () => {
-  emit('cancel');
-};
-
-const getLevelClass = (level: string) => {
-  switch(level.toLowerCase()) {
-    case 'rød': return 'bg-red-100 text-red-800 border-red-200';
-    case 'gul': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'grønn': return 'bg-green-100 text-green-800 border-green-200';
-    default: return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
-};
+function handleStartMapSelection() {
+  emit('start-map-selection')
+}
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow p-6">
-    <div class="flex items-center mb-6">
-      <AlertTriangle class="h-6 w-6 text-orange-500 mr-2" />
-      <h3 class="text-lg font-medium">{{ editMode ? 'Rediger hendelse' : 'Legg til ny hendelse' }}</h3>
+  <div class="space-y-4">
+    <h3 v-if="title" class="text-lg font-semibold">{{ title }}</h3>
+
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Navn</label>
+      <input
+        v-model="localValue.title"
+        type="text"
+        class="w-full px-3 py-2 border rounded-lg"
+        placeholder="Navn på hendelse"
+      />
     </div>
 
-    <form @submit.prevent="saveEvent">
-      <div class="space-y-4">
-        <!-- Title -->
-        <div>
-          <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Tittel</label>
-          <input
-            id="title"
-            v-model="formData.title"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Beskrivelse</label>
+      <textarea
+        v-model="localValue.description"
+        class="w-full px-3 py-2 border rounded-lg"
+        rows="3"
+        placeholder="Beskriv hendelsen"
+      ></textarea>
+    </div>
 
-        <!-- Description -->
-        <div>
-          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Beskrivelse</label>
-          <textarea
-            id="description"
-            v-model="formData.description"
-            rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          ></textarea>
-        </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Radius (meter)</label>
+      <input
+        v-model="localValue.radius"
+        type="number"
+        class="w-full px-3 py-2 border rounded-lg"
+        placeholder="Radius i meter"
+      />
+    </div>
 
-        <!-- Level -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nivå</label>
-          <div class="flex space-x-4">
-            <div v-for="level in levels" :key="level.value" class="flex">
-              <label :class="['flex items-center p-2 border rounded cursor-pointer',
-                             formData.level === level.value ? getLevelClass(level.value) + ' border-2' : 'border-gray-300']">
-                <input
-                  type="radio"
-                  :value="level.value"
-                  v-model="formData.level"
-                  class="sr-only"
-                />
-                <span class="ml-2 font-medium">{{ level.label }}</span>
-                <span class="ml-2 text-xs text-gray-500">{{ level.description }}</span>
-              </label>
-            </div>
-          </div>
-        </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Alvorlighetsgrad</label>
+      <select v-model="localValue.level" class="w-full px-3 py-2 border rounded-lg">
+        <option :value="EventLevel.GREEN">Lav</option>
+        <option :value="EventLevel.YELLOW">Middels</option>
+        <option :value="EventLevel.RED">Høy</option>
+      </select>
+    </div>
 
-        <!-- Location -->
-        <div>
-          <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Plassering</label>
-          <input
-            id="location"
-            v-model="formData.location"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Status</label>
+      <select v-model="localValue.status" class="w-full px-3 py-2 border rounded-lg">
+        <option :value="EventStatus.UPCOMING">Kommende</option>
+        <option :value="EventStatus.ONGOING">Pågående</option>
+        <option :value="EventStatus.FINISHED">Avsluttet</option>
+      </select>
+    </div>
 
-        <!-- Timestamp -->
-        <div>
-          <label for="timestamp" class="block text-sm font-medium text-gray-700 mb-1">Tidspunkt</label>
-          <input
-            id="timestamp"
-            v-model="formData.timestamp"
-            type="datetime-local"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Start tidspunkt</label>
+      <input
+        v-model="localValue.startTime"
+        type="datetime-local"
+        class="w-full px-3 py-2 border rounded-lg"
+      />
+    </div>
 
-        <!-- Active status -->
-        <div class="flex items-center">
-          <input
-            id="active"
-            v-model="formData.active"
-            type="checkbox"
-            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label for="active" class="ml-2 block text-sm text-gray-700">Aktiv hendelse</label>
-        </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Slutt tidspunkt (valgfritt)</label>
+      <input
+        v-model="localValue.endTime"
+        type="datetime-local"
+        class="w-full px-3 py-2 border rounded-lg"
+      />
+    </div>
+
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Plassering</label>
+      <div class="flex space-x-2">
+        <input
+          v-model="localValue.latitude"
+          type="number"
+          step="0.0001"
+          class="w-1/2 px-3 py-2 border rounded-lg"
+          placeholder="Breddegrad"
+          readonly
+        />
+        <input
+          v-model="localValue.longitude"
+          type="number"
+          step="0.0001"
+          class="w-1/2 px-3 py-2 border rounded-lg"
+          placeholder="Lengdegrad"
+          readonly
+        />
       </div>
+      <button
+        @click="handleStartMapSelection"
+        class="w-full mt-2 px-4 py-2 bg-primary/10 text-primary border border-primary rounded-lg hover:bg-primary/20"
+      >
+        Velg plassering på kartet
+      </button>
+    </div>
 
-      <!-- Form buttons -->
-      <div class="mt-6 flex space-x-3 justify-end">
-        <Button
-          variant="outline"
-          @click="cancelForm"
-          type="button"
-        >
-          Avbryt
-        </Button>
-        <Button
-          type="submit"
-        >
-          {{ editMode ? 'Lagre endringer' : 'Opprett hendelse' }}
-        </Button>
-      </div>
-    </form>
+    <div class="flex justify-end space-x-2">
+      <button
+        @click="handleCancel"
+        class="px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
+        Avbryt
+      </button>
+      <button
+        @click="handleSubmit"
+        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+      >
+        Lagre
+      </button>
+    </div>
   </div>
 </template>

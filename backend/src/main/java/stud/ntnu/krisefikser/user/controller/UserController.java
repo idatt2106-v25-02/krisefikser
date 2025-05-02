@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +28,8 @@ import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 /**
- * REST controller for managing users in the system. Provides endpoints for user management
+ * REST controller for managing users in the system. Provides endpoints for user
+ * management
  * operations.
  *
  * @since 1.0
@@ -46,7 +48,7 @@ public class UserController {
 
   @Operation(summary = "Get all users", description = "Retrieves a list of all users in the system")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved users", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class, type = "array"))),
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved users", content = @Content(mediaType = "application/json", array = @ArraySchema(items = @Schema(implementation = UserResponse.class)))),
       @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
   @GetMapping

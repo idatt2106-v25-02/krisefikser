@@ -14,18 +14,22 @@ import jakarta.persistence.UniqueConstraint;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
 import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.user.entity.User;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "household_id"})})
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "household_id" }) })
+@ToString(exclude = { "user", "household" })
 public class HouseholdMember {
 
   @Id
@@ -46,7 +50,6 @@ public class HouseholdMember {
   public HouseholdMemberResponse toDto() {
     return new HouseholdMemberResponse(
         user.toDto(),
-        status
-    );
+        status);
   }
 }

@@ -2,6 +2,7 @@ import axios from 'axios'
 
 // Create a custom Axios instance
 export const AXIOS_INSTANCE = axios.create({
+
   headers: {
     'Content-Type': 'application/json',
   },

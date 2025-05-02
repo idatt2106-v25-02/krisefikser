@@ -68,8 +68,10 @@ public class UserService {
    * @param userId the UUID of the user to update
    * @param data   the updated user data
    * @return the updated User entity
-   * @throws UserDoesNotExistException   if the user with the given ID does not exist
-   * @throws EmailAlreadyExistsException if the new email is already in use by another user
+   * @throws UserDoesNotExistException   if the user with the given ID does not
+   *                                     exist
+   * @throws EmailAlreadyExistsException if the new email is already in use by
+   *                                     another user
    */
   public User updateUser(UUID userId, CreateUser data) {
     User user = userRepository.findById(userId)
@@ -101,7 +103,8 @@ public class UserService {
    * Deletes a user from the system.
    *
    * @param userId the UUID of the user to delete
-   * @throws UserDoesNotExistException if the user with the given ID does not exist
+   * @throws UserDoesNotExistException if the user with the given ID does not
+   *                                   exist
    */
   public void deleteUser(UUID userId) {
     if (!userRepository.existsById(userId)) {
@@ -123,7 +126,8 @@ public class UserService {
    * Checks if the current user is either an admin or the user being accessed.
    *
    * @param userId the UUID of the user being accessed
-   * @return true if the current user is an admin or the user being accessed, false otherwise
+   * @return true if the current user is an admin or the user being accessed,
+   *         false otherwise
    */
   public boolean isAdminOrSelf(UUID userId) {
     User currentUser = getCurrentUser();
@@ -137,5 +141,10 @@ public class UserService {
     User currentUser = getCurrentUser();
     currentUser.setActiveHousehold(household);
     userRepository.save(currentUser);
+  }
+
+  public User getUserById(UUID id) {
+    return userRepository.findById(id)
+        .orElseThrow(() -> new UserDoesNotExistException("User with ID " + id + " does not exist"));
   }
 }
