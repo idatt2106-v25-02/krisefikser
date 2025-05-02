@@ -143,7 +143,7 @@ const handleStatClick = (title: string) => {
         </Button>
         </Link>
       </div>
-      <div class="p-4">
+      <div class="p-4 max-h-[320px] overflow-y-auto">
         <div v-if="isLoadingEvents" class="text-center py-4">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
         </div>
