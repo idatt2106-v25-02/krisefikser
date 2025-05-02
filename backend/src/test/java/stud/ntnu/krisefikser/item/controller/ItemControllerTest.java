@@ -24,6 +24,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
+import stud.ntnu.krisefikser.common.TestDataFactory;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
 import stud.ntnu.krisefikser.item.dto.ChecklistItemResponse;
 import stud.ntnu.krisefikser.item.dto.CreateFoodItemRequest;
@@ -62,22 +63,21 @@ class ItemControllerTest {
   void setUp() {
     validId = UUID.randomUUID();
 
-    createFoodItemRequest = new CreateFoodItemRequest(
+    // Use the TestDataFactory to create test objects
+    createFoodItemRequest = TestDataFactory.createTestFoodItemRequest(
         "Emergency Rations",
-        "food_icon",
         2000,
         Instant.now().plusSeconds(86400 * 365) // 1 year from now
     );
 
-    foodItemResponse = new FoodItemResponse(
+    foodItemResponse = TestDataFactory.createTestFoodItemResponse(
         validId,
         "Emergency Rations",
-        "food_icon",
         2000,
         Instant.now().plusSeconds(86400 * 365)
     );
 
-    checklistItemResponse = new ChecklistItemResponse(
+    checklistItemResponse = TestDataFactory.createTestChecklistItemResponse(
         validId,
         "First Aid Kit",
         "health_icon",
@@ -87,7 +87,7 @@ class ItemControllerTest {
 
   @Test
   @WithMockUser
-  void createFoodItem_ShouldReturnCreatedItem() throws Exception {
+  void createFoodItem_whenAuthenticated_shouldReturnCreatedItem() throws Exception {
     // Arrange
     when(foodItemService.createFoodItem(any(CreateFoodItemRequest.class)))
         .thenReturn(foodItemResponse);
@@ -104,7 +104,7 @@ class ItemControllerTest {
   }
 
   @Test
-  void createFoodItem_WhenNotAuthenticated_ShouldReturnUnauthorized() throws Exception {
+  void createFoodItem_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
     // Act & Assert
     mockMvc.perform(post("/api/items/food")
             .contentType(MediaType.APPLICATION_JSON)
@@ -114,7 +114,7 @@ class ItemControllerTest {
 
   @Test
   @WithMockUser
-  void getAllFoodItems_ShouldReturnItemsList() throws Exception {
+  void getAllFoodItems_whenAuthenticated_shouldReturnItemsList() throws Exception {
     // Arrange
     List<FoodItemResponse> items = List.of(foodItemResponse);
     when(foodItemService.getAllFoodItems()).thenReturn(items);
@@ -130,7 +130,7 @@ class ItemControllerTest {
 
   @Test
   @WithMockUser
-  void getAllFoodItems_WhenEmpty_ShouldReturnEmptyList() throws Exception {
+  void getAllFoodItems_whenNoItems_shouldReturnEmptyList() throws Exception {
     // Arrange
     when(foodItemService.getAllFoodItems()).thenReturn(Collections.emptyList());
 
@@ -142,7 +142,7 @@ class ItemControllerTest {
   }
 
   @Test
-  void getAllFoodItems_WhenNotAuthenticated_ShouldReturnUnauthorized() throws Exception {
+  void getAllFoodItems_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
     // Act & Assert
     mockMvc.perform(get("/api/items/food"))
         .andExpect(status().isUnauthorized());
@@ -150,9 +150,9 @@ class ItemControllerTest {
 
   @Test
   @WithMockUser
-  void toggleChecklistItem_ShouldReturnUpdatedItem() throws Exception {
+  void toggleChecklistItem_whenItemExists_shouldReturnUpdatedItem() throws Exception {
     // Arrange
-    ChecklistItemResponse toggledItem = new ChecklistItemResponse(
+    ChecklistItemResponse toggledItem = TestDataFactory.createTestChecklistItemResponse(
         validId, "First Aid Kit", "health_icon", true
     );
 
@@ -168,7 +168,7 @@ class ItemControllerTest {
 
   @Test
   @WithMockUser
-  void toggleChecklistItem_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+  void toggleChecklistItem_whenItemNotFound_shouldReturnNotFound() throws Exception {
     // Arrange
     UUID nonExistentId = UUID.randomUUID();
     when(checklistItemService.toggleChecklistItem(nonExistentId))
@@ -181,7 +181,7 @@ class ItemControllerTest {
   }
 
   @Test
-  void toggleChecklistItem_WhenNotAuthenticated_ShouldReturnUnauthorized() throws Exception {
+  void toggleChecklistItem_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
     // Act & Assert
     mockMvc.perform(put("/api/items/checklist/" + validId))
         .andExpect(status().isUnauthorized());
@@ -189,7 +189,7 @@ class ItemControllerTest {
 
   @Test
   @WithMockUser
-  void getAllChecklistItems_ShouldReturnItemsList() throws Exception {
+  void getAllChecklistItems_whenAuthenticated_shouldReturnItemsList() throws Exception {
     // Arrange
     List<ChecklistItemResponse> items = List.of(checklistItemResponse);
     when(checklistItemService.getAllChecklistItems()).thenReturn(items);
@@ -205,7 +205,7 @@ class ItemControllerTest {
 
   @Test
   @WithMockUser
-  void getAllChecklistItems_WhenEmpty_ShouldReturnEmptyList() throws Exception {
+  void getAllChecklistItems_whenNoItems_shouldReturnEmptyList() throws Exception {
     // Arrange
     when(checklistItemService.getAllChecklistItems()).thenReturn(Collections.emptyList());
 
@@ -217,7 +217,7 @@ class ItemControllerTest {
   }
 
   @Test
-  void getAllChecklistItems_WhenNotAuthenticated_ShouldReturnUnauthorized() throws Exception {
+  void getAllChecklistItems_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
     // Act & Assert
     mockMvc.perform(get("/api/items/checklist"))
         .andExpect(status().isUnauthorized());

@@ -13,9 +13,12 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import stud.ntnu.krisefikser.common.TestDataFactory;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.item.dto.ChecklistItemResponse;
 import stud.ntnu.krisefikser.item.entity.ChecklistItem;
@@ -43,30 +46,45 @@ class ChecklistItemServiceTest {
     household.setId(UUID.randomUUID());
     household.setName("Test Household");
 
-    checklistItem = ChecklistItem.builder()
-        .id(itemId)
-        .name("First Aid Kit")
-        .icon("health_icon")
-        .checked(false)
-        .type(ChecklistType.HEALTH)
-        .household(household)
-        .build();
+    checklistItem = TestDataFactory.createTestChecklistItem(
+        "First Aid Kit", 
+        ChecklistType.HEALTH, 
+        false, 
+        household
+    );
+    checklistItem.setId(itemId);
 
-    toggledItem = ChecklistItem.builder()
-        .id(itemId)
-        .name("First Aid Kit")
-        .icon("health_icon")
-        .checked(true)
-        .type(ChecklistType.HEALTH)
-        .household(household)
-        .build();
+    toggledItem = TestDataFactory.createTestChecklistItem(
+        "First Aid Kit", 
+        ChecklistType.HEALTH, 
+        true, 
+        household
+    );
+    toggledItem.setId(itemId);
   }
 
-  @Test
-  void toggleChecklistItem_WhenUnchecked_ShouldToggleToChecked() {
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void toggleChecklistItem_ShouldToggleStatus(boolean initialCheckedState) {
     // Arrange
-    when(checklistItemRepository.findById(itemId)).thenReturn(Optional.of(checklistItem));
-    when(checklistItemRepository.save(any(ChecklistItem.class))).thenReturn(toggledItem);
+    ChecklistItem testItem = TestDataFactory.createTestChecklistItem(
+        "First Aid Kit", 
+        ChecklistType.HEALTH, 
+        initialCheckedState, 
+        household
+    );
+    testItem.setId(itemId);
+
+    ChecklistItem expectedItem = TestDataFactory.createTestChecklistItem(
+        "First Aid Kit", 
+        ChecklistType.HEALTH, 
+        !initialCheckedState, 
+        household
+    );
+    expectedItem.setId(itemId);
+
+    when(checklistItemRepository.findById(itemId)).thenReturn(Optional.of(testItem));
+    when(checklistItemRepository.save(any(ChecklistItem.class))).thenReturn(expectedItem);
 
     // Act
     ChecklistItemResponse result = checklistItemService.toggleChecklistItem(itemId);
@@ -76,45 +94,7 @@ class ChecklistItemServiceTest {
     assertThat(result.getId()).isEqualTo(itemId);
     assertThat(result.getName()).isEqualTo("First Aid Kit");
     assertThat(result.getIcon()).isEqualTo("health_icon");
-    assertThat(result.getChecked()).isTrue();
-
-    verify(checklistItemRepository).findById(itemId);
-    verify(checklistItemRepository).save(any(ChecklistItem.class));
-  }
-
-  @Test
-  void toggleChecklistItem_WhenChecked_ShouldToggleToUnchecked() {
-    // Arrange
-    ChecklistItem checkedItem = ChecklistItem.builder()
-        .id(itemId)
-        .name("First Aid Kit")
-        .icon("health_icon")
-        .checked(true)
-        .type(ChecklistType.HEALTH)
-        .household(household)
-        .build();
-
-    ChecklistItem uncheckedItem = ChecklistItem.builder()
-        .id(itemId)
-        .name("First Aid Kit")
-        .icon("health_icon")
-        .checked(false)
-        .type(ChecklistType.HEALTH)
-        .household(household)
-        .build();
-
-    when(checklistItemRepository.findById(itemId)).thenReturn(Optional.of(checkedItem));
-    when(checklistItemRepository.save(any(ChecklistItem.class))).thenReturn(uncheckedItem);
-
-    // Act
-    ChecklistItemResponse result = checklistItemService.toggleChecklistItem(itemId);
-
-    // Assert
-    assertThat(result).isNotNull();
-    assertThat(result.getId()).isEqualTo(itemId);
-    assertThat(result.getName()).isEqualTo("First Aid Kit");
-    assertThat(result.getIcon()).isEqualTo("health_icon");
-    assertThat(result.getChecked()).isFalse();
+    assertThat(result.getChecked()).isEqualTo(!initialCheckedState);
 
     verify(checklistItemRepository).findById(itemId);
     verify(checklistItemRepository).save(any(ChecklistItem.class));
