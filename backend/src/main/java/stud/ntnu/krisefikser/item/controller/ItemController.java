@@ -236,6 +236,4 @@ public class ItemController {
     householdService.setWaterAmount(amount);
     return ResponseEntity.ok().build();
   }
-
-
 }

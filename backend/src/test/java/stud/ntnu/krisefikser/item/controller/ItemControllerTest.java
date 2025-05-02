@@ -3,6 +3,7 @@ package stud.ntnu.krisefikser.item.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -33,6 +34,8 @@ import stud.ntnu.krisefikser.item.dto.CreateFoodItemRequest;
 import stud.ntnu.krisefikser.item.dto.FoodItemResponse;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.item.service.FoodItemService;
+import stud.ntnu.krisefikser.household.service.HouseholdService;
+import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 
 @WebMvcTest(controllers = ItemController.class)
 @Import(TestSecurityConfig.class)
@@ -55,6 +58,9 @@ class ItemControllerTest {
 
   @MockitoBean
   private TokenService tokenService;
+
+  @MockitoBean
+  private HouseholdService householdService;
 
   private CreateFoodItemRequest createFoodItemRequest;
   private FoodItemResponse foodItemResponse;
@@ -303,6 +309,39 @@ class ItemControllerTest {
   void deleteFoodItem_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
     // Act & Assert
     mockMvc.perform(delete("/api/items/food/" + validId))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser
+  void setWaterAmount_whenAuthenticated_shouldReturnOk() throws Exception {
+    // Arrange
+    double waterAmount = 150.0;
+
+    // Act & Assert
+    mockMvc.perform(put("/api/items/water/" + waterAmount))
+        .andExpect(status().isOk());
+        
+    verify(householdService).setWaterAmount(waterAmount);
+  }
+
+  @Test
+  @WithMockUser
+  void setWaterAmount_whenHouseholdNotFound_shouldReturnNotFound() throws Exception {
+    // Arrange
+    double waterAmount = 150.0;
+    doThrow(new HouseholdNotFoundException())
+        .when(householdService).setWaterAmount(waterAmount);
+
+    // Act & Assert
+    mockMvc.perform(put("/api/items/water/" + waterAmount))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void setWaterAmount_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
+    // Act & Assert
+    mockMvc.perform(put("/api/items/water/150.0"))
         .andExpect(status().isUnauthorized());
   }
 } 

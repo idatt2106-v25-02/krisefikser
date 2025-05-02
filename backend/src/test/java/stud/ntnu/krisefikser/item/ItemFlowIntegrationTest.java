@@ -39,18 +39,21 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
   @BeforeEach
   void setUp() throws Exception {
     setUpUser();
+
+    foodItemRepository.deleteAll();
+    checklistItemRepository.deleteAll();
   }
 
   @Test
-  void completeItemFlow() throws Exception {
-    // 1. Create a food item - using TestDataFactory
+  void createFoodItem_whenValidInput_shouldCreateAndReturnItem() throws Exception {
+    // Arrange
     CreateFoodItemRequest createRequest = TestDataFactory.createTestFoodItemRequest(
         "Test Food Item",
         100,
         Instant.now().plusSeconds(86400) // 1 day from now
     );
 
-    // Use JWT authentication with the token from setup
+    // Act & Assert
     MvcResult createResult = mockMvc.perform(
             withJwtAuth(
                 post("/api/items/food")
@@ -61,49 +64,85 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
         .andExpect(jsonPath("$.name").value("Test Food Item"))
         .andReturn();
 
+    // Extract ID for potential future use
+    String responseContent = createResult.getResponse().getContentAsString();
+    UUID foodItemId = UUID.fromString(objectMapper.readTree(responseContent).get("id").asText());
+  }
+
+  @Test
+  void getAllFoodItems_afterCreatingItem_shouldReturnItemsList() throws Exception {
+    // Arrange - Create a food item first
+    CreateFoodItemRequest createRequest = TestDataFactory.createTestFoodItemRequest(
+        "Test Food Item for List",
+        100,
+        Instant.now().plusSeconds(86400)
+    );
+
+    // Create the item
+    MvcResult createResult = mockMvc.perform(
+            withJwtAuth(
+                post("/api/items/food")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest))
+            ))
+        .andReturn();
+
     String responseContent = createResult.getResponse().getContentAsString();
     UUID foodItemId = UUID.fromString(objectMapper.readTree(responseContent).get("id").asText());
 
-    // 2. Get all food items for the household
+    // Act & Assert - Get all items
     mockMvc.perform(
             withJwtAuth(
                 get("/api/items/food")
             ))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].id").value(foodItemId.toString()))
-        .andExpect(jsonPath("$[0].name").value("Test Food Item"));
+        .andExpect(jsonPath("$[0].name").value("Test Food Item for List"));
+  }
 
-    // 3. Create boundary test for expiration date - past date
+  @Test
+  void createFoodItem_withPastExpirationDate_shouldStillCreateItem() throws Exception {
+    // Arrange
     CreateFoodItemRequest pastDateRequest = TestDataFactory.createTestFoodItemRequest(
         "Past Date Item",
         200,
         Instant.now().minusSeconds(86400) // 1 day ago
     );
 
+    // Act & Assert
     mockMvc.perform(
             withJwtAuth(
                 post("/api/items/food")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(pastDateRequest))
             ))
-        .andExpect(status().isCreated());
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.name").value("Past Date Item"));
+  }
 
-    // 4. Create boundary test for expiration date - far future
+  @Test
+  void createFoodItem_withFarFutureExpirationDate_shouldCreateItem() throws Exception {
+    // Arrange
     CreateFoodItemRequest farFutureRequest = TestDataFactory.createTestFoodItemRequest(
         "Far Future Item",
         300,
         Instant.now().plusSeconds(86400 * 365 * 10) // 10 years from now
     );
 
+    // Act & Assert
     mockMvc.perform(
             withJwtAuth(
                 post("/api/items/food")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(farFutureRequest))
             ))
-        .andExpect(status().isCreated());
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.name").value("Far Future Item"));
+  }
 
-    // 5. Create checklist items using TestDataFactory
+  @Test
+  void getAllChecklistItems_shouldReturnItems() throws Exception {
+    // Arrange - Create a checklist item
     ChecklistItem checklistItem = TestDataFactory.createTestChecklistItem(
         "Test Checklist Item",
         ChecklistType.HEALTH,
@@ -113,7 +152,7 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
 
     checklistItemRepository.save(checklistItem);
 
-    // 6. Get all checklist items for the household
+    // Act & Assert
     mockMvc.perform(
             withJwtAuth(
                 get("/api/items/checklist")
@@ -121,8 +160,21 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].name").value("Test Checklist Item"))
         .andExpect(jsonPath("$[0].checked").value(false));
+  }
 
-    // 7. Toggle checklist item status - Use the correct endpoint path as defined in the controller
+  @Test
+  void toggleChecklistItem_shouldChangeCheckStatus() throws Exception {
+    // Arrange - Create an unchecked checklist item
+    ChecklistItem checklistItem = TestDataFactory.createTestChecklistItem(
+        "Toggle Test Item",
+        ChecklistType.HEALTH,
+        false,
+        getTestHousehold()
+    );
+
+    checklistItem = checklistItemRepository.save(checklistItem);
+
+    // Act & Assert - Toggle to checked
     mockMvc.perform(
             withJwtAuth(
                 put("/api/items/checklist/" + checklistItem.getId())
@@ -130,15 +182,7 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.checked").value(true));
 
-    // 8. Verify changes were saved
-    mockMvc.perform(
-            withJwtAuth(
-                get("/api/items/checklist")
-            ))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].checked").value(true));
-
-    // 9. Toggle back to unchecked
+    // Act & Assert - Toggle back to unchecked
     mockMvc.perform(
             withJwtAuth(
                 put("/api/items/checklist/" + checklistItem.getId())
