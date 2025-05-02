@@ -3,8 +3,9 @@ import { ref, onMounted } from 'vue'
 import { getIconNames } from '@/utils/icons'
 
 interface Props {
-  modelValue: string
+  modelValue: string | undefined
 }
+
 withDefaults(defineProps<Props>(), {
   modelValue: ''
 })
@@ -27,11 +28,11 @@ onMounted(() => {
     <button
       v-for="iconName in icons"
       :key="iconName"
-      @click="emit('update:modelValue', iconName)"
+      @click="emit('update:modelValue', `/icons/${iconName}.svg`)"
       class="p-2 rounded-lg border"
       :class="{
-        'border-blue-500 bg-blue-50': modelValue === iconName,
-        'border-gray-200 hover:border-gray-300': modelValue !== iconName
+        'border-blue-500 bg-blue-50': modelValue === `/icons/${iconName}.svg`,
+        'border-gray-200 hover:border-gray-300': modelValue !== `/icons/${iconName}.svg`
       }"
     >
       <img
