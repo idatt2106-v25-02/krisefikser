@@ -38,9 +38,6 @@ class ItemFlowIntegrationTest extends AbstractIntegrationTest {
   @BeforeEach
   void setUp() throws Exception {
     setUpUser();
-    // Clean up any previous test data
-    foodItemRepository.deleteAll();
-    checklistItemRepository.deleteAll();
   }
 
   @Test
