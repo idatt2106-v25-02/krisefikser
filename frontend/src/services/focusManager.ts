@@ -63,9 +63,9 @@ class FocusManager {
     }
   }
 
-  private handleKeyDown(event: KeyboardEvent): void {
-    // Only handle arrow keys
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+private handleKeyDown(event: KeyboardEvent): void {
+    // Only handle ArrowUp and ArrowDown keys
+    if (!['ArrowUp', 'ArrowDown'].includes(event.key)) {
       return;
     }
 
@@ -74,7 +74,7 @@ class FocusManager {
 
     // Check if we're in a dialog
     const dialog = currentElement.closest('[data-slot="dialog-content"]');
-    
+
     // Get all focusable elements, filtered by dialog context if in a dialog
     const focusableElements = Array.from(document.querySelectorAll(this.focusableSelector))
       .filter(el => {
@@ -99,7 +99,6 @@ class FocusManager {
     let nextIndex = currentIndex;
 
     switch (event.key) {
-      case 'ArrowLeft':
       case 'ArrowUp':
         event.preventDefault();
         nextIndex = currentIndex - 1;
@@ -107,7 +106,6 @@ class FocusManager {
           nextIndex = focusableElements.length - 1;
         }
         break;
-      case 'ArrowRight':
       case 'ArrowDown':
         event.preventDefault();
         nextIndex = currentIndex + 1;
@@ -123,10 +121,9 @@ class FocusManager {
       nextElement.focus();
     }
   }
-
   private handleClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    
+
     // Check if we're opening a dialog
     if (target.closest('[data-slot="dialog-content"]')) {
       // Find the dialog title
@@ -155,7 +152,7 @@ class FocusManager {
     else if (target.tagName === 'BUTTON') {
       // Get the button's text
       const buttonText = target.textContent?.trim() || '';
-      
+
       // Check if button is inside a label
       const parentLabel = target.closest('label');
       if (parentLabel) {
