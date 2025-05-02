@@ -5,8 +5,11 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { Pageable } from './pageable'
 
-export type GetAllProductTypesParams = {
-  pageable: Pageable
+export interface MapPointTypeResponse {
+  id: number
+  title: string
+  iconUrl: string
+  description?: string
+  openingTime?: string
 }

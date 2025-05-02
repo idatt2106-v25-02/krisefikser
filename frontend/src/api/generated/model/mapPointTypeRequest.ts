@@ -6,10 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface ProductType {
-  id?: string
-  name?: string
-  unit?: string
-  createdAt?: string
-  updatedAt?: string
+/**
+ * Map point type to create
+ */
+export interface MapPointTypeRequest {
+  title: string
+  iconUrl: string
+  description?: string
+  openingTime?: string
 }

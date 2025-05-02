@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export type EventLevel = (typeof EventLevel)[keyof typeof EventLevel]
+export type EventRequestLevel = (typeof EventRequestLevel)[keyof typeof EventRequestLevel]
 
  
-export const EventLevel = {
+export const EventRequestLevel = {
   GREEN: 'GREEN',
   YELLOW: 'YELLOW',
   RED: 'RED',

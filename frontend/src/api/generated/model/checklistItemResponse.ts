@@ -6,4 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
-export type GetHouseholdSummary200 = { [key: string]: number }
+export interface ChecklistItemResponse {
+  id: string
+  name: string
+  icon: string
+  checked: boolean
+}

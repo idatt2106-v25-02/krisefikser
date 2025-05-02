@@ -5,9 +5,12 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { Pageable } from './pageable'
 
-export type GetHouseholdItemsParams = {
-  productTypeId?: string
-  pageable: Pageable
+/**
+ * Map point to create
+ */
+export interface MapPointRequest {
+  latitude: number
+  longitude: number
+  typeId: number
 }

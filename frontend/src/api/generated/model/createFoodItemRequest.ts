@@ -6,8 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface ProductTypeResponse {
-  id?: string
-  name?: string
-  unit?: string
+/**
+ * Food item data
+ */
+export interface CreateFoodItemRequest {
+  name: string
+  icon: string
+  kcal: number
+  expirationDate?: string
 }

@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus]
+export type EventResponseStatus = (typeof EventResponseStatus)[keyof typeof EventResponseStatus]
 
  
-export const EventStatus = {
+export const EventResponseStatus = {
   UPCOMING: 'UPCOMING',
   ONGOING: 'ONGOING',
   FINISHED: 'FINISHED',

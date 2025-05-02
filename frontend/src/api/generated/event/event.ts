@@ -21,7 +21,7 @@ import type {
 import { computed, unref } from 'vue'
 import type { MaybeRef } from 'vue'
 
-import type { Event } from '.././model'
+import type { EventRequest, EventResponse, UpdateEventRequest } from '.././model'
 
 import { customInstance } from '../../axios'
 import type { ErrorType, BodyType } from '../../axios'
@@ -39,7 +39,7 @@ export const getEventById = (
 ) => {
   id = unref(id)
 
-  return customInstance<Event>(
+  return customInstance<EventResponse>(
     { url: `http://localhost:8080/api/events/${id}`, method: 'GET', signal },
     options,
   )
@@ -51,7 +51,7 @@ export const getGetEventByIdQueryKey = (id: MaybeRef<number>) => {
 
 export const getGetEventByIdQueryOptions = <
   TData = Awaited<ReturnType<typeof getEventById>>,
-  TError = ErrorType<Event>,
+  TError = ErrorType<EventResponse>,
 >(
   id: MaybeRef<number>,
   options?: {
@@ -75,7 +75,7 @@ export const getGetEventByIdQueryOptions = <
 }
 
 export type GetEventByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getEventById>>>
-export type GetEventByIdQueryError = ErrorType<Event>
+export type GetEventByIdQueryError = ErrorType<EventResponse>
 
 /**
  * @summary Get an event by ID
@@ -83,7 +83,7 @@ export type GetEventByIdQueryError = ErrorType<Event>
 
 export function useGetEventById<
   TData = Awaited<ReturnType<typeof getEventById>>,
-  TError = ErrorType<Event>,
+  TError = ErrorType<EventResponse>,
 >(
   id: MaybeRef<number>,
   options?: {
@@ -109,38 +109,38 @@ export function useGetEventById<
  */
 export const updateEvent = (
   id: MaybeRef<number>,
-  event: MaybeRef<Event>,
+  updateEventRequest: MaybeRef<UpdateEventRequest>,
   options?: SecondParameter<typeof customInstance>,
 ) => {
   id = unref(id)
-  event = unref(event)
+  updateEventRequest = unref(updateEventRequest)
 
-  return customInstance<Event>(
+  return customInstance<EventResponse>(
     {
       url: `http://localhost:8080/api/events/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      data: event,
+      data: updateEventRequest,
     },
     options,
   )
 }
 
 export const getUpdateEventMutationOptions = <
-  TError = ErrorType<Event>,
+  TError = ErrorType<EventResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateEvent>>,
     TError,
-    { id: number; data: BodyType<Event> },
+    { id: number; data: BodyType<UpdateEventRequest> },
     TContext
   >
   request?: SecondParameter<typeof customInstance>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateEvent>>,
   TError,
-  { id: number; data: BodyType<Event> },
+  { id: number; data: BodyType<UpdateEventRequest> },
   TContext
 > => {
   const mutationKey = ['updateEvent']
@@ -152,7 +152,7 @@ export const getUpdateEventMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateEvent>>,
-    { id: number; data: BodyType<Event> }
+    { id: number; data: BodyType<UpdateEventRequest> }
   > = (props) => {
     const { id, data } = props ?? {}
 
@@ -163,18 +163,18 @@ export const getUpdateEventMutationOptions = <
 }
 
 export type UpdateEventMutationResult = NonNullable<Awaited<ReturnType<typeof updateEvent>>>
-export type UpdateEventMutationBody = BodyType<Event>
-export type UpdateEventMutationError = ErrorType<Event>
+export type UpdateEventMutationBody = BodyType<UpdateEventRequest>
+export type UpdateEventMutationError = ErrorType<EventResponse>
 
 /**
  * @summary Update an event
  */
-export const useUpdateEvent = <TError = ErrorType<Event>, TContext = unknown>(
+export const useUpdateEvent = <TError = ErrorType<EventResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateEvent>>,
       TError,
-      { id: number; data: BodyType<Event> },
+      { id: number; data: BodyType<UpdateEventRequest> },
       TContext
     >
     request?: SecondParameter<typeof customInstance>
@@ -183,7 +183,7 @@ export const useUpdateEvent = <TError = ErrorType<Event>, TContext = unknown>(
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof updateEvent>>,
   TError,
-  { id: number; data: BodyType<Event> },
+  { id: number; data: BodyType<UpdateEventRequest> },
   TContext
 > => {
   const mutationOptions = getUpdateEventMutationOptions(options)
@@ -277,7 +277,7 @@ export const getAllEvents = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<Event>(
+  return customInstance<EventResponse[]>(
     { url: `http://localhost:8080/api/events`, method: 'GET', signal },
     options,
   )
@@ -341,18 +341,18 @@ export function useGetAllEvents<
  * @summary Create a new event
  */
 export const createEvent = (
-  event: MaybeRef<Event>,
+  eventRequest: MaybeRef<EventRequest>,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  event = unref(event)
+  eventRequest = unref(eventRequest)
 
-  return customInstance<Event>(
+  return customInstance<EventResponse>(
     {
       url: `http://localhost:8080/api/events`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      data: event,
+      data: eventRequest,
       signal,
     },
     options,
@@ -360,20 +360,20 @@ export const createEvent = (
 }
 
 export const getCreateEventMutationOptions = <
-  TError = ErrorType<Event>,
+  TError = ErrorType<EventResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createEvent>>,
     TError,
-    { data: BodyType<Event> },
+    { data: BodyType<EventRequest> },
     TContext
   >
   request?: SecondParameter<typeof customInstance>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createEvent>>,
   TError,
-  { data: BodyType<Event> },
+  { data: BodyType<EventRequest> },
   TContext
 > => {
   const mutationKey = ['createEvent']
@@ -385,7 +385,7 @@ export const getCreateEventMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createEvent>>,
-    { data: BodyType<Event> }
+    { data: BodyType<EventRequest> }
   > = (props) => {
     const { data } = props ?? {}
 
@@ -396,18 +396,18 @@ export const getCreateEventMutationOptions = <
 }
 
 export type CreateEventMutationResult = NonNullable<Awaited<ReturnType<typeof createEvent>>>
-export type CreateEventMutationBody = BodyType<Event>
-export type CreateEventMutationError = ErrorType<Event>
+export type CreateEventMutationBody = BodyType<EventRequest>
+export type CreateEventMutationError = ErrorType<EventResponse>
 
 /**
  * @summary Create a new event
  */
-export const useCreateEvent = <TError = ErrorType<Event>, TContext = unknown>(
+export const useCreateEvent = <TError = ErrorType<EventResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createEvent>>,
       TError,
-      { data: BodyType<Event> },
+      { data: BodyType<EventRequest> },
       TContext
     >
     request?: SecondParameter<typeof customInstance>
@@ -416,7 +416,7 @@ export const useCreateEvent = <TError = ErrorType<Event>, TContext = unknown>(
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof createEvent>>,
   TError,
-  { data: BodyType<Event> },
+  { data: BodyType<EventRequest> },
   TContext
 > => {
   const mutationOptions = getCreateEventMutationOptions(options)

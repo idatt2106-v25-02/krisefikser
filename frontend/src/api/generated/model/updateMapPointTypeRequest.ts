@@ -6,8 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface MapPointType {
-  id?: number
+/**
+ * Updated map point type details
+ */
+export interface UpdateMapPointTypeRequest {
   title?: string
   iconUrl?: string
   description?: string

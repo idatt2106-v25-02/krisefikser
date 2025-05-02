@@ -21,7 +21,11 @@ import type {
 import { computed, unref } from 'vue'
 import type { MaybeRef } from 'vue'
 
-import type { MapPointType } from '.././model'
+import type {
+  MapPointTypeRequest,
+  MapPointTypeResponse,
+  UpdateMapPointTypeRequest,
+} from '.././model'
 
 import { customInstance } from '../../axios'
 import type { ErrorType, BodyType } from '../../axios'
@@ -39,7 +43,7 @@ export const getMapPointTypeById = (
 ) => {
   id = unref(id)
 
-  return customInstance<MapPointType>(
+  return customInstance<MapPointTypeResponse>(
     { url: `http://localhost:8080/api/map-point-types/${id}`, method: 'GET', signal },
     options,
   )
@@ -111,18 +115,18 @@ export function useGetMapPointTypeById<
  */
 export const updateMapPointType = (
   id: MaybeRef<number>,
-  mapPointType: MaybeRef<MapPointType>,
+  updateMapPointTypeRequest: MaybeRef<UpdateMapPointTypeRequest>,
   options?: SecondParameter<typeof customInstance>,
 ) => {
   id = unref(id)
-  mapPointType = unref(mapPointType)
+  updateMapPointTypeRequest = unref(updateMapPointTypeRequest)
 
-  return customInstance<MapPointType>(
+  return customInstance<MapPointTypeResponse>(
     {
       url: `http://localhost:8080/api/map-point-types/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      data: mapPointType,
+      data: updateMapPointTypeRequest,
     },
     options,
   )
@@ -135,14 +139,14 @@ export const getUpdateMapPointTypeMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMapPointType>>,
     TError,
-    { id: number; data: BodyType<MapPointType> },
+    { id: number; data: BodyType<UpdateMapPointTypeRequest> },
     TContext
   >
   request?: SecondParameter<typeof customInstance>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateMapPointType>>,
   TError,
-  { id: number; data: BodyType<MapPointType> },
+  { id: number; data: BodyType<UpdateMapPointTypeRequest> },
   TContext
 > => {
   const mutationKey = ['updateMapPointType']
@@ -154,7 +158,7 @@ export const getUpdateMapPointTypeMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateMapPointType>>,
-    { id: number; data: BodyType<MapPointType> }
+    { id: number; data: BodyType<UpdateMapPointTypeRequest> }
   > = (props) => {
     const { id, data } = props ?? {}
 
@@ -167,7 +171,7 @@ export const getUpdateMapPointTypeMutationOptions = <
 export type UpdateMapPointTypeMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateMapPointType>>
 >
-export type UpdateMapPointTypeMutationBody = BodyType<MapPointType>
+export type UpdateMapPointTypeMutationBody = BodyType<UpdateMapPointTypeRequest>
 export type UpdateMapPointTypeMutationError = ErrorType<void>
 
 /**
@@ -178,7 +182,7 @@ export const useUpdateMapPointType = <TError = ErrorType<void>, TContext = unkno
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateMapPointType>>,
       TError,
-      { id: number; data: BodyType<MapPointType> },
+      { id: number; data: BodyType<UpdateMapPointTypeRequest> },
       TContext
     >
     request?: SecondParameter<typeof customInstance>
@@ -187,7 +191,7 @@ export const useUpdateMapPointType = <TError = ErrorType<void>, TContext = unkno
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof updateMapPointType>>,
   TError,
-  { id: number; data: BodyType<MapPointType> },
+  { id: number; data: BodyType<UpdateMapPointTypeRequest> },
   TContext
 > => {
   const mutationOptions = getUpdateMapPointTypeMutationOptions(options)
@@ -284,7 +288,7 @@ export const getAllMapPointTypes = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<MapPointType>(
+  return customInstance<MapPointTypeResponse>(
     { url: `http://localhost:8080/api/map-point-types`, method: 'GET', signal },
     options,
   )
@@ -350,18 +354,18 @@ export function useGetAllMapPointTypes<
  * @summary Create a new map point type
  */
 export const createMapPointType = (
-  mapPointType: MaybeRef<MapPointType>,
+  mapPointTypeRequest: MaybeRef<MapPointTypeRequest>,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  mapPointType = unref(mapPointType)
+  mapPointTypeRequest = unref(mapPointTypeRequest)
 
-  return customInstance<MapPointType>(
+  return customInstance<MapPointTypeResponse>(
     {
       url: `http://localhost:8080/api/map-point-types`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      data: mapPointType,
+      data: mapPointTypeRequest,
       signal,
     },
     options,
@@ -375,14 +379,14 @@ export const getCreateMapPointTypeMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createMapPointType>>,
     TError,
-    { data: BodyType<MapPointType> },
+    { data: BodyType<MapPointTypeRequest> },
     TContext
   >
   request?: SecondParameter<typeof customInstance>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createMapPointType>>,
   TError,
-  { data: BodyType<MapPointType> },
+  { data: BodyType<MapPointTypeRequest> },
   TContext
 > => {
   const mutationKey = ['createMapPointType']
@@ -394,7 +398,7 @@ export const getCreateMapPointTypeMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createMapPointType>>,
-    { data: BodyType<MapPointType> }
+    { data: BodyType<MapPointTypeRequest> }
   > = (props) => {
     const { data } = props ?? {}
 
@@ -407,7 +411,7 @@ export const getCreateMapPointTypeMutationOptions = <
 export type CreateMapPointTypeMutationResult = NonNullable<
   Awaited<ReturnType<typeof createMapPointType>>
 >
-export type CreateMapPointTypeMutationBody = BodyType<MapPointType>
+export type CreateMapPointTypeMutationBody = BodyType<MapPointTypeRequest>
 export type CreateMapPointTypeMutationError = ErrorType<void>
 
 /**
@@ -418,7 +422,7 @@ export const useCreateMapPointType = <TError = ErrorType<void>, TContext = unkno
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createMapPointType>>,
       TError,
-      { data: BodyType<MapPointType> },
+      { data: BodyType<MapPointTypeRequest> },
       TContext
     >
     request?: SecondParameter<typeof customInstance>
@@ -427,7 +431,7 @@ export const useCreateMapPointType = <TError = ErrorType<void>, TContext = unkno
 ): UseMutationReturnType<
   Awaited<ReturnType<typeof createMapPointType>>,
   TError,
-  { data: BodyType<MapPointType> },
+  { data: BodyType<MapPointTypeRequest> },
   TContext
 > => {
   const mutationOptions = getCreateMapPointTypeMutationOptions(options)

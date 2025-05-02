@@ -6,10 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface Pageable {
-  /** @minimum 0 */
-  page?: number
-  /** @minimum 1 */
-  size?: number
-  sort?: string[]
+/**
+ * Updated map point details
+ */
+export interface UpdateMapPointRequest {
+  latitude?: number
+  longitude?: number
+  typeId?: number
 }
