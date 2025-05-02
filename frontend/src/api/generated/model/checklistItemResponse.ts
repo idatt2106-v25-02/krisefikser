@@ -5,9 +5,10 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { Pageable } from './pageable'
 
-export type GetHouseholdItemsParams = {
-  productTypeId?: string
-  pageable: Pageable
+export interface ChecklistItemResponse {
+  id: string
+  name: string
+  icon: string
+  checked: boolean
 }

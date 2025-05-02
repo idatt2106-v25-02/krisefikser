@@ -28,6 +28,7 @@ import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
+import stud.ntnu.krisefikser.household.repository.MeetingPointRepository;
 import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.map.entity.EventLevel;
 import stud.ntnu.krisefikser.map.entity.EventStatus;
@@ -46,6 +47,7 @@ public class DataSeeder implements CommandLineRunner {
   private final UserRepository userRepo;
   private final HouseholdRepository householdRepository;
   private final HouseholdMemberRepository householdMemberRepository;
+  private final MeetingPointRepository meetingPointRepository;
   private final ArticleRepository articleRepository;
   private final MapPointTypeRepository mapPointTypeRepository;
   private final MapPointRepository mapPointRepository;
@@ -101,6 +103,9 @@ public class DataSeeder implements CommandLineRunner {
 
     // Delete household members first
     householdMemberRepository.deleteAll();
+
+    // Delete meeting points before households
+    meetingPointRepository.deleteAll();
 
     // Now we can safely delete in the correct order
     mapPointRepository.deleteAll();
@@ -449,12 +454,11 @@ public class DataSeeder implements CommandLineRunner {
       for (JsonNode feature : featuresNode) {
         JsonNode geometry = feature.get("geometry");
         JsonNode coordinates = geometry.get("coordinates");
-        JsonNode properties = feature.get("properties");
 
         if (coordinates != null && coordinates.isArray() && coordinates.size() >= 2) {
           MapPoint mapPoint = MapPoint.builder()
-              .latitude(coordinates.get(1).asDouble()) // Latitude is second in the coordinates array
-              .longitude(coordinates.get(0).asDouble()) // Longitude is first in the coordinates array
+              .latitude(coordinates.get(1).asDouble())// Latitude is second in the coordinates array
+              .longitude(coordinates.get(0).asDouble())// Longitude in the coordinates array
               .type(shelterType)
               .build();
 
@@ -472,7 +476,7 @@ public class DataSeeder implements CommandLineRunner {
 
   /**
    * Helper method to get a random item from an array based on weighted
-   * probabilities
+   * probabilities.
    *
    * @param items   Array of items to choose from
    * @param weights Array of weights corresponding to the items

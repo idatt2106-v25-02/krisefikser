@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface Pageable {
-  /** @minimum 0 */
-  page?: number
-  /** @minimum 1 */
-  size?: number
-  sort?: string[]
+export interface FoodItemResponse {
+  id: string
+  name: string
+  icon: string
+  kcal: number
+  expirationDate: string
 }

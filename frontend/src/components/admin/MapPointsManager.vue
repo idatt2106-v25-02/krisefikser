@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { MapPoint, MapPointType } from '@/api/generated/model'
 import { useCreateMapPoint, useGetAllMapPoints, useUpdateMapPoint, useDeleteMapPoint } from '@/api/generated/map-point/map-point'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
@@ -15,6 +15,7 @@ import {
 
 const authStore = useAuthStore()
 const { data: mapPoints, refetch: refetchMapPoints } = useGetAllMapPoints()
+const mapPointsList = computed(() => (mapPoints.value || []) as MapPoint[])
 const { data: mapPointTypes } = useGetAllMapPointTypes()
 const { refetch: refetchEvents } = useGetAllEvents()
 
@@ -170,7 +171,7 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
     <!-- List of Map Points -->
     <div class="mt-6 space-y-4">
       <h3 class="text-lg font-semibold">Eksisterende kartpunkter</h3>
-      <div v-for="point in mapPoints" :key="point?.id" class="border rounded-lg p-4">
+      <div v-for="point in mapPointsList" :key="point?.id" class="border rounded-lg p-4">
         <div class="flex justify-between items-start">
           <div>
             <h4 class="font-medium">{{ getMapPointTypeTitle(point?.type) }}</h4>
