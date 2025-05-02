@@ -13,29 +13,59 @@ import java.util.Map;
  * Service class for handling Cloudflare Turnstile verification.
  * This service is responsible for verifying user interactions with Cloudflare Turnstile,
  * which helps protect against automated abuse and spam.
+ * <p>
+ * The service communicates with Cloudflare's Turnstile API to verify that a user interaction
+ * is legitimate and not automated. It requires a secret key for authentication with the API.
+ * </p>
+ *
+ * @see <a href="https://developers.cloudflare.com/turnstile/">Cloudflare Turnstile Documentation</a>
  */
 @Service
 public class TurnstileService {
 
-    /** The URL endpoint for Cloudflare Turnstile verification */
+    /**
+     * The URL endpoint for Cloudflare Turnstile verification.
+     * This is the API endpoint where verification requests are sent.
+     */
     public static final String VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
-    /** RestTemplate instance for making HTTP requests */
+    /**
+     * RestTemplate instance for making HTTP requests to the Turnstile API.
+     * Injected through constructor to allow for better testability.
+     */
     private final RestTemplate restTemplate;
 
-    /** The secret key for Turnstile verification, injected from application properties */
+    /**
+     * The secret key for Turnstile verification, injected from application properties.
+     * This key is used to authenticate requests to the Turnstile API.
+     * In test environment, it defaults to "test-secret-key".
+     */
     @Value("${turnstile.secret:test-secret-key}")
     private String secretKey;
 
+    /**
+     * Constructs a new TurnstileService with the specified RestTemplate.
+     *
+     * @param restTemplate the RestTemplate to use for making HTTP requests
+     */
     public TurnstileService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     /**
      * Verifies a Turnstile token with Cloudflare's verification service.
+     * <p>
+     * This method sends a verification request to Cloudflare's Turnstile API
+     * with the provided token and the configured secret key. It handles various
+     * error cases and returns false if verification fails for any reason.
+     * </p>
      *
-     * @param token The Turnstile token to verify
-     * @return true if the token is valid and verification is successful, false otherwise
+     * @param token The Turnstile token to verify, obtained from the client-side
+     *              Turnstile widget. Must not be null or empty.
+     * @return true if the token is valid and verification is successful,
+     *         false if the token is invalid, empty, or if verification fails
+     *         for any other reason (e.g., network error, API error)
+     * @throws IllegalArgumentException if the token is null
      */
     public boolean verify(String token) {
         if (token == null || token.isEmpty()) {
