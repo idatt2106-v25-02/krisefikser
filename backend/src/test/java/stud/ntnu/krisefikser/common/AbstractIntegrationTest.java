@@ -5,14 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
+import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.entity.User;
@@ -36,6 +40,9 @@ public abstract class AbstractIntegrationTest {
   @Autowired
   private UserRepository userRepository;
 
+  @MockitoBean
+  private TurnstileService turnstileService;
+
   private String accessToken;
 
   @Getter
@@ -51,6 +58,9 @@ public abstract class AbstractIntegrationTest {
   public void setUpUser() throws Exception {
     // Delete brotherman testern if exists
     databaseCleanupService.clearDatabase();
+
+    // make turnstileService.verify returns true
+    Mockito.when(turnstileService.verify(ArgumentMatchers.anyString())).thenReturn(true);
 
     // Login if user exists
     this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
