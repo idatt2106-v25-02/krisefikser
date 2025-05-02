@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, defineAsyncComponent, computed } from 'vue'
+import { ref, computed } from 'vue'
+import type { FunctionalComponent } from 'vue';
+
 import { useRouter } from 'vue-router'
 import {
   Home,
@@ -19,12 +21,65 @@ import FoodItemDialog from '@/components/inventory/FoodItemDialog.vue'
 import ChecklistItemDialog from '@/components/inventory/ChecklistItemDialog.vue'
 import MiscItemDialog from '@/components/inventory/MiscItemDialog.vue'
 
-const AddItemDialog = defineAsyncComponent(() => import('@/components/inventory/ItemDialog.vue'))
+// Define types for our data structures
+interface InventoryItem {
+  id: string;
+  name: string;
+  amount: number;
+  unit: string;
+  type?: string;
+  expiryDate?: string | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: FunctionalComponent;
+  current: number;
+  target: number;
+  unit: string;
+  items: InventoryItem[];
+}
+
+interface Inventory {
+  preparedDays: number;
+  targetDays: number;
+  categories: Category[];
+}
+
+interface Household {
+  id: string;
+  name: string;
+  inventory: Inventory;
+}
+
+interface ApiResponse {
+  household: Household;
+}
+
+interface FormattedCategory {
+  current: number;
+  target: number;
+  unit: string;
+}
+
+interface FormattedInventory {
+  food: FormattedCategory;
+  water: FormattedCategory;
+  other: {
+    current: number;
+    target: number;
+  };
+  preparedDays: number;
+  targetDays: number;
+}
+
+//const AddItemDialog = defineAsyncComponent(() => import('@/components/inventory/ItemDialog.vue'))
 
 const router = useRouter()
 
 // Mock API response for inventory
-const apiResponse = ref({
+const apiResponse = ref<ApiResponse>({
   household: {
     id: '1',
     name: 'Familien Sysutvikling',
@@ -115,7 +170,7 @@ const apiResponse = ref({
 })
 
 // Create a computed property to format data for the HouseholdEmergencySupplies component
-const formattedInventory = computed(() => {
+const formattedInventory = computed<FormattedInventory>(() => {
   const categories = apiResponse.value.household.inventory.categories
 
   // Find food, water, and other categories
@@ -155,35 +210,35 @@ const formattedInventory = computed(() => {
   }
 })
 
-function navigateToHousehold() {
+function navigateToHousehold(): void {
   router.push(`/husstand/${apiResponse.value.household.id}`)
 }
 
-function openAddItemDialog(categoryId: string, categoryName: string) {
+function openAddItemDialog(categoryId: string, categoryName: string): void {
   selectedCategory.value = { id: categoryId, name: categoryName }
   isAddItemDialogOpen.value = true
 }
 
-// Get the appropriate dialog component based on category
-function getDialogComponent(categoryId: string) {
+function getDialogComponent(
+  categoryId: string
+): typeof WaterItemDialog | typeof FoodItemDialog | typeof ChecklistItemDialog | typeof MiscItemDialog | null {
   switch (categoryId) {
     case 'water':
-      return WaterItemDialog
+      return WaterItemDialog;
     case 'food':
-      return FoodItemDialog
+      return FoodItemDialog;
     case 'power':
     case 'comm':
     case 'health':
-      return ChecklistItemDialog
+      return ChecklistItemDialog;
     case 'misc':
-      return MiscItemDialog
+      return MiscItemDialog;
     default:
-      return null
+      return null;
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function handleAddItem(newItem: any) {
+function handleAddItem(newItem: InventoryItem): void {
   if (selectedCategory.value) {
     const category = apiResponse.value.household.inventory.categories.find(
       (c) => c.id === selectedCategory.value!.id,
@@ -198,14 +253,9 @@ function handleAddItem(newItem: any) {
   selectedCategory.value = null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function deleteItem(categoryId: string, itemId: string) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const category = apiResponse.value.household.inventory.categories.find((c) => c.id === categoryId)
-  // if (category) {
-  //   category.items = category.items.filter(item => item.id !== itemId)
-  // }
-}
+function deleteItem(categoryId: string, itemId: string): void {
+ console.log(`Deleting item with ID ${itemId} from category ${categoryId}`)
+  }
 
 // State for dialogs
 const originalCategoriesState = ref<string[]>([]) // Store the original state
@@ -215,7 +265,7 @@ const selectedCategory = ref<{ id: string; name: string } | null>(null)
 const isSearchActive = ref(false)
 
 // Jump to a search result
-function jumpToItem(categoryId: string, itemId: string) {
+function jumpToItem(categoryId: string, itemId: string): void {
   // First expand only the category containing the item
   expandedCategories.value = [categoryId]
 
@@ -243,7 +293,7 @@ function jumpToItem(categoryId: string, itemId: string) {
 }
 
 // Handle search state change from the search component
-function handleSearchChanged(isActive: boolean) {
+function handleSearchChanged(isActive: boolean): void {
   isSearchActive.value = isActive;
 
   // When search starts, store current state
@@ -256,6 +306,32 @@ function handleSearchChanged(isActive: boolean) {
     expandedCategories.value = [...originalCategoriesState.value];
     originalCategoriesState.value = [];
   }
+}
+
+// Inline editing state
+const editingItemId = ref<string | null>(null)
+const editingName = ref('')
+const editingAmount = ref<number | null>(null)
+
+function startEdit(item: InventoryItem): void {
+  editingItemId.value = item.id
+  editingName.value = item.name
+  editingAmount.value = item.amount
+}
+
+function cancelEdit(): void {
+  editingItemId.value = null
+  editingName.value = ''
+  editingAmount.value = null
+}
+
+function saveEdit(category: Category, item: InventoryItem): void {
+  const idx = category.items.findIndex((i) => i.id === item.id)
+  if (idx !== -1) {
+    category.items[idx].name = editingName.value
+    category.items[idx].amount = editingAmount.value as number
+  }
+  cancelEdit()
 }
 </script>
 
@@ -350,7 +426,7 @@ function handleSearchChanged(isActive: boolean) {
                   @click="
                     expandedCategories.includes(category.id)
                       ? (expandedCategories = expandedCategories.filter(
-                          (id: any) => id !== category.id,
+                          (id) => id !== category.id,
                         ))
                       : expandedCategories.push(category.id)
                   "
@@ -393,45 +469,60 @@ function handleSearchChanged(isActive: boolean) {
                     >
                       <div class="flex items-center">
                         <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
-                        <span class="text-gray-800">{{ item.name }}</span>
+                        <template v-if="category.id === 'misc' && editingItemId === item.id && item.amount !== undefined && !item.expiryDate">
+                          <input v-model="editingName" class="border rounded px-2 py-1 text-sm mr-2 w-32" />
+                          <input v-model.number="editingAmount" type="number" min="0.1" step="0.1" class="border rounded px-2 py-1 text-sm w-16" />
+                        </template>
+                        <template v-else>
+                          <span
+                            class="text-gray-800"
+                            :class="{ 'cursor-pointer underline decoration-dotted': category.id === 'misc' && item.amount !== undefined && !item.expiryDate }"
+                            @click="category.id === 'misc' && item.amount !== undefined && !item.expiryDate ? startEdit(item) : null"
+                          >
+                            {{ item.name }}
+                          </span>
+                        </template>
                       </div>
-
                       <div class="flex items-center space-x-6">
                         <div class="text-right">
-                          <span
-                            class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-                          >
-                            {{ item.amount }} {{ item.unit }}
-                          </span>
+                          <template v-if="category.id === 'misc' && editingItemId === item.id && true && !item.expiryDate">
+                            <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ editingAmount }}</span>
+                          </template>
+                          <template v-else>
+                            <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ item.amount }} {{ item.unit }}</span>
+                          </template>
                         </div>
-
-                        <div class="flex items-center">
-                          <span class="text-gray-600 mr-2 text-sm">Utløpsdato:</span>
-                          <span
-                            :class="[
-                              !item.expiryDate
-                                ? 'text-gray-500'
-                                : new Date(item.expiryDate) < new Date()
-                                  ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded'
-                                  : new Date(item.expiryDate) <
-                                      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                                    ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'
-                                    : 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded',
-                            ]"
-                            class="text-sm"
-                          >
-                            {{
-                              item.expiryDate
-                                ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                })
-                                : 'Ingen dato'
-                            }}
-                          </span>
-                        </div>
-
+                        <template v-if="category.id === 'misc' && editingItemId === item.id && true && !item.expiryDate">
+                          <button @click="saveEdit(category, item)" class="text-green-600 hover:text-green-800 mr-2">✓</button>
+                          <button @click="cancelEdit" class="text-gray-500 hover:text-red-600">✗</button>
+                        </template>
+                        <template v-if="item.expiryDate">
+                          <div class="flex items-center">
+                            <span class="text-gray-600 mr-2 text-sm">Utløpsdato:</span>
+                            <span
+                              :class="[
+                                !item.expiryDate
+                                  ? 'text-gray-500'
+                                  : new Date(item.expiryDate) < new Date()
+                                    ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded'
+                                    : new Date(item.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                                      ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'
+                                      : 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded',
+                              ]"
+                              class="text-sm"
+                            >
+                              {{
+                                item.expiryDate
+                                  ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                  })
+                                  : 'Ingen dato'
+                              }}
+                            </span>
+                          </div>
+                        </template>
                         <button
                           class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
                           @click="deleteItem(category.id, item.id)"
