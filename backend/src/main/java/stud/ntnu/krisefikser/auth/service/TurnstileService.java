@@ -1,5 +1,6 @@
 package stud.ntnu.krisefikser.auth.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class TurnstileService {
      * RestTemplate instance for making HTTP requests to the Turnstile API.
      * Injected through constructor to allow for better testability.
      */
+    @Autowired
     private final RestTemplate restTemplate;
 
     /**
