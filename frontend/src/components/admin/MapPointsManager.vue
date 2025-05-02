@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue'
 import type { MapPoint, MapPointType } from '@/api/generated/model'
 import { useCreateMapPoint, useGetAllMapPoints, useUpdateMapPoint, useDeleteMapPoint } from '@/api/generated/map-point/map-point'
-import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 import { useGetAllEvents } from '@/api/generated/event/event'
 import { useAuthStore } from '@/stores/useAuthStore'
 import MapPointForm from './MapPointForm.vue'
@@ -16,7 +15,6 @@ import {
 const authStore = useAuthStore()
 const { data: mapPoints, refetch: refetchMapPoints } = useGetAllMapPoints()
 const mapPointsList = computed(() => (mapPoints.value || []) as MapPoint[])
-const { data: mapPointTypes } = useGetAllMapPointTypes()
 const { refetch: refetchEvents } = useGetAllEvents()
 
 const newMapPoint = ref<Partial<MapPoint>>({
@@ -58,7 +56,7 @@ const emit = defineEmits<{
   (e: 'map-selection-mode-change', isActive: boolean): void
 }>()
 
-function handleMapClick(lat: number, lng: number) {
+function _handleMapClick(lat: number, lng: number) {
   if (!isMapSelectionMode.value) return
 
   if (editingMapPoint.value) {

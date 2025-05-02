@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
 type AdminTab = 'map-point-types' | 'map-points' | 'events'
 
-const props = defineProps<{
+defineProps<{
   activeTab: AdminTab
 }>()
 

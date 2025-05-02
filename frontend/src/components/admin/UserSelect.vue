@@ -29,7 +29,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
 }>();
 
-const { data: usersData, isLoading } = useGetAllUsers<UserResponse[]>();
+const { data: usersData } = useGetAllUsers<UserResponse[]>();
 const searchQuery = ref('');
 const open = ref(false);
 

@@ -125,7 +125,7 @@ function toggleUserLocation(show: boolean) {
             userLocationRef.value.toggleUserLocation(true)
           }
         },
-        (error) => {
+        () => {
           locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
           showLocationError.value = true
           showUserLocation.value = false
@@ -183,7 +183,7 @@ onMounted(() => {
           userLocationRef.value.toggleUserLocation(true)
         }
       },
-      (error) => {
+      () => {
         locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
         showLocationError.value = true
         showUserLocation.value = false

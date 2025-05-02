@@ -127,14 +127,14 @@ function startWatchingPosition() {
 
           checkUserInEventZone(position)
         },
-        (error) => {
+        () => {
           userLocationAvailable.value = false
           emit('user-location-available', false)
         },
         { enableHighAccuracy: true },
       )
     },
-    (error) => {
+    () => {
       userLocationAvailable.value = false
       emit('user-location-available', false)
     },

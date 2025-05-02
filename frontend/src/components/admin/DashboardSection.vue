@@ -1,6 +1,6 @@
 <!-- DashboardSection.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import {  computed } from 'vue';
 import {
   Map,
   AlertTriangle,
@@ -32,7 +32,7 @@ const stats = [
 const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents<Event[]>();
 
 // Fetch map points using TanStack Query
-const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints<MapPoint[]>();
+const { data: mapPointsData } = useGetAllMapPoints<MapPoint[]>();
 
 // Computed properties for stats
 const activeEventsCount = computed(() => {

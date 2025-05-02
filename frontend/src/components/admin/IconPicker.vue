@@ -2,10 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { getIconNames } from '@/utils/icons'
 
-const props = defineProps<{
-  modelValue?: string
-}>()
-
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()

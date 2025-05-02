@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import MapPointLayer from '@/components/map/MapPointLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
@@ -7,14 +7,12 @@ import MapLegend from '@/components/map/MapLegend.vue'
 import type { MapPoint, Event } from '@/api/generated/model'
 import L from 'leaflet'
 
-const props = defineProps<{
+defineProps<{
   mapPoints: MapPoint[] | undefined
   events: Event[] | undefined
 }>()
 
-const emit = defineEmits<{
-  (e: 'map-click', lat: number, lng: number): void
-}>()
+const emit = defineEmits<(e: 'map-click', lat: number, lng: number) => void>()
 
 const mapRef = ref<InstanceType<typeof MapComponent> | null>(null)
 const mapInstance = ref<L.Map | null>(null)

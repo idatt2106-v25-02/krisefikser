@@ -62,7 +62,7 @@ const emit = defineEmits<{
   (e: 'map-selection-mode-change', isActive: boolean): void
 }>()
 
-function handleMapClick(lat: number, lng: number) {
+function _handleMapClick(lat: number, lng: number) {
   if (!isMapSelectionMode.value) return
 
   if (editingEvent.value) {

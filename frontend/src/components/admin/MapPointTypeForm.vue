@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { computed } from 'vue'
 import type { MapPointType } from '@/api/generated/model'
 import IconPicker from './IconPicker.vue'
 
@@ -18,10 +18,6 @@ const formData = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
-
-watch(() => props.modelValue, (newValue) => {
-  formData.value = { ...newValue }
-}, { deep: true })
 
 function handleSubmit() {
   emit('submit')

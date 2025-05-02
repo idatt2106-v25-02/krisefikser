@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Map, AlertTriangle, BookOpen, Trophy, Users, Home } from 'lucide-vue-next'
+import { Map, BookOpen, Trophy, Users, Home } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 
 const router = useRouter()

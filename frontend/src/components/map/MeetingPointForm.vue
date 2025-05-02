@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useCreateMeetingPoint, useUpdateMeetingPoint, useDeleteMeetingPoint, useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
 import type { MeetingPointResponse } from '@/api/generated/model'
 import { Input } from '@/components/ui/input'
