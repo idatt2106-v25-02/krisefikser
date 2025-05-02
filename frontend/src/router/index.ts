@@ -97,7 +97,7 @@ const router = createRouter({
       component: AdminResetPasswordLink,
     },
     {
-      path: '/admin/scenarios',
+      path: '/admin/scenarioer',
       name: 'admin-scenarios',
       component: AdminScenariosView,
       meta: { requiresAuth: true, requiresAdmin: true }
