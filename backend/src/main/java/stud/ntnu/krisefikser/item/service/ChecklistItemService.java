@@ -7,11 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.household.entity.Household;
-import stud.ntnu.krisefikser.household.service.HouseholdService;
 import stud.ntnu.krisefikser.item.dto.ChecklistItemResponse;
 import stud.ntnu.krisefikser.item.entity.ChecklistItem;
 import stud.ntnu.krisefikser.item.enums.ChecklistCategory;
 import stud.ntnu.krisefikser.item.repository.ChecklistItemRepository;
+import stud.ntnu.krisefikser.user.service.UserService;
 
 /**
  * Service responsible for managing checklist items in the emergency preparedness system.
@@ -28,7 +28,7 @@ public class ChecklistItemService {
    * Repository for ChecklistItem entity operations.
    */
   private final ChecklistItemRepository checklistItemRepository;
-  private final HouseholdService householdService;
+  private final UserService userService;
 
   /**
    * Toggles the checked status of a checklist item.
@@ -44,7 +44,8 @@ public class ChecklistItemService {
   public ChecklistItemResponse toggleChecklistItem(UUID id) {
     return checklistItemRepository.findById(id)
         .map(item -> {
-          if (!item.getHousehold().getId().equals(householdService.getActiveHousehold().getId())) {
+          if (!item.getHousehold().getId()
+              .equals(userService.getCurrentUser().getActiveHousehold().getId())) {
             throw new EntityNotFoundException("Checklist item not found with id: " + id);
           }
           item.setChecked(!item.getChecked());
@@ -62,7 +63,8 @@ public class ChecklistItemService {
    * @return a list of checklist item response DTOs
    */
   public List<ChecklistItemResponse> getAllChecklistItems() {
-    return checklistItemRepository.findByHousehold(householdService.getActiveHousehold()).stream()
+    return checklistItemRepository.findByHousehold(
+            userService.getCurrentUser().getActiveHousehold()).stream()
         .map(ChecklistItem::toResponse)
         .toList();
   }
