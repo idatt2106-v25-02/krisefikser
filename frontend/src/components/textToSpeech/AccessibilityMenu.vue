@@ -6,7 +6,6 @@ import voiceCommandService from '@/services/voiceCommandService';
 
 const store = useAccessibilityStore();
 const isMenuOpen = ref(false);
-const ttsEnabled = ref(store.ttsEnabled);
 const speechRate = ref(store.speechRate);
 const selectedVoice = ref(store.selectedVoice);
 const voices = ref(store.voices);
@@ -19,10 +18,10 @@ const toggleMenu = () => {
     // Combine the heading and list items into a single string
     const menuContent = `
       Tilgjengelighetsalternativer.
-      Fn + T for å aktivere/deaktivere tekst-til-tale.
-      Fn + R for å skru av/på lesing av alt.
+      Ctrl + Shift + S for å aktivere/deaktivere tekst-til-tale.
+      Ctrl + Shift + X for å lese innholdet på siden.
       Pil opp / Pil ned for å navigere frem og tilbake.
-      Alt/Option + Pil opp / Pil ned for å justere talehastighet.
+      Ctrl + Shift + Pil opp / Pil ned for å justere talehastighet.
       1 til 4 for å velge svar på quiz.
     `;
 
@@ -65,8 +64,10 @@ const toggleVoiceCommands = () => {
   isVoiceCommandsEnabled.value = !isVoiceCommandsEnabled.value;
   if (isVoiceCommandsEnabled.value) {
     voiceCommandService.startListening();
+    speechService.speak('Stemmeoppkjenning er nå aktivert');
   } else {
     voiceCommandService.stopListening();
+    speechService.speak('Stemmeoppkjenning er nå deaktivert');
   }
 };
 
@@ -101,10 +102,6 @@ onUnmounted(() => {
 });
 
 // Keep local refs in sync with store
-watch(() => store.ttsEnabled, (newVal) => {
-  ttsEnabled.value = newVal;
-});
-
 watch(() => store.speechRate, (newVal) => {
   speechRate.value = newVal;
 });
@@ -137,23 +134,35 @@ watch(() => store.voices, (newVal) => {
       
       <ul class="text-base text-gray-600 mb-3 space-y-2">
         <li class="flex items-center">
-          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Fn</kbd>
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Ctrl</kbd>
           <span class="mx-1">+</span>
-          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">T</kbd>
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Shift</kbd>
+          <span class="mx-1">+</span>
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">S</kbd>
           <span class="ml-2">for å aktivere/deaktivere tekst-til-tale</span>
         </li>
         <li class="flex items-center">
-          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Fn</kbd>
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Ctrl</kbd>
+          <span class="mx-1">+</span>
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Shift</kbd>
+          <span class="mx-1">+</span>
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">X</kbd>
+          <span class="ml-2">for å lese innholdet på siden</span>
+        </li>
+        <li class="flex items-center">
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Alt/Option</kbd>
           <span class="mx-1">+</span>
           <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">R</kbd>
           <span class="ml-2">for å skru av/på lesing av alt</span>
         </li>
         <li class="flex items-center">
           <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">↑ / ↓</kbd>
-          <span class="ml-2">for å navigere frem og tilbake</span>
+          <span class="ml-2">for å navigere opp og ned</span>
         </li>
         <li class="flex items-center">
-          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Alt/Option</kbd>
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Ctrl</kbd>
+          <span class="mx-1">+</span>
+          <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Shift</kbd>
           <span class="mx-1">+</span>
           <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">↑</kbd>
           <span class="mx-1">/</span>
@@ -192,13 +201,13 @@ watch(() => store.voices, (newVal) => {
           <input
             type="checkbox"
             class="form-checkbox h-5 w-5 text-blue-600"
-            v-model="ttsEnabled"
+            :checked="store.ttsEnabled"
             @change="toggleTTS" />
           <span class="ml-2 text-gray-700">Tekst-til-tale</span>
         </label>
       </div>
 
-      <div v-if="ttsEnabled" class="space-y-3">
+      <div v-if="store.ttsEnabled" class="space-y-3">
         <div>
           <label class="block text-sm text-gray-700 mb-1">Talehastighet</label>
           <div class="flex items-center">
