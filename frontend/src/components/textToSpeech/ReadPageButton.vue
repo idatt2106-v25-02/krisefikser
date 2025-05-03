@@ -50,28 +50,6 @@ const readPageContent = () => {
   }
 };
 
-// Handle keyboard shortcut
-const handleKeydown = (event: KeyboardEvent) => {
-  console.log('Read page key pressed:', {
-    key: event.key,
-    altKey: event.altKey,
-    metaKey: event.metaKey,
-    ctrlKey: event.ctrlKey,
-    shiftKey: event.shiftKey
-  });
-
-  // Check for Option + R, including the "Dead" key that macOS generates
-  if (event.key.toLowerCase() === 'r' &&
-      !event.altKey &&
-      !event.ctrlKey &&
-      !event.metaKey &&
-      !event.shiftKey) {
-    event.preventDefault();
-    console.log('Read page shortcut detected: Fn + R');
-    readPageContent();
-  }
-};
-
 // Add touch feedback
 const handleTouchStart = () => {
   if ('vibrate' in navigator) {
@@ -86,11 +64,13 @@ const handleTouchEnd = () => {
 };
 
 onMounted(() => {
-  document.addEventListener('keydown', handleKeydown);
+  // Add listener for the readPage custom event
+  document.addEventListener('readPage', readPageContent);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown);
+  // Remove listener for the readPage custom event
+  document.removeEventListener('readPage', readPageContent);
 });
 </script>
 
@@ -103,14 +83,14 @@ onUnmounted(() => {
       @touchend="handleTouchEnd"
       class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group relative transition-all min-h-[48px] min-w-[48px] flex items-center justify-center"
       :class="{ 'animate-pulse': isReading }"
-      :aria-label="isReading ? 'Stopp lesing (Fn + R)' : 'Les innholdet på siden (Fn + R)'"
+      :aria-label="isReading ? 'Stopp lesing (Ctrl + Shift + X)' : 'Les innholdet på siden (Ctrl + Shift + X)'"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
       </svg>
       <!-- Tooltip -->
       <span class="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-        {{ isReading ? 'Stopp lesing (Fn + R)' : 'Les innholdet på siden (Fn + R)' }}
+        {{ isReading ? 'Stopp lesing (Ctrl + Shift + X)' : 'Les innholdet på siden (Ctrl + Shift + X)' }}
       </span>
     </button>
   </div>

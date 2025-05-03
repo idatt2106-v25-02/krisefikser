@@ -64,8 +64,8 @@ class FocusManager {
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
-    // Only handle arrow keys
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+    // Only handle up and down arrow keys
+    if (!['ArrowUp', 'ArrowDown'].includes(event.key)) {
       return;
     }
 
@@ -99,7 +99,6 @@ class FocusManager {
     let nextIndex = currentIndex;
 
     switch (event.key) {
-      case 'ArrowLeft':
       case 'ArrowUp':
         event.preventDefault();
         nextIndex = currentIndex - 1;
@@ -107,7 +106,6 @@ class FocusManager {
           nextIndex = focusableElements.length - 1;
         }
         break;
-      case 'ArrowRight':
       case 'ArrowDown':
         event.preventDefault();
         nextIndex = currentIndex + 1;
