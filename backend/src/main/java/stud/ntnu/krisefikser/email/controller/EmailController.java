@@ -25,8 +25,7 @@ public class EmailController {
                 requestDto.verificationLink()
             );
         } catch (Exception e) {
-            logger.error("Error occurred while sending email", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing your request.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Email sending failed: " + e.getMessage());
         }
     }
 
