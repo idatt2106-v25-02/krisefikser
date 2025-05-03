@@ -58,9 +58,13 @@ const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
 const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
 
 // Computed properties
-const isDataLoading = computed(() => isLoadingMapPoints.value || isLoadingMapPointTypes.value || isLoadingEvents.value)
+const isDataLoading = computed(
+  () => isLoadingMapPoints.value || isLoadingMapPointTypes.value || isLoadingEvents.value,
+)
 const canShowMeetingPointLayer = computed(() => mapInstance.value && activeHousehold.value?.id)
-const canShowMeetingPointForm = computed(() => showMeetingPointForm.value && activeHousehold.value?.id)
+const canShowMeetingPointForm = computed(
+  () => showMeetingPointForm.value && activeHousehold.value?.id,
+)
 const householdId = computed(() => activeHousehold.value?.id ?? '')
 
 // Location error dialog state
@@ -93,10 +97,12 @@ function processMapData() {
   if (!mapPointsData.value || !mapPointTypesData.value) return
 
   const mapPoints = Array.isArray(mapPointsData.value) ? mapPointsData.value : [mapPointsData.value]
-  const mapPointTypes = Array.isArray(mapPointTypesData.value) ? mapPointTypesData.value : [mapPointTypesData.value]
+  const mapPointTypes = Array.isArray(mapPointTypesData.value)
+    ? mapPointTypesData.value
+    : [mapPointTypesData.value]
 
   const shelterType = mapPointTypes.find((type: MapPointType) =>
-    type.title?.toLowerCase().includes('shelter')
+    type.title?.toLowerCase().includes('shelter'),
   )
 
   shelters.value = mapPoints
@@ -116,11 +122,15 @@ function processMapData() {
 }
 
 // Watch for data and map instance changes
-watch([isDataLoading, mapInstance], ([dataLoaded, map]) => {
-  if (!dataLoaded && map) {
-    processMapData()
-  }
-}, { immediate: true })
+watch(
+  [isDataLoading, mapInstance],
+  ([dataLoaded, map]) => {
+    if (!dataLoaded && map) {
+      processMapData()
+    }
+  },
+  { immediate: true },
+)
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
@@ -149,10 +159,11 @@ function toggleUserLocation(show: boolean) {
           }
         },
         () => {
-          locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
+          locationError.value =
+            'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
           showLocationError.value = true
           showUserLocation.value = false
-        }
+        },
       )
     } else {
       locationError.value = 'Din nettleser støtter ikke geolokasjon'
@@ -174,7 +185,7 @@ function handleUserCrisisZoneChange(inZone: boolean) {
 function onUserLocationStatus(available: boolean) {
   userLocationAvailable.value = available
 }
-  
+
 // Handle meeting point click
 function handleMeetingPointClick(point: MeetingPointResponse) {
   selectedMeetingPoint.value = point
@@ -207,10 +218,11 @@ onMounted(() => {
         }
       },
       () => {
-        locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
+        locationError.value =
+          'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
         showLocationError.value = true
         showUserLocation.value = false
-      }
+      },
     )
   } else {
     locationError.value = 'Din nettleser støtter ikke geolokasjon'
@@ -219,9 +231,9 @@ onMounted(() => {
   }
 })
 
-
 onUnmounted(() => {
   disconnectWebSocket()
+})
 </script>
 
 <template>
@@ -261,7 +273,9 @@ onUnmounted(() => {
         class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         :class="{ 'bg-blue-600': isAddingMeetingPoint }"
       >
-        {{ isAddingMeetingPoint ? 'Klikk på kartet for å legge til møtepunkt' : 'Legg til møtepunkt' }}
+        {{
+          isAddingMeetingPoint ? 'Klikk på kartet for å legge til møtepunkt' : 'Legg til møtepunkt'
+        }}
       </button>
     </div>
 
@@ -276,7 +290,7 @@ onUnmounted(() => {
     />
 
     <!-- Location Error Dialog -->
-    <Dialog :open="showLocationError" @update:open="val => !val && (showLocationError = false)">
+    <Dialog :open="showLocationError" @update:open="(val) => !val && (showLocationError = false)">
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Posisjonstilgang</DialogTitle>
@@ -285,22 +299,21 @@ onUnmounted(() => {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter class="flex gap-2 mt-4">
-          <Button
-            variant="default"
-            @click="showLocationError = false"
-            class="flex-1"
-          >
-            OK
-          </Button>
+          <Button variant="default" @click="showLocationError = false" class="flex-1"> OK </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
 
     <!-- Meeting Point Form Dialog -->
-    <Dialog :open="!!canShowMeetingPointForm" @update:open="val => !val && handleMeetingPointFormClose()">
+    <Dialog
+      :open="!!canShowMeetingPointForm"
+      @update:open="(val) => !val && handleMeetingPointFormClose()"
+    >
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{{ selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass' }}</DialogTitle>
+          <DialogTitle>{{
+            selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass'
+          }}</DialogTitle>
         </DialogHeader>
         <MeetingPointForm
           :household-id="householdId"
