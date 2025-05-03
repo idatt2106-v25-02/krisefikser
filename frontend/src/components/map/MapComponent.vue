@@ -82,4 +82,4 @@ defineExpose({
 
 <style scoped>
 /* No styles needed as we're using Tailwind classes */
-</style> 
+</style>

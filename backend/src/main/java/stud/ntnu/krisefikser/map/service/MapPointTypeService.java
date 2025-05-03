@@ -30,8 +30,18 @@ public class MapPointTypeService {
         if (!mapPointTypeRepository.existsById(id)) {
             throw new EntityNotFoundException("MapPointType not found with id: " + id);
         }
-        mapPointType.setId(id);
-        return mapPointTypeRepository.save(mapPointType);
+
+        // Fetch the existing entity
+        MapPointType existingType = mapPointTypeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("MapPointType not found with id: " + id));
+
+        // Update only the fields that should be changed
+        existingType.setTitle(mapPointType.getTitle());
+        existingType.setDescription(mapPointType.getDescription());
+        existingType.setIconUrl(mapPointType.getIconUrl());
+        existingType.setOpeningTime(mapPointType.getOpeningTime());
+
+        return mapPointTypeRepository.save(existingType);
     }
 
     public void deleteMapPointType(Long id) {

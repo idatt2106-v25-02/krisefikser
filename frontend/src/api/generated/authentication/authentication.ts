@@ -37,7 +37,7 @@ import type { ErrorType, BodyType } from '../../axios'
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
- * Creates a new user account in the system
+ * Creates a new user account after CAPTCHA verification and input validation
  * @summary Register a new user
  */
 export const register = (
@@ -60,7 +60,7 @@ export const register = (
 }
 
 export const getRegisterMutationOptions = <
-  TError = ErrorType<RegisterResponse>,
+  TError = ErrorType<unknown>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -97,12 +97,12 @@ export const getRegisterMutationOptions = <
 
 export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>
 export type RegisterMutationBody = BodyType<RegisterRequest>
-export type RegisterMutationError = ErrorType<RegisterResponse>
+export type RegisterMutationError = ErrorType<unknown>
 
 /**
  * @summary Register a new user
  */
-export const useRegister = <TError = ErrorType<RegisterResponse>, TContext = unknown>(
+export const useRegister = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof register>>,

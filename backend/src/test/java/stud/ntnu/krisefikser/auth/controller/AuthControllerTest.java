@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -14,10 +13,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
@@ -28,6 +27,7 @@ import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
 import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
+import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
@@ -41,14 +41,17 @@ public class AuthControllerTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  @MockBean
+  @MockitoBean
   private AuthService authService;
 
-  @MockBean
+  @MockitoBean
   private TokenService tokenService;
 
-  @MockBean
+  @MockitoBean
   private CustomUserDetailsService userDetailsService;
+
+  @MockitoBean
+  private TurnstileService turnstileService;
 
   private RegisterRequest registerRequest;
   private LoginRequest loginRequest;
@@ -57,7 +60,7 @@ public class AuthControllerTest {
 
   @BeforeEach
   void setUp() {
-    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User");
+    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User", "turnstile-token");
     loginRequest = new LoginRequest("test@example.com", "password");
     refreshRequest = new RefreshRequest("refresh-token-123");
     userResponse = new UserResponse(UUID.randomUUID(), "test@example.com", List.of("USER"), "Test",
@@ -66,9 +69,10 @@ public class AuthControllerTest {
   }
 
   @Test
-  void register_ShouldReturnOkWithTokens() throws Exception {
+  void register_WithValidTurnstileToken_ShouldReturnOkWithTokens() throws Exception {
     // Arrange
     RegisterResponse response = new RegisterResponse("access-token", "refresh-token");
+    when(turnstileService.verify(any(String.class))).thenReturn(true);
     when(authService.register(any(RegisterRequest.class))).thenReturn(response);
 
     // Act & Assert
@@ -78,6 +82,18 @@ public class AuthControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.accessToken").value("access-token"))
         .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+  }
+
+  @Test
+  void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
+    // Arrange
+    when(turnstileService.verify(any(String.class))).thenReturn(false);
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isBadRequest());
   }
 
   @Test

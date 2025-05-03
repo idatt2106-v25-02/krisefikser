@@ -4,8 +4,7 @@ import L from 'leaflet'
 
 // Define props
 const props = defineProps<{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  map: any
+  map: L.Map | null
   shelters: Array<{
     id: number
     name: string

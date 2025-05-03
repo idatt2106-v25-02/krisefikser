@@ -55,8 +55,8 @@
             <span class="text-gray-700">{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span>
             <DropdownMenu>
               <DropdownMenuTrigger>
-                <button class="flex items-center text-gray-700 hover:text-blue-600 transition">
-                  <UserIcon class="h-5 w-5" />
+                <button class="flex items-center text-gray-700 hover:text-blue-600 transition" aria-label="Min profil">
+                  <UserIcon class="h-5 w-5" aria-label="Min profil" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>

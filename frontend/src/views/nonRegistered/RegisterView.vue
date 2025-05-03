@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -11,17 +11,15 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
-import PrivacyPolicyView from './PrivacyPolicyView.vue'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useRouter } from 'vue-router';
 const router = useRouter();
 
 // Schema for the registration form
 const rawSchema = z
   .object({
-    firstName: z.string().min(2, 'Fornavn må være minst 2 tegn'),
-    lastName: z.string().min(2, 'Etternavn må være minst 2 tegn'),
-    email: z.string().email('Ugyldig e-post').min(5, 'E-post må være minst 5 tegn'),
+    firstName: z.string({ required_error: 'Fornavn er påkrevd' }).min(2, 'Fornavn må være minst 2 tegn'),
+    lastName: z.string({ required_error: 'Etternavn er påkrevd' }).min(2, 'Etternavn må være minst 2 tegn'),
+    email: z.string({ required_error: 'E-post er påkrevd' }).email('Ugyldig e-post').min(5, 'E-post må være minst 5 tegn'),
     householdCode: z
       .string()
       .refine((val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)), {
@@ -29,14 +27,14 @@ const rawSchema = z
       })
       .optional(),
     password: z
-      .string()
+      .string({ required_error: 'Passord er påkrevd' })
       .min(8, 'Passord må være minst 8 tegn')
       .max(50, 'Passord kan være maks 50 tegn')
       .regex(/[A-Z]/, 'Må inneholde minst én stor bokstav')
       .regex(/[a-z]/, 'Må inneholde minst én liten bokstav')
       .regex(/[0-9]/, 'Må inneholde minst ett tall')
       .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
-    confirmPassword: z.string(),
+    confirmPassword: z.string({ required_error: 'Bekreft passord er påkrevd' }),
     acceptedPrivacyPolicy: z.literal(true, {
       errorMap: () => ({ message: 'Du må godta personvernerklæringen' }),
     }),
@@ -88,7 +86,10 @@ const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
   try {
     const { confirmPassword, acceptedPrivacyPolicy, ...registrationData } = values
-    await authStore.register(registrationData)
+    await authStore.register({
+      ...registrationData,
+      turnstileToken: captchaToken.value
+    })
     toast({
       title: 'Suksess',
       description: 'Kontoen din er opprettet og du er nå logget inn',
@@ -107,8 +108,47 @@ const onSubmit = handleSubmit(async (values) => {
   }
 })
 
-// Dialog state
-const isPrivacyPolicyOpen = ref(false)
+// Captcha logic
+const captchaToken = ref('')
+const turnstileWidgetId = ref<string>('')
+
+// Initialise Cloudflare Turnstile
+onMounted(() => {
+  turnstileWidgetId.value = turnstile.render('#turnstile', {
+    sitekey: '0x4AAAAAABSTiPNZwrBLQkgr',
+    callback: (token: string) => {
+      captchaToken.value = token
+      toast({
+        title: 'Success',
+        description: 'Captcha token received',
+        variant: 'default',
+      })
+    },
+    'error-callback': () => {
+      toast({
+        title: 'Error',
+        description: 'Captcha token error',
+        variant: 'destructive',
+      })
+      captchaToken.value = ''
+    },
+    'expired-callback': () => {
+      toast({
+        title: 'Warning',
+        description: 'Captcha token expired',
+        variant: 'warning',
+      })
+      captchaToken.value = ''
+    },
+  })
+})
+
+// Clean up Turnstile on component unmount
+onUnmounted(() => {
+  if (turnstileWidgetId.value) {
+    turnstile.remove(turnstileWidgetId.value)
+  }
+})
 </script>
 
 <template>
@@ -214,19 +254,26 @@ const isPrivacyPolicyOpen = ref(false)
                 type="checkbox"
                 :checked="value"
                 @change="handleChange(($event.target as HTMLInputElement)?.checked ?? false)"
+                @keydown.enter.prevent="handleChange(!value)"
+                @keydown.space.prevent="handleChange(!value)"
                 id="acceptedPrivacyPolicy"
-                class="mt-1"
+                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                tabindex="0"
+                role="checkbox"
+                :aria-checked="value"
+                aria-label="Godta personvernerklæringen"
               />
             </FormControl>
-            <label for="acceptedPrivacyPolicy" class="text-sm text-gray-700">
+            <label for="acceptedPrivacyPolicy" class="text-sm text-gray-700 cursor-pointer select-none">
               Jeg godtar
-              <button
-                type="button"
-                @click="isPrivacyPolicyOpen = true"
-                class="text-blue-600 hover:underline"
+              <router-link
+                to="/personvern"
+                class="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm px-1"
+                tabindex="0"
+                aria-label="Åpne personvernerklæringen"
               >
                 personvernerklæringen
-              </button>
+              </router-link>
             </label>
           </div>
           <FormMessage class="text-sm text-red-500" />
@@ -234,39 +281,12 @@ const isPrivacyPolicyOpen = ref(false)
       </FormField>
 
       <!-- Cloudflare Turnstile -->
-      <!-- <FormField v-slot="{ componentField }" name="turnstileToken">
-        <FormItem>
-          <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Bekreft at du er et menneske</FormLabel>
-          <FormControl>
-            <div class="flex justify-center">
-              <div class="relative w-full flex justify-center">
-                <Shield class="absolute left-2 top-0 text-gray-500 h-4 w-4" />
-                <VueTurnstile
-                  site-key="0x4AAAAAABSTiPNZwrBLQkgr"
-                  v-model="turnstileToken"
-                  theme="light"
-                  @success="onTurnstileSuccess"
-                  @error="onTurnstileError"
-                  @expire="onTurnstileExpire"
-                />
-              </div>
-            </div>
-          </FormControl>
-          <FormMessage class="text-sm text-red-500" />
-        </FormItem>
-      </FormField> -->
-
-      <!-- Privacy Policy Dialog -->
-      <Dialog :open="isPrivacyPolicyOpen" @update:open="isPrivacyPolicyOpen = $event">
-        <DialogContent class="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <PrivacyPolicyView />
-        </DialogContent>
-      </Dialog>
+      <div id="turnstile"></div>
 
       <!-- Submit button -->
       <Button
         type="submit"
-        :disabled="!meta.valid || isLoading"
+        :disabled="!meta.valid || isLoading || !captchaToken"
         class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
         <template v-if="isLoading">Oppretter konto...</template>
