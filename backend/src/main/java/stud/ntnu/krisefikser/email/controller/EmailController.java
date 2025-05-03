@@ -1,62 +1,46 @@
 package stud.ntnu.krisefikser.email.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import stud.ntnu.krisefikser.email.dto.EmailRequestDto;
 import stud.ntnu.krisefikser.email.service.EmailService;
-import stud.ntnu.krisefikser.email.service.EmailTemplateService;
-import java.io.IOException;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/email")
 public class EmailController {
 
-    private static final Logger log = LoggerFactory.getLogger(EmailController.class);
-
     private final EmailService emailService;
-    private final EmailTemplateService templateService;
 
-    public EmailController(EmailService emailService, EmailTemplateService templateService) {
+    public EmailController(EmailService emailService) {
         this.emailService = emailService;
-        this.templateService = templateService;
     }
 
-    @PostMapping("/test")
-    public ResponseEntity<String> sendTestEmail(@RequestBody EmailRequestDto requestDto) {
-        log.info("Received test email request for: {}", requestDto.toEmail());
-
+    @PostMapping("/send")
+    public ResponseEntity<String> sendEmail(@RequestBody EmailRequestDto requestDto) {
         try {
-            // Prepare variables for the template
-            Map<String, String> variables = Map.of(
-                    "name", requestDto.name(),
-                    "link", requestDto.verificationLink()
+            return emailService.sendEmail(
+                requestDto.toEmail(),
+                "Please verify your email",
+                requestDto.verificationLink()
             );
-
-            // Load and populate the HTML template
-            String htmlContent = templateService.loadAndReplace("verification.html", variables);
-
-            // Send the email
-            ResponseEntity<String> response = emailService.sendEmail(
-                    requestDto.toEmail(),
-                    "Please verify your email",
-                    htmlContent
-            );
-
-            // Return the response from EmailService
-            return response;
-
-        } catch (IOException e) {
-            log.error("Failed to load or process email template: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("Error processing email template: " + e.getMessage());
         } catch (Exception e) {
-            log.error("An unexpected error occurred while sending test email: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Email sending failed: " + e.getMessage());
         }
     }
-} 
+
+    // metoden skal kobles opp til authService, men da trener man en verifyEmial metode, men først må man fikse
+    //det med verification tokens.
+    /*
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+        boolean isVerified = authService.verifyEmail(token);
+        if (isVerified) {
+            return ResponseEntity.ok("Email verified successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid verification token.");
+        }
+    }
+    */
+
+}
