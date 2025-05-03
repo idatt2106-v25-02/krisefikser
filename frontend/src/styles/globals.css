@@ -140,3 +140,17 @@ a, button, .router-link-active, .router-link-exact-active, [to], [role="button"]
     @apply bg-background text-foreground;
   }
 }
+
+/* Override PostHog survey positioning */
+[data-ph-survey] {
+  right: auto !important;
+  left: 0 !important;
+  transform: none !important;
+}
+
+/* Ensure the survey container is properly positioned */
+[data-ph-survey] > div {
+  right: auto !important;
+  left: 0 !important;
+  transform: none !important;
+}
