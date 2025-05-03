@@ -11,11 +11,12 @@ const selectedVoice = ref(store.selectedVoice);
 const voices = ref(store.voices);
 const isVoiceCommandsEnabled = ref(false);
 
+const isMobile = ref(window.innerWidth <= 768);
+
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
 
   if (isMenuOpen.value) {
-    // Combine the heading and list items into a single string
     const menuContent = `
       Tilgjengelighetsalternativer.
       Ctrl + Shift + S for å aktivere/deaktivere tekst-til-tale.
@@ -24,8 +25,6 @@ const toggleMenu = () => {
       Ctrl + Shift + Pil opp / Pil ned for å justere talehastighet.
       1 til 4 for å velge svar på quiz.
     `;
-
-    // Speak the menu content
     speechService.speak(menuContent.trim());
   }
 };
@@ -33,11 +32,9 @@ const toggleMenu = () => {
 const toggleTTS = () => {
   store.toggleTTS();
 
-  // If TTS is being disabled, cancel any ongoing speech
   if (!store.ttsEnabled) {
     speechService.cancel();
   } else {
-    // Test speech when enabled
     speechService.speak('Talesyntese er nå aktivert');
   }
 };
@@ -49,8 +46,6 @@ const updateSpeechRate = () => {
 const updateVoice = () => {
   if (selectedVoice.value) {
     store.setSelectedVoice(selectedVoice.value);
-
-    // Test the selected voice
     speechService.speak('Dette er en test av den valgte stemmen');
   }
 };
@@ -71,37 +66,43 @@ const toggleVoiceCommands = () => {
   }
 };
 
-// Add touch feedback
 const handleTouchStart = () => {
   if ('vibrate' in navigator) {
-    navigator.vibrate(50); // 50ms vibration for touch feedback
+    navigator.vibrate(50);
   }
 };
 
 const handleTouchEnd = () => {
   if ('vibrate' in navigator) {
-    navigator.vibrate(0); // Stop vibration
+    navigator.vibrate(0);
   }
 };
 
 onMounted(() => {
-  // Close menu when clicking outside
+  const handleResize = () => {
+    isMobile.value = window.innerWidth <= 768;
+  };
+
+  window.addEventListener('resize', handleResize);
+
   document.addEventListener('click', (event) => {
     const target = event.target as HTMLElement;
     if (isMenuOpen.value && !target.closest('.accessibility-menu')) {
       isMenuOpen.value = false;
     }
   });
+
+  return () => {
+    window.removeEventListener('resize', handleResize);
+  };
 });
 
-// Add cleanup on component unmount
 onUnmounted(() => {
   if (isVoiceCommandsEnabled.value) {
     voiceCommandService.stopListening();
   }
 });
 
-// Keep local refs in sync with store
 watch(() => store.speechRate, (newVal) => {
   speechRate.value = newVal;
 });
@@ -114,7 +115,6 @@ watch(() => store.voices, (newVal) => {
   voices.value = newVal;
 });
 </script>
-
 <template>
   <div class="fixed bottom-4 right-4 z-50 accessibility-menu">
     <button
@@ -124,15 +124,16 @@ watch(() => store.voices, (newVal) => {
       @touchstart="handleTouchStart"
       @touchend="handleTouchEnd"
     >
-     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M11.25 3.018a.75.75 0 00-.53.22L6.72 7.238H4.5A2.25 2.25 0 002.25 9.488v5.025a2.25 2.25 0 002.25 2.25h2.22l4 4.001a.75.75 0 001.28-.53V3.748a.75.75 0 00-.75-.75zm6.72 3.03a.75.75 0 00-1.06 1.06 6.75 6.75 0 010 9.546.75.75 0 101.06 1.06 8.25 8.25 0 000-11.667zm-2.72 2.72a.75.75 0 00-1.06 1.06 3.75 3.75 0 010 5.304.75.75 0 101.06 1.06 5.25 5.25 0 000-7.425z" />
-     </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M11.25 3.018a.75.75 0 00-.53.22L6.72 7.238H4.5A2.25 2.25 0 002.25 9.488v5.025a2.25 2.25 0 002.25 2.25h2.22l4 4.001a.75.75 0 001.28-.53V3.748a.75.75 0 00-.75-.75zm6.72 3.03a.75.75 0 00-1.06 1.06 6.75 6.75 0 010 9.546.75.75 0 101.06 1.06 8.25 8.25 0 000-11.667zm-2.72 2.72a.75.75 0 00-1.06 1.06 3.75 3.75 0 010 5.304.75.75 0 101.06 1.06 5.25 5.25 0 000-7.425z" />
+      </svg>
     </button>
 
-    <div v-if="isMenuOpen" class="absolute bottom-16 right-0 bg-white rounded-lg shadow-xl p-4 w-85 max-h-[80vh] overflow-y-auto">
+<div v-if="isMenuOpen" class="absolute bottom-16 right-0 bg-white rounded-lg shadow-xl p-4 w-85 max-h-[80vh] overflow-y-auto">
       <h3 class="font-medium text-gray-800 mb-3 text-xl">Tilgjengelighetsalternativer</h3>
-      
-      <ul class="text-base text-gray-600 mb-3 space-y-2">
+
+      <!-- Keyboard instructions for desktop only -->
+      <ul v-if="!isMobile" class="text-base text-gray-600 mb-3 space-y-2">
         <li class="flex items-center">
           <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm">Ctrl</kbd>
           <span class="mx-1">+</span>
@@ -182,8 +183,12 @@ watch(() => store.voices, (newVal) => {
             type="checkbox"
             class="form-checkbox h-5 w-5 text-blue-600"
             :checked="isVoiceCommandsEnabled"
+            :disabled="!store.ttsEnabled"
             @change="toggleVoiceCommands" />
-          <span class="ml-2 text-gray-700">Stemmeoppkjenning</span>
+          <span class="ml-2 text-gray-700" :class="{ 'text-gray-400': !store.ttsEnabled }">
+            Stemmeoppkjenning
+            <span v-if="!store.ttsEnabled" class="text-sm">(Krever at tekst-til-tale er aktivert)</span>
+          </span>
         </label>
         <p class="mt-1 text-sm text-gray-500">
           Støttede kommandoer:
@@ -236,8 +241,7 @@ watch(() => store.voices, (newVal) => {
           </select>
         </div>
       </div>
-    </div>
-  </div>
+    </div>  </div>
 </template>
 
 <style scoped>
