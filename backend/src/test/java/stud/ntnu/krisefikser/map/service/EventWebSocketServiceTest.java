@@ -29,18 +29,11 @@ public class EventWebSocketServiceTest {
 
   @BeforeEach
   public void setup() {
-    testEvent = Event.builder()
-        .id(1L)
-        .title("Test Event")
-        .description("Test Description")
-        .radius(1000.0)
-        .latitude(63.4305)
-        .longitude(10.3951)
-        .level(EventLevel.YELLOW)
-        .startTime(LocalDateTime.now())
-        .endTime(LocalDateTime.now().plusHours(2))
-        .status(EventStatus.ONGOING)
-        .build();
+    testEvent =
+        Event.builder().id(1L).title("Test Event").description("Test Description").radius(1000.0)
+            .latitude(63.4305).longitude(10.3951).level(EventLevel.YELLOW)
+            .startTime(LocalDateTime.now()).endTime(LocalDateTime.now().plusHours(2))
+            .status(EventStatus.ONGOING).build();
   }
 
   @Test
@@ -56,8 +49,10 @@ public class EventWebSocketServiceTest {
   }
 
   @Test
+
+
   public void testNotifyEventDeletion() {
-    webSocketService.notifyEventDeletion(testEvent);
-    verify(messagingTemplate).convertAndSend(eq("/topic/events/delete"), any(Event.class));
+    webSocketService.notifyEventDeletion(1L);
+    verify(messagingTemplate).convertAndSend(eq("/topic/events/delete"), eq(1L));
   }
 }
