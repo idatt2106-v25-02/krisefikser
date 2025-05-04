@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useGetAllEvents } from '@/api/generated/event/event';
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point';
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario';
 import type { Event, EventLevel, MapPoint } from '@/api/generated/model';
 import { RouterLink as Link } from 'vue-router';
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -34,6 +35,9 @@ const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents<Event[]
 // Fetch map points using TanStack Query
 const { data: mapPointsData } = useGetAllMapPoints<MapPoint[]>();
 
+// Fetch scenarios using TanStack Query
+const { data: scenariosData } = useGetAllScenarios();
+
 // Computed properties for stats
 const activeEventsCount = computed(() => {
   if (!eventsData.value) return 0;
@@ -45,11 +49,17 @@ const mapPointsCount = computed(() => {
   return mapPointsData.value.length;
 });
 
+const scenariosCount = computed(() => {
+  if (!scenariosData.value) return 0;
+  return scenariosData.value.length;
+});
+
 // Update stats with real data
 const updatedStats = computed(() => [
   { ...stats[0], value: activeEventsCount.value },
   { ...stats[1], value: mapPointsCount.value },
-  ...stats.slice(2)
+  { ...stats[2], value: scenariosCount.value },
+  ...stats.slice(3)
 ]);
 
 const getLevelClass = (level?: EventLevel) => {
