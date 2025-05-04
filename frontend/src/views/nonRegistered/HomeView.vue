@@ -3,6 +3,7 @@ import HeroSection from '@/components/home/HeroSection.vue';
 import CrisisInfoSection from '@/components/home/CrisisInfoSection.vue';
 import FeaturesSection from '@/components/home/FeaturesSection.vue';
 import NewsSection from '@/components/home/NewsSection.vue';
+import ScenariosSection from '@/components/home/ScenariosSection.vue';
 
 export default {
   name: 'HomeView',
@@ -10,7 +11,8 @@ export default {
     HeroSection,
     CrisisInfoSection,
     FeaturesSection,
-    NewsSection
+    NewsSection,
+    ScenariosSection
   }
 }
 
@@ -20,12 +22,11 @@ export default {
 
 
     <HeroSection />
-
-    <!-- Main Content -->
     <main class="flex-grow container mx-auto px-4 py-12 border-t-0">
       <CrisisInfoSection />
-      <FeaturesSection />
+      <ScenariosSection />
       <NewsSection />
+      <FeaturesSection />
     </main>
 
   </div>

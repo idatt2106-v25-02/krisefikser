@@ -1,6 +1,6 @@
 <!-- ScenariosSection.vue -->
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import {
   PlusCircle,
   Edit,
@@ -13,12 +13,16 @@ import { Button } from '@/components/ui/button';
 import AdminLayout from '@/components/admin/AdminLayout.vue';
 import ScenarioForm from '@/components/admin/scenarios/ScenarioForm.vue';
 
-// Mock data for scenarios
-const scenarios = ref([
-  { id: '1', title: 'Strømbrudd', description: 'Forberedelser ved langvarig strømbrudd', content: 'Informasjon om hva du bør gjøre før, under og etter et strømbrudd. Ha alltid lommelykt, stearinlys, fyrstikker og nødladere tilgjengelig.' },
-  { id: '2', title: 'Flom', description: 'Håndtering av flom og oversvømmelse', content: 'Informasjon om hvordan du kan forberede deg på flom og hva du bør gjøre hvis det oppstår oversvømmelser i ditt område.' },
-  { id: '3', title: 'Pandemi', description: 'Forebyggende tiltak ved pandemi', content: 'Informasjon om smittevern, hygiene og andre forholdsregler under en pandemi. Følg alltid myndighetenes anbefalinger.' }
-]);
+// Import scenario API hooks
+import {
+  useGetAllScenarios,
+  useCreateScenario,
+  useUpdateScenario,
+  useDeleteScenario
+} from '@/api/generated/scenario/scenario';
+
+// Fetch all scenarios
+const { data: scenarios, refetch } = useGetAllScenarios();
 
 // State for the form dialog
 const showForm = ref(false);
@@ -51,29 +55,26 @@ const closeForm = () => {
   showForm.value = false;
 };
 
-const saveScenario = (scenarioData) => {
-  if (isEditing.value) {
-    // Update existing scenario
-    const index = scenarios.value.findIndex(s => s.id === scenarioData.id);
-    if (index !== -1) {
-      scenarios.value[index] = { ...scenarioData };
-    }
-  } else {
-    // Add new scenario
-    const newId = (Math.max(...scenarios.value.map(s => parseInt(s.id)), 0) + 1).toString();
-    scenarios.value.push({
-      ...scenarioData,
-      id: newId
-    });
-  }
+// Mutations
+const { mutate: createScenario } = useCreateScenario({ mutation: { onSuccess: () => { refetch(); closeForm(); } } });
+const { mutate: updateScenario } = useUpdateScenario({ mutation: { onSuccess: () => { refetch(); closeForm(); } } });
+const { mutate: deleteScenario } = useDeleteScenario({ mutation: { onSuccess: refetch } });
 
-  closeForm();
+const saveScenario = (scenarioData) => {
+  const payload = {
+    title: scenarioData.title,
+    content: scenarioData.content,
+  };
+  if (isEditing.value) {
+    updateScenario({ id: scenarioData.id, data: payload });
+  } else {
+    createScenario({ data: payload });
+  }
 };
 
 const deleteItem = (id) => {
   if (confirm('Er du sikker på at du vil slette dette scenarioet?')) {
-    console.log(`Deleting scenario with ID: ${id}`);
-    scenarios.value = scenarios.value.filter(s => s.id !== id);
+    deleteScenario({ id });
   }
 };
 </script>
