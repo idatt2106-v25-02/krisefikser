@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { Home, MapPin, Users, CheckCircle } from 'lucide-vue-next'
-import { useGetAllHouseholds, useGetActiveHousehold } from '@/api/generated/household/household'
+import { useGetAllHouseholds, useGetActiveHousehold, useLeaveHousehold } from '@/api/generated/household/household'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { watch } from 'vue'
+import {
+  useGetPendingInvitesForUser,
+  useAcceptInvite,
+  useDeclineInvite,
+} from '@/api/generated/household-invite-controller/household-invite-controller'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 // Get household data from API
-const { data: households, isLoading: isLoadingHouseholds } = useGetAllHouseholds({
+const { data: households, isLoading: isLoadingHouseholds, refetch: refetchHouseholds } = useGetAllHouseholds({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
@@ -49,11 +54,71 @@ const navigateToHousehold = (id: string | undefined) => {
 const isActiveHousehold = (id: string | undefined) => {
   return id === activeHousehold.value?.id
 }
+
+// Pending invites logic
+const { data: pendingInvites, refetch: refetchInvites } = useGetPendingInvitesForUser()
+const { mutate: acceptInvite } = useAcceptInvite({
+  mutation: {
+    onSuccess: () => {
+      refetchInvites()
+      setTimeout(() => {
+        if (typeof refetchHouseholds === 'function') refetchHouseholds()
+      }, 500)
+    },
+  },
+})
+const { mutate: declineInvite } = useDeclineInvite({
+  mutation: {
+    onSuccess: () => {
+      refetchInvites()
+      setTimeout(() => {
+        if (typeof refetchHouseholds === 'function') refetchHouseholds()
+      }, 500)
+    },
+  },
+})
+
+const { mutate: leaveHousehold } = useLeaveHousehold({
+  mutation: {
+    onSuccess: () => {
+      if (typeof refetchHouseholds === 'function') refetchHouseholds()
+    },
+  },
+})
 </script>
 
 <template>
   <div class="bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4 py-10">
+      <!-- Pending Invites Section -->
+      <div v-if="pendingInvites && pendingInvites.length" class="mb-6">
+        <h2 class="text-lg font-semibold mb-2">Ventende invitasjoner</h2>
+        <div
+          v-for="invite in pendingInvites"
+          :key="invite.id"
+          class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-2 flex flex-col gap-2"
+        >
+          <div class="mb-2">
+            <span class="font-semibold">Husstand:</span> {{ invite.household?.name ?? 'Ukjent' }}<br />
+            <span class="font-semibold">Invitert av:</span> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}
+          </div>
+          <div class="flex gap-2">
+            <button
+              class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition"
+              @click="acceptInvite({ inviteId: invite.id ?? '' })"
+            >
+              Godta
+            </button>
+            <button
+              class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition"
+              @click="declineInvite({ inviteId: invite.id ?? '' })"
+            >
+              Avslå
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="flex items-center mb-8">
         <Home class="h-8 w-8 text-blue-600 mr-3" />
         <h1 class="text-3xl font-bold text-gray-800">Mine husstander</h1>

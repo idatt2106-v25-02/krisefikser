@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { useLeaveHousehold, useSetActiveHousehold } from '@/api/generated/household/household'
+import { ref } from 'vue'
+import {
+  useGetPendingInvitesForUser,
+  useAcceptInvite,
+  useDeclineInvite,
+} from '@/api/generated/household-invite-controller/household-invite-controller'
 
 const emit = defineEmits<{
   (e: 'refresh'): void
@@ -42,17 +48,6 @@ const handleSetActiveHousehold = (householdId: string) => {
     },
   })
 }
-import { ref } from 'vue'
-
-// Import Dialog components
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 
 import { useJoinHousehold } from '@/api/generated/household/household'
 import { useGetAllHouseholds } from '@/api/generated/household/household'
@@ -104,6 +99,19 @@ const closeModal = () => {
   errorMessage.value = ''
   showJoinModal.value = false
 }
+
+// Pending invites logic
+const { data: pendingInvites, refetch: refetchInvites } = useGetPendingInvitesForUser()
+const { mutate: acceptInvite } = useAcceptInvite({
+  mutation: {
+    onSuccess: () => refetchInvites(),
+  },
+})
+const { mutate: declineInvite } = useDeclineInvite({
+  mutation: {
+    onSuccess: () => refetchInvites(),
+  },
+})
 </script>
 
 <template>
@@ -111,6 +119,20 @@ const closeModal = () => {
     <router-link to="/husstand" class="inline-block mb-4">
       <h2 class="text-lg font-semibold text-gray-800">Mine husstander</h2>
     </router-link>
+    <!-- Pending Invites Section -->
+    <div v-if="pendingInvites && pendingInvites.length" class="mb-6">
+      <h3 class="text-md font-semibold mb-2">Ventende invitasjoner</h3>
+      <div v-for="invite in pendingInvites" :key="invite.id" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-2 flex items-center justify-between">
+        <div>
+          <div><b>Husstand:</b> {{ invite.household?.name ?? 'Ukjent' }}</div>
+          <div><b>Invitert av:</b> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="bg-green-500 text-white px-3 py-1 rounded" @click="acceptInvite({ inviteId: invite.id ?? '' })">Godta</button>
+          <button class="bg-red-500 text-white px-3 py-1 rounded" @click="declineInvite({ inviteId: invite.id ?? '' })">Avslå</button>
+        </div>
+      </div>
+    </div>
     <!-- Display loading state -->
     <div v-if="isLoadingHouseholds" class="p-4 text-center text-gray-500">Laster husstander...</div>
 

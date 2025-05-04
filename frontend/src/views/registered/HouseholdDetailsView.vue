@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -44,11 +44,12 @@ import {
   useLeaveHousehold,
   useDeleteHousehold,
   useJoinHousehold,
-  // useUpdateHousehold, // Commented out for mock implementation
 } from '@/api/generated/household/household'
+import { useCreateInvite, useGetPendingInvitesForUser, useAcceptInvite, useDeclineInvite, useGetPendingInvitesForHousehold } from '@/api/generated/household-invite-controller/household-invite-controller'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { Badge } from '@/components/ui/badge'
 import type { HouseholdResponse } from '@/api/generated/model'
+import { useToast } from '@/components/ui/toast/use-toast'
+import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 
 interface MeetingPlace {
   id: string
@@ -124,6 +125,7 @@ const householdFormSchema = toTypedSchema(
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { toast } = useToast()
 
 // Get household data
 const {
@@ -172,12 +174,34 @@ const { mutate: removeMember } = useLeaveHousehold({
   },
 })
 
+const { mutate: createInvite } = useCreateInvite({
+  mutation: {
+    onSuccess: () => {
+      toast({
+        title: 'Invitasjon sendt',
+        description: 'Invitasjonen har blitt sendt til brukeren.',
+      })
+      isAddMemberDialogOpen.value = false
+      resetForm()
+      refetchHouseholdInvites()
+    },
+    onError: (error) => {
+      const err = error as Error;
+      toast({
+        title: 'Feil',
+        description: err.message || 'Kunne ikke sende invitasjon',
+        variant: 'destructive',
+      })
+    },
+  },
+})
+
 // Mock for updating household data
 const updatedHouseholdData = ref({
-  name: household.value?.name || '',
-  address: household.value?.address || '',
-  postalCode: household.value?.postalCode || '',
-  city: household.value?.city || '',
+  name: household.value?.name ?? '',
+  address: household.value?.address ?? '',
+  postalCode: household.value?.postalCode ?? '',
+  city: household.value?.city ?? '',
 })
 
 // Get formatted full // const getFormattedAddress = (household) => {
@@ -195,32 +219,33 @@ const updatedHouseholdData = ref({
 const isAddMemberDialogOpen = ref(false)
 const isEditHouseholdDialogOpen = ref(false)
 const isMeetingMapDialogOpen = ref(false)
-const memberMode = ref<'invite' | 'add'>('add')
+const memberMode = ref<'invite' | 'add'>('invite')
 const mapRef = ref<InstanceType<typeof HouseholdMeetingMap> | null>(null)
 const selectedMeetingPlace = ref<MeetingPlace | null>(null)
 
 // Form handling
-const { handleSubmit: submitMemberForm } = useForm<MemberFormValues>({
+const { resetForm } = useForm<MemberFormValues>({
   validationSchema: memberFormSchema,
 })
 
 const { handleSubmit: submitHouseholdForm } = useForm<HouseholdFormValues>({
   validationSchema: householdFormSchema,
   initialValues: {
-    name: household.value?.name || '',
-    address: household.value?.address || '',
-    postalCode: household.value?.postalCode || '',
-    city: household.value?.city || '',
+    name: household.value?.name ?? '',
+    address: household.value?.address ?? '',
+    postalCode: household.value?.postalCode ?? '',
+    city: household.value?.city ?? '',
   },
 })
 
 // Actions
-function onMemberSubmit() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function onMemberSubmit(values: MemberFormValues) {
   if (!household.value) return
 
   addMember({
     data: {
-      householdId: household.value.id,
+      householdId: household.value.id ?? '',
     },
   })
 }
@@ -251,8 +276,7 @@ function onRemoveMember(userId?: string) {
   if (!household.value) return
   removeMember({
     data: {
-      householdId: household.value.id,
-    },
+      householdId: household.value.id ?? '',    },
   })
 }
 
@@ -269,8 +293,7 @@ function handleLeaveHousehold() {
   if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
     leaveHousehold({
       data: {
-        householdId: household.value.id,
-      },
+        householdId: household.value.id ?? '',      },
     })
   }
 }
@@ -301,11 +324,74 @@ function viewMeetingPlace(placeId: string) {
     }
   }, 300)
 }
+
+const handleInviteSubmit = (values: MemberFormValues) => {
+  if (!household.value) return
+  if (!values.email) return
+
+  createInvite({
+    data: {
+      householdId: household.value.id ?? '',
+      invitedEmail: values.email ?? '',
+    },
+  })
+}
+
+const handleFormSubmit = (values: MemberFormValues) => {
+  if (memberMode.value === 'invite') {
+    handleInviteSubmit(values)
+  } else {
+    onMemberSubmit(values)
+  }
+}
+
+const handleModeChange = (mode: 'invite' | 'add') => {
+  memberMode.value = mode
+  resetForm()
+}
+
+// Pending invites logic
+const { data: pendingInvites, refetch: refetchInvites } = useGetPendingInvitesForUser()
+const { mutate: acceptInvite } = useAcceptInvite({
+  mutation: {
+    onSuccess: () => refetchInvites(),
+  },
+})
+const { mutate: declineInvite } = useDeclineInvite({
+  mutation: {
+    onSuccess: () => refetchInvites(),
+  },
+})
+
+// Fetch pending invites for this household
+const householdId = computed(() => household.value?.id ?? '')
+const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useGetPendingInvitesForHousehold(householdId, {
+  query: {
+    enabled: computed(() => !!householdId.value),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  },
+})
 </script>
 
 <template>
   <div class="bg-gray-50 min-h-screen">
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Pending Invites Section -->
+      <div v-if="pendingInvites && pendingInvites.length" class="mb-6">
+        <h2 class="text-xl font-semibold mb-2">Ventende invitasjoner</h2>
+        <div v-for="invite in pendingInvites" :key="invite.id" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-2 flex items-center justify-between">
+          <div>
+            <div><b>Husstand:</b> {{ invite.household?.name ?? 'Ukjent' }}</div>
+            <div><b>Invitert av:</b> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}</div>
+          </div>
+          <div class="flex gap-2">
+<button class="bg-green-500 text-white px-3 py-1 rounded" @click="acceptInvite({ inviteId: invite.id ?? '' })">Godta</button>
+<button class="bg-red-500 text-white px-3 py-1 rounded" @click="declineInvite({ inviteId: invite.id ?? '' })">Avslå</button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="isLoadingHousehold" class="flex justify-center items-center h-64">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
@@ -368,9 +454,7 @@ function viewMeetingPlace(placeId: string) {
                         <div
                           class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0"
                         >
-                          <span class="text-md font-medium">{{
-                              member.user?.firstName?.[0] || '?'
-                            }}</span>
+                          <span class="text-md font-medium">{{ member.user?.firstName?.[0] ?? '?' }}</span>
                         </div>
                         <h3 class="text-md font-bold text-gray-900">
                           {{ member.user?.firstName }} {{ member.user?.lastName }}
@@ -409,15 +493,9 @@ function viewMeetingPlace(placeId: string) {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-
                     <div class="text-sm text-gray-600">
-                      <div class="mt-1">
-                        <Badge :variant="member.status === 'ACCEPTED' ? 'default' : 'secondary'">
-                          {{ member.status }}
-                        </Badge>
-                      </div>
                       <div class="mt-1 truncate">
-                        {{ member.user?.email }}
+                        {{ member.user?.email ?? '' }}
                       </div>
                     </div>
                   </div>
@@ -534,6 +612,13 @@ function viewMeetingPlace(placeId: string) {
                 </button>
               </div>
             </div>
+
+            <!-- Invited (pending and declined) section as its own component -->
+            <InvitedPendingList
+              :invites="(householdPendingInvites || []).filter(i => i.status === 'PENDING')"
+              :declined-invites="(householdPendingInvites || []).filter(i => i.status === 'DECLINED')"
+            />
+
           </div>
         </div>
 
@@ -623,49 +708,52 @@ function viewMeetingPlace(placeId: string) {
               <div class="flex items-center gap-4">
                 <Button
                   :variant="memberMode === 'invite' ? 'default' : 'outline'"
-                  @click="memberMode = 'invite'"
+                  @click="handleModeChange('invite')"
                 >
                   Inviter via e-post
                 </Button>
                 <Button
                   :variant="memberMode === 'add' ? 'default' : 'outline'"
-                  @click="memberMode = 'add'"
+                  @click="handleModeChange('add')"
                 >
                   Legg til uten konto
                 </Button>
               </div>
-              <Form @submit="submitMemberForm(onMemberSubmit)">
-                <FormField name="name">
-                  <FormItem>
-                    <FormLabel>Navn</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Skriv inn navn" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-
-                <FormField v-if="memberMode === 'invite'" name="email">
-                  <FormItem>
-                    <FormLabel>E-post</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="navn@example.com" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormField>
-
-                <FormField v-else name="consumptionFactor">
-                  <FormItem>
-                    <FormLabel>Forbruksfaktor</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.1" min="0" />
-                    </FormControl>
-                    <FormMessage> 0.5 for halv porsjon, 1 for normal porsjon, osv. </FormMessage>
-                  </FormItem>
-                </FormField>
-
-                <Button type="submit" class="mt-4">Legg til</Button>
+              <Form v-slot="{ handleSubmit: _handleSubmit }" :validation-schema="memberFormSchema">
+                <form @submit.prevent="_handleSubmit(handleFormSubmit)" class="space-y-4">
+                  <FormField v-slot="{ field, errorMessage }" name="name">
+                    <FormItem>
+                      <FormLabel>Navn</FormLabel>
+                      <FormControl>
+                        <Input v-bind="field" />
+                      </FormControl>
+                      <FormMessage>{{ errorMessage }}</FormMessage>
+                    </FormItem>
+                  </FormField>
+                  <FormField v-if="memberMode === 'invite'" v-slot="{ field, errorMessage }" name="email">
+                    <FormItem>
+                      <FormLabel>E-post</FormLabel>
+                      <FormControl>
+                        <Input v-bind="field" type="email" />
+                      </FormControl>
+                      <FormMessage>{{ errorMessage }}</FormMessage>
+                    </FormItem>
+                  </FormField>
+                  <FormField v-if="memberMode === 'add'" v-slot="{ field, errorMessage }" name="consumptionFactor">
+                    <FormItem>
+                      <FormLabel>Forbruksfaktor</FormLabel>
+                      <FormControl>
+                        <Input v-bind="field" type="number" step="0.1" min="0.1" />
+                      </FormControl>
+                      <FormMessage>{{ errorMessage }}</FormMessage>
+                    </FormItem>
+                  </FormField>
+                  <DialogFooter>
+                    <Button type="submit">
+                      {{ memberMode === 'invite' ? 'Send invitasjon' : 'Legg til medlem' }}
+                    </Button>
+                  </DialogFooter>
+                </form>
               </Form>
             </div>
           </DialogContent>

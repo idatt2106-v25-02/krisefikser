@@ -6,9 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { UserResponse } from './userResponse'
-import type { HouseholdMemberResponseStatus } from './householdMemberResponseStatus'
 
 export interface HouseholdMemberResponse {
   user?: UserResponse
-  status?: HouseholdMemberResponseStatus
 }
