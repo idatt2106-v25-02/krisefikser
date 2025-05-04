@@ -121,15 +121,29 @@ const { mutate: declineInvite } = useDeclineInvite({
     </router-link>
     <!-- Pending Invites Section -->
     <div v-if="pendingInvites && pendingInvites.length" class="mb-6">
-      <h3 class="text-md font-semibold mb-2">Ventende invitasjoner</h3>
-      <div v-for="invite in pendingInvites" :key="invite.id" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-2 flex items-center justify-between">
-        <div>
-          <div><b>Husstand:</b> {{ invite.household?.name ?? 'Ukjent' }}</div>
-          <div><b>Invitert av:</b> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}</div>
+      <h2 class="text-lg font-semibold mb-2">Ventende invitasjoner</h2>
+      <div
+        v-for="invite in pendingInvites"
+        :key="invite.id"
+        class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-2 flex flex-col gap-2"
+      >
+        <div class="mb-2">
+          <span class="font-semibold">Husstand:</span> {{ invite.household?.name ?? 'Ukjent' }}<br />
+          <span class="font-semibold">Invitert av:</span> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}
         </div>
         <div class="flex gap-2">
-          <button class="bg-green-500 text-white px-3 py-1 rounded" @click="acceptInvite({ inviteId: invite.id ?? '' })">Godta</button>
-          <button class="bg-red-500 text-white px-3 py-1 rounded" @click="declineInvite({ inviteId: invite.id ?? '' })">Avslå</button>
+          <button
+            class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition"
+            @click="acceptInvite({ inviteId: invite.id ?? '' })"
+          >
+            Godta
+          </button>
+          <button
+            class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded transition"
+            @click="declineInvite({ inviteId: invite.id ?? '' })"
+          >
+            Avslå
+          </button>
         </div>
       </div>
     </div>
