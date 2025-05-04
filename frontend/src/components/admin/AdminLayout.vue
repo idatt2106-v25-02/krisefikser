@@ -16,7 +16,7 @@ const navigateToDashboard = () => {
 
 
 const navigateToScenarios = () => {
-  router.push('/admin/scenarios')
+  router.push('/admin/scenarioer')
 }
 
 const navigateToGamification = () => {
@@ -71,7 +71,7 @@ const navigateToAdmins = () => {
           variant="ghost"
           :class="[
             'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
-            router.currentRoute.value.path === '/admin/scenarios'
+            router.currentRoute.value.path === '/admin/scenarioer'
               ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
               : 'text-gray-700',
           ]"
