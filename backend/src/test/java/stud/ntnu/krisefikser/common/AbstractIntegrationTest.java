@@ -1,22 +1,25 @@
 package stud.ntnu.krisefikser.common;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import stud.ntnu.krisefikser.auth.dto.LoginRequest;
+import org.springframework.transaction.annotation.Transactional;
+
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
-import stud.ntnu.krisefikser.auth.service.TurnstileService;
+import stud.ntnu.krisefikser.auth.entity.Role;
+import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
+import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.entity.User;
@@ -27,149 +30,156 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 @AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest {
 
-  private static final String TEST_USER_EMAIL = "brotherman@testern.no";
-  private static final String DEFAULT_PASSWORD = "password";
-  private static final String TEST_HOUSEHOLD_NAME = "Test Household";
+    private static final String TEST_USER_EMAIL = "brotherman@testern.no";
+    private static final String ADMIN_USER_EMAIL = "admin@testern.no";
+    private static final String DEFAULT_PASSWORD = "password";
+    private static final String TEST_HOUSEHOLD_NAME = "Test Household";
 
-  @Autowired
-  private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-  @Autowired
-  private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-  @MockitoBean
-  private TurnstileService turnstileService;
+    @Autowired
+    private RoleRepository roleRepository;
 
-  private String accessToken;
+    private String accessToken;
 
-  @Getter
-  private User testUser;
+    @Getter
+    private User testUser;
 
-  @Autowired
-  private DatabaseCleanupService databaseCleanupService;
+    @Getter
+    private User adminUser;
 
-  public MockHttpServletRequestBuilder withJwtAuth(MockHttpServletRequestBuilder requestBuilder) {
-    return requestBuilder.header("Authorization", "Bearer " + accessToken);
-  }
+    @Autowired
+    private DatabaseCleanupService databaseCleanupService;
 
-  public void setUpUser() throws Exception {
-    // Delete brotherman testern if exists
-    databaseCleanupService.clearDatabase();
-
-    // make turnstileService.verify returns true
-    Mockito.when(turnstileService.verify(ArgumentMatchers.anyString())).thenReturn(true);
-
-    // Login if user exists
-    this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
-        .orElse(null);
-    if (this.testUser != null) {
-      LoginRequest request = new LoginRequest(
-          TEST_USER_EMAIL,
-          DEFAULT_PASSWORD
-      );
-
-      Map<String, String> responseMap = getPostResponse(
-          "/api/auth/login",
-          objectMapper.writeValueAsString(request)
-      );
-
-      this.accessToken = responseMap.get("accessToken");
-
-      if (this.testUser.getActiveHousehold() == null) {
-        createHousehold();
-      }
-
-      return;
+    public MockHttpServletRequestBuilder withJwtAuth(MockHttpServletRequestBuilder requestBuilder) {
+        return requestBuilder.header("Authorization", "Bearer " + accessToken);
     }
 
-    // Create User
-    RegisterRequest request = new RegisterRequest(
-        TEST_USER_EMAIL,
-        DEFAULT_PASSWORD,
-        "Test",
-        "User",
-        "turnstile-token"
-    );
-
-    Map<String, String> responseMap = getPostResponse(
-        "/api/auth/register",
-        objectMapper.writeValueAsString(request)
-    );
-
-    this.accessToken = responseMap.get("accessToken");
-
-    // Fetch the user from the database
-    this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
-        .orElseThrow(() -> new RuntimeException("Test user not found"));
-
-    createHousehold();
-
-    // Re-fetch the user with the active household
-    this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
-        .orElseThrow(() -> new RuntimeException("Test user not found"));
-
-    log.info("Access token: {}", accessToken);
-    log.info("Test user: {}", testUser);
-    log.info("Test household: {}", getTestHousehold());
-  }
-
-  public Household getTestHousehold() {
-    return getTestUser().getActiveHousehold();
-  }
-
-  private Map<String, String> getPostResponse(String uri, String body) {
-    try {
-      String responseContent = mockMvc.perform(
-              org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
-                      uri)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(body))
-          .andExpect(
-              org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
-          .andReturn()
-          .getResponse()
-          .getContentAsString();
-
-      // Parse response and extract token
-      return objectMapper.readValue(responseContent,
-          new TypeReference<>() {
-          });
-    } catch (Exception e) {
-      log.error("Failed to parse response", e);
-      throw new RuntimeException("Failed to parse response", e);
-    }
-  }
-
-  private void createHousehold() {
-    CreateHouseholdRequest createHouseholdRequest = CreateHouseholdRequest.builder()
-        .name(TEST_HOUSEHOLD_NAME)
-        .latitude(0.0)
-        .longitude(0.0)
-        .address("Test Address")
-        .city("Test City")
-        .postalCode("12345")
-        .build();
-
-    try {
-      mockMvc.perform(
-              withJwtAuth(
-                  org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
-                          "/api/households")
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(objectMapper.writeValueAsString(createHouseholdRequest))
-              )
-          )
-          .andExpect(
-              org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
-                  .isCreated())
-          .andReturn();
-    } catch (Exception e) {
-      log.error("Failed to create household", e);
-      throw new RuntimeException("Failed to create household", e);
+    /**
+     * Creates a request builder with admin authentication using Spring Security's
+     * test support.
+     * This is more reliable than using JWT tokens in tests.
+     *
+     * @param requestBuilder The request builder to enhance with admin
+     *                       authentication
+     * @return The enhanced request builder
+     */
+    public MockHttpServletRequestBuilder withAdminAuth(MockHttpServletRequestBuilder requestBuilder) {
+        return requestBuilder.with(SecurityMockMvcRequestPostProcessors.user(ADMIN_USER_EMAIL)
+                .password(DEFAULT_PASSWORD)
+                .roles("ADMIN"));
     }
 
-  }
+    @Transactional
+    public void setUpUser() throws Exception {
+        // Delete brotherman testern if exists
+        databaseCleanupService.clearDatabase();
+
+        // Create User
+        RegisterRequest request = new RegisterRequest(
+                TEST_USER_EMAIL,
+                DEFAULT_PASSWORD,
+                "Test",
+                "User",
+                "turnstile-token");
+
+        String responseContent = mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                        "/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Parse response and extract token
+        Map<String, String> responseMap = objectMapper.readValue(responseContent,
+                new TypeReference<>() {
+                });
+
+        this.accessToken = responseMap.get("accessToken");
+
+        // Fetch the user from the database
+        this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
+                .orElseThrow(() -> new RuntimeException("Test user not found"));
+
+        // Create Household
+        CreateHouseholdRequest createHouseholdRequest = CreateHouseholdRequest.builder()
+                .name(TEST_HOUSEHOLD_NAME)
+                .latitude(0.0)
+                .longitude(0.0)
+                .address("Test Address")
+                .city("Test City")
+                .postalCode("12345")
+                .build();
+
+        mockMvc.perform(
+                withJwtAuth(
+                        post("/api/households")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createHouseholdRequest))))
+                .andReturn();
+
+        // Re-fetch the user with the active household
+        this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
+                .orElseThrow(() -> new RuntimeException("Test user not found"));
+
+        log.info("Access token: {}", accessToken);
+        log.info("Test user: {}", testUser);
+        log.info("Test household: {}", getTestHousehold());
+    }
+
+    /**
+     * Sets up an admin user for testing administrative operations.
+     * This creates a real admin user in the database that can be used for tests.
+     * 
+     * @throws Exception if setup fails
+     */
+    @Transactional
+    public void setUpAdminUser() throws Exception {
+        // Create admin user if not exists
+        if (adminUser == null) {
+            // Create User
+            RegisterRequest request = new RegisterRequest(
+                    ADMIN_USER_EMAIL,
+                    DEFAULT_PASSWORD,
+                    "Admin",
+                    "User",
+                    "turnstile-token");
+
+            mockMvc.perform(
+                    org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                            "/api/auth/register")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(
+                            org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                    .andReturn();
+
+            // Fetch the admin user from database
+            this.adminUser = userRepository.findByEmail(ADMIN_USER_EMAIL)
+                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+
+            // Add admin role
+            Role adminRole = roleRepository.findByName(RoleType.ADMIN)
+                    .orElseThrow(() -> new RuntimeException("Admin role not found"));
+            adminUser.getRoles().add(adminRole);
+            userRepository.save(adminUser);
+
+            log.info("Admin user created: {}", adminUser);
+        }
+    }
+
+    public Household getTestHousehold() {
+        return getTestUser().getActiveHousehold();
+    }
 }
