@@ -25,14 +25,7 @@ export default {
     // Setup global keyboard shortcuts for accessibility
     const handleKeydown = (event: KeyboardEvent) => {
       const store = useAccessibilityStore();
-      
-      console.log('Key pressed:', {
-        key: event.key,
-        altKey: event.altKey,
-        metaKey: event.metaKey,
-        ctrlKey: event.ctrlKey,
-        shiftKey: event.shiftKey
-      });
+
 
       // Only trigger for Ctrl + Shift + S for TTS toggle
       if (event.key.toLowerCase() === 's' &&
@@ -61,7 +54,7 @@ export default {
           !event.metaKey) {
         event.preventDefault();
         console.log('Read page shortcut detected: Ctrl + Shift + X');
-        
+
         // Create and dispatch a custom event to trigger the read page functionality
         const readPageEvent = new CustomEvent('readPage');
         document.dispatchEvent(readPageEvent);
