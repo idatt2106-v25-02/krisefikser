@@ -1,6 +1,15 @@
+/**
+ * Tests for the main Dashboard view.
+ * It ensures that the dashboard loads correctly and displays essential user information.
+ */
 describe('Dashboard View', () => {
+  /**
+   * Set up tasks before each test in this suite.
+   * This includes setting mock authentication tokens in localStorage
+   * and intercepting the /api/auth/me endpoint to simulate a logged-in user.
+   */
   beforeEach(() => {
-    // Set mock auth tokens in localStorage
+    // Set mock auth tokens in localStorage to bypass login for these tests
     localStorage.setItem('accessToken', 'mock-test-access-token');
     localStorage.setItem('refreshToken', 'mock-test-refresh-token');
 
