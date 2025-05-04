@@ -1,18 +1,22 @@
 package stud.ntnu.krisefikser.common;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
+import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.entity.User;
@@ -36,6 +40,9 @@ public abstract class AbstractIntegrationTest {
   @Autowired
   private UserRepository userRepository;
 
+  @MockitoBean
+  private TurnstileService turnstileService;
+
   private String accessToken;
 
   @Getter
@@ -52,6 +59,32 @@ public abstract class AbstractIntegrationTest {
     // Delete brotherman testern if exists
     databaseCleanupService.clearDatabase();
 
+    // make turnstileService.verify returns true
+    Mockito.when(turnstileService.verify(ArgumentMatchers.anyString())).thenReturn(true);
+
+    // Login if user exists
+    this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
+        .orElse(null);
+    if (this.testUser != null) {
+      LoginRequest request = new LoginRequest(
+          TEST_USER_EMAIL,
+          DEFAULT_PASSWORD
+      );
+
+      Map<String, String> responseMap = getPostResponse(
+          "/api/auth/login",
+          objectMapper.writeValueAsString(request)
+      );
+
+      this.accessToken = responseMap.get("accessToken");
+
+      if (this.testUser.getActiveHousehold() == null) {
+        createHousehold();
+      }
+
+      return;
+    }
+
     // Create User
     RegisterRequest request = new RegisterRequest(
         TEST_USER_EMAIL,
@@ -61,21 +94,10 @@ public abstract class AbstractIntegrationTest {
         "turnstile-token"
     );
 
-    String responseContent = mockMvc.perform(
-            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
-                    "/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-        .andExpect(
-            org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
-        .andReturn()
-        .getResponse()
-        .getContentAsString();
-
-    // Parse response and extract token
-    Map<String, String> responseMap = objectMapper.readValue(responseContent,
-        new TypeReference<>() {
-        });
+    Map<String, String> responseMap = getPostResponse(
+        "/api/auth/register",
+        objectMapper.writeValueAsString(request)
+    );
 
     this.accessToken = responseMap.get("accessToken");
 
@@ -83,22 +105,7 @@ public abstract class AbstractIntegrationTest {
     this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
         .orElseThrow(() -> new RuntimeException("Test user not found"));
 
-    // Create Household
-    CreateHouseholdRequest createHouseholdRequest = CreateHouseholdRequest.builder()
-        .name(TEST_HOUSEHOLD_NAME)
-        .latitude(0.0)
-        .longitude(0.0)
-        .address("Test Address")
-        .city("Test City")
-        .postalCode("12345")
-        .build();
-
-    mockMvc.perform(
-        withJwtAuth(
-            post("/api/households")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createHouseholdRequest))
-        )).andReturn();
+    createHousehold();
 
     // Re-fetch the user with the active household
     this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
@@ -111,5 +118,58 @@ public abstract class AbstractIntegrationTest {
 
   public Household getTestHousehold() {
     return getTestUser().getActiveHousehold();
+  }
+
+  private Map<String, String> getPostResponse(String uri, String body) {
+    try {
+      String responseContent = mockMvc.perform(
+              org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                      uri)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(body))
+          .andExpect(
+              org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+          .andReturn()
+          .getResponse()
+          .getContentAsString();
+
+      // Parse response and extract token
+      return objectMapper.readValue(responseContent,
+          new TypeReference<>() {
+          });
+    } catch (Exception e) {
+      log.error("Failed to parse response", e);
+      throw new RuntimeException("Failed to parse response", e);
+    }
+  }
+
+  private void createHousehold() {
+    CreateHouseholdRequest createHouseholdRequest = CreateHouseholdRequest.builder()
+        .name(TEST_HOUSEHOLD_NAME)
+        .latitude(0.0)
+        .longitude(0.0)
+        .address("Test Address")
+        .city("Test City")
+        .postalCode("12345")
+        .build();
+
+    try {
+      mockMvc.perform(
+              withJwtAuth(
+                  org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                          "/api/households")
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .content(objectMapper.writeValueAsString(createHouseholdRequest))
+              )
+          )
+          .andExpect(
+              org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                  .isCreated())
+          .andReturn();
+    } catch (Exception e) {
+      log.error("Failed to create household", e);
+      throw new RuntimeException("Failed to create household", e);
+    }
+
   }
 }
