@@ -2,4 +2,4 @@
 
 .PHONY: test
 test:
-	mvn test -Dspring.profiles.active=test
+	mvn -Dspring.profiles.active=test clean verify jacoco:report
