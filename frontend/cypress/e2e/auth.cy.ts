@@ -1,5 +1,9 @@
-
-describe('My First Test', () => {
+describe('Authentication Tests', () => {
+  /**
+   * Test the user registration process.
+   * It intercepts the registration API call, visits the registration page,
+   * fills out the form, submits it, and verifies the API call was made.
+   */
   it('registrering', function() {
     // Intercept the registration API call
     cy.intercept('POST', '/api/auth/register', {
@@ -10,7 +14,7 @@ describe('My First Test', () => {
       }
     }).as('registerRequest');
 
-    cy.visit('https://krisefikser.app/registrer', {
+    cy.visit('http://localhost:5173/registrer', {
       onBeforeLoad(win) {
         // Stub the turnstile render function
         // @ts-expect-error - Overwriting window property for test purposes
@@ -43,5 +47,35 @@ describe('My First Test', () => {
 
     // Wait for the intercepted request to ensure it was called
     cy.wait('@registerRequest');
+  });
+
+  /**
+   * Test the user login process.
+   * It intercepts the login API call, visits the login page,
+   * fills out the email and password, submits the form,
+   * and verifies the API call was made.
+   */
+  it('logg-inn', function() {
+    // Intercept the login API call
+    cy.intercept('POST', '/api/auth/login', {
+      statusCode: 200,
+      body: {
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token'
+      }
+    }).as('loginRequest');
+
+    cy.visit('http://localhost:5173/logg-inn');
+
+    cy.get('input[type="email"]').clear();
+    cy.get('input[type="email"]').type('newUser@gmail.com');
+    cy.get('input[type="password"]').clear();
+    cy.get('input[type="password"]').type('Password123!');
+
+    // Click the submit button
+    cy.get('button[type="submit"]').click();
+
+    // Wait for the intercepted request to ensure it was called
+    cy.wait('@loginRequest');
   });
 })
