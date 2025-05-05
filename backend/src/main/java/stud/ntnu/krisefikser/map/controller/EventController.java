@@ -21,12 +21,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import stud.ntnu.krisefikser.map.entity.Event;
+import stud.ntnu.krisefikser.map.dto.EventRequest;
+import stud.ntnu.krisefikser.map.dto.EventResponse;
+import stud.ntnu.krisefikser.map.dto.UpdateEventRequest;
 import stud.ntnu.krisefikser.map.service.EventService;
 
 /**
- * REST controller for managing events in the system.
- * Provides endpoints for CRUD operations on events.
+ * REST controller for managing events in the system. Provides endpoints for CRUD operations on
+ * events.
  *
  * @since 1.0
  */
@@ -36,6 +38,7 @@ import stud.ntnu.krisefikser.map.service.EventService;
 @CrossOrigin
 @Tag(name = "Event", description = "Event management APIs")
 public class EventController {
+
   private final EventService eventService;
 
   /**
@@ -46,12 +49,21 @@ public class EventController {
    * @return ResponseEntity containing a list of active events.
    * @since 1.0
    */
-  @Operation(summary = "Get active events", description = "Retrieves a list of all ongoing and upcoming events in the system")
+  @Operation(summary = "Get all events", description = "Retrieves a list of all events in the "
+      + "system")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved active events", content = @Content(mediaType = "application/json", array = @ArraySchema(items = @Schema(implementation = Event.class))))
+      @ApiResponse(
+          responseCode = "200",
+          description = "Successfully retrieved events",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(
+                  schema = @Schema(implementation = EventResponse.class)
+              )
+          )
+      )
   })
   @GetMapping
-  public ResponseEntity<List<Event>> getAllEvents() {
+  public ResponseEntity<List<EventResponse>> getAllEvents() {
     return ResponseEntity.ok(eventService.getAllEvents());
   }
 
@@ -64,18 +76,19 @@ public class EventController {
    */
   @Operation(summary = "Get an event by ID", description = "Retrieves a specific event by its ID")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the event", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Event.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the event",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
+              EventResponse.class))),
       @ApiResponse(responseCode = "404", description = "Event not found")
   })
   @GetMapping("/{id}")
-  public ResponseEntity<Event> getEventById(
+  public ResponseEntity<EventResponse> getEventById(
       @Parameter(description = "ID of the event to retrieve") @PathVariable Long id) {
     return ResponseEntity.ok(eventService.getEventById(id));
   }
 
   /**
-   * Creates a new event in the system.
-   * Only accessible to users with ADMIN role.
+   * Creates a new event in the system. Only accessible to users with ADMIN role.
    *
    * @param event The event to create.
    * @return ResponseEntity containing the created event.
@@ -83,19 +96,20 @@ public class EventController {
    */
   @Operation(summary = "Create a new event", description = "Creates a new event in the system")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully created the event", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Event.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully created the event", content
+          = @Content(mediaType = "application/json", schema = @Schema(implementation =
+          EventResponse.class))),
       @ApiResponse(responseCode = "403", description = "Access denied")
   })
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<Event> createEvent(
-      @Parameter(description = "Event to create") @RequestBody Event event) {
+  public ResponseEntity<EventResponse> createEvent(
+      @Parameter(description = "Event to create") @RequestBody EventRequest event) {
     return ResponseEntity.ok(eventService.createEvent(event));
   }
 
   /**
-   * Updates an existing event in the system.
-   * Only accessible to users with ADMIN role.
+   * Updates an existing event in the system. Only accessible to users with ADMIN role.
    *
    * @param id    The ID of the event to update.
    * @param event The updated event data.
@@ -104,21 +118,22 @@ public class EventController {
    */
   @Operation(summary = "Update an event", description = "Updates an existing event by its ID")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully updated the event", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Event.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully updated the event", content
+          = @Content(mediaType = "application/json", schema = @Schema(implementation =
+          EventResponse.class))),
       @ApiResponse(responseCode = "404", description = "Event not found"),
       @ApiResponse(responseCode = "403", description = "Access denied")
   })
   @PutMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<Event> updateEvent(
+  public ResponseEntity<EventResponse> updateEvent(
       @Parameter(description = "ID of the event to update") @PathVariable Long id,
-      @Parameter(description = "Updated event details") @RequestBody Event event) {
+      @Parameter(description = "Updated event details") @RequestBody UpdateEventRequest event) {
     return ResponseEntity.ok(eventService.updateEvent(id, event));
   }
 
   /**
-   * Deletes an event from the system.
-   * Only accessible to users with ADMIN role.
+   * Deletes an event from the system. Only accessible to users with ADMIN role.
    *
    * @param id The ID of the event to delete.
    * @return ResponseEntity with no content.

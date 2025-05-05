@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export type EventStatus = (typeof EventStatus)[keyof typeof EventStatus]
+export type EventRequestStatus = (typeof EventRequestStatus)[keyof typeof EventRequestStatus]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const EventStatus = {
+export const EventRequestStatus = {
   UPCOMING: 'UPCOMING',
   ONGOING: 'ONGOING',
   FINISHED: 'FINISHED',

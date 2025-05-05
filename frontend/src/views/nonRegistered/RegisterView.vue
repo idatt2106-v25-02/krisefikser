@@ -5,21 +5,29 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { User, Mail } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useToast } from '@/components/ui/toast/use-toast'
+import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
-import { useRouter } from 'vue-router';
-const router = useRouter();
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // Schema for the registration form
 const rawSchema = z
   .object({
-    firstName: z.string({ required_error: 'Fornavn er påkrevd' }).min(2, 'Fornavn må være minst 2 tegn'),
-    lastName: z.string({ required_error: 'Etternavn er påkrevd' }).min(2, 'Etternavn må være minst 2 tegn'),
-    email: z.string({ required_error: 'E-post er påkrevd' }).email('Ugyldig e-post').min(5, 'E-post må være minst 5 tegn'),
+    firstName: z
+      .string({ required_error: 'Fornavn er påkrevd' })
+      .min(2, 'Fornavn må være minst 2 tegn'),
+    lastName: z
+      .string({ required_error: 'Etternavn er påkrevd' })
+      .min(2, 'Etternavn må være minst 2 tegn'),
+    email: z
+      .string({ required_error: 'E-post er påkrevd' })
+      .email('Ugyldig e-post')
+      .min(5, 'E-post må være minst 5 tegn'),
     householdCode: z
       .string()
       .refine((val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)), {
@@ -50,34 +58,35 @@ const { handleSubmit, meta } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
-// Get auth store and toast
+// Get auth store
 const authStore = useAuthStore()
-const { toast } = useToast()
 
 // Loading state
 const isLoading = ref(false)
 
 // Function to parse error messages and provide specific user feedback
-const getErrorMessage = (error: { response?: { data?: { message?: string }; status?: number } }) => {
+const getErrorMessage = (error: {
+  response?: { data?: { message?: string }; status?: number }
+}) => {
   // Default message
-  const message = 'Kunne ikke registrere. Vennligst prøv igjen.';
+  const message = 'Kunne ikke registrere. Vennligst prøv igjen.'
 
   // Extract error message from response if available
-  const errorMessage = error?.response?.data?.message || '';
+  const errorMessage = error?.response?.data?.message || ''
 
   if (error?.response?.status === 429) {
-    return 'For mange forsøk. Vennligst vent litt før du prøver igjen.';
+    return 'For mange forsøk. Vennligst vent litt før du prøver igjen.'
   }
 
   if (error?.response?.status === 409) {
-    return 'E-postadressen er allerede registrert. Vennligst bruk en annen e-post eller prøv å logge inn.';
+    return 'E-postadressen er allerede registrert. Vennligst bruk en annen e-post eller prøv å logge inn.'
   }
 
   if (error?.response?.status === 500) {
-    return 'Det oppstod en serverfeil. Vennligst prøv igjen senere.';
+    return 'Det oppstod en serverfeil. Vennligst prøv igjen senere.'
   }
 
-  return errorMessage || message;
+  return errorMessage || message
 }
 
 const onSubmit = handleSubmit(async (values) => {
@@ -88,20 +97,16 @@ const onSubmit = handleSubmit(async (values) => {
     const { confirmPassword, acceptedPrivacyPolicy, ...registrationData } = values
     await authStore.register({
       ...registrationData,
-      turnstileToken: captchaToken.value
+      turnstileToken: captchaToken.value,
     })
-    toast({
-      title: 'Suksess',
+    toast('Suksess', {
       description: 'Kontoen din er opprettet og du er nå logget inn',
-      variant: 'default',
     })
-    await router.push('/dashboard');
+    await router.push('/dashboard')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    toast({
-      title: 'Registreringsfeil',
+    toast('Registreringsfeil', {
       description: getErrorMessage(error),
-      variant: 'destructive',
     })
   } finally {
     isLoading.value = false
@@ -118,25 +123,19 @@ onMounted(() => {
     sitekey: '0x4AAAAAABSTiPNZwrBLQkgr',
     callback: (token: string) => {
       captchaToken.value = token
-      toast({
-        title: 'Success',
+      toast('Success', {
         description: 'Captcha token received',
-        variant: 'default',
       })
     },
     'error-callback': () => {
-      toast({
-        title: 'Error',
+      toast('Error', {
         description: 'Captcha token error',
-        variant: 'destructive',
       })
       captchaToken.value = ''
     },
     'expired-callback': () => {
-      toast({
-        title: 'Warning',
+      toast('Warning', {
         description: 'Captcha token expired',
-        variant: 'warning',
       })
       captchaToken.value = ''
     },
@@ -264,7 +263,10 @@ onUnmounted(() => {
                 aria-label="Godta personvernerklæringen"
               />
             </FormControl>
-            <label for="acceptedPrivacyPolicy" class="text-sm text-gray-700 cursor-pointer select-none">
+            <label
+              for="acceptedPrivacyPolicy"
+              class="text-sm text-gray-700 cursor-pointer select-none"
+            >
               Jeg godtar
               <router-link
                 to="/personvern"
