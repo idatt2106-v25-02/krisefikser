@@ -30,6 +30,12 @@ import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
+/**
+ * Entity class representing a user in the system. This class is used to store information about
+ * users, including their email, roles, password, and preferences.
+ *
+ * @since 1.0
+ */
 @Entity
 @Getter
 @Setter

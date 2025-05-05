@@ -30,7 +30,7 @@ public class OpenApiConfig {
    * @since 1.0
    */
   @Bean
-  public OpenAPI openAPI() {
+  public OpenAPI openApi() {
     return new OpenAPI()
         .info(new Info()
             .title("Krisefikser API")

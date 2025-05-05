@@ -18,6 +18,13 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import stud.ntnu.krisefikser.config.FrontendConfig;
 
+/**
+ * Security configuration class for the application.
+ *
+ * <p>This class configures the security settings, including CORS, authentication, and
+ * authorization
+ * rules.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -70,6 +77,11 @@ public class SecurityConfiguration {
     return http.build();
   }
 
+  /**
+   * Configures CORS (Cross-Origin Resource Sharing) for the application.
+   *
+   * @return The CorsConfigurationSource for the application
+   */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();

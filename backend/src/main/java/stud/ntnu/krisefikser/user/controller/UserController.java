@@ -44,6 +44,11 @@ public class UserController {
    */
   private final UserService userService;
 
+  /**
+   * Retrieves a user by their ID.
+   *
+   * @return the user with the specified ID
+   */
   @Operation(summary = "Get all users", description = "Retrieves a list of all users in the system")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved users",
@@ -59,6 +64,12 @@ public class UserController {
     return ResponseEntity.ok(users);
   }
 
+  /**
+   * Retrieves a user by their ID.
+   *
+   * @param userId the ID of the user to retrieve
+   * @return the user with the specified ID
+   */
   @Operation(summary = "Update user", description = "Updates an existing user's information")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully updated user",
@@ -80,6 +91,12 @@ public class UserController {
     return ResponseEntity.ok(updatedUser.toDto());
   }
 
+  /**
+   * Deletes a user from the system.
+   *
+   * @param userId the ID of the user to delete
+   * @return a response entity indicating the result of the operation
+   */
   @Operation(summary = "Delete user", description = "Deletes a user from the system")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully deleted user"),

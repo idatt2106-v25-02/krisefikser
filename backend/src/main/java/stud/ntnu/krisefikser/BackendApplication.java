@@ -32,7 +32,8 @@ public class BackendApplication {
     BackendApplication app = context.getBean(BackendApplication.class);
     System.out.println("Active profiles: " + Arrays.toString(app.environment.getActiveProfiles()));
     System.out.println(
-        "Application started with data seeding enabled. Database will be populated with sample data if empty.");
+        "Application started with data seeding enabled. Database will be populated with sample "
+            + "data if empty.");
     System.out.println("Frontend URL: " + app.frontendConfig.getUrl());
   }
 

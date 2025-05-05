@@ -71,7 +71,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
    * <p>With this configuration:</p>
    * <ul>
    *   <li>Client-to-server messages should be sent to destinations starting with "/app/"</li>
-   *   <li>Clients can subscribe to destinations starting with "/topic/" to receive broadcast messages</li>
+   *   <li>Clients can subscribe to destinations starting with "/topic/" to receive broadcast
+   *   messages</li>
    * </ul>
    *
    * @param registry The message broker registry to configure

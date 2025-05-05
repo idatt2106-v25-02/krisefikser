@@ -17,7 +17,8 @@ import org.springframework.stereotype.Service;
  *   <li>{@code /topic/events/delete} - For event deletions</li>
  * </ul>
  *
- * <p>This service uses {@link SimpMessagingTemplate} to send messages to these WebSocket destinations.</p>
+ * <p>This service uses {@link SimpMessagingTemplate} to send messages to these WebSocket
+ * destinations.</p>
  *
  * @author Jakob Huuse
  */
@@ -31,6 +32,14 @@ public class NotificationService {
    */
   private final SimpMessagingTemplate messagingTemplate;
 
+  /**
+   * Broadcasts a notification to all connected clients.
+   *
+   * <p>This method sends a {@link NotificationResponse} object to the {@code /topic/broadcast}
+   * destination, allowing all subscribed clients to receive the notification.</p>
+   *
+   * @param notification The notification to be broadcasted
+   */
   public void broadcastNotification(NotificationResponse notification) {
     messagingTemplate.convertAndSend("/topic/broadcast", notification);
   }
