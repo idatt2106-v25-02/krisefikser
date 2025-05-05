@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.map.entity.EventLevel;
 import stud.ntnu.krisefikser.map.entity.EventStatus;
 
+/**
+ * Data Transfer Object (DTO) for updating an event. This class is used to transfer data between the
+ * server and client.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

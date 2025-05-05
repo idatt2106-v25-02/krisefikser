@@ -42,7 +42,8 @@ public class MeetingPointController {
    * @param request     the meeting point data
    * @return ResponseEntity containing the created meeting point
    */
-  @Operation(summary = "Create meeting point", description = "Creates a new meeting point for the household")
+  @Operation(summary = "Create meeting point",
+      description = "Creates a new meeting point for the household")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Successfully created meeting point"),
       @ApiResponse(responseCode = "400", description = "Invalid meeting point data")
@@ -61,7 +62,8 @@ public class MeetingPointController {
    * @param householdId the ID of the household
    * @return ResponseEntity containing a list of meeting points
    */
-  @Operation(summary = "Get all meeting points", description = "Retrieves all meeting points for the household")
+  @Operation(summary = "Get all meeting points",
+      description = "Retrieves all meeting points for the household")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved meeting points")
   })
