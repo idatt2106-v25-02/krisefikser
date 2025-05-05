@@ -7,8 +7,8 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class EmailConfig {
 
-    @Bean
-    public RestTemplate emailRestTemplate() {
-        return new RestTemplate();
-    }
+  @Bean
+  public RestTemplate emailRestTemplate() {
+    return new RestTemplate();
+  }
 } 

@@ -124,7 +124,8 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(TurnstileVerificationException.class)
-  public ProblemDetail handleTurnstileVerificationException(TurnstileVerificationException exception) {
+  public ProblemDetail handleTurnstileVerificationException(
+      TurnstileVerificationException exception) {
     return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
   }
 
@@ -241,7 +242,8 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles authentication exceptions thrown by Spring Security when no valid authentication is present.
+   * Handles authentication exceptions thrown by Spring Security when no valid authentication is
+   * present.
    *
    * @param exception the authentication exception
    * @return a problem detail with UNAUTHORIZED status and an authentication required message

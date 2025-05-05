@@ -37,7 +37,7 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
-@ToString(exclude = { "activeHousehold" })
+@ToString(exclude = {"activeHousehold"})
 public class User {
 
   @Id

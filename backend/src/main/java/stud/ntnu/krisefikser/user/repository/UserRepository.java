@@ -8,6 +8,8 @@ import stud.ntnu.krisefikser.user.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
+
   Optional<User> findByEmail(String email);
+
   boolean existsByEmail(String email);
 }

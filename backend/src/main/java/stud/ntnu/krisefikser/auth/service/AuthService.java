@@ -56,6 +56,22 @@ public class AuthService {
         refreshToken);
   }
 
+  private String createAccessToken(UserDetails userDetails) {
+    return tokenService.generate(userDetails, getAccessTokenExpiration());
+  }
+
+  private String createRefreshToken(UserDetails userDetails) {
+    return tokenService.generate(userDetails, getRefreshTokenExpiration());
+  }
+
+  private Date getAccessTokenExpiration() {
+    return new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
+  }
+
+  private Date getRefreshTokenExpiration() {
+    return new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
+  }
+
   public LoginResponse login(LoginRequest loginRequest) {
     authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
@@ -77,7 +93,7 @@ public class AuthService {
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
     RefreshToken existingToken = refreshTokenRepository.findByToken(
         refreshRequest.getRefreshToken()).orElseThrow(
-            RefreshTokenDoesNotExistException::new);
+        RefreshTokenDoesNotExistException::new);
 
     String email = tokenService.extractEmail(existingToken.getToken());
     if (email == null) {
@@ -99,21 +115,5 @@ public class AuthService {
 
   public UserResponse me() {
     return userService.getCurrentUser().toDto();
-  }
-
-  private String createAccessToken(UserDetails userDetails) {
-    return tokenService.generate(userDetails, getAccessTokenExpiration());
-  }
-
-  private String createRefreshToken(UserDetails userDetails) {
-    return tokenService.generate(userDetails, getRefreshTokenExpiration());
-  }
-
-  private Date getAccessTokenExpiration() {
-    return new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
-  }
-
-  private Date getRefreshTokenExpiration() {
-    return new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
   }
 }

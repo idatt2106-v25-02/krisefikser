@@ -5,7 +5,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class ArticleNotFoundException extends RuntimeException {
-    public ArticleNotFoundException(String message) {
-        super(message);
-    }
+
+  public ArticleNotFoundException(String message) {
+    super(message);
+  }
 }

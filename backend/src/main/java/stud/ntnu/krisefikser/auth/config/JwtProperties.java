@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "jwt")
 @Getter
 public class JwtProperties {
+
   private final String secret;
   private final Long accessTokenExpiration;
   private final Long refreshTokenExpiration;

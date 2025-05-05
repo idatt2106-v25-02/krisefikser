@@ -33,13 +33,13 @@ public class Configuration {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(
-      AuthenticationConfiguration configuration) throws Exception {
-    return configuration.getAuthenticationManager();
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
   }
 
   @Bean
-  public PasswordEncoder encoder() {
-    return new BCryptPasswordEncoder();
+  public AuthenticationManager authenticationManager(
+      AuthenticationConfiguration configuration) throws Exception {
+    return configuration.getAuthenticationManager();
   }
 }

@@ -14,17 +14,17 @@ import lombok.Data;
 @Data
 @Table(name = "roles")
 public class Role {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id = 0L;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, unique = true)
+  private RoleType name;
+
   public enum RoleType {
     USER,
     ADMIN,
     SUPER_ADMIN
   }
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id = 0L;
-
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false, unique = true)
-  private RoleType name;
 }

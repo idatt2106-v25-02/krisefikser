@@ -29,10 +29,10 @@ public class SecurityConfiguration {
   /**
    * Configures the security filter chain for the application.
    *
-   * @param http The HttpSecurity object to configure
+   * @param http                        The HttpSecurity object to configure
    * @param jwtAuthenticationEntryPoint The JwtAuthenticationEntryPoint to use
-   * @param jwtAuthFilter The JwtAuthenticationFilter to use
-   * @param authenticationProvider The AuthenticationProvider to use
+   * @param jwtAuthFilter               The JwtAuthenticationFilter to use
+   * @param authenticationProvider      The AuthenticationProvider to use
    * @return The security filter chain
    * @throws Exception if an error occurs
    */

@@ -9,9 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.auth.config.JwtProperties;
@@ -26,6 +24,10 @@ public class TokenService {
     this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
   }
 
+  public String generate(UserDetails userDetails, Date expirationDate) {
+    return generate(userDetails, expirationDate, Collections.emptyMap());
+  }
+
   public String generate(UserDetails userDetails, Date expirationDate,
       Map<String, Object> additionalClaims) {
     Set<String> roles = userDetails.getAuthorities().stream()
@@ -36,10 +38,6 @@ public class TokenService {
         .issuedAt(new Date(System.currentTimeMillis())).expiration(expirationDate)
         .claim("roles", roles).claims(additionalClaims).signWith(secretKey)
         .compact();
-  }
-
-  public String generate(UserDetails userDetails, Date expirationDate) {
-    return generate(userDetails, expirationDate, Collections.emptyMap());
   }
 
   public boolean isValid(String token, UserDetails userDetails) {

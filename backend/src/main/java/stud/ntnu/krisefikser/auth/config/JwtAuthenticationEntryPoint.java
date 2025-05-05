@@ -15,7 +15,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
   private final ObjectMapper objectMapper;
+
   @Override
   public void commence(
       HttpServletRequest request,

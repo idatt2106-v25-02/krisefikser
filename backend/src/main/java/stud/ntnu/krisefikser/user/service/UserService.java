@@ -28,14 +28,6 @@ public class UserService {
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
 
-  public User getCurrentUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = authentication.getName();
-
-    return userRepository.findByEmail(email).orElseThrow(
-        () -> new UserDoesNotExistException("User with email " + email + " does not exist"));
-  }
-
   public User createUser(CreateUser data) {
     if (userRepository.existsByEmail(data.getEmail())) {
       throw new EmailAlreadyExistsException(
@@ -68,10 +60,8 @@ public class UserService {
    * @param userId the UUID of the user to update
    * @param data   the updated user data
    * @return the updated User entity
-   * @throws UserDoesNotExistException   if the user with the given ID does not
-   *                                     exist
-   * @throws EmailAlreadyExistsException if the new email is already in use by
-   *                                     another user
+   * @throws UserDoesNotExistException   if the user with the given ID does not exist
+   * @throws EmailAlreadyExistsException if the new email is already in use by another user
    */
   public User updateUser(UUID userId, CreateUser data) {
     User user = userRepository.findById(userId)
@@ -103,8 +93,7 @@ public class UserService {
    * Deletes a user from the system.
    *
    * @param userId the UUID of the user to delete
-   * @throws UserDoesNotExistException if the user with the given ID does not
-   *                                   exist
+   * @throws UserDoesNotExistException if the user with the given ID does not exist
    */
   public void deleteUser(UUID userId) {
     if (!userRepository.existsById(userId)) {
@@ -126,8 +115,7 @@ public class UserService {
    * Checks if the current user is either an admin or the user being accessed.
    *
    * @param userId the UUID of the user being accessed
-   * @return true if the current user is an admin or the user being accessed,
-   *         false otherwise
+   * @return true if the current user is an admin or the user being accessed, false otherwise
    */
   public boolean isAdminOrSelf(UUID userId) {
     User currentUser = getCurrentUser();
@@ -135,6 +123,14 @@ public class UserService {
         currentUser.getRoles().stream()
             .anyMatch(
                 role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
+  }
+
+  public User getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String email = authentication.getName();
+
+    return userRepository.findByEmail(email).orElseThrow(
+        () -> new UserDoesNotExistException("User with email " + email + " does not exist"));
   }
 
   public void updateActiveHousehold(Household household) {

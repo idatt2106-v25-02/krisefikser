@@ -5,4 +5,6 @@ public record EmailRequestDto(
     String toEmail,
     String name,
     String verificationLink
-) {} 
+) {
+
+}

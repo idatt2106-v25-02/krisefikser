@@ -19,6 +19,7 @@ import org.hibernate.annotations.UuidGenerator;
 @AllArgsConstructor
 @Builder
 public class RefreshToken {
+
   @Id
   @GeneratedValue(generator = "UUID")
   @UuidGenerator(style = UuidGenerator.Style.RANDOM)

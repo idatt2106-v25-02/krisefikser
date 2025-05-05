@@ -1,6 +1,7 @@
 package stud.ntnu.krisefikser.user.exception;
 
-public class UserDoesNotExistException extends RuntimeException{
+public class UserDoesNotExistException extends RuntimeException {
+
   public UserDoesNotExistException() {
     super("User does not exist");
   }

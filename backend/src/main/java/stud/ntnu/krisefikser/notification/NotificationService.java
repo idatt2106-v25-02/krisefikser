@@ -3,12 +3,11 @@ package stud.ntnu.krisefikser.notification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import stud.ntnu.krisefikser.map.entity.Event;
 
 /**
- * Service responsible for sending real-time WebSocket notifications.
- * This class handles broadcasting updates, creations, and deletions of events to subscribed clients
- * using Spring's WebSocket messaging capabilities.
+ * Service responsible for sending real-time WebSocket notifications. This class handles
+ * broadcasting updates, creations, and deletions of events to subscribed clients using Spring's
+ * WebSocket messaging capabilities.
  *
  * <p>The service uses predefined topic destinations that clients can subscribe to in order
  * to receive notifications about specific event actions:</p>
@@ -27,8 +26,8 @@ import stud.ntnu.krisefikser.map.entity.Event;
 public class NotificationService {
 
   /**
-   * Spring's messaging template used to send messages to WebSocket destinations.
-   * Automatically injected through constructor by Lombok's {@code @RequiredArgsConstructor}.
+   * Spring's messaging template used to send messages to WebSocket destinations. Automatically
+   * injected through constructor by Lombok's {@code @RequiredArgsConstructor}.
    */
   private final SimpMessagingTemplate messagingTemplate;
 

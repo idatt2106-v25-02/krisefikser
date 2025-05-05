@@ -10,20 +10,27 @@ import stud.ntnu.krisefikser.article.dto.ArticleResponse;
 import stud.ntnu.krisefikser.article.entity.Article;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.article.repository.ArticleRepository;
-import stud.ntnu.krisefikser.notification.NotificationResponse;
-import stud.ntnu.krisefikser.notification.NotificationService;
 
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
 
   private final ArticleRepository articleRepository;
-  private final NotificationService notificationService;
 
   public List<ArticleResponse> getAllArticles() {
     return articleRepository.findAll().stream()
         .map(this::convertToDto)
         .collect(Collectors.toList());
+  }
+
+  private ArticleResponse convertToDto(Article article) {
+    return ArticleResponse.builder()
+        .id(article.getId())
+        .title(article.getTitle())
+        .text(article.getText())
+        .createdAt(article.getCreatedAt())
+        .imageUrl(article.getImageUrl())
+        .build();
   }
 
   public ArticleResponse getArticleById(Long id) {
@@ -61,15 +68,5 @@ public class ArticleService {
       throw new ArticleNotFoundException("Article not found with id: " + id);
     }
     articleRepository.deleteById(id);
-  }
-
-  private ArticleResponse convertToDto(Article article) {
-    return ArticleResponse.builder()
-        .id(article.getId())
-        .title(article.getTitle())
-        .text(article.getText())
-        .createdAt(article.getCreatedAt())
-        .imageUrl(article.getImageUrl())
-        .build();
   }
 }
