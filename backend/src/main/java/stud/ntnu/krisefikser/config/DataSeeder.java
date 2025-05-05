@@ -1,23 +1,20 @@
 package stud.ntnu.krisefikser.config;
 
-import com.github.javafaker.Faker;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.Optional;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -27,11 +24,17 @@ import stud.ntnu.krisefikser.article.entity.Article;
 import stud.ntnu.krisefikser.article.repository.ArticleRepository;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
+import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.household.repository.MeetingPointRepository;
+import stud.ntnu.krisefikser.item.entity.ChecklistItem;
+import stud.ntnu.krisefikser.item.entity.FoodItem;
+import stud.ntnu.krisefikser.item.enums.ChecklistCategory;
+import stud.ntnu.krisefikser.item.repository.ChecklistItemRepository;
+import stud.ntnu.krisefikser.item.repository.FoodItemRepository;
 import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.map.entity.EventLevel;
 import stud.ntnu.krisefikser.map.entity.EventStatus;
@@ -42,13 +45,6 @@ import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
-import stud.ntnu.krisefikser.item.entity.FoodItem;
-import stud.ntnu.krisefikser.item.repository.FoodItemRepository;
-import stud.ntnu.krisefikser.item.entity.ChecklistItem;
-import stud.ntnu.krisefikser.item.repository.ChecklistItemRepository;
-import stud.ntnu.krisefikser.auth.entity.RefreshToken;
-import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
-import stud.ntnu.krisefikser.item.enums.ChecklistType;
 
 @Component
 @RequiredArgsConstructor
@@ -367,11 +363,11 @@ public class DataSeeder implements CommandLineRunner {
 
     // Event levels and their distribution probability
     EventLevel[] levels = EventLevel.values();
-    int[] levelWeights = { 60, 30, 10 }; // 60% GREEN, 30% YELLOW, 10% RED
+    int[] levelWeights = {60, 30, 10}; // 60% GREEN, 30% YELLOW, 10% RED
 
     // Event statuses and their distribution probability
     EventStatus[] statuses = EventStatus.values();
-    int[] statusWeights = { 30, 50, 20 }; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
+    int[] statusWeights = {30, 50, 20}; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
 
     // Create 15 events
     ZonedDateTime now = ZonedDateTime.now();
@@ -549,7 +545,7 @@ public class DataSeeder implements CommandLineRunner {
             .name(faker.commerce().productName())
             .icon("checklist-icon-" + i)
             .checked(random.nextBoolean())
-            .type(ChecklistType.values()[random.nextInt(ChecklistType.values().length)])
+            .type(ChecklistCategory.values()[random.nextInt(ChecklistCategory.values().length)])
             .build();
 
         checklistItems.add(checklistItem);
@@ -561,8 +557,7 @@ public class DataSeeder implements CommandLineRunner {
   }
 
   /**
-   * Helper method to get a random item from an array based on weighted
-   * probabilities.
+   * Helper method to get a random item from an array based on weighted probabilities.
    *
    * @param items   Array of items to choose from
    * @param weights Array of weights corresponding to the items

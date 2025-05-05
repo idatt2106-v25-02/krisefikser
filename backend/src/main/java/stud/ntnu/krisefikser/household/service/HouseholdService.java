@@ -11,6 +11,7 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
+import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
@@ -21,6 +22,7 @@ public class HouseholdService {
   private final HouseholdRepository householdRepo;
   private final HouseholdMemberService householdMemberService;
   private final UserService userService;
+  private final ChecklistItemService checklistItemService;
 
   @Transactional(readOnly = true)
   public List<HouseholdResponse> getUserHouseholds() {
@@ -50,7 +52,8 @@ public class HouseholdService {
         household.getOwner().toDto(),
         members.stream().map(HouseholdMember::toDto).toList(),
         household.getCreatedAt(),
-        isActive);
+        isActive
+    );
   }
 
   @Transactional
@@ -120,8 +123,7 @@ public class HouseholdService {
         .orElseThrow(() -> new IllegalArgumentException("Household not found"));
 
     // Check if current user is the owner
-    // Check if current user is the owner
-    if (!household.getOwner().getId().equals(currentUser.getId()) && !currentUser.isSuperAdmin()) {
+    if (!household.getOwner().getId().equals(currentUser.getId())) {
       throw new IllegalArgumentException("Only the owner can delete a household");
     }
 
@@ -139,15 +141,15 @@ public class HouseholdService {
   }
 
   @Transactional
-  public HouseholdResponse createHousehold(CreateHouseholdRequest household) {
+  public HouseholdResponse createHousehold(CreateHouseholdRequest createHouseholdRequest) {
     User currentUser = userService.getCurrentUser();
     Household newHousehold = new Household();
-    newHousehold.setName(household.getName());
-    newHousehold.setLatitude(household.getLatitude());
-    newHousehold.setLongitude(household.getLongitude());
-    newHousehold.setAddress(household.getAddress());
-    newHousehold.setPostalCode(household.getPostalCode());
-    newHousehold.setCity(household.getCity());
+    newHousehold.setName(createHouseholdRequest.getName());
+    newHousehold.setLatitude(createHouseholdRequest.getLatitude());
+    newHousehold.setLongitude(createHouseholdRequest.getLongitude());
+    newHousehold.setAddress(createHouseholdRequest.getAddress());
+    newHousehold.setPostalCode(createHouseholdRequest.getPostalCode());
+    newHousehold.setCity(createHouseholdRequest.getCity());
     newHousehold.setOwner(currentUser);
 
     householdRepo.save(newHousehold);
@@ -156,7 +158,29 @@ public class HouseholdService {
     currentUser.setActiveHousehold(newHousehold);
     userService.updateActiveHousehold(newHousehold);
 
+    // Create default checklist items for the new household
+    checklistItemService.createDefaultChecklistItems(newHousehold);
+
     return toHouseholdResponse(newHousehold);
+  }
+
+  /**
+   * Sets the water amount for the active household of the current user. Throws an exception if the
+   * user does not have an active household.
+   *
+   * @param liters the new water amount
+   */
+  @Transactional
+  public void setWaterAmount(double liters) {
+    User currentUser = userService.getCurrentUser();
+    Household household = currentUser.getActiveHousehold();
+
+    if (household == null) {
+      throw new HouseholdNotFoundException();
+    }
+
+    household.setWaterLiters(liters);
+    householdRepo.save(household);
   }
 
   @Transactional(readOnly = true)
@@ -200,7 +224,8 @@ public class HouseholdService {
     }
 
     // If the user's active household is this one, clear it
-    if (user.getActiveHousehold() != null && user.getActiveHousehold().getId().equals(householdId)) {
+    if (user.getActiveHousehold() != null && user.getActiveHousehold().getId()
+        .equals(householdId)) {
       user.setActiveHousehold(null);
       userService.updateActiveHousehold(null);
     }

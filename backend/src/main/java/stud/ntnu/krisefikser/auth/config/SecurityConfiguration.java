@@ -24,29 +24,47 @@ import stud.ntnu.krisefikser.config.FrontendConfig;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-  private final JwtAuthenticationFilter jwtAuthFilter;
-  private final AuthenticationProvider authenticationProvider;
   private final FrontendConfig frontendConfig;
 
+  /**
+   * Configures the security filter chain for the application.
+   *
+   * @param http The HttpSecurity object to configure
+   * @param jwtAuthenticationEntryPoint The JwtAuthenticationEntryPoint to use
+   * @param jwtAuthFilter The JwtAuthenticationFilter to use
+   * @param authenticationProvider The AuthenticationProvider to use
+   * @return The security filter chain
+   * @throws Exception if an error occurs
+   */
   @Bean
-  public DefaultSecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public DefaultSecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+      JwtAuthenticationFilter jwtAuthFilter,
+      AuthenticationProvider authenticationProvider
+  ) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**")
             .permitAll()
+            .requestMatchers("/ws/**")
+            .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
             .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
             .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh")
             .permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/email/**").permitAll()
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyRequest().authenticated())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider)
+        .exceptionHandling(
+            handler -> handler.authenticationEntryPoint(jwtAuthenticationEntryPoint))
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
