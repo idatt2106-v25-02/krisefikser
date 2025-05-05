@@ -7,7 +7,7 @@
  */
 
 /**
- * Updated household data
+ * Household data
  */
 export interface CreateHouseholdRequest {
   name: string
