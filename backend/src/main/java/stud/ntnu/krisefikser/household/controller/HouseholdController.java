@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
-import stud.ntnu.krisefikser.household.dto.GuestResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
@@ -230,22 +229,6 @@ public class HouseholdController {
   public ResponseEntity<HouseholdResponse> removeGuestFromHousehold(
       @Parameter(description = "Guest ID") @PathVariable UUID guestId) {
     return ResponseEntity.ok(householdService.removeGuestFromHousehold(guestId));
-  }
-
-  /**
-   * Retrieves all guests in the household.
-   *
-   * @return ResponseEntity containing a list of all guests in the household
-   */
-  @Operation(summary = "Get all guests in household",
-      description = "Retrieves a list of all guests in the household")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved all guests"),
-      @ApiResponse(responseCode = "404", description = "Household not found")
-  })
-  @GetMapping("/guests")
-  public ResponseEntity<List<GuestResponse>> getAllGuestsInHousehold() {
-    return ResponseEntity.ok(householdService.getAllGuestsInHousehold());
   }
 
   /**

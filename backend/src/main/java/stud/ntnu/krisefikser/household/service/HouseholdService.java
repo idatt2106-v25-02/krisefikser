@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
-import stud.ntnu.krisefikser.household.dto.GuestResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.entity.Guest;
 import stud.ntnu.krisefikser.household.entity.Household;
@@ -419,16 +418,5 @@ public class HouseholdService {
 
     guestRepository.delete(guest);
     return toHouseholdResponse(guest.getHousehold());
-  }
-
-  /**
-   * Retrieves all guests in the active household.
-   *
-   * @return A list of guest responses
-   */
-  public List<GuestResponse> getAllGuestsInHousehold() {
-    return guestRepository.findAllByHousehold(getActiveHousehold()).stream()
-        .map(Guest::toResponse)
-        .toList();
   }
 }
