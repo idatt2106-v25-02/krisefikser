@@ -25,6 +25,7 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 //
+// /* Remove the global namespace declaration for custom commands
 // declare global {
 //   namespace Cypress {
 //     interface Chainable {
@@ -35,14 +36,16 @@
 //     }
 //   }
 // }
+// */
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      registerUser(email: string, password: string, name: string): Chainable<void>
-      loginUser(email: string, password: string): Chainable<void>
-      deleteTestUser(email: string): Chainable<void>
-    }
+// Use module augmentation instead
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare namespace Cypress {
+
+  interface Chainable {
+    registerUser(email: string, password: string, name: string): Chainable<void>;
+    loginUser(email: string, password: string): Chainable<void>;
+    deleteTestUser(email: string): Chainable<void>;
   }
 }
 
@@ -88,5 +91,3 @@ Cypress.Commands.add('deleteTestUser', (email: string) => {
     failOnStatusCode: false
   })
 })
-
-export {}
