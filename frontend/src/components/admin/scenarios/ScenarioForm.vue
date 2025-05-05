@@ -4,7 +4,7 @@ import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 const props = defineProps({
   scenario: {
@@ -13,7 +13,6 @@ const props = defineProps({
     default: () => ({
       id: '',
       title: '',
-      description: '',
       content: ''
     })
   },
@@ -28,13 +27,11 @@ const emit = defineEmits(['save', 'cancel']);
 const formData = ref({
   id: props.scenario.id || '',
   title: props.scenario.title || '',
-  description: props.scenario.description || '',
   content: props.scenario.content || ''
 });
 
 const submitForm = () => {
-  // Validate form
-  if (!formData.value.title || !formData.value.description) {
+  if (!formData.value.title || !formData.value.content) {
     alert('Vennligst fyll ut alle obligatoriske felt');
     return;
   }
@@ -42,7 +39,6 @@ const submitForm = () => {
   emit('save', {
     id: formData.value.id,
     title: formData.value.title,
-    description: formData.value.description,
     content: formData.value.content
   });
 };
@@ -63,29 +59,14 @@ const submitForm = () => {
       />
     </div>
 
-    <!-- Description -->
-    <div>
-      <Label for="description" class="block text-sm font-medium text-gray-700">Beskrivelse</Label>
-      <Input
-        id="description"
-        v-model="formData.description"
-        type="text"
-        class="mt-1 w-full"
-        required
-        placeholder="Kort beskrivelse av scenarioet"
-      />
-    </div>
-
     <!-- Content -->
     <div>
       <Label for="content" class="block text-sm font-medium text-gray-700">Innhold</Label>
-      <Textarea
+      <RichTextEditor
         id="content"
         v-model="formData.content"
-        rows="10"
-        class="mt-1 w-full"
         placeholder="Detaljert informasjon om scenarioet"
-      ></Textarea>
+      />
     </div>
 
     <!-- Form Actions -->
