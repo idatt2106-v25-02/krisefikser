@@ -324,4 +324,14 @@ public class HouseholdService {
     householdMemberService.removeMember(household, user);
     return toHouseholdResponse(household);
   }
+
+  /**
+   * Adds a guest to the household. A guest is a user who does not have a user account.
+   *
+   * @param guest The guest to be added
+   * @return The updated household response
+   */
+  public HouseholdResponse addGuestToHousehold(CreateHouseholdRequest guest) {
+
+  }
 }

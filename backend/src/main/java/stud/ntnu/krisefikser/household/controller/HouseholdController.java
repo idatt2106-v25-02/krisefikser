@@ -196,4 +196,18 @@ public class HouseholdController {
   /**
    * Add a guest to the household.
    */
+  @Operation(summary = "Add guest to current household",
+      description = "Adds a guest to current household. A guest is a user who does not have a user "
+          + "account.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully added guest"),
+      @ApiResponse(responseCode = "400", description = "Invalid household or guest data"),
+      @ApiResponse(responseCode = "404", description = "Household not found")
+  })
+  @PostMapping("/guests")
+  public ResponseEntity<HouseholdResponse> addGuestToHousehold(
+      @Parameter(description = "Household ID") @PathVariable UUID householdId,
+      @Parameter(description = "Guest data") @RequestBody CreateHouseholdRequest guest) {
+    return ResponseEntity.ok(householdService.addGuestToHousehold(householdId, guest));
+  }
 }
