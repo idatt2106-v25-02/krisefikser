@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,7 @@ public class TokenServiceTest {
   @Test
   void generate_ShouldCreateValidToken() {
     // Act
-    String token = tokenService.generate(userDetails, expirationDate);
+    String token = tokenService.generate(userDetails, expirationDate, new HashMap<>());
 
     // Assert
     assertThat(token).isNotNull().isNotEmpty();
@@ -64,7 +65,7 @@ public class TokenServiceTest {
   @Test
   void isValid_WithValidToken_ShouldReturnTrue() {
     // Arrange
-    String token = tokenService.generate(userDetails, expirationDate);
+    String token = tokenService.generate(userDetails, expirationDate, new HashMap<>());
 
     // Act
     boolean valid = tokenService.isValid(token, userDetails);
@@ -77,7 +78,7 @@ public class TokenServiceTest {
   void isValid_WithExpiredToken_ShouldReturnFalse() {
     // Arrange
     Date pastDate = new Date(System.currentTimeMillis() - 10000); // 10 seconds in the past
-    String token = tokenService.generate(userDetails, pastDate);
+    String token = tokenService.generate(userDetails, pastDate, new HashMap<>());
 
     // Act
     boolean valid = tokenService.isValid(token, userDetails);
@@ -89,7 +90,7 @@ public class TokenServiceTest {
   @Test
   void isValid_WithDifferentUser_ShouldReturnFalse() {
     // Arrange
-    String token = tokenService.generate(userDetails, expirationDate);
+    String token = tokenService.generate(userDetails, expirationDate, new HashMap<>());
 
     UserDetails otherUser = new User(
         "other@example.com",
@@ -107,7 +108,7 @@ public class TokenServiceTest {
   @Test
   void extractEmail_FromValidToken_ShouldReturnEmail() {
     // Arrange
-    String token = tokenService.generate(userDetails, expirationDate);
+    String token = tokenService.generate(userDetails, expirationDate, new HashMap<>());
 
     // Act
     String email = tokenService.extractEmail(token);
@@ -128,7 +129,7 @@ public class TokenServiceTest {
   @Test
   void isExpired_WithFutureExpirationDate_ShouldReturnFalse() {
     // Arrange
-    String token = tokenService.generate(userDetails, expirationDate);
+    String token = tokenService.generate(userDetails, expirationDate, new HashMap<>());
 
     // Act
     boolean expired = tokenService.isExpired(token);
@@ -141,7 +142,7 @@ public class TokenServiceTest {
   void isExpired_WithPastExpirationDate_ShouldReturnTrue() {
     // Arrange
     Date pastDate = new Date(System.currentTimeMillis() - 10000); // 10 seconds in the past
-    String token = tokenService.generate(userDetails, pastDate);
+    String token = tokenService.generate(userDetails, pastDate, new HashMap<>());
 
     // Act
     boolean expired = tokenService.isExpired(token);
