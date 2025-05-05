@@ -2,7 +2,6 @@ package stud.ntnu.krisefikser.article.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.article.dto.ArticleRequest;
@@ -20,7 +19,7 @@ public class ArticleService {
   public List<ArticleResponse> getAllArticles() {
     return articleRepository.findAll().stream()
         .map(this::convertToDto)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private ArticleResponse convertToDto(Article article) {
