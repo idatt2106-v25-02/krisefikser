@@ -29,8 +29,8 @@ import stud.ntnu.krisefikser.household.dto.GuestResponse;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "household_id"})})
-@ToString(exclude = {"user", "household"})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"household_id"})})
+@ToString(exclude = {"household"})
 public class Guest {
 
   @Id

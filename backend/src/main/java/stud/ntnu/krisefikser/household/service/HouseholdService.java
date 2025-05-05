@@ -32,6 +32,7 @@ public class HouseholdService {
   private final HouseholdMemberService householdMemberService;
   private final UserService userService;
   private final ChecklistItemService checklistItemService;
+  private final GuestRepository guestRepository;
 
   /**
    * Retrieves all households that the current user is a member of.
