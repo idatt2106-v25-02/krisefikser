@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @NotBlank
 @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
-    message = "Passorded må inneholde minst en stor bokstav, en liten bokstav, et tall, et"
+    message = "Passordet må inneholde minst en stor bokstav, en liten bokstav, et tall, et"
         + "spesialtegn og være minst 8 tegn langt")
 public @interface ValidPassword {
 
