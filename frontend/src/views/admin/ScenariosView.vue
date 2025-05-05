@@ -1,6 +1,6 @@
 <!-- ScenariosSection.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import {
   PlusCircle,
   Edit,
@@ -21,6 +21,11 @@ import {
   useDeleteScenario
 } from '@/api/generated/scenario/scenario';
 
+interface Scenario {
+  id: string;
+  title: string;
+  content: string;
+}
 // Fetch all scenarios
 const { data: scenarios, refetch } = useGetAllScenarios();
 
@@ -30,7 +35,6 @@ const isEditing = ref(false);
 const currentScenario = ref({
   id: '',
   title: '',
-  description: '',
   content: ''
 });
 
@@ -38,14 +42,13 @@ const openAddForm = () => {
   currentScenario.value = {
     id: '',
     title: '',
-    description: '',
     content: ''
   };
   isEditing.value = false;
   showForm.value = true;
 };
 
-const openEditForm = (scenario) => {
+const openEditForm = (scenario: Scenario) => {
   currentScenario.value = { ...scenario };
   isEditing.value = true;
   showForm.value = true;
@@ -58,9 +61,15 @@ const closeForm = () => {
 // Mutations
 const { mutate: createScenario } = useCreateScenario({ mutation: { onSuccess: () => { refetch(); closeForm(); } } });
 const { mutate: updateScenario } = useUpdateScenario({ mutation: { onSuccess: () => { refetch(); closeForm(); } } });
-const { mutate: deleteScenario } = useDeleteScenario({ mutation: { onSuccess: refetch } });
+const { mutate: deleteScenario } = useDeleteScenario({
+  mutation: {
+    onSuccess: () => {
+      refetch();
+    },
+  },
+});
 
-const saveScenario = (scenarioData) => {
+const saveScenario = (scenarioData: Scenario) => {
   const payload = {
     title: scenarioData.title,
     content: scenarioData.content,
@@ -72,10 +81,22 @@ const saveScenario = (scenarioData) => {
   }
 };
 
-const deleteItem = (id) => {
+const deleteItem = (id: string) => {
   if (confirm('Er du sikker på at du vil slette dette scenarioet?')) {
     deleteScenario({ id });
   }
+};
+
+// Get a preview of content
+const getContentPreview = (content: string) => {
+  if (!content) return '';
+
+  // Clean up any HTML tags
+  const cleanContent = content.replace(/<[^>]*>/g, '');
+
+  return cleanContent.length > 120
+    ? cleanContent.substring(0, 120) + '...'
+    : cleanContent;
 };
 </script>
 
@@ -93,17 +114,24 @@ const deleteItem = (id) => {
         </Button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="scenario in scenarios" :key="scenario.id" class="bg-white rounded-lg shadow overflow-hidden">
-          <div class="p-4">
-            <h3 class="text-lg font-medium text-gray-800 mb-2">{{ scenario.title }}</h3>
-            <p class="text-gray-600 mb-4">{{ scenario.description }}</p>
-            <div class="flex justify-end space-x-2">
+      <!-- Scrollable grid with fixed height cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto pr-2">
+        <div
+          v-for="scenario in scenarios"
+          :key="scenario.id"
+          class="bg-white rounded-lg shadow overflow-hidden h-[180px] flex flex-col"
+        >
+          <div class="p-4 flex flex-col h-full">
+            <h3 class="text-lg font-medium text-gray-800 mb-2 line-clamp-1">{{ scenario.title }}</h3>
+            <p class="text-gray-600 mb-2 line-clamp-3 flex-grow">
+              {{ getContentPreview(scenario.content) }}
+            </p>
+            <div class="flex justify-end space-x-2 mt-auto">
               <Button
                 variant="ghost"
                 size="icon"
                 class="text-blue-600 hover:text-blue-800 p-2 h-auto"
-                @click="openEditForm(scenario)"
+                @click.stop="openEditForm(scenario)"
               >
                 <Edit class="h-5 w-5" />
               </Button>
@@ -111,7 +139,7 @@ const deleteItem = (id) => {
                 variant="ghost"
                 size="icon"
                 class="text-red-600 hover:text-red-800 p-2 h-auto"
-                @click="deleteItem(scenario.id)"
+                @click.stop="deleteItem(scenario.id)"
               >
                 <Trash2 class="h-5 w-5" />
               </Button>
@@ -119,14 +147,15 @@ const deleteItem = (id) => {
           </div>
         </div>
 
+        <!-- Add new scenario card -->
         <div
-          class="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center p-8 cursor-pointer"
+          class="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center p-8 cursor-pointer h-[180px]"
           @click="openAddForm"
         >
-          <Button variant="ghost" class="text-blue-600 hover:text-blue-800 flex flex-col items-center">
+          <div class="text-blue-600 hover:text-blue-800 flex flex-col items-center">
             <PlusCircle class="h-10 w-10" />
             <span class="mt-2 font-medium">Legg til nytt scenario</span>
-          </Button>
+          </div>
         </div>
       </div>
 
@@ -155,3 +184,19 @@ const deleteItem = (id) => {
     </div>
   </AdminLayout>
 </template>
+
+<style scoped>
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
