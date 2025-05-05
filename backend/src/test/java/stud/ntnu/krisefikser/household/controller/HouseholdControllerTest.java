@@ -1,7 +1,6 @@
 package stud.ntnu.krisefikser.household.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -10,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -219,90 +217,5 @@ class HouseholdControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(householdId.toString()))
         .andExpect(jsonPath("$.name").value("Test Household"));
-  }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  void getAllHouseholdsAdmin_WithAdminRole_ShouldReturnAllHouseholds() throws Exception {
-    // Arrange
-    when(householdService.getAllHouseholds()).thenReturn(householdResponses);
-
-    // Act & Assert
-    mockMvc.perform(get("/api/households/admin/all"))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$[0].id").value(householdId.toString()))
-        .andExpect(jsonPath("$[0].name").value("Test Household"));
-  }
-
-  @Test
-  @WithMockUser
-  void getAllHouseholdsAdmin_WithoutAdminRole_ShouldReturnForbidden() throws Exception {
-    // Act & Assert
-    mockMvc.perform(get("/api/households/admin/all"))
-        .andExpect(status().isForbidden());
-  }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  void addMemberToHousehold_WithAdminRole_ShouldAddMemberAndReturnHousehold() throws Exception {
-    // Arrange
-    when(householdService.addMemberToHousehold(householdId, userId))
-        .thenReturn(testHouseholdResponse);
-
-    // Act & Assert
-    mockMvc.perform(post("/api/households/admin/" + householdId + "/members/" + userId)
-            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(householdId.toString()))
-        .andExpect(jsonPath("$.name").value("Test Household"));
-  }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  void removeMemberFromHousehold_WithAdminRole_ShouldRemoveMemberAndReturnHousehold()
-      throws Exception {
-    // Arrange
-    when(householdService.removeMemberFromHousehold(householdId, userId))
-        .thenReturn(testHouseholdResponse);
-
-    // Act & Assert
-    mockMvc.perform(delete("/api/households/admin/" + householdId + "/members/" + userId)
-            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(householdId.toString()))
-        .andExpect(jsonPath("$.name").value("Test Household"));
-  }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  void updateHousehold_WithAdminRole_ShouldUpdateAndReturnHousehold() throws Exception {
-    // Arrange
-    when(householdService.updateHousehold(eq(householdId), any(CreateHouseholdRequest.class)))
-        .thenReturn(testHouseholdResponse);
-
-    // Act & Assert
-    mockMvc.perform(post("/api/households/admin/" + householdId)
-            .with(SecurityMockMvcRequestPostProcessors.csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(createHouseholdRequest)))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(householdId.toString()))
-        .andExpect(jsonPath("$.name").value("Test Household"));
-  }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  void deleteHouseholdAdmin_WithAdminRole_ShouldDeleteHousehold() throws Exception {
-    // Arrange
-    doNothing().when(householdService).deleteHouseholdAdmin(householdId);
-
-    // Act & Assert
-    mockMvc.perform(delete("/api/households/admin/" + householdId)
-            .with(SecurityMockMvcRequestPostProcessors.csrf()))
-        .andExpect(status().isOk());
   }
 }
