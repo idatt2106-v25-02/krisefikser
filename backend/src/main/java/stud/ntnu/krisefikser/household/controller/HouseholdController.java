@@ -23,8 +23,7 @@ import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 
 /**
- * REST controller for managing households in the system. Provides endpoints for
- * household
+ * REST controller for managing households in the system. Provides endpoints for household
  * management operations.
  *
  * @since 1.0
@@ -51,7 +50,7 @@ public class HouseholdController {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved households")
   })
   @GetMapping("/all")
-  public ResponseEntity<List<HouseholdResponse>> getAllHouseholds() {
+  public ResponseEntity<List<HouseholdResponse>> getAllUserHouseholds() {
     return ResponseEntity.ok(householdService.getUserHouseholds());
   }
 
@@ -164,8 +163,30 @@ public class HouseholdController {
   }
 
   /**
-   * Retrieves all households in the system. Only accessible to users with ADMIN
-   * role.
+   * Owner can remove member from household.
+   *
+   * @param householdId The ID of the household
+   * @param userId      The ID of the user to remove
+   * @return ResponseEntity containing the updated household
+   * @since 1.0
+   */
+  @Operation(summary = "Remove member from household (Owner only)", description = "Removes a user from the household")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully removed member"),
+      @ApiResponse(responseCode = "400", description = "Invalid household or user ID"),
+      @ApiResponse(responseCode = "404", description = "Household or user not found"),
+      @ApiResponse(responseCode = "403", description = "Access denied - owner role required")
+  })
+  @DeleteMapping("/{householdId}/members/{userId}")
+  public ResponseEntity<HouseholdResponse> removeMemberFromHouseholdOwner(
+      @Parameter(description = "Household ID") @PathVariable UUID householdId,
+      @Parameter(description = "User ID") @PathVariable UUID userId
+  ) {
+    return ResponseEntity.ok(householdService.removeMemberFromHousehold(householdId, userId));
+  }
+
+  /**
+   * Retrieves all households in the system. Only accessible to users with ADMIN role.
    *
    * @return ResponseEntity containing a list of all households with their members
    * @since 1.0
@@ -251,8 +272,8 @@ public class HouseholdController {
   }
 
   /**
-   * Deletes a household. Only accessible to users with ADMIN role.
-   * This will cascade delete household members but not users.
+   * Deletes a household. Only accessible to users with ADMIN role. This will cascade delete
+   * household members but not users.
    *
    * @param id The ID of the household to delete
    * @since 1.0
