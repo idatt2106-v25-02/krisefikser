@@ -1,10 +1,10 @@
 package stud.ntnu.krisefikser.notification.repository;
 
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import stud.ntnu.krisefikser.notification.dto.NotificationResponse;
 import stud.ntnu.krisefikser.notification.entity.Notification;
 import stud.ntnu.krisefikser.user.entity.User;
 
@@ -19,11 +19,27 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
   /**
    * Finds all notifications for a specific user with pagination support.
-   * Returns notifications as NotificationResponse DTOs for efficient data transfer.
    *
-   * @param user the user whose notifications to retrieve
+   * @param user     the user whose notifications to retrieve
    * @param pageable pagination information (page number, size, and sorting)
    * @return Page of NotificationResponse objects for the given user
    */
-  Page<NotificationResponse> findByUser(User user, Pageable pageable);
+  Page<Notification> findByUser(User user, Pageable pageable);
+
+  /**
+   * Finds all notifications for a specific user.
+   *
+   * @param user the user whose notifications to retrieve
+   * @return List of NotificationResponse objects for the given user
+   */
+  List<Notification> findByUser(User user);
+
+  /**
+   * Counts all notifications by user and read status.
+   *
+   * @param user the user whose notifications to count
+   * @param read the read status for the notifications to count
+   * @return a {@link Long} representing the count
+   */
+  Long countByReadAndUser(Boolean read, User user);
 }

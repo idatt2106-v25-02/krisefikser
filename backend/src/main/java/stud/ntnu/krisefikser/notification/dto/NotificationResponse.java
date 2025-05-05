@@ -1,6 +1,7 @@
 package stud.ntnu.krisefikser.notification.dto;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +19,11 @@ import stud.ntnu.krisefikser.notification.entity.NotificationType;
 @AllArgsConstructor
 @Builder
 public class NotificationResponse {
+  /**
+   * The ID of the notification.
+   */
+  private UUID id;
+
   /**
    * The title of the notification.
    */

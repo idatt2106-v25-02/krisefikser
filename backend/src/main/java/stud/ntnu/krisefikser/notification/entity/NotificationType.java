@@ -15,5 +15,9 @@ public enum NotificationType {
   /**
    * Represents an event-related notification.
    */
-  EVENT
+  EVENT,
+  /**
+   * General information.
+   */
+  INFO
 }

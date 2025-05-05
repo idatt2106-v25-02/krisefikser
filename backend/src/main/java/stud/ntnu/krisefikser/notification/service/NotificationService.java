@@ -1,8 +1,11 @@
 package stud.ntnu.krisefikser.notification.service;
 
+import jakarta.persistence.EntityNotFoundException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.notification.dto.NotificationResponse;
 import stud.ntnu.krisefikser.notification.entity.Notification;
@@ -36,6 +39,15 @@ public class NotificationService {
   }
 
   /**
+   * Deletes a notification.
+   *
+   * @param notificationId the notification ID of the entity to be deleted
+   */
+  public void deleteNotification(UUID notificationId) {
+    notificationRepository.deleteById(notificationId);
+  }
+
+  /**
    * Retrieves a paginated list of notifications for the currently authenticated user.
    *
    * @param pageable pagination information (page number, size, and sorting)
@@ -43,6 +55,43 @@ public class NotificationService {
    */
   public Page<NotificationResponse> getNotifications(Pageable pageable) {
     User currentUser = userService.getCurrentUser();
-    return notificationRepository.findByUser(currentUser, pageable);
+    return notificationRepository.findByUser(currentUser, pageable).map(Notification::toResponse);
+  }
+
+
+  /**
+   * Marks a specific notification as read for the currently authenticated user.
+   * Throws an EntityNotFoundException if the notification does not exist.
+   * Throws an AccessDeniedException if the current user does not own the notification.
+   *
+   * @param notificationId the unique identifier of the notification to be marked as read
+   */
+  public void markNotificationAsRead(UUID notificationId) {
+    Notification notification = notificationRepository.findById(notificationId).orElseThrow(
+        () -> new EntityNotFoundException(
+            "Notification with id " + notificationId + " not found"));
+    if (!notification.getUser().getId().equals(userService.getCurrentUser().getId())) {
+      throw new AccessDeniedException("You do not have permission to read this notification");
+    }
+    notification.setRead(true);
+    notificationRepository.save(notification);
+  }
+
+  /**
+   * Marks all notifications for the current user as read.
+   */
+  public void markAllNotificationsAsRead() {
+    notificationRepository.findByUser(userService.getCurrentUser()).forEach(notification -> {
+      notification.setRead(true);
+    });
+  }
+
+  /**
+   * Counts the number of unread notifications for the current user.
+   *
+   * @return the number of unread notifications for the current user.
+   */
+  public Long countUnreadNotifications() {
+    return notificationRepository.countByReadAndUser(false, userService.getCurrentUser());
   }
 }

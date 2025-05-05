@@ -6,14 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-/**
- * Household data
- */
-export interface CreateHouseholdRequest {
+export type SearchProductTypesParams = {
   name: string
-  latitude: number
-  longitude: number
-  address: string
-  city: string
-  postalCode: string
 }

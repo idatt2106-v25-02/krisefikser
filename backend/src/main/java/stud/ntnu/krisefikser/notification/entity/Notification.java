@@ -93,6 +93,7 @@ public class Notification {
    */
   public NotificationResponse toResponse() {
     return NotificationResponse.builder()
+        .id(id)
         .title(title)
         .message(message)
         .type(type)
