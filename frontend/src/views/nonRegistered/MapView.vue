@@ -4,6 +4,7 @@ import MapComponent from '@/components/map/MapComponent.vue'
 import ShelterLayer from '@/components/map/ShelterLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
 import UserLocationLayer from '@/components/map/UserLocationLayer.vue'
+import HomeLocationLayer from '@/components/map/HomeLocationLayer.vue'
 import MeetingPointLayer from '@/components/map/MeetingPointLayer.vue'
 import MeetingPointForm from '@/components/map/MeetingPointForm.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
@@ -262,6 +263,11 @@ onUnmounted(() => {
         :events="events"
         @user-in-crisis-zone="handleUserCrisisZoneChange"
         @user-location-available="onUserLocationStatus"
+      />
+      <HomeLocationLayer
+        v-if="activeHousehold?.id && mapInstance && activeHousehold.latitude && activeHousehold.longitude"
+        :map="mapInstance as any"
+        :home-location="{ latitude: activeHousehold.latitude, longitude: activeHousehold.longitude }"
       />
       <MeetingPointLayer
         v-if="canShowMeetingPointLayer && mapInstance"
