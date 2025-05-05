@@ -35,6 +35,7 @@ public class AuthService {
   private final TokenService tokenService;
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
+  private final EmailVerificationService emailVerificationService;
 
   public RegisterResponse register(RegisterRequest registerRequest) {
     userService.createUser(new CreateUser(
@@ -101,7 +102,7 @@ public class AuthService {
 
   @Transactional
   public boolean verifyEmail(String token) {
-    boolean verified = EmailVerificationService.verifyToken(token);
+    boolean verified = emailVerificationService.verifyToken(token);
     if (verified) {
       // Any additional action after verification
       log.info("Email verified successfully with token: {}", token);
