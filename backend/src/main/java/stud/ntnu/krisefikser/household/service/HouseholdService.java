@@ -120,6 +120,12 @@ public class HouseholdService {
     return toHouseholdResponse(household);
   }
 
+  /**
+   * Retrieves the currently active household for the logged-in user.
+   *
+   * @return The active household entity
+   * @throws HouseholdNotFoundException if no active household is set
+   */
   public Household getActiveHousehold() {
     User currentUser = userService.getCurrentUser();
     Household household = currentUser.getActiveHousehold();
@@ -146,8 +152,35 @@ public class HouseholdService {
       throw new IllegalArgumentException("Not a member of this household");
     }
 
-    userService.updateActiveHousehold(null);
+    if (isOwner(currentUser, household)) {
+      throw new IllegalArgumentException("Owner cannot leave the household");
+    }
+
+    setNewActiveHousehold(currentUser, household);
+
     householdMemberService.removeMember(household, currentUser);
+  }
+
+  /**
+   * Sets the active household for the current user to null if the user is leaving the household. If
+   * the user is member of another household, a random one is set as active.
+   *
+   * @param household The household being left
+   */
+  private void setNewActiveHousehold(User user, Household household) {
+    if (user.getActiveHousehold() != null && user.getActiveHousehold().getId()
+        .equals(household.getId())) {
+      HouseholdMember hm = householdMemberService.getHouseholdsByUser(user).stream()
+          .filter(h -> !h.getHousehold().getId().equals(household.getId())).findFirst()
+          .orElse(null);
+      Household newHousehold = hm == null ? null : hm.getHousehold();
+
+      userService.updateActiveHousehold(newHousehold);
+    }
+  }
+
+  private boolean isOwner(User user, Household household) {
+    return household.getOwner().getId().equals(user.getId());
   }
 
   /**
@@ -162,17 +195,14 @@ public class HouseholdService {
         .orElseThrow(() -> new IllegalArgumentException("Household not found"));
 
     // Check if current user is the owner
-    if (!household.getOwner().getId().equals(currentUser.getId())) {
+    if (!isOwner(currentUser, household)) {
       throw new IllegalArgumentException("Only the owner can delete a household");
     }
 
-    // Clear active household for all members
+    // Set a new active household for each member and remove them from the household as members
     List<HouseholdMember> members = householdMemberService.getMembers(id);
     for (HouseholdMember member : members) {
-      if (member.getUser().getActiveHousehold() != null &&
-          member.getUser().getActiveHousehold().getId().equals(id)) {
-        userService.updateActiveHousehold(null);
-      }
+      setNewActiveHousehold(member.getUser(), household);
       householdMemberService.removeMember(household, member.getUser());
     }
 
