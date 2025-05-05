@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
+import stud.ntnu.krisefikser.household.dto.GuestResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.entity.Guest;
 import stud.ntnu.krisefikser.household.entity.Household;
@@ -19,8 +20,7 @@ import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 /**
- * Service class for managing households in the system. Provides methods for
- * household-related
+ * Service class for managing households in the system. Provides methods for household-related
  * operations such as creating, joining, leaving, and deleting households.
  *
  * @since 1.0
@@ -125,8 +125,7 @@ public class HouseholdService {
   }
 
   /**
-   * Leaves the specified household. The user must be a member of the household to
-   * leave it.
+   * Leaves the specified household. The user must be a member of the household to leave it.
    *
    * @param householdId The ID of the household to leave
    */
@@ -154,8 +153,7 @@ public class HouseholdService {
   }
 
   /**
-   * Sets the active household for the current user to null if the user is leaving
-   * the household. If
+   * Sets the active household for the current user to null if the user is leaving the household. If
    * the user is member of another household, a random one is set as active.
    *
    * @param household The household being left
@@ -230,8 +228,7 @@ public class HouseholdService {
   }
 
   /**
-   * Sets the water amount for the active household of the current user. Throws an
-   * exception if the
+   * Sets the water amount for the active household of the current user. Throws an exception if the
    * user does not have an active household.
    *
    * @param liters the new water amount
@@ -405,5 +402,33 @@ public class HouseholdService {
     }
 
     return household;
+  }
+
+  /**
+   * Removes a guest from the active household.
+   *
+   * @param guestId The ID of the guest to be removed
+   * @return The updated household response
+   */
+  public HouseholdResponse removeGuestFromHousehold(UUID guestId) {
+    Guest guest = guestRepository.findById(guestId)
+        .orElseThrow(() -> new IllegalArgumentException("Guest not found"));
+    if (!guest.getHousehold().getOwner().equals(userService.getCurrentUser())) {
+      throw new IllegalArgumentException("Only the owner can remove guests");
+    }
+
+    guestRepository.delete(guest);
+    return toHouseholdResponse(guest.getHousehold());
+  }
+
+  /**
+   * Retrieves all guests in the active household.
+   *
+   * @return A list of guest responses
+   */
+  public List<GuestResponse> getAllGuestsInHousehold() {
+    return guestRepository.findAllByHousehold(getActiveHousehold()).stream()
+        .map(Guest::toResponse)
+        .toList();
   }
 }
