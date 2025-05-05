@@ -18,6 +18,11 @@ import lombok.ToString;
 import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 
+/**
+ * Entity representing a member of a household.
+ *
+ * @since 1.0
+ */
 @Entity
 @Getter
 @Setter

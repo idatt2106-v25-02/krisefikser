@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { MapPoint, MapPointType } from '@/api/generated/model'
-import { useCreateMapPoint, useGetAllMapPoints, useUpdateMapPoint, useDeleteMapPoint } from '@/api/generated/map-point/map-point'
+import type {
+  MapPointResponse as MapPoint,
+  MapPointTypeResponse as MapPointType,
+} from '@/api/generated/model'
+import {
+  useCreateMapPoint,
+  useGetAllMapPoints,
+  useUpdateMapPoint,
+  useDeleteMapPoint,
+} from '@/api/generated/map-point/map-point'
 import { useGetAllEvents } from '@/api/generated/event/event'
 import { useAuthStore } from '@/stores/useAuthStore'
 import MapPointForm from './MapPointForm.vue'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const authStore = useAuthStore()
 const { data: mapPoints, refetch: refetchMapPoints } = useGetAllMapPoints()
@@ -91,7 +94,7 @@ async function handleAddMapPoint() {
       data: {
         latitude: newMapPoint.value.latitude,
         longitude: newMapPoint.value.longitude,
-        type: { id: newMapPoint.value.type.id },
+        typeId: newMapPoint.value.type.id,
       },
     })
     newMapPoint.value = {
@@ -158,11 +161,13 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
       v-model="newMapPoint"
       title="Legg til nytt kartpunkt"
       @submit="handleAddMapPoint"
-      @cancel="newMapPoint = {
-        latitude: 63.4305,
-        longitude: 10.3951,
-        type: undefined,
-      }"
+      @cancel="
+        newMapPoint = {
+          latitude: 63.4305,
+          longitude: 10.3951,
+          type: undefined,
+        }
+      "
       @start-map-selection="handleStartMapSelection"
     />
 
@@ -178,10 +183,7 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
             </p>
           </div>
           <div class="flex space-x-2">
-            <button
-              @click="handleEditClick(point)"
-              class="text-primary hover:text-primary/80"
-            >
+            <button @click="handleEditClick(point)" class="text-primary hover:text-primary/80">
               Rediger
             </button>
             <button

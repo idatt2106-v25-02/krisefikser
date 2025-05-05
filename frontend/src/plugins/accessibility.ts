@@ -24,6 +24,8 @@ export default {
 
     // Setup global keyboard shortcuts for accessibility
     const handleKeydown = (event: KeyboardEvent) => {
+      const store = useAccessibilityStore();
+      
       console.log('Key pressed:', {
         key: event.key,
         altKey: event.altKey,
@@ -32,20 +34,54 @@ export default {
         shiftKey: event.shiftKey
       });
 
-      // Check for both 't' and the special character '†' that Option+T generates on macOS
-      if ((event.altKey || event.metaKey) && (event.key.toLowerCase() === 't' || event.key === '†')) {
+      // Only trigger for Ctrl + Shift + S for TTS toggle
+      if (event.key.toLowerCase() === 's' &&
+          event.ctrlKey &&
+          event.shiftKey &&
+          !event.altKey &&
+          !event.metaKey) {
         event.preventDefault();
-        console.log('Accessibility shortcut detected: Alt/Option + T');
+        console.log('Accessibility shortcut detected: Ctrl + Shift + S');
 
-        const store = useAccessibilityStore();
         store.toggleTTS();
 
         const message = store.ttsEnabled
-          ? 'Tekst-til-tale er nå aktivert'
-          : 'Tekst-til-tale er nå deaktivert';
+            ? 'Tekst-til-tale er nå aktivert'
+            : 'Tekst-til-tale er nå deaktivert';
 
         console.log('Text-to-speech toggled:', store.ttsEnabled);
         speechService.speak(message);
+      }
+
+      // Only trigger for Ctrl + Shift + X for reading the page
+      if (event.key.toLowerCase() === 'x' &&
+          event.ctrlKey &&
+          event.shiftKey &&
+          !event.altKey &&
+          !event.metaKey) {
+        event.preventDefault();
+        console.log('Read page shortcut detected: Ctrl + Shift + X');
+        
+        // Create and dispatch a custom event to trigger the read page functionality
+        const readPageEvent = new CustomEvent('readPage');
+        document.dispatchEvent(readPageEvent);
+      }
+
+      // Handle speech rate adjustment
+      if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey) {
+        if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          const currentRate = store.speechRate;
+          const newRate = Math.min(currentRate + 0.1, 2.0);
+          store.setSpeechRate(newRate);
+          speechService.speak(`Talehastighet satt til ${newRate.toFixed(1)}`);
+        } else if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          const currentRate = store.speechRate;
+          const newRate = Math.max(currentRate - 0.1, 0.5);
+          store.setSpeechRate(newRate);
+          speechService.speak(`Talehastighet satt til ${newRate.toFixed(1)}`);
+        }
       }
     };
 

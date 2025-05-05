@@ -89,7 +89,16 @@ class SpeechService {
       if (options?.volume) utterance.volume = options.volume;
 
       this.currentUtterance = utterance;
-      window.speechSynthesis.speak(utterance);
+
+      // Handle Chrome's requirement for user interaction
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+
+      // Force a small delay to ensure Chrome is ready
+      setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+      }, 50);
     });
   }
 
