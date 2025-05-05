@@ -1,7 +1,6 @@
 package stud.ntnu.krisefikser.notification.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -65,11 +64,6 @@ public class NotificationController {
    */
   @Operation(summary = "Get all notifications for authenticated user",
       description = "Retrieves a page of the users notifications")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved notifications",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = NotificationResponse.class)
-              )))})
   @GetMapping
   public ResponseEntity<Page<NotificationResponse>> getNotifications(Pageable pageable) {
     return ResponseEntity.ok(notificationService.getNotifications(pageable));

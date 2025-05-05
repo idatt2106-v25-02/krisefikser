@@ -10,8 +10,8 @@ import type { SortObject } from './sortObject'
 import type { PageableObject } from './pageableObject'
 
 export interface PageHouseholdItemResponse {
-  totalPages?: number
   totalElements?: number
+  totalPages?: number
   size?: number
   content?: HouseholdItemResponse[]
   number?: number

@@ -21,7 +21,7 @@ import type {
 import { unref } from 'vue'
 import type { MaybeRef } from 'vue'
 
-import type { GetNotificationsParams, NotificationResponse } from '.././model'
+import type { GetNotificationsParams, PageNotificationResponse } from '.././model'
 
 import { customInstance } from '../../axios'
 import type { ErrorType } from '../../axios'
@@ -171,7 +171,7 @@ export const getNotifications = (
 ) => {
   params = unref(params)
 
-  return customInstance<NotificationResponse[]>(
+  return customInstance<PageNotificationResponse>(
     {
       url: `http://localhost:8080/api/notifications`,
       method: 'GET',

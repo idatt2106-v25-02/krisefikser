@@ -5,15 +5,15 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { ProductType } from './productType'
+import type { NotificationResponse } from './notificationResponse'
 import type { SortObject } from './sortObject'
 import type { PageableObject } from './pageableObject'
 
-export interface PageProductType {
+export interface PageNotificationResponse {
   totalElements?: number
   totalPages?: number
   size?: number
-  content?: ProductType[]
+  content?: NotificationResponse[]
   number?: number
   sort?: SortObject
   first?: boolean
