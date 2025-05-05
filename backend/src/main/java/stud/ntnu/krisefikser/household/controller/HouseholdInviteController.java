@@ -44,17 +44,7 @@ public class HouseholdInviteController {
 
     @GetMapping("/pending")
     public ResponseEntity<List<HouseholdInviteResponse>> getPendingInvitesForUser() {
-        log.info("Getting pending invites for user");
         List<HouseholdInviteResponse> invites = inviteService.getPendingInvitesForUser();
-        log.info("Found {} pending invites for user", invites.size());
-        log.info("Invites: {}", invites);
-
-        // Log details for each invite in the database
-        inviteService.getAllInvites().forEach(invite -> {
-            String email = invite.getInvitedEmail() != null ? invite.getInvitedEmail()
-                    : (invite.getInvitedUser() != null ? invite.getInvitedUser().getEmail() : "No email");
-            log.info("Invite ID: {}, Status: {}, Email: {}", invite.getId(), invite.getStatus(), email);
-        });
 
         return ResponseEntity.ok(invites);
     }
