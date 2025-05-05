@@ -19,7 +19,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
-import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.user.entity.User;
 
 /**
@@ -33,8 +32,8 @@ import stud.ntnu.krisefikser.user.entity.User;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "household_id"})})
-@ToString(exclude = {"user", "household"})
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "household_id" }) })
+@ToString(exclude = { "user", "household" })
 public class HouseholdMember {
 
   @Id
@@ -48,16 +47,8 @@ public class HouseholdMember {
   @JoinColumn(name = "household_id")
   private Household household;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private HouseholdMemberStatus status;
-
-  /**
-   * Method for converting the entity to a response DTO.
-   */
-  public HouseholdMemberResponse toResponse() {
+  public HouseholdMemberResponse toDto() {
     return new HouseholdMemberResponse(
-        user.toDto(),
-        status);
+        user.toDto());
   }
 }
