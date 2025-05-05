@@ -178,7 +178,8 @@ public class ChecklistItemService {
             .household(household)
             .name("Hygieneartikler")
             .description(
-                "Hygieneartikler som våtservietter, håndsprit, bleier, toalettpapir, bind og tamponger.")
+                "Hygieneartikler som våtservietter, håndsprit, bleier, toalettpapir, "
+                    + "bind og tamponger.")
             .icon("bath")
             .type(ChecklistCategory.HEALTH_HYGIENE)
             .build(),
@@ -204,7 +205,8 @@ public class ChecklistItemService {
             .household(household)
             .name("Kontanter/Betalingskort")
             .description(
-                "Litt kontanter og flere betalingskort i tilfelle elektroniske betalingssystemer ikke fungerer.")
+                "Litt kontanter og flere betalingskort i tilfelle elektroniske betalingssystemer "
+                    + "ikke fungerer.")
             .icon("credit")
             .type(ChecklistCategory.OTHER)
             .build(),

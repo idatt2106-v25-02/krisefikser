@@ -52,7 +52,10 @@ public class HouseholdMember {
   @Column(nullable = false)
   private HouseholdMemberStatus status;
 
-  public HouseholdMemberResponse toDto() {
+  /**
+   * Method for converting the entity to a response DTO.
+   */
+  public HouseholdMemberResponse toResponse() {
     return new HouseholdMemberResponse(
         user.toDto(),
         status);

@@ -46,6 +46,11 @@ import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
+/**
+ * DataSeeder is a component that seeds the database with initial data for development and testing
+ * purposes. It implements CommandLineRunner to execute the seeding process when the application
+ * starts.
+ */
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {

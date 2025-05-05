@@ -1,4 +1,4 @@
-package stud.ntnu.krisefikser.email.app_config;
+package stud.ntnu.krisefikser.email.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

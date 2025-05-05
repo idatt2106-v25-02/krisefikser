@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.email.service;
 
 import java.util.Collections;
 import java.util.List;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,12 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Service class for sending emails using Mailtrap API.
+ *
+ * <p>This class provides methods to send emails with HTML content using the Mailtrap service.
+ * It handles the HTTP requests and responses, including error handling.
+ */
 @Service
 public class EmailService {
 
@@ -31,10 +38,26 @@ public class EmailService {
   @Value("${mail.from}")
   private String defaultFromEmail;
 
+  /**
+   * Constructs a new EmailService with the specified RestTemplate.
+   *
+   * @param restTemplate the RestTemplate to be used for making HTTP requests
+   */
   public EmailService(RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
   }
 
+  /**
+   * Sends an email using the Mailtrap API.
+   *
+   * <p>This method constructs the request payload and headers, sends the email, and handles
+   * responses and errors.
+   *
+   * @param toEmail     the recipient's email address
+   * @param subject     the subject of the email
+   * @param htmlContent the HTML content of the email
+   * @return a ResponseEntity containing the response from the Mailtrap API
+   */
   public ResponseEntity<String> sendEmail(String toEmail, String subject, String htmlContent) {
     String url = "https://" + mailtrapHost + "/api/send"; // Assuming /api/send is the correct path
 
@@ -69,48 +92,16 @@ public class EmailService {
   // --- Mailtrap API DTOs ---
   // Note: Adjust these based on the actual Mailtrap API documentation if needed.
 
+  @Data
   private static class MailtrapRequest {
 
     private MailtrapAddress from;
     private List<MailtrapAddress> to;
     private String subject;
     private String html;
-    // Add other fields like 'text', 'cc', 'bcc', 'attachments' if required
-
-    // Getters and Setters
-    public MailtrapAddress getFrom() {
-      return from;
-    }
-
-    public void setFrom(MailtrapAddress from) {
-      this.from = from;
-    }
-
-    public List<MailtrapAddress> getTo() {
-      return to;
-    }
-
-    public void setTo(List<MailtrapAddress> to) {
-      this.to = to;
-    }
-
-    public String getSubject() {
-      return subject;
-    }
-
-    public void setSubject(String subject) {
-      this.subject = subject;
-    }
-
-    public String getHtml() {
-      return html;
-    }
-
-    public void setHtml(String html) {
-      this.html = html;
-    }
   }
 
+  @Data
   private static class MailtrapAddress {
 
     private String email;
@@ -118,28 +109,6 @@ public class EmailService {
 
     public MailtrapAddress(String email) {
       this.email = email;
-    }
-
-    public MailtrapAddress(String email, String name) {
-      this.email = email;
-      this.name = name;
-    }
-
-    // Getters and Setters
-    public String getEmail() {
-      return email;
-    }
-
-    public void setEmail(String email) {
-      this.email = email;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
     }
   }
 } 

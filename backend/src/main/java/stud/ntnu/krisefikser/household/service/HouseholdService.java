@@ -67,7 +67,7 @@ public class HouseholdService {
         household.getLongitude(),
         household.getAddress(),
         household.getOwner().toDto(),
-        members.stream().map(HouseholdMember::toDto).toList(),
+        members.stream().map(HouseholdMember::toResponse).toList(),
         household.getCreatedAt(),
         isActive
     );
