@@ -3,29 +3,19 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLogin, useRegister, useMe } from '@/api/generated/authentication/authentication'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
+import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
 
   // State
-  const accessToken = ref<string | null>(null)
-  const refreshToken = ref<string | null>(null)
-
-  // Initialize tokens from localStorage
-    console.log('Initializing tokens from localStorage')
-    const storedAccessToken = localStorage.getItem('accessToken')
-    const storedRefreshToken = localStorage.getItem('refreshToken')
-    console.log('Stored access token:', storedAccessToken)
-
-    if (storedAccessToken) {
-      accessToken.value = storedAccessToken
-      refreshToken.value = storedRefreshToken
-    }
+  const accessToken = ref<string | null>(localStorage.getItem('accessToken'))
+  const refreshToken = ref<string | null>(localStorage.getItem('refreshToken'))
 
   // Computed
   const isAuthenticated = computed(() => {
     const isAuth = !!accessToken.value
-    console.log('isAuthenticated:', isAuth, 'token:', accessToken.value)
+    console.log('isAuthenticated:', isAuth)
     return isAuth
   })
 
@@ -52,14 +42,19 @@ export const useAuthStore = defineStore('auth', () => {
       false
     )
   })
-  console.log('currentUser', currentUser)
-  console.log('currentUser.value', currentUser.value)
-  console.log('isAdmin', isAdmin.value)
 
   const isSuperAdmin = computed(() => {
     return currentUser.value?.roles?.includes('SUPER_ADMIN') || false
   })
-  console.log('isSuperAdmin', isSuperAdmin.value)
+
+  // Function to update tokens in both store and localStorage
+  function updateTokens(newAccessToken: string, newRefreshToken: string) {
+    accessToken.value = newAccessToken
+    refreshToken.value = newRefreshToken
+    localStorage.setItem('accessToken', newAccessToken)
+    localStorage.setItem('refreshToken', newRefreshToken)
+  }
+
   // Actions
   async function login(credentials: LoginRequest) {
     try {
@@ -67,20 +62,8 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('Login response:', response)
 
       if (response.accessToken) {
-        // Store tokens
-        accessToken.value = response.accessToken
-        refreshToken.value = response.refreshToken ?? null
-
-        // Save to localStorage
-        localStorage.setItem('accessToken', response.accessToken)
-        if (response.refreshToken) {
-          localStorage.setItem('refreshToken', response.refreshToken)
-        }
-
-        // Refetch user data
+        updateTokens(response.accessToken, response.refreshToken ?? '')
         await refetchUser()
-
-        // Removed automatic redirection
       }
 
       return response
@@ -94,27 +77,38 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await registerMutation({ data })
 
-      // After successful registration, log the user in automatically
       if (response.accessToken) {
-        // Store tokens directly from registration response
-        accessToken.value = response.accessToken
-        refreshToken.value = response.refreshToken ?? null
-
-        // Save to localStorage
-        localStorage.setItem('accessToken', response.accessToken)
-        if (response.refreshToken) {
-          localStorage.setItem('refreshToken', response.refreshToken)
-        }
-
-        // Refetch user data
+        updateTokens(response.accessToken, response.refreshToken ?? '')
         await refetchUser()
-
-        // Removed automatic redirection
       }
 
       return response
     } catch (error) {
       console.error('Registration failed:', error)
+      throw error
+    }
+  }
+
+  async function refreshTokens() {
+    if (!refreshToken.value) {
+      console.error('No refresh token available')
+      logout()
+      throw new Error('No refresh token available')
+    }
+
+    try {
+      // Use direct axios for the refresh call
+      const response = await axios.post('http://localhost:8080/api/auth/refresh', {
+        refreshToken: refreshToken.value,
+      })
+
+      const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data
+      updateTokens(newAccessToken, newRefreshToken)
+
+      return response.data
+    } catch (error) {
+      console.error('Token refresh failed:', error)
+      logout()
       throw error
     }
   }
@@ -152,6 +146,8 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
+    refreshTokens,
+    updateTokens,
 
     // Expose for debugging
     refetchUser,

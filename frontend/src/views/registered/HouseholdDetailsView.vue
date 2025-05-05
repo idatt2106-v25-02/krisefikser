@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -325,23 +325,21 @@ function viewMeetingPlace(placeId: string) {
   }, 300)
 }
 
-const handleInviteSubmit = (values: MemberFormValues) => {
-  if (!household.value) return
-  if (!values.email) return
-
-  createInvite({
-    data: {
-      householdId: household.value.id ?? '',
-      invitedEmail: values.email ?? '',
-    },
-  })
-}
 
 const handleFormSubmit = (values: MemberFormValues) => {
   if (memberMode.value === 'invite') {
-    handleInviteSubmit(values)
+    createInvite({
+      data: {
+        householdId: household.value?.id || '',
+        invitedEmail: values.email,
+      }
+    })
   } else {
-    onMemberSubmit(values)
+    addMember({
+      data: {
+        householdId: household.value?.id || '',
+      }
+    })
   }
 }
 
@@ -613,10 +611,10 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
               </div>
             </div>
 
-            <!-- Invited (pending and declined) section as its own component -->
+           <!-- Invited (pending and declined) section as its own component -->
             <InvitedPendingList
-              :invites="(householdPendingInvites || []).filter(i => i.status === 'PENDING')"
-              :declined-invites="(householdPendingInvites || []).filter(i => i.status === 'DECLINED')"
+              :invites="(householdPendingInvites || []).filter(i => i.status === 'PENDING') as any"
+              :declined-invites="(householdPendingInvites || []).filter(i => i.status === 'DECLINED') as any"
             />
 
           </div>
@@ -720,7 +718,7 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                 </Button>
               </div>
               <Form v-slot="{ handleSubmit: _handleSubmit }" :validation-schema="memberFormSchema">
-                <form @submit.prevent="_handleSubmit(handleFormSubmit)" class="space-y-4">
+                <form @submit.prevent="_handleSubmit(handleFormSubmit as any)" class="space-y-4">
                   <FormField v-slot="{ field, errorMessage }" name="name">
                     <FormItem>
                       <FormLabel>Navn</FormLabel>

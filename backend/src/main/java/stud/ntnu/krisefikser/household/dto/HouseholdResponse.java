@@ -1,13 +1,14 @@
 package stud.ntnu.krisefikser.household.dto;
 
-import jakarta.validation.constraints.NotNull;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 /**
  * DTO for representing a household's response.

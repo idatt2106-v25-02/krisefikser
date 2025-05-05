@@ -27,7 +27,6 @@ import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
-import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
@@ -96,7 +95,6 @@ class HouseholdServiceTest {
     testMember = HouseholdMember.builder()
         .user(testUser)
         .household(testHousehold)
-        .status(HouseholdMemberStatus.ACCEPTED)
         .build();
 
     createHouseholdRequest = CreateHouseholdRequest.builder()
@@ -113,7 +111,7 @@ class HouseholdServiceTest {
     userResponse = new UserResponse(userId, "test@example.com", Collections.emptyList(),
         "Test", "User", false, false, false);
 
-    memberResponse = new HouseholdMemberResponse(userResponse, HouseholdMemberStatus.ACCEPTED);
+    memberResponse = new HouseholdMemberResponse(userResponse);
   }
 
   @Test

@@ -1,8 +1,17 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
 
-const props = defineProps<{ invites: any[], declinedInvites?: any[] }>()
-</script>
+interface Invite {
+  id: string;
+  invitedUser?: {
+    firstName: string;
+    lastName: string;
+  };
+  invitedEmail?: string;
+  status: string;
+}
+
+const _props = defineProps<{ invites: Invite[], declinedInvites?: Invite[] }>();</script>
 
 <template>
   <div v-if="invites && invites.length" class="mb-6">

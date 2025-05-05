@@ -16,7 +16,8 @@ import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 /**
- * Service class for managing households in the system. Provides methods for household-related
+ * Service class for managing households in the system. Provides methods for
+ * household-related
  * operations such as creating, joining, leaving, and deleting households.
  *
  * @since 1.0
@@ -69,8 +70,7 @@ public class HouseholdService {
         household.getOwner().toDto(),
         members.stream().map(HouseholdMember::toDto).toList(),
         household.getCreatedAt(),
-        isActive
-    );
+        isActive);
   }
 
   /**
@@ -138,7 +138,8 @@ public class HouseholdService {
   }
 
   /**
-   * Leaves the specified household. The user must be a member of the household to leave it.
+   * Leaves the specified household. The user must be a member of the household to
+   * leave it.
    *
    * @param householdId The ID of the household to leave
    */
@@ -166,7 +167,8 @@ public class HouseholdService {
   }
 
   /**
-   * Sets the active household for the current user to null if the user is leaving the household. If
+   * Sets the active household for the current user to null if the user is leaving
+   * the household. If
    * the user is member of another household, a random one is set as active.
    *
    * @param household The household being left
@@ -199,7 +201,8 @@ public class HouseholdService {
       throw new IllegalArgumentException("Only the owner can delete a household");
     }
 
-    // Set a new active household for each member and remove them from the household as members
+    // Set a new active household for each member and remove them from the household
+    // as members
     List<HouseholdMember> members = householdMemberService.getMembers(id);
     for (HouseholdMember member : members) {
       setNewActiveHousehold(member.getUser(), household);
@@ -240,7 +243,8 @@ public class HouseholdService {
   }
 
   /**
-   * Sets the water amount for the active household of the current user. Throws an exception if the
+   * Sets the water amount for the active household of the current user. Throws an
+   * exception if the
    * user does not have an active household.
    *
    * @param liters the new water amount
@@ -323,5 +327,60 @@ public class HouseholdService {
 
     householdMemberService.removeMember(household, user);
     return toHouseholdResponse(household);
+  }
+
+  /**
+   * Retrieves all households in the system.
+   *
+   * @return A list of household responses
+   */
+  @Transactional(readOnly = true)
+  public List<HouseholdResponse> getAllHouseholds() {
+    List<Household> households = householdRepo.findAll();
+    return households.stream()
+        .map(this::toHouseholdResponse)
+        .toList();
+  }
+
+  /**
+   * Updates the details of a household.
+   *
+   * @param id      The ID of the household to update
+   * @param request The request containing updated household details
+   * @return The updated household response
+   */
+  @Transactional
+  public HouseholdResponse updateHousehold(UUID id, CreateHouseholdRequest request) {
+    Household household = householdRepo.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+    household.setName(request.getName());
+    household.setLatitude(request.getLatitude());
+    household.setLongitude(request.getLongitude());
+    household.setAddress(request.getAddress());
+    household.setPostalCode(request.getPostalCode());
+    household.setCity(request.getCity());
+
+    householdRepo.save(household);
+    return toHouseholdResponse(household);
+  }
+
+  /**
+   * Deletes a household and clears the active household for all members.
+   *
+   * @param id The ID of the household to delete
+   */
+  @Transactional
+  public void deleteHouseholdAdmin(UUID id) {
+    // Clear active household for all members
+    List<HouseholdMember> members = householdMemberService.getMembers(id);
+    for (HouseholdMember member : members) {
+      if (member.getUser().getActiveHousehold() != null
+          && member.getUser().getActiveHousehold().getId().equals(id)) {
+        userService.updateActiveHousehold(null);
+      }
+    }
+    // Delete the household (cascade will handle household members)
+    householdRepo.deleteById(id);
   }
 }

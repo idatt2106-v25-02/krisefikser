@@ -50,7 +50,7 @@ const handleSetActiveHousehold = (householdId: string) => {
 }
 
 import { useJoinHousehold } from '@/api/generated/household/household'
-import { useGetAllHouseholds } from '@/api/generated/household/household'
+import { useGetAllUserHouseholds } from '@/api/generated/household/household'
 import { useGetActiveHousehold } from '@/api/generated/household/household'
 
 const { mutate: JoinHousehold, isPending: isJoinHouseholdPending } = useJoinHousehold({
@@ -73,7 +73,7 @@ const {
   data: householdsData,
   isLoading: isLoadingHouseholds,
   refetch: refetchHouseholds,
-} = useGetAllHouseholds()
+} = useGetAllUserHouseholds()
 
 const { data: activeHouseholdData, refetch: refetchActiveHousehold } = useGetActiveHousehold()
 

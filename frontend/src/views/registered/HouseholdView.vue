@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { Home, MapPin, Users, CheckCircle } from 'lucide-vue-next'
-import { useGetAllHouseholds, useGetActiveHousehold, useLeaveHousehold } from '@/api/generated/household/household'
+import { useGetAllUserHouseholds, useGetActiveHousehold } from '@/api/generated/household/household'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { watch } from 'vue'
 import {
@@ -14,7 +14,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 // Get household data from API
-const { data: households, isLoading: isLoadingHouseholds, refetch: refetchHouseholds } = useGetAllHouseholds({
+const { data: households, isLoading: isLoadingHouseholds, refetch: refetchHouseholds } = useGetAllUserHouseholds({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
@@ -78,13 +78,6 @@ const { mutate: declineInvite } = useDeclineInvite({
   },
 })
 
-const { mutate: leaveHousehold } = useLeaveHousehold({
-  mutation: {
-    onSuccess: () => {
-      if (typeof refetchHouseholds === 'function') refetchHouseholds()
-    },
-  },
-})
 </script>
 
 <template>
