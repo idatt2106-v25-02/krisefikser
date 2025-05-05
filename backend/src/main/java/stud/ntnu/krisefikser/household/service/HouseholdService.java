@@ -83,7 +83,7 @@ public class HouseholdService {
   public HouseholdResponse joinHousehold(UUID householdId) {
     User currentUser = userService.getCurrentUser();
     Household household = householdRepo.findById(householdId)
-        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+        .orElseThrow(HouseholdNotFoundException::new);
 
     if (householdMemberService.isMemberOfHousehold(currentUser, household)) {
       throw new IllegalArgumentException("Already a member of this household");
@@ -108,7 +108,7 @@ public class HouseholdService {
   public HouseholdResponse setActiveHousehold(UUID householdId) {
     User currentUser = userService.getCurrentUser();
     Household household = householdRepo.findById(householdId)
-        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+        .orElseThrow(HouseholdNotFoundException::new);
 
     if (!householdMemberService.isMemberOfHousehold(currentUser, household)) {
       throw new IllegalArgumentException("Not a member of this household");
@@ -146,7 +146,7 @@ public class HouseholdService {
   public void leaveHousehold(UUID householdId) {
     User currentUser = userService.getCurrentUser();
     Household household = householdRepo.findById(householdId)
-        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+        .orElseThrow(HouseholdNotFoundException::new);
 
     if (!householdMemberService.isMemberOfHousehold(currentUser, household)) {
       throw new IllegalArgumentException("Not a member of this household");
@@ -192,7 +192,7 @@ public class HouseholdService {
   public void deleteHousehold(UUID id) {
     User currentUser = userService.getCurrentUser();
     Household household = householdRepo.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+        .orElseThrow(HouseholdNotFoundException::new);
 
     // Check if current user is the owner
     if (!isOwner(currentUser, household)) {
@@ -267,7 +267,7 @@ public class HouseholdService {
   @Transactional(readOnly = true)
   public Household getHouseholdById(UUID id) {
     return householdRepo.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+        .orElseThrow(HouseholdNotFoundException::new);
   }
 
   /**
@@ -280,7 +280,7 @@ public class HouseholdService {
   @Transactional
   public HouseholdResponse addMemberToHousehold(UUID householdId, UUID userId) {
     Household household = householdRepo.findById(householdId)
-        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+        .orElseThrow(HouseholdNotFoundException::new);
 
     User user = userService.getUserById(userId);
 
@@ -302,7 +302,7 @@ public class HouseholdService {
   @Transactional
   public HouseholdResponse removeMemberFromHousehold(UUID householdId, UUID userId) {
     Household household = householdRepo.findById(householdId)
-        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+        .orElseThrow(HouseholdNotFoundException::new);
 
     User user = userService.getUserById(userId);
 
