@@ -52,8 +52,31 @@ public class AuthController {
             throw new TurnstileVerificationException(); // Will trigger 400 with message if @RestControllerAdvice is used
         }
         RegisterResponse response = authService.register(request);
+
+      // Create and send verification email
+      User newUser = userRepository.findByEmail(request.getEmail())
+          .orElseThrow(() -> new RuntimeException("User not found after registration"));
+      VerificationToken token = emailVerificationService.createVerificationToken(newUser);
+      emailVerificationService.sendVerificationEmail(newUser, token);
+
         return ResponseEntity.ok(response);
     }
+
+  @PostMapping("/verify-email")
+  @Operation(summary = "Verify email address", description = "Verifies user's email address using a token")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Email verified successfully"),
+      @ApiResponse(responseCode = "400", description = "Invalid or expired verification token")
+  })
+  public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+    boolean verified = authService.verifyEmail(token);
+    if (verified) {
+      return ResponseEntity.ok("Email verified successfully.");
+    } else {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body("Invalid or expired verification token.");
+    }
+  }
 
   @Operation(summary = "Login user", description = "Authenticates a user and returns access tokens")
   @ApiResponses(value = {

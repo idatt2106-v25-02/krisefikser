@@ -1,5 +1,6 @@
 package stud.ntnu.krisefikser.auth.service;
 
+import jakarta.transaction.Transactional;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.service.UserService;
+import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 
 @Service
 @Slf4j
@@ -95,6 +97,18 @@ public class AuthService {
     return new RefreshResponse(
         accessToken,
         refreshToken);
+  }
+
+  @Transactional
+  public boolean verifyEmail(String token) {
+    boolean verified = EmailVerificationService.verifyToken(token);
+    if (verified) {
+      // Any additional action after verification
+      log.info("Email verified successfully with token: {}", token);
+    } else {
+      log.warn("Failed verification attempt with token: {}", token);
+    }
+    return verified;
   }
 
   public UserResponse me() {

@@ -77,6 +77,9 @@ public class User {
   @JoinColumn(name = "active_household_id")
   private Household activeHousehold;
 
+  @Column(nullable = false)
+  private boolean emailVerified = false;
+
   public boolean isSuperAdmin() {
     return roles.stream().anyMatch(role -> role.getName() == RoleType.SUPER_ADMIN);
   }
