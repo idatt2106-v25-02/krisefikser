@@ -15,7 +15,7 @@ describe('Authentication Tests', () => {
     }).as('registerRequest');
 
     cy.fixture('user').then((user) => {
-      cy.visit('http://localhost:5173/registrer', {
+      cy.visit('/registrer', {
         onBeforeLoad(win) {
           // Stub the turnstile render function
           // @ts-expect-error - Overwriting window property for test purposes
@@ -68,7 +68,7 @@ describe('Authentication Tests', () => {
     }).as('loginRequest');
 
     cy.fixture('user').then((user) => {
-      cy.visit('http://localhost:5173/logg-inn');
+      cy.visit('/logg-inn');
 
       cy.get('input[type="email"]').clear();
       cy.get('input[type="email"]').type(user.login.email);
