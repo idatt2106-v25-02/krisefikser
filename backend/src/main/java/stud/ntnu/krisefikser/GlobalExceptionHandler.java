@@ -123,6 +123,12 @@ public class GlobalExceptionHandler {
         exception.getMessage(), "auth");
   }
 
+  /**
+   * Handles exceptions thrown when Turnstile verification fails.
+   *
+   * @param exception the Turnstile verification exception
+   * @return a problem detail with BAD_REQUEST status and the exception message
+   */
   @ExceptionHandler(TurnstileVerificationException.class)
   public ProblemDetail handleTurnstileVerificationException(
       TurnstileVerificationException exception) {
@@ -315,7 +321,7 @@ public class GlobalExceptionHandler {
    *
    * @param exception the missing servlet request parameter exception
    * @return a problem detail with BAD_REQUEST status and a message identifying the missing
-   * parameter
+   * parameter.
    */
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ProblemDetail handleMissingParameterException(

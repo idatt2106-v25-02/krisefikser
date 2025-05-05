@@ -12,9 +12,9 @@ import java.util.UUID;
 public class UserNotFoundException extends RuntimeException {
 
   /**
-   * Constructs a new UserDoesNotExistException with the specified detail message.
+   * Constructs a new UserDoesNotExistException for an email.
    *
-   * @param message the detail message
+   * @param email the email of the user
    */
   public UserNotFoundException(String email) {
     super("User with email " + email + " does not exist");

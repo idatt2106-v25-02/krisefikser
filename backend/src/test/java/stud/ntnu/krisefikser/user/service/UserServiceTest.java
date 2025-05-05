@@ -141,7 +141,7 @@ class UserServiceTest {
 
     // Assert
     assertEquals(expectedUsers.size(), actualUsers.size());
-    assertEquals(expectedUsers.get(0), actualUsers.get(0));
+    assertEquals(expectedUsers.getFirst(), actualUsers.getFirst());
   }
 
   @Test
