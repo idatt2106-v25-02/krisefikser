@@ -6,6 +6,11 @@ import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
+/**
+ * DTO for representing a household member's response.
+ *
+ * @since 1.0
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
