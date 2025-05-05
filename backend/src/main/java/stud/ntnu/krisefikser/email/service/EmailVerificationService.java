@@ -75,7 +75,7 @@ public class EmailVerificationService {
             templateVariables.put("link", verificationLink);
 
             // Load and process the verification.html template
-            String htmlContent = templateService.loadAndReplace("verification.html", templateVariables);
+            String htmlContent = templateService.loadAndReplace("user-register.html", templateVariables);
 
             // Send the email
             return emailService.sendEmail(
