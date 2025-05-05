@@ -32,7 +32,6 @@ public class HouseholdService {
   private final HouseholdMemberService householdMemberService;
   private final UserService userService;
   private final ChecklistItemService checklistItemService;
-  private final GuestRepository guestRepository;
 
   /**
    * Retrieves all households that the current user is a member of.
@@ -310,6 +309,61 @@ public class HouseholdService {
 
     householdMemberService.removeMember(household, user);
     return toHouseholdResponse(household);
+  }
+
+  /**
+   * Retrieves all households in the system.
+   *
+   * @return A list of household responses
+   */
+  @Transactional(readOnly = true)
+  public List<HouseholdResponse> getAllHouseholds() {
+    List<Household> households = householdRepo.findAll();
+    return households.stream()
+        .map(this::toHouseholdResponse)
+        .toList();
+  }
+
+  /**
+   * Updates the details of a household.
+   *
+   * @param id      The ID of the household to update
+   * @param request The request containing updated household details
+   * @return The updated household response
+   */
+  @Transactional
+  public HouseholdResponse updateHousehold(UUID id, CreateHouseholdRequest request) {
+    Household household = householdRepo.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+    household.setName(request.getName());
+    household.setLatitude(request.getLatitude());
+    household.setLongitude(request.getLongitude());
+    household.setAddress(request.getAddress());
+    household.setPostalCode(request.getPostalCode());
+    household.setCity(request.getCity());
+
+    householdRepo.save(household);
+    return toHouseholdResponse(household);
+  }
+
+  /**
+   * Deletes a household and clears the active household for all members.
+   *
+   * @param id The ID of the household to delete
+   */
+  @Transactional
+  public void deleteHouseholdAdmin(UUID id) {
+    // Clear active household for all members
+    List<HouseholdMember> members = householdMemberService.getMembers(id);
+    for (HouseholdMember member : members) {
+      if (member.getUser().getActiveHousehold() != null
+          && member.getUser().getActiveHousehold().getId().equals(id)) {
+        userService.updateActiveHousehold(null);
+      }
+    }
+    // Delete the household (cascade will handle household members)
+    householdRepo.deleteById(id);
   }
 
   /**
