@@ -31,6 +31,7 @@ import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
+import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
@@ -74,10 +75,13 @@ class HouseholdControllerTest {
         "User",
         false,
         false,
-        false);
+        false
+    );
 
     HouseholdMemberResponse memberResponse = new HouseholdMemberResponse(
-        ownerResponse);
+        ownerResponse,
+        HouseholdMemberStatus.ACCEPTED
+    );
 
     testHouseholdResponse = new HouseholdResponse(
         householdId,
@@ -88,7 +92,8 @@ class HouseholdControllerTest {
         ownerResponse,
         Collections.singletonList(memberResponse),
         LocalDateTime.now(),
-        true);
+        true
+    );
 
     createHouseholdRequest = CreateHouseholdRequest.builder()
         .name("New Household")
@@ -127,9 +132,9 @@ class HouseholdControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/households/join")
-        .with(SecurityMockMvcRequestPostProcessors.csrf())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(householdId.toString()))
@@ -144,9 +149,9 @@ class HouseholdControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/households/active")
-        .with(SecurityMockMvcRequestPostProcessors.csrf())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(householdId.toString()))
@@ -157,8 +162,8 @@ class HouseholdControllerTest {
   @Test
   @WithMockUser
   void getActiveHousehold_ShouldReturnActiveHousehold() throws Exception {
-
-    when(householdService.getActiveHousehold()).thenReturn(null); // The actual entity is not used
+    // Arrange
+    when(householdService.getActiveHousehold()).thenReturn(null);  // The actual entity is not used
     when(householdService.toHouseholdResponse(any())).thenReturn(testHouseholdResponse);
 
     // Act & Assert
@@ -178,9 +183,9 @@ class HouseholdControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/households/leave")
-        .with(SecurityMockMvcRequestPostProcessors.csrf())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
         .andExpect(status().isOk());
   }
 
@@ -191,7 +196,8 @@ class HouseholdControllerTest {
     doNothing().when(householdService).deleteHousehold(householdId);
 
     // Act & Assert
-    mockMvc.perform(delete("/api/households/{id}", householdId))
+    mockMvc.perform(delete("/api/households/" + householdId)
+            .with(SecurityMockMvcRequestPostProcessors.csrf()))
         .andExpect(status().isOk());
   }
 
@@ -204,9 +210,9 @@ class HouseholdControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/households")
-        .with(SecurityMockMvcRequestPostProcessors.csrf())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createHouseholdRequest)))
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(createHouseholdRequest)))
         .andExpect(status().isCreated())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(householdId.toString()))

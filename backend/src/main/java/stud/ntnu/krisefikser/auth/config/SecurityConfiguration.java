@@ -56,8 +56,6 @@ public class SecurityConfiguration {
             .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**")
             .permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/scenarios", "/api/scenarios/**")
-            .permitAll()
             .requestMatchers("/ws/**")
             .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
