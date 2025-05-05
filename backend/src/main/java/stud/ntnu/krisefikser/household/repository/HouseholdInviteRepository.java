@@ -13,7 +13,8 @@ import java.util.UUID;
 public interface HouseholdInviteRepository extends JpaRepository<HouseholdInvite, UUID> {
         List<HouseholdInvite> findByHouseholdAndStatus(Household household, InviteStatus status);
 
-        List<HouseholdInvite> findByInvitedUserAndStatus(User user, InviteStatus status);
+        List<HouseholdInvite> findByInvitedUserOrInvitedEmailAndStatus(User user, String email,
+                        InviteStatus status);
 
         List<HouseholdInvite> findByInvitedEmailAndStatus(String email, InviteStatus status);
 

@@ -194,8 +194,8 @@ public class HouseholdInviteService {
 
     public List<HouseholdInviteResponse> getPendingInvitesForUser() {
         User currentUser = userService.getCurrentUser();
-        System.out.println("Getting pending invites for user: " + currentUser);
-        return inviteRepository.findByInvitedUserAndStatus(currentUser, InviteStatus.PENDING)
+        return inviteRepository.findByInvitedUserOrInvitedEmailAndStatus(currentUser, currentUser.getEmail(),
+                InviteStatus.PENDING)
                 .stream()
                 .map(this::toInviteResponse)
                 .toList();
@@ -228,7 +228,8 @@ public class HouseholdInviteService {
         }
 
         // Validate the invite is for the current user
-        if (invite.getInvitedUser() != null && !invite.getInvitedUser().equals(currentUser)) {
+        if (invite.getInvitedUser() != null && (!invite.getInvitedUser().equals(currentUser)
+                && !invite.getInvitedEmail().equals(currentUser.getEmail()))) {
             throw new IllegalStateException("This invite is not for you");
         }
         if (invite.getInvitedEmail() != null && !invite.getInvitedEmail().equals(currentUser.getEmail())) {
