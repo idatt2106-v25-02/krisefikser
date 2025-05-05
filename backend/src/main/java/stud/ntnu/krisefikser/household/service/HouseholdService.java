@@ -161,6 +161,10 @@ public class HouseholdService {
     householdMemberService.removeMember(household, currentUser);
   }
 
+  private boolean isOwner(User user, Household household) {
+    return household.getOwner().getId().equals(user.getId());
+  }
+
   /**
    * Sets the active household for the current user to null if the user is leaving the household. If
    * the user is member of another household, a random one is set as active.
@@ -177,10 +181,6 @@ public class HouseholdService {
 
       userService.updateActiveHousehold(newHousehold);
     }
-  }
-
-  private boolean isOwner(User user, Household household) {
-    return household.getOwner().getId().equals(user.getId());
   }
 
   /**
