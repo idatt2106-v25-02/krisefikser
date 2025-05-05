@@ -9,6 +9,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
+/**
+ * DTO for representing a household's response.
+ *
+ * @since 1.0
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

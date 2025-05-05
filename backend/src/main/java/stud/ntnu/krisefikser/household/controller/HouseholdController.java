@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +22,7 @@ import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 
 /**
- * REST controller for managing households in the system. Provides endpoints for
- * household
+ * REST controller for managing households in the system. Provides endpoints for household
  * management operations.
  *
  * @since 1.0
@@ -51,7 +49,7 @@ public class HouseholdController {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved households")
   })
   @GetMapping("/all")
-  public ResponseEntity<List<HouseholdResponse>> getAllHouseholds() {
+  public ResponseEntity<List<HouseholdResponse>> getAllUserHouseholds() {
     return ResponseEntity.ok(householdService.getUserHouseholds());
   }
 
@@ -164,110 +162,25 @@ public class HouseholdController {
   }
 
   /**
-   * Retrieves all households in the system. Only accessible to users with ADMIN
-   * role.
-   *
-   * @return ResponseEntity containing a list of all households with their members
-   * @since 1.0
-   */
-  @Operation(summary = "Get all households (Admin only)", description = "Retrieves a list of all households in the system with their members")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved all households"),
-      @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
-  })
-  @GetMapping("/admin/all")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<List<HouseholdResponse>> getAllHouseholdsAdmin() {
-    return ResponseEntity.ok(householdService.getAllHouseholds());
-  }
-
-  /**
-   * Adds a member to a household. Only accessible to users with ADMIN role.
-   *
-   * @param householdId The ID of the household
-   * @param userId      The ID of the user to add
-   * @return ResponseEntity containing the updated household
-   * @since 1.0
-   */
-  @Operation(summary = "Add member to household (Admin only)", description = "Adds a user as a member to a household")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully added member"),
-      @ApiResponse(responseCode = "400", description = "Invalid household or user ID"),
-      @ApiResponse(responseCode = "404", description = "Household or user not found"),
-      @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
-  })
-  @PostMapping("/admin/{householdId}/members/{userId}")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<HouseholdResponse> addMemberToHousehold(
-      @Parameter(description = "Household ID") @PathVariable UUID householdId,
-      @Parameter(description = "User ID") @PathVariable UUID userId) {
-    return ResponseEntity.ok(householdService.addMemberToHousehold(householdId, userId));
-  }
-
-  /**
-   * Removes a member from a household. Only accessible to users with ADMIN role.
+   * Owner can remove member from household.
    *
    * @param householdId The ID of the household
    * @param userId      The ID of the user to remove
    * @return ResponseEntity containing the updated household
    * @since 1.0
    */
-  @Operation(summary = "Remove member from household (Admin only)", description = "Removes a user from a household")
+  @Operation(summary = "Remove member from household (Owner only)", description = "Removes a user from the household")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully removed member"),
       @ApiResponse(responseCode = "400", description = "Invalid household or user ID"),
       @ApiResponse(responseCode = "404", description = "Household or user not found"),
-      @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
+      @ApiResponse(responseCode = "403", description = "Access denied - owner role required")
   })
-  @DeleteMapping("/admin/{householdId}/members/{userId}")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<HouseholdResponse> removeMemberFromHousehold(
+  @DeleteMapping("/{householdId}/members/{userId}")
+  public ResponseEntity<HouseholdResponse> removeMemberFromHouseholdOwner(
       @Parameter(description = "Household ID") @PathVariable UUID householdId,
-      @Parameter(description = "User ID") @PathVariable UUID userId) {
+      @Parameter(description = "User ID") @PathVariable UUID userId
+  ) {
     return ResponseEntity.ok(householdService.removeMemberFromHousehold(householdId, userId));
-  }
-
-  /**
-   * Updates a household. Only accessible to users with ADMIN role.
-   *
-   * @param id      The ID of the household to update
-   * @param request The updated household data
-   * @return ResponseEntity containing the updated household
-   * @since 1.0
-   */
-  @Operation(summary = "Update household (Admin only)", description = "Updates a household's information")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully updated household"),
-      @ApiResponse(responseCode = "400", description = "Invalid household data"),
-      @ApiResponse(responseCode = "404", description = "Household not found"),
-      @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
-  })
-  @PostMapping("/admin/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<HouseholdResponse> updateHousehold(
-      @Parameter(description = "Household ID") @PathVariable UUID id,
-      @Parameter(description = "Updated household data") @RequestBody CreateHouseholdRequest request) {
-    return ResponseEntity.ok(householdService.updateHousehold(id, request));
-  }
-
-  /**
-   * Deletes a household. Only accessible to users with ADMIN role.
-   * This will cascade delete household members but not users.
-   *
-   * @param id The ID of the household to delete
-   * @since 1.0
-   */
-  @Operation(summary = "Delete household (Admin only)", description = "Deletes a household and its members")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully deleted household"),
-      @ApiResponse(responseCode = "400", description = "Invalid household ID"),
-      @ApiResponse(responseCode = "404", description = "Household not found"),
-      @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
-  })
-  @DeleteMapping("/admin/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
-  public void deleteHouseholdAdmin(
-      @Parameter(description = "Household ID") @PathVariable UUID id) {
-    householdService.deleteHouseholdAdmin(id);
   }
 }

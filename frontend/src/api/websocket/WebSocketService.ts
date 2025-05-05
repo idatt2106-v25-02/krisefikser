@@ -8,8 +8,8 @@ export class WebSocketService {
   private pendingOperations: Array<() => void> = [];
 
   constructor(
-    serverUrl: string = 'ws://localhost:8080/ws',
-    debug: boolean = true
+    serverUrl: string = import.meta.env.VITE_WS_URL as string,
+    debug: boolean = false
   ) {
     this.client = new Client({
       brokerURL: serverUrl,
