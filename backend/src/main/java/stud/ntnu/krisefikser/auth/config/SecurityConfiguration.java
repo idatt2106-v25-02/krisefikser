@@ -54,7 +54,7 @@ public class SecurityConfiguration {
             .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
             .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
-            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh")
+            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh", "api/auth/verify-email/**")
             .permitAll()
             .requestMatchers(HttpMethod.POST, "/api/email/**").permitAll()
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
