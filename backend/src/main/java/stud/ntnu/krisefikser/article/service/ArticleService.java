@@ -21,7 +21,6 @@ public class ArticleService {
   private final NotificationService notificationService;
 
   public List<ArticleResponse> getAllArticles() {
-    notificationService.broadcastNotification(new NotificationResponse("Test", "Testy"));
     return articleRepository.findAll().stream()
         .map(this::convertToDto)
         .collect(Collectors.toList());

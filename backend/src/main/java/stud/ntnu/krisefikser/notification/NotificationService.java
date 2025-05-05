@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.map.entity.Event;
 
 /**
- * Service responsible for sending real-time WebSocket notifications related to events.
+ * Service responsible for sending real-time WebSocket notifications.
  * This class handles broadcasting updates, creations, and deletions of events to subscribed clients
  * using Spring's WebSocket messaging capabilities.
  *
