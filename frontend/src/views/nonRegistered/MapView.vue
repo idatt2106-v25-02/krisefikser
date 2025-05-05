@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import ShelterLayer from '@/components/map/ShelterLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
 import UserLocationLayer from '@/components/map/UserLocationLayer.vue'
+import HomeLocationLayer from '@/components/map/HomeLocationLayer.vue'
 import MeetingPointLayer from '@/components/map/MeetingPointLayer.vue'
 import MeetingPointForm from '@/components/map/MeetingPointForm.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 import { useGetAllEvents } from '@/api/generated/event/event'
+import { webSocket } from '@/main.ts'
 import { useGetActiveHousehold } from '@/api/generated/household/household'
-import type { MapPoint, MapPointType, Event, MeetingPointResponse } from '@/api/generated/model'
+import type {
+  MapPointResponse as MapPoint,
+  MapPointTypeResponse as MapPointType,
+  EventResponse as Event,
+  MeetingPointResponse
+} from '@/api/generated/model'
 import L from 'leaflet'
 import {
   Dialog,
@@ -48,6 +55,7 @@ const isAddingMeetingPoint = ref(false)
 const isLoading = ref(true)
 const shelters = ref<Shelter[]>([])
 const events = ref<Event[]>([])
+const topics = ['/topic/events', '/topic/events/new', '/topic/events/delete']
 
 // Fetch map data from API
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
@@ -56,24 +64,51 @@ const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
 const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
 
 // Computed properties
-const isDataLoading = computed(() => isLoadingMapPoints.value || isLoadingMapPointTypes.value || isLoadingEvents.value)
+const isDataLoading = computed(
+  () => isLoadingMapPoints.value || isLoadingMapPointTypes.value || isLoadingEvents.value,
+)
 const canShowMeetingPointLayer = computed(() => mapInstance.value && activeHousehold.value?.id)
-const canShowMeetingPointForm = computed(() => showMeetingPointForm.value && activeHousehold.value?.id)
+const canShowMeetingPointForm = computed(
+  () => showMeetingPointForm.value && activeHousehold.value?.id,
+)
 const householdId = computed(() => activeHousehold.value?.id ?? '')
 
 // Location error dialog state
 const showLocationError = ref(false)
 const locationError = ref('')
 
+webSocket.subscribe<Event>('/topic/events/new', (message: Event) => {
+  events.value.push(message)
+})
+webSocket.subscribe<number>('/topic/events/delete', (message: number) => {
+  events.value = events.value.filter((event: Event) => event.id !== message)
+})
+webSocket.subscribe<Event>('/topic/events', (message: Event) => {
+  events.value = events.value.map((event: Event) => {
+    if (event.id === message.id) {
+      return message
+    }
+    return event
+  })
+})
+
+function disconnectWebSocket() {
+  topics.forEach((topic) => {
+    webSocket.unsubscribe(topic)
+  })
+}
+
 // Process map data
 function processMapData() {
   if (!mapPointsData.value || !mapPointTypesData.value) return
 
   const mapPoints = Array.isArray(mapPointsData.value) ? mapPointsData.value : [mapPointsData.value]
-  const mapPointTypes = Array.isArray(mapPointTypesData.value) ? mapPointTypesData.value : [mapPointTypesData.value]
+  const mapPointTypes = Array.isArray(mapPointTypesData.value)
+    ? mapPointTypesData.value
+    : [mapPointTypesData.value]
 
   const shelterType = mapPointTypes.find((type: MapPointType) =>
-    type.title?.toLowerCase().includes('shelter')
+    type.title?.toLowerCase().includes('shelter'),
   )
 
   shelters.value = mapPoints
@@ -93,11 +128,15 @@ function processMapData() {
 }
 
 // Watch for data and map instance changes
-watch([isDataLoading, mapInstance], ([dataLoaded, map]) => {
-  if (!dataLoaded && map) {
-    processMapData()
-  }
-}, { immediate: true })
+watch(
+  [isDataLoading, mapInstance],
+  ([dataLoaded, map]) => {
+    if (!dataLoaded && map) {
+      processMapData()
+    }
+  },
+  { immediate: true },
+)
 
 // Handle map instance being set
 function onMapCreated(map: L.Map) {
@@ -126,10 +165,11 @@ function toggleUserLocation(show: boolean) {
           }
         },
         () => {
-          locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
+          locationError.value =
+            'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
           showLocationError.value = true
           showUserLocation.value = false
-        }
+        },
       )
     } else {
       locationError.value = 'Din nettleser støtter ikke geolokasjon'
@@ -184,16 +224,21 @@ onMounted(() => {
         }
       },
       () => {
-        locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
+        locationError.value =
+          'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
         showLocationError.value = true
         showUserLocation.value = false
-      }
+      },
     )
   } else {
     locationError.value = 'Din nettleser støtter ikke geolokasjon'
     showLocationError.value = true
     showUserLocation.value = false
   }
+})
+
+onUnmounted(() => {
+  disconnectWebSocket()
 })
 </script>
 
@@ -219,6 +264,11 @@ onMounted(() => {
         @user-in-crisis-zone="handleUserCrisisZoneChange"
         @user-location-available="onUserLocationStatus"
       />
+      <HomeLocationLayer
+        v-if="activeHousehold?.id && mapInstance && activeHousehold.latitude && activeHousehold.longitude"
+        :map="mapInstance as any"
+        :home-location="{ latitude: activeHousehold.latitude, longitude: activeHousehold.longitude }"
+      />
       <MeetingPointLayer
         v-if="canShowMeetingPointLayer && mapInstance"
         :map="mapInstance as any"
@@ -234,7 +284,9 @@ onMounted(() => {
         class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         :class="{ 'bg-blue-600': isAddingMeetingPoint }"
       >
-        {{ isAddingMeetingPoint ? 'Klikk på kartet for å legge til møtepunkt' : 'Legg til møtepunkt' }}
+        {{
+          isAddingMeetingPoint ? 'Klikk på kartet for å legge til møtepunkt' : 'Legg til møtepunkt'
+        }}
       </button>
     </div>
 
@@ -249,7 +301,7 @@ onMounted(() => {
     />
 
     <!-- Location Error Dialog -->
-    <Dialog :open="showLocationError" @update:open="val => !val && (showLocationError = false)">
+    <Dialog :open="showLocationError" @update:open="(val) => !val && (showLocationError = false)">
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Posisjonstilgang</DialogTitle>
@@ -258,22 +310,21 @@ onMounted(() => {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter class="flex gap-2 mt-4">
-          <Button
-            variant="default"
-            @click="showLocationError = false"
-            class="flex-1"
-          >
-            OK
-          </Button>
+          <Button variant="default" @click="showLocationError = false" class="flex-1"> OK </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
 
     <!-- Meeting Point Form Dialog -->
-    <Dialog :open="!!canShowMeetingPointForm" @update:open="val => !val && handleMeetingPointFormClose()">
+    <Dialog
+      :open="!!canShowMeetingPointForm"
+      @update:open="(val) => !val && handleMeetingPointFormClose()"
+    >
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{{ selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass' }}</DialogTitle>
+          <DialogTitle>{{
+            selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass'
+          }}</DialogTitle>
         </DialogHeader>
         <MeetingPointForm
           :household-id="householdId"

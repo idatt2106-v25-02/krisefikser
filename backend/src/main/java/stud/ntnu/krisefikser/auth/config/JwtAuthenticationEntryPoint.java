@@ -12,10 +12,18 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+/**
+ * Custom entry point for handling authentication errors in JWT-based authentication.
+ *
+ * <p>This class implements the AuthenticationEntryPoint interface and is responsible for
+ * returning a custom error response when authentication fails.
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
   private final ObjectMapper objectMapper;
+
   @Override
   public void commence(
       HttpServletRequest request,

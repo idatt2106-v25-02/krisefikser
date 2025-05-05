@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue'
 import L from 'leaflet'
-import type { MapPoint } from '@/api/generated/model'
+import type { MapPointResponse as MapPoint } from '@/api/generated/model'
 
 const props = defineProps<{
   map: L.Map | null
