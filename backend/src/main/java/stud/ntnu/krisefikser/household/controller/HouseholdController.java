@@ -44,7 +44,8 @@ public class HouseholdController {
    * @return ResponseEntity containing a list of all households.
    * @since 1.0
    */
-  @Operation(summary = "Get all households of user", description = "Retrieves a list of all households that the user is a member of")
+  @Operation(summary = "Get all households of user",
+      description = "Retrieves a list of all households that the user is a member of")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved households")
   })
@@ -59,7 +60,8 @@ public class HouseholdController {
    * @return DTO of the joined household.
    * @since 1.0
    */
-  @Operation(summary = "Join household by ID", description = "Joins a household by its ID and sets it as active.")
+  @Operation(summary = "Join household by ID",
+      description = "Joins a household by its ID and sets it as active.")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully joined household"),
       @ApiResponse(responseCode = "400", description = "Invalid household ID")
@@ -77,16 +79,19 @@ public class HouseholdController {
    * @return ResponseEntity containing the newly set active household
    * @since 1.0
    */
-  @Operation(summary = "Set active household", description = "Sets the specified household as the active household for the current user")
+  @Operation(summary = "Set active household",
+      description = "Sets the specified household as the active household for the current user")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully set active household"),
       @ApiResponse(responseCode = "400", description = "Invalid household ID"),
       @ApiResponse(responseCode = "404", description = "Household not found"),
-      @ApiResponse(responseCode = "403", description = "User is not a member of the specified household")
+      @ApiResponse(responseCode = "403",
+          description = "User is not a member of the specified household")
   })
   @PostMapping("/active")
   public ResponseEntity<HouseholdResponse> setActiveHousehold(
-      @Parameter(description = "Request containing the household ID to set as active", required = true) @RequestBody JoinHouseholdRequest request) {
+      @Parameter(description = "Request containing the household ID to set as active",
+          required = true) @RequestBody JoinHouseholdRequest request) {
     return ResponseEntity.ok(householdService.setActiveHousehold(request.getHouseholdId()));
   }
 
@@ -96,7 +101,8 @@ public class HouseholdController {
    * @return ResponseEntity containing the active household information
    * @since 1.0
    */
-  @Operation(summary = "Get active household", description = "Retrieves the currently active household for the logged-in user")
+  @Operation(summary = "Get active household",
+      description = "Retrieves the currently active household for the logged-in user")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved active household"),
       @ApiResponse(responseCode = "404", description = "No active household set")
@@ -118,7 +124,8 @@ public class HouseholdController {
       @ApiResponse(responseCode = "200", description = "Successfully left household"),
       @ApiResponse(responseCode = "400", description = "Invalid household ID"),
       @ApiResponse(responseCode = "404", description = "Household not found"),
-      @ApiResponse(responseCode = "403", description = "User is not a member of the specified household")
+      @ApiResponse(responseCode = "403",
+          description = "User is not a member of the specified household")
   })
   @PostMapping("/leave")
   public void leaveHousehold(
@@ -150,7 +157,8 @@ public class HouseholdController {
    * @return ResponseEntity containing the created household
    * @since 1.0
    */
-  @Operation(summary = "Create household", description = "Creates a new household and sets it as active")
+  @Operation(summary = "Create household",
+      description = "Creates a new household and sets it as active")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Successfully created household"),
       @ApiResponse(responseCode = "400", description = "Invalid household data")
@@ -169,7 +177,8 @@ public class HouseholdController {
    * @return ResponseEntity containing the updated household
    * @since 1.0
    */
-  @Operation(summary = "Remove member from household (Owner only)", description = "Removes a user from the household")
+  @Operation(summary = "Remove member from household (Owner only)",
+      description = "Removes a user from the household")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully removed member"),
       @ApiResponse(responseCode = "400", description = "Invalid household or user ID"),

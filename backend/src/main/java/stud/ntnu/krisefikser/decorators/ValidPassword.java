@@ -15,7 +15,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @NotBlank
-@Pattern(regexp = "/^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$/gm", message = "Passorded må inneholde minst en stor bokstav, en liten bokstav, et tall, et spesialtegn og være minst 8 tegn langt")
+@Pattern(regexp = "(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}/gm",
+    message = "Passorded må inneholde minst en stor bokstav, en liten bokstav, et tall, et"
+        + "spesialtegn og være minst 8 tegn langt")
 public @interface ValidPassword {
 
   String message() default "Invalid password";

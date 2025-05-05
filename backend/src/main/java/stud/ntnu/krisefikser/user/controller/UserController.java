@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -47,20 +46,24 @@ public class UserController {
 
   @Operation(summary = "Get all users", description = "Retrieves a list of all users in the system")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved users", content = @Content(mediaType = "application/json", array = @ArraySchema(items = @Schema(implementation = UserResponse.class)))),
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved users",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = UserResponse.class)))),
       @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
   @GetMapping
   public ResponseEntity<List<UserResponse>> getAllUsers() {
     List<UserResponse> users = userService.getAllUsers().stream()
         .map(User::toDto)
-        .collect(Collectors.toList());
+        .toList();
     return ResponseEntity.ok(users);
   }
 
   @Operation(summary = "Update user", description = "Updates an existing user's information")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully updated user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully updated user",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = UserResponse.class))),
       @ApiResponse(responseCode = "400", description = "Invalid user data"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
       @ApiResponse(responseCode = "403", description = "Not authorized to update this user"),

@@ -10,7 +10,8 @@ import stud.ntnu.krisefikser.map.entity.EventStatus;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-  @Query("SELECT e FROM Event e WHERE (e.status = :ongoingStatus OR e.status = :upcomingStatus) AND e.endTime >= :currentTime")
+  @Query(
+      "SELECT e FROM Event e WHERE (e.status = :ongoingStatus OR e.status = :upcomingStatus) AND e.endTime >= :currentTime")
   List<Event> findActiveEvents(
       @Param("ongoingStatus") EventStatus ongoingStatus,
       @Param("upcomingStatus") EventStatus upcomingStatus,

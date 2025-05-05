@@ -169,7 +169,8 @@ public class MapPointController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<MapPointResponse> updateMapPoint(
       @Parameter(description = "ID of the map point to update") @PathVariable Long id,
-      @Parameter(description = "Updated map point details") @RequestBody UpdateMapPointRequest mapPoint) {
+      @Parameter(description = "Updated map point details") @RequestBody
+      UpdateMapPointRequest mapPoint) {
     return ResponseEntity.ok(mapPointService.updateMapPoint(id, mapPoint));
   }
 
