@@ -7,10 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Data Transfer Object (DTO) for representing an article response. This class is used to transfer
- * data between the server and client.
- */
 @Data
 @Builder
 @NoArgsConstructor

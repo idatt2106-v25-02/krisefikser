@@ -48,11 +48,17 @@ public abstract class AbstractIntegrationTest {
   @Getter
   private User testUser;
 
+  @Autowired
+  private DatabaseCleanupService databaseCleanupService;
+
   public MockHttpServletRequestBuilder withJwtAuth(MockHttpServletRequestBuilder requestBuilder) {
     return requestBuilder.header("Authorization", "Bearer " + accessToken);
   }
 
   public void setUpUser() throws Exception {
+    // Delete brotherman testern if exists
+    databaseCleanupService.clearDatabase();
+
     // make turnstileService.verify returns true
     Mockito.when(turnstileService.verify(ArgumentMatchers.anyString())).thenReturn(true);
 

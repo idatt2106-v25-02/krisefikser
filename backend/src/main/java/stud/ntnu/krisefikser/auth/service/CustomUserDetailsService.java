@@ -8,14 +8,6 @@ import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
-/**
- * Custom implementation of UserDetailsService for loading user-specific data during
- * authentication.
- *
- * <p>This class is responsible for retrieving user details from the database and converting them
- * into
- * a format suitable for Spring Security.
- */
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {

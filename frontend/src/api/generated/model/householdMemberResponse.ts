@@ -9,6 +9,6 @@ import type { UserResponse } from './userResponse'
 import type { HouseholdMemberResponseStatus } from './householdMemberResponseStatus'
 
 export interface HouseholdMemberResponse {
-  user: UserResponse
-  status: HouseholdMemberResponseStatus
+  user?: UserResponse
+  status?: HouseholdMemberResponseStatus
 }

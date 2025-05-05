@@ -1,20 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { MapPointTypeResponse as MapPointType } from '@/api/generated/model'
-import {
-  useCreateMapPointType,
-  useGetAllMapPointTypes,
-  useUpdateMapPointType,
-  useDeleteMapPointType,
-} from '@/api/generated/map-point-type/map-point-type'
+import type { MapPointType } from '@/api/generated/model'
+import { useCreateMapPointType, useGetAllMapPointTypes, useUpdateMapPointType, useDeleteMapPointType } from '@/api/generated/map-point-type/map-point-type'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useAuthStore } from '@/stores/useAuthStore'
 import MapPointTypeForm from './MapPointTypeForm.vue'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const authStore = useAuthStore()
-const { data: mapPointTypes, refetch: refetchMapPointTypes } =
-  useGetAllMapPointTypes<MapPointType[]>()
+const { data: mapPointTypes, refetch: refetchMapPointTypes } = useGetAllMapPointTypes<MapPointType[]>()
 const { refetch: refetchMapPoints } = useGetAllMapPoints()
 
 const newMapPointType = ref({
@@ -30,6 +29,7 @@ const { mutate: createMapPointType } = useCreateMapPointType({
   mutation: {
     onSuccess: () => {
       refetchMapPointTypes()
+
     },
   },
 })
@@ -132,14 +132,12 @@ function handleDialogCancel() {
       v-model="newMapPointType"
       title="Legg til ny kartpunkttype"
       @submit="handleAddMapPointType"
-      @cancel="
-        newMapPointType = {
-          title: '',
-          description: '',
-          iconUrl: '',
-          openingTime: '',
-        }
-      "
+      @cancel="newMapPointType = {
+        title: '',
+        description: '',
+        iconUrl: '',
+        openingTime: '',
+      }"
     />
 
     <!-- List of Map Point Types -->
@@ -152,7 +150,10 @@ function handleDialogCancel() {
             <p class="text-sm text-gray-600">{{ type?.description || 'Ingen beskrivelse' }}</p>
           </div>
           <div class="flex space-x-2">
-            <button @click="handleEditClick(type)" class="text-primary hover:text-primary/80">
+            <button
+              @click="handleEditClick(type)"
+              class="text-primary hover:text-primary/80"
+            >
               Rediger
             </button>
             <button

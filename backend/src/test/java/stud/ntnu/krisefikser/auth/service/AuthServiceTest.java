@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,7 +39,7 @@ import stud.ntnu.krisefikser.user.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class AuthServiceTest {
+public class AuthServiceTest {
 
   @Mock
   private UserService userService;
@@ -70,8 +71,7 @@ class AuthServiceTest {
 
   @BeforeEach
   void setUp() {
-    registerRequest =
-        new RegisterRequest("test@example.com", "password", "Test", "User", "turnstile-token");
+    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User", "turnstile-token");
     loginRequest = new LoginRequest("test@example.com", "password");
     refreshRequest = new RefreshRequest("refresh-token-123");
 

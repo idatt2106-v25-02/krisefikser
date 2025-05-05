@@ -1,11 +1,8 @@
 <!-- EventFormComponent.vue -->
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { EventResponse as Event } from '@/api/generated/model'
-import {
-  EventResponseLevel as EventLevel,
-  EventResponseStatus as EventStatus,
-} from '@/api/generated/model'
+import type { Event } from '@/api/generated/model'
+import { EventLevel, EventStatus } from '@/api/generated/model'
 
 const props = defineProps<{
   modelValue: Partial<Event>
@@ -26,7 +23,7 @@ watch(
   (newValue) => {
     localValue.value = { ...newValue }
   },
-  { deep: true },
+  { deep: true }
 )
 
 watch(
@@ -34,7 +31,7 @@ watch(
   (newValue) => {
     emit('update:modelValue', newValue)
   },
-  { deep: true },
+  { deep: true }
 )
 
 function handleSubmit() {
@@ -149,7 +146,10 @@ function handleStartMapSelection() {
     </div>
 
     <div class="flex justify-end space-x-2">
-      <button @click="handleCancel" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+      <button
+        @click="handleCancel"
+        class="px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
         Avbryt
       </button>
       <button

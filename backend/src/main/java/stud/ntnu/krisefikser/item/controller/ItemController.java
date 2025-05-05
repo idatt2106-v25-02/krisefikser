@@ -78,7 +78,8 @@ public class ItemController {
    *
    * @param createRequest the DTO containing the food item details to be created. Must not be null
    *                      and should contain valid data.
-   * @return ResponseEntity containing the created food item's details
+   * @return ResponseEntity containing the created food item's details with HTTP status 201
+   * (Created)
    * @throws IllegalArgumentException if the request contains invalid data
    * @throws NullPointerException     if the request is null
    * @see CreateFoodItemRequest
@@ -103,7 +104,8 @@ public class ItemController {
    * identifiers, names, quantities, expiration dates, and storage locations. The list is ordered
    * based on service-defined criteria (typically by creation date or name).</p>
    *
-   * @return ResponseEntity containing a list of all food items
+   * @return ResponseEntity containing a list of all food items with HTTP status 200 (OK), or status
+   * 404 (Not Found) if no items exist
    * @see FoodItemResponse
    */
   @GetMapping("/food")
@@ -127,7 +129,8 @@ public class ItemController {
    *
    * @param id the unique identifier of the checklist item to toggle. Must be a valid UUID that
    *           exists in the system.
-   * @return ResponseEntity containing the updated checklist item with the new status
+   * @return ResponseEntity containing the updated checklist item with the new status, with HTTP
+   * status 200 (OK)
    * @throws IllegalArgumentException if the provided ID is invalid
    * @throws EntityNotFoundException  if no checklist item with the specified ID exists
    * @see ChecklistItemResponse
@@ -153,7 +156,8 @@ public class ItemController {
    * ordering is determined by the service implementation, typically prioritizing important or
    * incomplete items.</p>
    *
-   * @return ResponseEntity containing a list of all checklist items
+   * @return ResponseEntity containing a list of all checklist items with HTTP status 200 (OK), or
+   * status 404 (Not Found) if no checklist items exist
    * @see ChecklistItemResponse
    */
   @GetMapping("/checklist")

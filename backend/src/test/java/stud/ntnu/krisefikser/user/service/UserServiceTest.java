@@ -8,7 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import java.util.Collections;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -27,9 +28,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
+import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.entity.User;
-import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
+import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +40,9 @@ class UserServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private RoleRepository roleRepository;
 
   @Mock
   private PasswordEncoder passwordEncoder;
@@ -104,7 +109,7 @@ class UserServiceTest {
     when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
 
     // Act & Assert
-    assertThrows(UserNotFoundException.class,
+    assertThrows(UserDoesNotExistException.class,
         () -> userService.updateUser(testUserId, testUserDto));
   }
 
@@ -126,14 +131,14 @@ class UserServiceTest {
     when(userRepository.existsById(testUserId)).thenReturn(false);
 
     // Act & Assert
-    assertThrows(UserNotFoundException.class,
+    assertThrows(UserDoesNotExistException.class,
         () -> userService.deleteUser(testUserId));
   }
 
   @Test
   void getAllUsers_Success() {
     // Arrange
-    List<User> expectedUsers = Collections.singletonList(testUser);
+    List<User> expectedUsers = Arrays.asList(testUser);
     when(userRepository.findAll()).thenReturn(expectedUsers);
 
     // Act
@@ -141,7 +146,7 @@ class UserServiceTest {
 
     // Assert
     assertEquals(expectedUsers.size(), actualUsers.size());
-    assertEquals(expectedUsers.getFirst(), actualUsers.getFirst());
+    assertEquals(expectedUsers.get(0), actualUsers.get(0));
   }
 
   @Test
@@ -167,7 +172,7 @@ class UserServiceTest {
     User adminUser = User.builder()
         .id(UUID.randomUUID())
         .email("admin@example.com")
-        .roles(new HashSet<>(List.of(adminRole)))
+        .roles(new HashSet<>(Arrays.asList(adminRole)))
         .build();
 
     when(securityContext.getAuthentication()).thenReturn(authentication);

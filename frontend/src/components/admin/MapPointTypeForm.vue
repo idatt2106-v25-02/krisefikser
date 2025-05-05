@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { MapPointTypeResponse as MapPointType } from '@/api/generated/model'
+import type { MapPointType } from '@/api/generated/model'
 import IconPicker from './IconPicker.vue'
 
 const props = defineProps<{
@@ -16,7 +16,7 @@ const emit = defineEmits<{
 
 const formData = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
+  set: (value) => emit('update:modelValue', value)
 })
 
 function handleSubmit() {
@@ -67,7 +67,10 @@ function handleCancel() {
     </div>
 
     <div class="flex justify-end space-x-2">
-      <button @click="handleCancel" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+      <button
+        @click="handleCancel"
+        class="px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
         Avbryt
       </button>
       <button

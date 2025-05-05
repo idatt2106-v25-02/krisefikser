@@ -6,7 +6,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { setupVueQuery } from './plugins/vue-query'
-import { WebSocketService } from '@/api/websocket/WebSocketService.ts'
+import { WebSocketService } from '@/api/WebSocketService.ts'
 import accessibilityPlugin from './plugins/accessibility'
 import posthogPlugin from './plugins/posthog'
 const app = createApp(App)

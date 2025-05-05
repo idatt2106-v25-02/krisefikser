@@ -4,7 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,12 +12,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import stud.ntnu.krisefikser.map.dto.EventResponse;
+import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.map.entity.EventLevel;
 import stud.ntnu.krisefikser.map.entity.EventStatus;
 
 @ExtendWith(MockitoExtension.class)
-class EventWebSocketServiceTest {
+public class EventWebSocketServiceTest {
 
   @Mock
   private SimpMessagingTemplate messagingTemplate;
@@ -25,51 +25,34 @@ class EventWebSocketServiceTest {
   @InjectMocks
   private EventWebSocketService webSocketService;
 
-  private EventResponse testEventResponse;
-  private ZonedDateTime now;
+  private Event testEvent;
 
   @BeforeEach
-  void setUp() {
-    now = ZonedDateTime.now();
-
-    testEventResponse = EventResponse.builder()
-        .id(1L)
-        .title("Test Event")
-        .description("Test Description")
-        .radius(1000.0)
-        .latitude(63.4305)
-        .longitude(10.3951)
-        .level(EventLevel.YELLOW)
-        .startTime(now)
-        .endTime(now.plusHours(2))
-        .status(EventStatus.ONGOING)
-        .build();
+  public void setup() {
+    testEvent =
+        Event.builder().id(1L).title("Test Event").description("Test Description").radius(1000.0)
+            .latitude(63.4305).longitude(10.3951).level(EventLevel.YELLOW)
+            .startTime(LocalDateTime.now()).endTime(LocalDateTime.now().plusHours(2))
+            .status(EventStatus.ONGOING).build();
   }
 
   @Test
-  void notifyEventUpdate_ShouldSendEventToTopic() {
-    // Act
-    webSocketService.notifyEventUpdate(testEventResponse);
-
-    // Assert
-    verify(messagingTemplate).convertAndSend(eq("/topic/events"), any(EventResponse.class));
+  public void testNotifyEventUpdate() {
+    webSocketService.notifyEventUpdate(testEvent);
+    verify(messagingTemplate).convertAndSend(eq("/topic/events"), any(Event.class));
   }
 
   @Test
-  void notifyEventCreation_ShouldSendEventToNewTopic() {
-    // Act
-    webSocketService.notifyEventCreation(testEventResponse);
-
-    // Assert
-    verify(messagingTemplate).convertAndSend(eq("/topic/events/new"), any(EventResponse.class));
+  public void testNotifyEventCreation() {
+    webSocketService.notifyEventCreation(testEvent);
+    verify(messagingTemplate).convertAndSend(eq("/topic/events/new"), any(Event.class));
   }
 
   @Test
-  void notifyEventDeletion_ShouldSendEventIdToDeleteTopic() {
-    // Act
+
+
+  public void testNotifyEventDeletion() {
     webSocketService.notifyEventDeletion(1L);
-
-    // Assert
     verify(messagingTemplate).convertAndSend(eq("/topic/events/delete"), eq(1L));
   }
 }

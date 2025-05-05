@@ -6,8 +6,8 @@ import * as z from 'zod'
 import { useAuthModeStore } from '@/stores/useAuthModeStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { User, Mail } from 'lucide-vue-next'
+import { useToast } from '@/components/ui/toast/use-toast'
 import { useRoute, useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
 
 // UI components
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ import PasswordInput from '@/components/auth/PasswordInput.vue'
 // === Store logic ===
 const authModeStore = useAuthModeStore()
 const authStore = useAuthStore()
+const { toast } = useToast()
 const route = useRoute()
 const router = useRouter()
 
@@ -57,39 +58,33 @@ const { handleSubmit, meta, resetForm } = useForm({
 const isLoading = ref(false)
 
 // Function to provide specific error messages based on error responses
-const getLoginErrorMessage = (error: {
-  response?: { data?: { message?: string }; status?: number }
-}) => {
-  const message = 'Kunne ikke logge inn. Vennligst prøv igjen.'
+const getLoginErrorMessage = (error: { response?: { data?: { message?: string }; status?: number } }) => {
+  const message = 'Kunne ikke logge inn. Vennligst prøv igjen.';
 
-  const errorMessage = error?.response?.data?.message || ''
-  const statusCode = error?.response?.status
+  const errorMessage = error?.response?.data?.message || '';
+  const statusCode = error?.response?.status;
 
   // Check for specific error types and provide user-friendly messages
-  if (
-    errorMessage.includes('Bad credentials') ||
-    errorMessage.includes('incorrect password') ||
-    errorMessage.includes('wrong password') ||
-    statusCode === 401
-  ) {
-    return 'Feil e-post eller passord. Vennligst prøv igjen.'
+  if (errorMessage.includes('Bad credentials') || errorMessage.includes('incorrect password') ||
+    errorMessage.includes('wrong password') || statusCode === 401) {
+    return 'Feil e-post eller passord. Vennligst prøv igjen.';
   }
 
   if (errorMessage.includes('not found') || errorMessage.includes('no user')) {
     return isAdmin.value
       ? 'Brukernavn finnes ikke. Sjekk om du har skrevet riktig brukernavnet.'
-      : 'E-postadressen er ikke registrert. Vennligst registrer deg eller sjekk om du har skrevet riktig e-post.'
+      : 'E-postadressen er ikke registrert. Vennligst registrer deg eller sjekk om du har skrevet riktig e-post.';
   }
 
   if (errorMessage.includes('locked') || errorMessage.includes('disabled')) {
-    return 'Kontoen er låst. Vennligst kontakt administrator for hjelp.'
+    return 'Kontoen er låst. Vennligst kontakt administrator for hjelp.';
   }
 
   if (statusCode === 429) {
-    return 'For mange innloggingsforsøk. Vennligst vent litt før du prøver igjen.'
+    return 'For mange innloggingsforsøk. Vennligst vent litt før du prøver igjen.';
   }
 
-  return errorMessage || message
+  return errorMessage || message;
 }
 
 // Submit handler
@@ -105,16 +100,20 @@ const onSubmit = handleSubmit(async (values) => {
     }
 
     await authStore.login(loginData)
-    toast('Suksess', {
+    toast({
+      title: 'Suksess',
       description: 'Du er nå logget inn',
+      variant: 'default',
     })
 
     // Redirect to the intended page after successful login
     await router.push(redirectPath.value)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    toast('Innloggingsfeil', {
+    toast({
+      title: 'Innloggingsfeil',
       description: getLoginErrorMessage(error),
+      variant: 'destructive',
     })
 
     resetForm({

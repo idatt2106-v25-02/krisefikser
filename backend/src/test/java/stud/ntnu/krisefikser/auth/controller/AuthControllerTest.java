@@ -33,7 +33,7 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 @WebMvcTest(AuthController.class)
 @Import(TestSecurityConfig.class)
-class AuthControllerTest {
+public class AuthControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -60,8 +60,7 @@ class AuthControllerTest {
 
   @BeforeEach
   void setUp() {
-    registerRequest =
-        new RegisterRequest("test@example.com", "password", "Test", "User", "turnstile-token");
+    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User", "turnstile-token");
     loginRequest = new LoginRequest("test@example.com", "password");
     refreshRequest = new RefreshRequest("refresh-token-123");
     userResponse = new UserResponse(UUID.randomUUID(), "test@example.com", List.of("USER"), "Test",

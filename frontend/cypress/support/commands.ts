@@ -25,7 +25,6 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 //
-// /* Remove the global namespace declaration for custom commands
 // declare global {
 //   namespace Cypress {
 //     interface Chainable {
@@ -36,58 +35,5 @@
 //     }
 //   }
 // }
-// */
 
-// Use module augmentation instead
-// eslint-disable-next-line @typescript-eslint/no-namespace
-declare namespace Cypress {
-
-  interface Chainable {
-    registerUser(email: string, password: string, name: string): Chainable<void>;
-    loginUser(email: string, password: string): Chainable<void>;
-    deleteTestUser(email: string): Chainable<void>;
-  }
-}
-
-// Custom command for user registration
-Cypress.Commands.add('registerUser', (email: string, password: string, name: string) => {
-  cy.request({
-    method: 'POST',
-    url: '/api/auth/register',
-    body: {
-      email,
-      password,
-      name
-    },
-    failOnStatusCode: false // Don't fail if user already exists
-  })
-})
-
-// Custom command for user login
-Cypress.Commands.add('loginUser', (email: string, password: string) => {
-  cy.request({
-    method: 'POST',
-    url: '/api/auth/login',
-    body: {
-      email,
-      password
-    }
-  }).then((response) => {
-    // Store the token in localStorage or cookies as needed
-    if (response.body.token) {
-      window.localStorage.setItem('token', response.body.token)
-    }
-  })
-})
-
-// Custom command to delete test user (cleanup)
-Cypress.Commands.add('deleteTestUser', (email: string) => {
-  cy.request({
-    method: 'DELETE',
-    url: `/api/auth/users/${email}`,
-    headers: {
-      Authorization: `Bearer ${window.localStorage.getItem('token')}`
-    },
-    failOnStatusCode: false
-  })
-})
+export {}

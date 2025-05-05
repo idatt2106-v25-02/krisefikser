@@ -5,12 +5,11 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
+import type { MapPointType } from './mapPointType'
 
-/**
- * Updated map point details
- */
-export interface UpdateMapPointRequest {
+export interface MapPoint {
+  id?: number
   latitude?: number
   longitude?: number
-  typeId?: number
+  type?: MapPointType
 }

@@ -7,7 +7,8 @@ import AdminMapContainer from '@/components/admin/AdminMapContainer.vue'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useGetAllEvents } from '@/api/generated/event/event'
-import type { EventResponse as Event, MapPointResponse as MapPoint } from '@/api/generated/model'
+import type { MapPoint } from '@/api/generated/model/mapPoint'
+import type { Event } from '@/api/generated/model/event'
 
 // Types
 type AdminTab = 'map-point-types' | 'map-points' | 'events'

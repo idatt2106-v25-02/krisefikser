@@ -10,9 +10,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 /**
  * WebSocket configuration class for the Krisefikser application.
  *
- * <p>This class configures WebSocket communication using STOMP (Simple Text Oriented Messaging
- * Protocol) as the messaging protocol. It defines connection endpoints and message broker settings
- * that enable real-time communication between the server and clients.</p>
+ * <p>This class configures WebSocket communication using STOMP (Simple Text Oriented Messaging Protocol)
+ * as the messaging protocol. It defines connection endpoints and message broker settings that enable
+ * real-time communication between the server and clients.</p>
  *
  * <p>The configuration includes:</p>
  * <ul>
@@ -34,15 +34,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-
   private final FrontendConfig frontendConfig;
 
   /**
    * Registers STOMP endpoints for WebSocket communication.
    *
    * <p>This method configures a single endpoint "/ws" with SockJS fallback support.
-   * SockJS provides WebSocket emulation in browsers where WebSockets aren't available, ensuring the
-   * application works in all environments.</p>
+   * SockJS provides WebSocket emulation in browsers where WebSockets aren't available,
+   * ensuring the application works in all environments.</p>
    *
    * <p>Clients can connect to this endpoint using:</p>
    * <pre>
@@ -71,8 +70,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
    * <p>With this configuration:</p>
    * <ul>
    *   <li>Client-to-server messages should be sent to destinations starting with "/app/"</li>
-   *   <li>Clients can subscribe to destinations starting with "/topic/" to receive broadcast
-   *   messages</li>
+   *   <li>Clients can subscribe to destinations starting with "/topic/" to receive broadcast messages</li>
    * </ul>
    *
    * @param registry The message broker registry to configure

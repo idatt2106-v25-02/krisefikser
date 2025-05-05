@@ -5,20 +5,18 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { UpdateEventRequestLevel } from './updateEventRequestLevel'
-import type { UpdateEventRequestStatus } from './updateEventRequestStatus'
+import type { EventLevel } from './eventLevel'
+import type { EventStatus } from './eventStatus'
 
-/**
- * Updated event details
- */
-export interface UpdateEventRequest {
+export interface Event {
+  id?: number
   title?: string
   description?: string
   radius?: number
   latitude?: number
   longitude?: number
-  level?: UpdateEventRequestLevel
+  level?: EventLevel
   startTime?: string
   endTime?: string
-  status?: UpdateEventRequestStatus
+  status?: EventStatus
 }

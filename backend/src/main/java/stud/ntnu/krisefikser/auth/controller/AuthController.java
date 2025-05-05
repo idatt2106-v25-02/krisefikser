@@ -32,10 +32,6 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
-/**
- * REST controller for managing authentication-related operations. Provides endpoints for user
- * registration, login, token refresh, and retrieving user details.
- */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -95,9 +91,7 @@ public class AuthController {
 
   @Operation(summary = "Login user", description = "Authenticates a user and returns access tokens")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully authenticated", content =
-      @Content(mediaType = "application/json", schema = @Schema(implementation =
-          LoginResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully authenticated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))),
       @ApiResponse(responseCode = "401", description = "Invalid credentials")
   })
   @PostMapping("/login")
@@ -107,18 +101,9 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  /**
-   * Refreshes the access token using the provided refresh token.
-   *
-   * @param refreshToken The refresh token used to obtain a new access token.
-   * @return ResponseEntity containing the new access token.
-   */
-  @Operation(summary = "Refresh token", description = "Generates new access token using refresh "
-      + "token")
+  @Operation(summary = "Refresh token", description = "Generates new access token using refresh token")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully refreshed token", content =
-      @Content(mediaType = "application/json", schema = @Schema(implementation =
-          RefreshResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully refreshed token", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RefreshResponse.class))),
       @ApiResponse(responseCode = "401", description = "Invalid refresh token")
   })
   @PostMapping("/refresh")
@@ -128,17 +113,9 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  /**
-   * Retrieves the currently authenticated user's details.
-   *
-   * @return ResponseEntity containing the user's details.
-   */
-  @Operation(summary = "Get current user", description = "Retrieves the currently authenticated "
-      + "user's details")
+  @Operation(summary = "Get current user", description = "Retrieves the currently authenticated user's details")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved user details",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
-              UserResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved user details", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
       @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
   @GetMapping("/me")
