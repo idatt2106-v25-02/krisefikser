@@ -30,7 +30,6 @@ import SearchView from "@/views/registered/SearchView.vue";
 import HomeAddressView from "@/views/registered/HomeAddressView.vue";
 import NewHouseholdView from "@/views/registered/NewHousehold.vue";
 import NotificationsPage from '@/views/registered/notification/NotificationView.vue';
-import NotificationsDemoPage from '@/views/registered/notification/NotificationDemoView.vue';
 // Non-Registered User views
 import JoinOrCreateHouseholdView from "@/views/nonRegistered/JoinOrCreateHouseholdView.vue";
 import MapView from "@/views/nonRegistered/MapView.vue";
@@ -245,14 +244,6 @@ const router = createRouter({
       path: '/varsler',
       name: 'Notifications',
       component: NotificationsPage,
-      meta: {
-        requiresAuth: true
-      }
-    },
-    {
-      path: '/varsler-demo',
-      name: 'NotificationsDemo',
-      component: NotificationsDemoPage,
       meta: {
         requiresAuth: true
       }

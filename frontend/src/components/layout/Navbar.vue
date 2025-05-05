@@ -57,20 +57,29 @@
               <DropdownMenuTrigger>
                 <button class="flex items-center text-gray-700 hover:text-blue-600 transition relative" aria-label="Varsler">
                   <BellIcon class="h-5 w-5" aria-label="Varsler" />
-                  <span v-if="notifications.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                    {{ notifications.length > 9 ? '9+' : notifications.length }}
+                  <span v-if="unreadCountData && unreadCountData > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    {{ unreadCountData > 9 ? '9+' : unreadCountData }}
                   </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent class="w-80">
-                <div class="p-2 border-b border-gray-100">
+                <div class="p-2 border-b border-gray-100 flex justify-between items-center">
                   <h3 class="font-medium text-gray-900">Varsler</h3>
+                  <button @click="() => refetchNotifications()" :disabled="isFetchingNotifications" class="text-blue-600 hover:text-blue-800 disabled:opacity-50">
+                    <RefreshCw class="h-4 w-4" :class="{'animate-spin': isFetchingNotifications}"/>
+                  </button>
                 </div>
                 <div class="max-h-96 overflow-y-auto">
-                  <div v-if="notifications.length === 0" class="p-4 text-center text-gray-500">
+                  <div v-if="isLoadingNotifications" class="p-4 text-center text-gray-500">
+                    Laster...
+                  </div>
+                  <div v-else-if="notificationsError" class="p-4 text-center text-red-500">
+                    Feil ved lasting
+                  </div>
+                  <div v-else-if="!notifications || notifications.length === 0" class="p-4 text-center text-gray-500">
                     Ingen nye varsler
                   </div>
-                  <DropdownMenuItem v-for="(notification, index) in notifications" :key="index" class="cursor-pointer p-0">
+                  <DropdownMenuItem v-for="notification in notifications" :key="notification.id" class="cursor-pointer p-0">
                     <div
                       @click="handleNotificationClick(notification)"
                       class="p-3 hover:bg-blue-50 border-b border-gray-100 w-full"
@@ -80,27 +89,32 @@
                         <div
                           class="rounded-full p-2 flex-shrink-0"
                           :class="{
-                            'bg-yellow-100 text-yellow-600': notification.type === 'expiry',
-                            'bg-red-100 text-red-600': notification.type === 'crisis',
-                            'bg-blue-100 text-blue-600': notification.type === 'update'
+                            'bg-yellow-100 text-yellow-600': (notification.type as string) === 'EXPIRY',
+                            'bg-red-100 text-red-600': (notification.type as string) === 'CRISIS',
+                            'bg-blue-100 text-blue-600': (notification.type as string) === 'UPDATE'
                           }"
                         >
-                          <AlertTriangle v-if="notification.type === 'crisis'" class="h-4 w-4" />
-                          <Calendar v-else-if="notification.type === 'expiry'" class="h-4 w-4" />
-                          <Bell v-else class="h-4 w-4" />
+                          <AlertTriangle v-if="(notification.type as string) === 'CRISIS'" class="h-4 w-4" />
+                          <Calendar v-else-if="(notification.type as string) === 'EXPIRY'" class="h-4 w-4" />
+                          <Bell v-else-if="(notification.type as string) === 'UPDATE'" class="h-4 w-4" />
+                          <Info v-else class="h-4 w-4" />
                         </div>
                         <div>
-                          <p class="text-sm font-medium text-gray-900">{{ notification.title }}</p>
-                          <p class="text-xs text-gray-500 mt-1">{{ notification.message }}</p>
-                          <p class="text-xs text-gray-400 mt-1">{{ formatDate(notification.createdAt) }}</p>
+                          <p class="text-sm font-medium text-gray-900">{{ notification.title || '-' }}</p>
+                          <p class="text-xs text-gray-500 mt-1">{{ notification.message || '-' }}</p>
+                          <p class="text-xs text-gray-400 mt-1">{{ notification.createdAt ? formatDate(notification.createdAt) : '-' }}</p>
                         </div>
                       </div>
                     </div>
                   </DropdownMenuItem>
                 </div>
-                <div v-if="notifications.length > 0" class="p-2 border-t border-gray-100">
-                  <button @click="markAllAsRead" class="text-sm text-blue-600 hover:text-blue-800 w-full text-center">
-                    Marker alle som lest
+                <div v-if="notifications && notifications.length > 0" class="p-2 border-t border-gray-100">
+                  <button
+                    @click="markAllAsRead"
+                    :disabled="isMarkingAllAsRead"
+                    class="text-sm text-blue-600 hover:text-blue-800 w-full text-center disabled:opacity-50"
+                  >
+                    {{ isMarkingAllAsRead ? 'Markerer...' : 'Marker alle som lest' }}
                   </button>
                 </div>
               </DropdownMenuContent>
@@ -179,23 +193,32 @@
             <BellIcon class="h-5 w-5 mr-2" />
             <span>Varsler</span>
           </div>
-          <span v-if="notifications.length > 0" class="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {{ notifications.length > 9 ? '9+' : notifications.length }}
+          <span v-if="unreadCountData && unreadCountData > 0" class="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {{ unreadCountData > 9 ? '9+' : unreadCountData }}
           </span>
         </div>
 
         <!-- Mobile notifications panel -->
         <div v-if="showMobileNotifications && authStore.isAuthenticated" class="mt-2 bg-white rounded-md shadow-lg p-2">
-          <div class="p-2 border-b border-gray-100">
+          <div class="p-2 border-b border-gray-100 flex justify-between items-center">
             <h3 class="font-medium text-gray-900">Varsler</h3>
+            <button @click="() => refetchNotifications()" :disabled="isFetchingNotifications" class="text-blue-600 hover:text-blue-800 disabled:opacity-50">
+              <RefreshCw class="h-4 w-4" :class="{'animate-spin': isFetchingNotifications}"/>
+            </button>
           </div>
           <div class="max-h-96 overflow-y-auto">
-            <div v-if="notifications.length === 0" class="p-4 text-center text-gray-500">
+            <div v-if="isLoadingNotifications" class="p-4 text-center text-gray-500">
+              Laster...
+            </div>
+            <div v-else-if="notificationsError" class="p-4 text-center text-red-500">
+              Feil ved lasting
+            </div>
+            <div v-else-if="!notifications || notifications.length === 0" class="p-4 text-center text-gray-500">
               Ingen nye varsler
             </div>
             <div
-              v-for="(notification, index) in notifications"
-              :key="index"
+              v-for="notification in notifications"
+              :key="notification.id"
               @click="handleNotificationClick(notification)"
               class="p-3 hover:bg-blue-50 border-b border-gray-100 cursor-pointer"
               :class="{ 'bg-blue-50': !notification.read }"
@@ -204,26 +227,31 @@
                 <div
                   class="rounded-full p-2 flex-shrink-0"
                   :class="{
-                    'bg-yellow-100 text-yellow-600': notification.type === 'expiry',
-                    'bg-red-100 text-red-600': notification.type === 'crisis',
-                    'bg-blue-100 text-blue-600': notification.type === 'update'
+                    'bg-yellow-100 text-yellow-600': (notification.type as string) === 'EXPIRY',
+                    'bg-red-100 text-red-600': (notification.type as string) === 'CRISIS',
+                    'bg-blue-100 text-blue-600': (notification.type as string) === 'UPDATE'
                   }"
                 >
-                  <AlertTriangle v-if="notification.type === 'crisis'" class="h-4 w-4" />
-                  <Calendar v-else-if="notification.type === 'expiry'" class="h-4 w-4" />
-                  <Bell v-else class="h-4 w-4" />
+                  <AlertTriangle v-if="(notification.type as string) === 'CRISIS'" class="h-4 w-4" />
+                  <Calendar v-else-if="(notification.type as string) === 'EXPIRY'" class="h-4 w-4" />
+                  <Bell v-else-if="(notification.type as string) === 'UPDATE'" class="h-4 w-4" />
+                  <Info v-else class="h-4 w-4" />
                 </div>
                 <div>
-                  <p class="text-sm font-medium text-gray-900">{{ notification.title }}</p>
-                  <p class="text-xs text-gray-500 mt-1">{{ notification.message }}</p>
-                  <p class="text-xs text-gray-400 mt-1">{{ formatDate(notification.createdAt) }}</p>
+                  <p class="text-sm font-medium text-gray-900">{{ notification.title || '-' }}</p>
+                  <p class="text-xs text-gray-500 mt-1">{{ notification.message || '-' }}</p>
+                  <p class="text-xs text-gray-400 mt-1">{{ notification.createdAt ? formatDate(notification.createdAt) : '-' }}</p>
                 </div>
               </div>
             </div>
           </div>
-          <div v-if="notifications.length > 0" class="p-2 border-t border-gray-100">
-            <button @click="markAllAsRead" class="text-sm text-blue-600 hover:text-blue-800 w-full text-center">
-              Marker alle som lest
+          <div v-if="notifications && notifications.length > 0" class="p-2 border-t border-gray-100">
+            <button
+              @click="markAllAsRead"
+              :disabled="isMarkingAllAsRead"
+              class="text-sm text-blue-600 hover:text-blue-800 w-full text-center disabled:opacity-50"
+            >
+              {{ isMarkingAllAsRead ? 'Markerer...' : 'Marker alle som lest' }}
             </button>
           </div>
         </div>
@@ -276,10 +304,9 @@
   </nav>
 </template>
 <script lang="ts">
-import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut, Bell as BellIcon, AlertTriangle, Calendar } from 'lucide-vue-next';
+import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut, Bell as BellIcon, AlertTriangle, Calendar, Bell, Info, RefreshCw } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useNotificationStore } from '@/stores/notification/useNotificationStore';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   DropdownMenu,
@@ -287,6 +314,16 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
+import {
+    useGetNotifications,
+    useGetUnreadCount,
+    useReadNotification,
+    useReadAll
+} from '@/api/generated/notification/notification';
+import { useQueryClient } from '@tanstack/vue-query';
+import type { NotificationResponse, GetNotificationsParams } from '@/api/generated/model';
+import type { ErrorType } from '@/api/axios';
+import type { UseMutationOptions } from '@tanstack/vue-query';
 
 export default {
   name: 'AppNavbar',
@@ -302,6 +339,9 @@ export default {
     BellIcon,
     AlertTriangle,
     Calendar,
+    Bell,
+    Info,
+    RefreshCw,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
@@ -309,70 +349,120 @@ export default {
   },
   setup() {
     const authStore = useAuthStore();
-    const notificationStore = useNotificationStore();
     const router = useRouter();
     const isMenuOpen = ref(false);
     const showMobileNotifications = ref(false);
 
-    const notifications = computed(() => {
-      return notificationStore.notifications;
+    const queryClient = useQueryClient();
+
+    const notificationParams = computed<GetNotificationsParams>(() => ({
+        pageable: {
+            page: 0,
+            size: 5,
+            sort: ['createdAt,desc']
+        }
+    }));
+
+    const {
+        data: notificationsData,
+        isLoading: isLoadingNotifications,
+        isFetching: isFetchingNotifications,
+        error: notificationsError,
+        refetch: refetchNotifications
+    } = useGetNotifications(notificationParams, {
+        query: {
+            enabled: computed(() => authStore.isAuthenticated),
+            staleTime: 1000 * 60 * 5
+        }
     });
 
-    const handleNotificationClick = (notification) => {
-      notificationStore.markAsRead(notification.id);
+    const {
+        data: unreadCountData,
+        refetch: refetchUnreadCount
+    } = useGetUnreadCount({
+        query: {
+            enabled: computed(() => authStore.isAuthenticated),
+            staleTime: 1000 * 60 * 5
+        }
+    });
 
-      // Route based on notification type
-      if (notification.type === 'crisis') {
-        router.push(`/kart?crisis=${notification.referenceId}`);
-      } else if (notification.type === 'expiry') {
-        router.push(`/husstand/${notification.householdId}/beredskapslager`);
-      } else if (notification.type === 'update') {
-        router.push(`/kart?update=${notification.referenceId}`);
+    const { mutate: mutateReadNotification, isPending: _isMarkingAsRead } = useReadNotification({
+        mutation: {
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+            },
+            onError: (error: ErrorType<unknown>) => {
+                console.error("Failed to mark notification as read:", error);
+            }
+        }
+    });
+
+    const { mutate: mutateReadAll, isPending: isMarkingAllAsRead } = useReadAll({
+        mutation: {
+             onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+            },
+            onError: (error: ErrorType<unknown>) => {
+                console.error("Failed to mark all notifications as read:", error);
+            }
+        }
+    });
+
+    const notifications = computed(() => notificationsData.value?.content || []);
+
+    const handleNotificationClick = (notification: NotificationResponse) => {
+      if (notification.id && !notification.read) {
+        mutateReadNotification({ id: notification.id });
       }
 
-      // Close mobile notifications panel if open
+      if (notification.url) {
+        window.open(notification.url, '_blank');
+      }
+
       showMobileNotifications.value = false;
     };
 
     const markAllAsRead = () => {
-      notificationStore.markAllAsRead();
+        mutateReadAll();
     };
 
-    const formatDate = (date) => {
-      const now = new Date();
-      const notificationDate = new Date(date);
-
-      // Calculate the difference in days
-      const diffInDays = Math.floor((now - notificationDate) / (1000 * 60 * 60 * 24));
-
-      if (diffInDays === 0) {
-        // If today, show the time
-        return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
-      } else if (diffInDays === 1) {
-        return 'I går';
-      } else if (diffInDays < 7) {
-        const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-        return days[notificationDate.getDay()];
-      } else {
-        // For older notifications, show the date
-        return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
-      }
+    const formatDate = (dateString: string) => {
+       if (!dateString) return '-';
+       const now = new Date();
+       const notificationDate = new Date(dateString);
+       const diffInDays = Math.floor((now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60 * 24));
+       if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
+       if (diffInDays === 1) return 'I går';
+       if (diffInDays < 7) {
+           const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+           return days[notificationDate.getDay()];
+       }
+       return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
     };
 
-    onMounted(() => {
-      if (authStore.isAuthenticated) {
-        notificationStore.fetchNotifications();
-      }
+    watch(() => authStore.isAuthenticated, (isAuth) => {
+        if (isAuth) {
+            refetchNotifications();
+            refetchUnreadCount();
+        }
     });
 
     return {
       authStore,
       isMenuOpen,
+      isLoadingNotifications,
+      isFetchingNotifications,
+      notificationsError,
       notifications,
+      unreadCountData,
       handleNotificationClick,
       markAllAsRead,
+      isMarkingAllAsRead,
       formatDate,
-      showMobileNotifications
+      showMobileNotifications,
+      refetchNotifications
     };
   },
 }
