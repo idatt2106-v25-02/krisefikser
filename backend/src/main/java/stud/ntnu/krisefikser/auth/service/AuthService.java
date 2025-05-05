@@ -18,6 +18,7 @@ import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
+import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 @Service
@@ -32,7 +33,7 @@ public class AuthService {
   private final RefreshTokenRepository refreshTokenRepository;
 
   public RegisterResponse register(RegisterRequest registerRequest) {
-    userService.createUser(new CreateUser(
+    User user = userService.createUser(new CreateUser(
         registerRequest.getEmail(),
         registerRequest.getPassword(),
         registerRequest.getFirstName(),
@@ -46,7 +47,7 @@ public class AuthService {
     String accessToken = tokenService.generateAccessToken(userDetails);
     String refreshToken = tokenService.generateRefreshToken(userDetails);
 
-    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
+    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).user(user).build());
 
     return new RegisterResponse(
         accessToken,
@@ -61,10 +62,12 @@ public class AuthService {
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
 
+    User user = userService.getUserByEmail(loginRequest.getEmail());
+
     String accessToken = tokenService.generateAccessToken(userDetails);
     String refreshToken = tokenService.generateRefreshToken(userDetails);
 
-    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
+    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).user(user).build());
 
     return new LoginResponse(
         accessToken,
@@ -81,13 +84,17 @@ public class AuthService {
       throw new InvalidTokenException();
     }
 
+    log.info("Refreshing token");
+
     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+    User user = userService.getUserByEmail(email);
 
     String accessToken = tokenService.generateAccessToken(userDetails);
     String refreshToken = tokenService.generateRefreshToken(userDetails);
 
     refreshTokenRepository.delete(existingToken);
-    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
+    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).user(user).build());
 
     return new RefreshResponse(
         accessToken,
@@ -97,24 +104,4 @@ public class AuthService {
   public UserResponse me() {
     return userService.getCurrentUser().toDto();
   }
-
-//  private String createAccessToken(UserDetails userDetails) {
-//    Map<String, Object> claims = new HashMap<>();
-//    claims.put("type", "access");
-//    return tokenService.generate(userDetails, getAccessTokenExpiration(), claims);
-//  }
-//
-//  private String createRefreshToken(UserDetails userDetails) {
-//    Map<String, Object> claims = new HashMap<>();
-//    claims.put("type", "refresh");
-//    return tokenService.generate(userDetails, getRefreshTokenExpiration(), claims);
-//  }
-//
-//  private Date getAccessTokenExpiration() {
-//    return new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
-//  }
-//
-//  private Date getRefreshTokenExpiration() {
-//    return new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
-//  }
 }
