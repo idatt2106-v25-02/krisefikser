@@ -4,7 +4,7 @@ import MapComponent from '@/components/map/MapComponent.vue'
 import MapPointLayer from '@/components/map/MapPointLayer.vue'
 import EventLayer from '@/components/map/EventLayer.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
-import type { MapPoint, Event } from '@/api/generated/model'
+import type { MapPointResponse as MapPoint, EventResponse as Event } from '@/api/generated/model'
 import L from 'leaflet'
 
 defineProps<{
@@ -42,11 +42,7 @@ onUnmounted(() => {
       :map-points="mapPoints"
     />
 
-    <EventLayer
-      v-if="mapInstance && events"
-      :map="mapInstance as L.Map"
-      :events="events"
-    />
+    <EventLayer v-if="mapInstance && events" :map="mapInstance as L.Map" :events="events" />
 
     <MapLegend
       :user-location-available="false"

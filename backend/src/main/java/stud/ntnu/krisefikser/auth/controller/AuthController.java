@@ -32,32 +32,41 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 @Tag(name = "Authentication", description = "Authentication management APIs")
 @Validated
 public class AuthController {
-    private final AuthService authService;
-    private final TurnstileService turnstileService;
 
-    @Operation(
-        summary = "Register a new user", description = "Creates a new user account after CAPTCHA verification and input validation"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully registered user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RegisterResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA verification failed", content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "Unexpected server error", content = @Content(mediaType = "application/json"))
-    })
-    @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(
-            @Parameter(description = "Registration details including Turnstile token", required = true)
-            @RequestBody RegisterRequest request) {
-        boolean isHuman = turnstileService.verify(request.getTurnstileToken());
-        if (!isHuman) {
-            throw new TurnstileVerificationException(); // Will trigger 400 with message if @RestControllerAdvice is used
-        }
-        RegisterResponse response = authService.register(request);
-        return ResponseEntity.ok(response);
+  private final AuthService authService;
+  private final TurnstileService turnstileService;
+
+  @Operation(
+      summary = "Register a new user", description = "Creates a new user account after CAPTCHA "
+      + "verification and input validation"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully registered user", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          RegisterResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA "
+          + "verification failed", content = @Content(mediaType = "application/json")),
+      @ApiResponse(responseCode = "500", description = "Unexpected server error", content =
+      @Content(mediaType = "application/json"))
+  })
+  @PostMapping("/register")
+  public ResponseEntity<RegisterResponse> register(
+      @Parameter(description = "Registration details including Turnstile token", required = true)
+      @RequestBody RegisterRequest request) {
+    boolean isHuman = turnstileService.verify(request.getTurnstileToken());
+    if (!isHuman) {
+      throw new TurnstileVerificationException(); // Will trigger 400 with message if
+      // @RestControllerAdvice is used
     }
+    RegisterResponse response = authService.register(request);
+    return ResponseEntity.ok(response);
+  }
 
   @Operation(summary = "Login user", description = "Authenticates a user and returns access tokens")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully authenticated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully authenticated", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          LoginResponse.class))),
       @ApiResponse(responseCode = "401", description = "Invalid credentials")
   })
   @PostMapping("/login")
@@ -67,9 +76,12 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Refresh token", description = "Generates new access token using refresh token")
+  @Operation(summary = "Refresh token", description = "Generates new access token using refresh "
+      + "token")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully refreshed token", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RefreshResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully refreshed token", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          RefreshResponse.class))),
       @ApiResponse(responseCode = "401", description = "Invalid refresh token")
   })
   @PostMapping("/refresh")
@@ -79,9 +91,12 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Get current user", description = "Retrieves the currently authenticated user's details")
+  @Operation(summary = "Get current user", description = "Retrieves the currently authenticated "
+      + "user's details")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved user details", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved user details",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
+              UserResponse.class))),
       @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
   @GetMapping("/me")
