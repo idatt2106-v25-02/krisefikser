@@ -320,8 +320,7 @@ public class GlobalExceptionHandler {
    * Handles exceptions thrown when a required request parameter is missing.
    *
    * @param exception the missing servlet request parameter exception
-   * @return a problem detail with BAD_REQUEST status and a message identifying the missing
-   * parameter.
+   * @return a problem detail with BAD_REQUEST status and a message identifying missing parameter.
    */
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ProblemDetail handleMissingParameterException(
