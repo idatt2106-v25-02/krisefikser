@@ -8,7 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,7 +38,7 @@ import stud.ntnu.krisefikser.user.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class AuthServiceTest {
+class AuthServiceTest {
 
   @Mock
   private UserService userService;
@@ -71,7 +70,8 @@ public class AuthServiceTest {
 
   @BeforeEach
   void setUp() {
-    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User", "turnstile-token");
+    registerRequest = new RegisterRequest("test@example.com", "password", "Test", "User",
+        "turnstile-token");
     loginRequest = new LoginRequest("test@example.com", "password");
     refreshRequest = new RefreshRequest("refresh-token-123");
 
@@ -103,8 +103,8 @@ public class AuthServiceTest {
     when(jwtProperties.getRefreshTokenExpiration()).thenReturn(3600000L);
 
     // Configure token service
-    when(tokenService.generate(any(UserDetails.class), any(), any())).thenReturn("generated-token");
-    when(tokenService.generate(any(UserDetails.class), any())).thenReturn("generated-token");
+    when(tokenService.generateAccessToken(any(UserDetails.class))).thenReturn("generated-token");
+    when(tokenService.generateRefreshToken(any(UserDetails.class))).thenReturn("generated-token");
     when(tokenService.extractEmail(anyString())).thenReturn("test@example.com");
   }
 

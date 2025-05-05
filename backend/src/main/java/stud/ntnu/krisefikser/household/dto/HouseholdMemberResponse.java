@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 /**
@@ -19,6 +18,4 @@ public class HouseholdMemberResponse {
 
   @NotNull
   private UserResponse user;
-  @NotNull
-  private HouseholdMemberStatus status;
 }

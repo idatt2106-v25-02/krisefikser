@@ -44,6 +44,9 @@ import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
 import DuringCrisisView from "@/views/nonRegistered/info/DuringCrisisView.vue";
 import AfterCrisisView from "@/views/nonRegistered/info/AfterCrisisView.vue";
 
+import ScenariosListView from '@/views/nonRegistered/ScenariosListView.vue';
+import ScenarioDetailView from '@/views/nonRegistered/ScenarioDetailView.vue';
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -223,6 +226,17 @@ const router = createRouter({
       path: '/info/etter-krisen',
       name: 'after-crisis',
       component: AfterCrisisView,
+    },
+
+    {
+      path: '/scenarioer',
+      name: 'scenarios-list',
+      component: ScenariosListView,
+    },
+    {
+      path: '/scenario/:id',
+      name: 'scenario-detail',
+      component: ScenarioDetailView,
     },
 
     // Error routes - must be last

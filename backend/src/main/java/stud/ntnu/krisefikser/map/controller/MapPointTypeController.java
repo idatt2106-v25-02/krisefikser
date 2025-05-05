@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -109,7 +108,8 @@ public class MapPointTypeController {
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<MapPointTypeResponse> createMapPointType(
-      @Parameter(description = "Map point type to create") @RequestBody MapPointTypeRequest mapPointType) {
+      @Parameter(description = "Map point type to create") @RequestBody
+      MapPointTypeRequest mapPointType) {
     MapPointTypeResponse createdType = mapPointTypeService.createMapPointType(mapPointType);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdType);
   }
@@ -142,7 +142,8 @@ public class MapPointTypeController {
   public ResponseEntity<MapPointTypeResponse> updateMapPointType(
       @Parameter(description = "ID of the map point type to update") @PathVariable Long id,
       @Parameter(
-          description = "Updated map point type details") @RequestBody UpdateMapPointTypeRequest mapPointType
+          description = "Updated map point type details") @RequestBody
+      UpdateMapPointTypeRequest mapPointType
   ) {
     return ResponseEntity.ok(mapPointTypeService.updateMapPointType(id, mapPointType));
   }
