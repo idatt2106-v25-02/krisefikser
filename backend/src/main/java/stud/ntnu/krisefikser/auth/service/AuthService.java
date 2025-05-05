@@ -64,22 +64,6 @@ public class AuthService {
         refreshToken);
   }
 
-  private String createAccessToken(UserDetails userDetails) {
-    return tokenService.generate(userDetails, getAccessTokenExpiration());
-  }
-
-  private String createRefreshToken(UserDetails userDetails) {
-    return tokenService.generate(userDetails, getRefreshTokenExpiration());
-  }
-
-  private Date getAccessTokenExpiration() {
-    return new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
-  }
-
-  private Date getRefreshTokenExpiration() {
-    return new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
-  }
-
   /**
    * Authenticates a user and generates access and refresh tokens.
    *
