@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -183,22 +182,5 @@ public class HouseholdController {
       @Parameter(description = "User ID") @PathVariable UUID userId
   ) {
     return ResponseEntity.ok(householdService.removeMemberFromHousehold(householdId, userId));
-  }
-
-  /**
-   * Retrieves all households in the system. Only accessible to users with ADMIN role.
-   *
-   * @return ResponseEntity containing a list of all households with their members
-   * @since 1.0
-   */
-  @Operation(summary = "Get all households (Admin only)", description = "Retrieves a list of all households in the system with their members")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved all households"),
-      @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
-  })
-  @GetMapping("/admin/all")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<List<HouseholdResponse>> getAllHouseholdsAdmin() {
-    return ResponseEntity.ok(householdService.getAllHouseholds());
   }
 }
