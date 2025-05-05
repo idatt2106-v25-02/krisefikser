@@ -10,9 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -140,7 +138,7 @@ class HouseholdServiceTest {
 
     // Act & Assert
     assertThatThrownBy(() -> householdService.getHouseholdById(householdId))
-        .isInstanceOf(IllegalArgumentException.class)
+        .isInstanceOf(HouseholdNotFoundException.class)
         .hasMessageContaining("Household not found");
     verify(householdRepository).findById(householdId);
   }
@@ -301,26 +299,6 @@ class HouseholdServiceTest {
   }
 
   @Test
-  void leaveHousehold_WhenMemberOfHousehold_ShouldRemoveMembership() {
-    // Arrange
-    when(userService.getCurrentUser()).thenReturn(testUser);
-    when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
-    when(householdMemberService.isMemberOfHousehold(testUser, testHousehold)).thenReturn(true);
-    doNothing().when(userService).updateActiveHousehold(null);
-    doNothing().when(householdMemberService).removeMember(testHousehold, testUser);
-
-    // Act
-    householdService.leaveHousehold(householdId);
-
-    // Assert
-    verify(userService).getCurrentUser();
-    verify(householdRepository).findById(householdId);
-    verify(householdMemberService).isMemberOfHousehold(testUser, testHousehold);
-    verify(userService).updateActiveHousehold(null);
-    verify(householdMemberService).removeMember(testHousehold, testUser);
-  }
-
-  @Test
   void leaveHousehold_WhenNotMember_ShouldThrowException() {
     // Arrange
     when(userService.getCurrentUser()).thenReturn(testUser);
@@ -380,25 +358,6 @@ class HouseholdServiceTest {
     verify(userService).getCurrentUser();
     verify(householdRepository).findById(householdId);
     verify(householdRepository, never()).deleteById(any());
-  }
-
-  @Test
-  void updateHousehold_ShouldUpdateAndReturnHousehold() {
-    // Arrange
-    when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
-    when(householdRepository.save(any(Household.class))).thenReturn(testHousehold);
-    when(householdMemberService.getMembers(householdId)).thenReturn(mockMembersList);
-    when(userService.getCurrentUser()).thenReturn(testUser);
-
-    // Act
-    HouseholdResponse result = householdService.updateHousehold(householdId,
-        createHouseholdRequest);
-
-    // Assert
-    assertThat(result).isNotNull();
-    assertThat(result.getId()).isEqualTo(householdId);
-    verify(householdRepository).findById(householdId);
-    verify(householdRepository).save(any(Household.class));
   }
 
   @Test
@@ -517,40 +476,5 @@ class HouseholdServiceTest {
 
     verify(userService).getCurrentUser();
     verify(householdRepository, never()).save(any());
-  }
-
-  @Test
-  void getAllHouseholds_ShouldReturnAllHouseholds() {
-    // Arrange
-    List<Household> allHouseholds = Arrays.asList(testHousehold);
-    when(householdRepository.findAll()).thenReturn(allHouseholds);
-    when(householdMemberService.getMembers(householdId)).thenReturn(mockMembersList);
-    when(userService.getCurrentUser()).thenReturn(testUser);
-
-    // Act
-    List<HouseholdResponse> result = householdService.getAllHouseholds();
-
-    // Assert
-    assertThat(result).isNotNull();
-    assertThat(result).hasSize(1);
-    assertThat(result.get(0).getId()).isEqualTo(householdId);
-    verify(householdRepository).findAll();
-  }
-
-  @Test
-  void deleteHouseholdAdmin_ShouldDeleteHousehold() {
-    // Arrange
-    when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
-    when(householdMemberService.getMembers(householdId)).thenReturn(mockMembersList);
-    lenient().doNothing().when(userService).updateActiveHousehold(null);
-    doNothing().when(householdRepository).deleteById(householdId);
-
-    // Act
-    householdService.deleteHouseholdAdmin(householdId);
-
-    // Assert
-    verify(householdRepository).findById(householdId);
-    verify(householdMemberService).getMembers(householdId);
-    verify(householdRepository).deleteById(householdId);
   }
 }

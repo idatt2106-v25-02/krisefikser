@@ -11,6 +11,10 @@ import stud.ntnu.krisefikser.map.entity.MapPoint;
 import stud.ntnu.krisefikser.map.entity.MapPointType;
 import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 
+/**
+ * Service class for managing MapPoints in the system. This class provides methods for creating,
+ * updating, retrieving, and deleting MapPoints.
+ */
 @Service
 @RequiredArgsConstructor
 public class MapPointService {
@@ -22,6 +26,13 @@ public class MapPointService {
     return mapPointRepository.findAll().stream().map(MapPoint::toResponse).toList();
   }
 
+  /**
+   * Retrieves a MapPoint by its ID.
+   *
+   * @param id The ID of the MapPoint to retrieve
+   * @return The MapPoint with the specified ID
+   * @throws EntityNotFoundException If no MapPoint with the specified ID exists
+   */
   public MapPointResponse getMapPointById(Long id) {
     MapPoint mapPoint = mapPointRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("MapPoint not found with id: " + id));
@@ -29,6 +40,12 @@ public class MapPointService {
     return mapPoint.toResponse();
   }
 
+  /**
+   * Creates a new MapPoint based on the provided request data.
+   *
+   * @param mapPointRequest The request data containing the information for the new MapPoint
+   * @return The created MapPoint
+   */
   public MapPointResponse createMapPoint(MapPointRequest mapPointRequest) {
     // Verify that the referenced MapPointType exists
     MapPointType mapPointType = mapPointTypeService.getMapPointTypeById(
@@ -43,6 +60,14 @@ public class MapPointService {
     return mapPointRepository.save(mapPoint).toResponse();
   }
 
+  /**
+   * Updates an existing MapPoint with the provided ID and request data.
+   *
+   * @param id                    The ID of the MapPoint to update
+   * @param updateMapPointRequest The request data containing the updated information
+   * @return The updated MapPoint
+   * @throws EntityNotFoundException If no MapPoint with the specified ID exists
+   */
   public MapPointResponse updateMapPoint(Long id, UpdateMapPointRequest updateMapPointRequest) {
     MapPoint existingMapPoint = mapPointRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("MapPoint not found with id: " + id));
@@ -64,6 +89,12 @@ public class MapPointService {
     return mapPointRepository.save(existingMapPoint).toResponse();
   }
 
+  /**
+   * Deletes a MapPoint by its ID.
+   *
+   * @param id The ID of the MapPoint to delete
+   * @throws EntityNotFoundException If no MapPoint with the specified ID exists
+   */
   public void deleteMapPoint(Long id) {
     if (!mapPointRepository.existsById(id)) {
       throw new EntityNotFoundException("MapPoint not found with id: " + id);
