@@ -94,7 +94,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
 
                 MvcResult createResult = mockMvc.perform(
                                 withJwtAuth(
-                                                post("/api/v1/household-invites")
+                                                post("/api/household-invites")
                                                                 .contentType(MediaType.APPLICATION_JSON)
                                                                 .content(objectMapper
                                                                                 .writeValueAsString(createRequest))))
@@ -109,7 +109,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
                 // 2. Get pending invites for household
                 mockMvc.perform(
                                 withJwtAuth(
-                                                get("/api/v1/household-invites/household/" + getTestHousehold().getId()
+                                                get("/api/household-invites/household/" + getTestHousehold().getId()
                                                                 + "/pending")))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[0].id").value(inviteId.toString()))
@@ -117,14 +117,14 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
 
                 // 3. Switch to invited user context and get their pending invites
                 mockMvc.perform(
-                                get("/api/v1/household-invites/pending")
+                                get("/api/household-invites/pending")
                                                 .header("Authorization", "Bearer " + invitedUserToken))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[0].id").value(inviteId.toString()));
 
                 // 4. Accept the invite as invited user
                 mockMvc.perform(
-                                post("/api/v1/household-invites/" + inviteId + "/accept")
+                                post("/api/household-invites/" + inviteId + "/accept")
                                                 .header("Authorization", "Bearer " + invitedUserToken))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value(InviteStatus.ACCEPTED.name()));
@@ -137,7 +137,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
 
                 MvcResult emailInviteResult = mockMvc.perform(
                                 withJwtAuth(
-                                                post("/api/v1/household-invites")
+                                                post("/api/household-invites")
                                                                 .contentType(MediaType.APPLICATION_JSON)
                                                                 .content(objectMapper
                                                                                 .writeValueAsString(createRequest))))
@@ -154,7 +154,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
                 // 7. Cancel the email invite
                 mockMvc.perform(
                                 withJwtAuth(
-                                                post("/api/v1/household-invites/" + emailInviteId + "/cancel")))
+                                                post("/api/household-invites/" + emailInviteId + "/cancel")))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value(InviteStatus.CANCELLED.name()));
 
@@ -162,7 +162,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
                 // invite
                 MvcResult reusedInviteResult = mockMvc.perform(
                                 withJwtAuth(
-                                                post("/api/v1/household-invites")
+                                                post("/api/household-invites")
                                                                 .contentType(MediaType.APPLICATION_JSON)
                                                                 .content(objectMapper
                                                                                 .writeValueAsString(createRequest))))
@@ -203,7 +203,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
 
                 // 10. Decline the invite as the new user - now should use the reused invite ID
                 mockMvc.perform(
-                                post("/api/v1/household-invites/" + reusedInviteId + "/decline")
+                                post("/api/household-invites/" + reusedInviteId + "/decline")
                                                 .header("Authorization", "Bearer " + newUserToken))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.status").value(InviteStatus.DECLINED.name()));

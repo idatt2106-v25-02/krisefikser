@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/household-invites")
+@RequestMapping("/api/household-invites")
 @RequiredArgsConstructor
 public class HouseholdInviteController {
     private final HouseholdInviteService inviteService;
