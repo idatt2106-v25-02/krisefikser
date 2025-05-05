@@ -1,13 +1,11 @@
 package stud.ntnu.krisefikser.auth.service;
 
-import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import stud.ntnu.krisefikser.auth.config.JwtProperties;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
@@ -29,7 +27,6 @@ public class AuthService {
 
   private final UserService userService;
   private final CustomUserDetailsService userDetailsService;
-  private final JwtProperties jwtProperties;
   private final TokenService tokenService;
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
@@ -46,8 +43,8 @@ public class AuthService {
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getEmail());
 
-    String accessToken = createAccessToken(userDetails);
-    String refreshToken = createRefreshToken(userDetails);
+    String accessToken = tokenService.generateAccessToken(userDetails);
+    String refreshToken = tokenService.generateRefreshToken(userDetails);
 
     refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
 
@@ -64,8 +61,8 @@ public class AuthService {
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
 
-    String accessToken = createAccessToken(userDetails);
-    String refreshToken = createRefreshToken(userDetails);
+    String accessToken = tokenService.generateAccessToken(userDetails);
+    String refreshToken = tokenService.generateRefreshToken(userDetails);
 
     refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
 
@@ -77,7 +74,7 @@ public class AuthService {
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
     RefreshToken existingToken = refreshTokenRepository.findByToken(
         refreshRequest.getRefreshToken()).orElseThrow(
-            RefreshTokenDoesNotExistException::new);
+        RefreshTokenDoesNotExistException::new);
 
     String email = tokenService.extractEmail(existingToken.getToken());
     if (email == null) {
@@ -86,8 +83,8 @@ public class AuthService {
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-    String accessToken = createAccessToken(userDetails);
-    String refreshToken = createRefreshToken(userDetails);
+    String accessToken = tokenService.generateAccessToken(userDetails);
+    String refreshToken = tokenService.generateRefreshToken(userDetails);
 
     refreshTokenRepository.delete(existingToken);
     refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
@@ -101,19 +98,23 @@ public class AuthService {
     return userService.getCurrentUser().toDto();
   }
 
-  private String createAccessToken(UserDetails userDetails) {
-    return tokenService.generate(userDetails, getAccessTokenExpiration());
-  }
-
-  private String createRefreshToken(UserDetails userDetails) {
-    return tokenService.generate(userDetails, getRefreshTokenExpiration());
-  }
-
-  private Date getAccessTokenExpiration() {
-    return new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
-  }
-
-  private Date getRefreshTokenExpiration() {
-    return new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
-  }
+//  private String createAccessToken(UserDetails userDetails) {
+//    Map<String, Object> claims = new HashMap<>();
+//    claims.put("type", "access");
+//    return tokenService.generate(userDetails, getAccessTokenExpiration(), claims);
+//  }
+//
+//  private String createRefreshToken(UserDetails userDetails) {
+//    Map<String, Object> claims = new HashMap<>();
+//    claims.put("type", "refresh");
+//    return tokenService.generate(userDetails, getRefreshTokenExpiration(), claims);
+//  }
+//
+//  private Date getAccessTokenExpiration() {
+//    return new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
+//  }
+//
+//  private Date getRefreshTokenExpiration() {
+//    return new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
+//  }
 }
