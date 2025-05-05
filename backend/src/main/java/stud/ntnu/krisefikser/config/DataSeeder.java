@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -369,7 +370,7 @@ public class DataSeeder implements CommandLineRunner {
     int[] statusWeights = {30, 50, 20}; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
 
     // Create 15 events
-    LocalDateTime now = LocalDateTime.now();
+    ZonedDateTime now = ZonedDateTime.now();
 
     for (int i = 0; i < 15; i++) {
       // Random coordinates in Trondheim
@@ -386,8 +387,8 @@ public class DataSeeder implements CommandLineRunner {
       EventStatus status = getRandomWeightedChoice(statuses, statusWeights);
 
       // Set startTime and endTime based on status
-      LocalDateTime startTime;
-      LocalDateTime endTime = null;
+      ZonedDateTime startTime;
+      ZonedDateTime endTime = null;
 
       switch (status) {
         case UPCOMING:
