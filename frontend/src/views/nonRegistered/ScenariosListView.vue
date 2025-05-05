@@ -113,10 +113,9 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="p-6 relative z-10 flex-grow flex flex-col">
-            <h2 class="font-semibold text-gray-800 mb-2">{{ scenario.title }}</h2>
-            <p class="text-gray-600 mb-2">{{ scenario.description }}</p>
-           <p class="text-gray-500 text-sm mb-4 flex-grow overflow-hidden">
+         <div class="p-6 relative z-10 flex-grow flex flex-col">
+            <h2 class="font-semibold text-gray-800 text-lg mb-2">{{ scenario.title }}</h2>
+            <p class="text-gray-500 text-s mb-4 flex-grow overflow-hidden">
               <span class="line-clamp-4" v-html="getContentPreview(scenario.content)"></span>
             </p>
             <div class="flex items-center text-blue-600 font-medium hover:underline group mt-auto">
