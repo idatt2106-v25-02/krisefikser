@@ -8,8 +8,8 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +46,11 @@ import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
+/**
+ * DataSeeder is a component that seeds the database with initial data for development and testing
+ * purposes. It implements CommandLineRunner to execute the seeding process when the application
+ * starts.
+ */
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
@@ -62,12 +67,10 @@ public class DataSeeder implements CommandLineRunner {
   private final FoodItemRepository foodItemRepository;
   private final ChecklistItemRepository checklistItemRepository;
   private final RefreshTokenRepository refreshTokenRepository;
-
-  @Autowired
-  private PasswordEncoder passwordEncoder;
-
   private final Faker faker = new Faker();
   private final Random random = new Random();
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
   @Override
   public void run(String... args) throws Exception {
@@ -88,19 +91,6 @@ public class DataSeeder implements CommandLineRunner {
       seedDatabase();
       System.out.println("Data seeding completed successfully!");
     }
-  }
-
-  private void seedDatabase() {
-    seedHouseholds();
-    seedArticles();
-    seedMapPointTypes();
-    seedMapPoints();
-    seedEvents();
-    seedRoles();
-    seedUsers();
-    seedShelters();
-    seedFoodItems();
-    seedChecklistItems();
   }
 
   /**
@@ -143,49 +133,17 @@ public class DataSeeder implements CommandLineRunner {
     roleRepository.deleteAll();
   }
 
-  private void seedRoles() {
-    List<Role> roles = new ArrayList<>();
-
-    for (RoleType roleType : RoleType.values()) {
-      Role role = new Role();
-      role.setName(roleType);
-      roles.add(role);
-    }
-
-    roleRepository.saveAll(roles);
-    System.out.println("Seeded " + roles.size() + " roles");
-  }
-
-  private void seedUsers() {
-    List<User> users = new ArrayList<>();
-
-    // Create 25 random users
-    for (int i = 0; i < 25; i++) {
-      String firstName = faker.name().firstName();
-      String lastName = faker.name().lastName();
-
-      User user = User.builder()
-          .email(firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com")
-          .password(passwordEncoder.encode("password"))
-          .firstName(firstName)
-          .lastName(lastName)
-          .build();
-
-      users.add(user);
-    }
-
-    // Add a test admin user
-    User adminUser = User.builder()
-        .email("admin@example.com")
-        .password(passwordEncoder.encode("admin123"))
-        .firstName("Admin")
-        .lastName("User")
-        .build();
-
-    users.add(adminUser);
-
-    userRepo.saveAll(users);
-    System.out.println("Seeded " + users.size() + " users");
+  private void seedDatabase() {
+    seedHouseholds();
+    seedArticles();
+    seedMapPointTypes();
+    seedMapPoints();
+    seedEvents();
+    seedRoles();
+    seedUsers();
+    seedShelters();
+    seedFoodItems();
+    seedChecklistItems();
   }
 
   private void seedHouseholds() {
@@ -442,6 +400,51 @@ public class DataSeeder implements CommandLineRunner {
 
     eventRepository.saveAll(events);
     System.out.println("Seeded " + events.size() + " events");
+  }
+
+  private void seedRoles() {
+    List<Role> roles = new ArrayList<>();
+
+    for (RoleType roleType : RoleType.values()) {
+      Role role = new Role();
+      role.setName(roleType);
+      roles.add(role);
+    }
+
+    roleRepository.saveAll(roles);
+    System.out.println("Seeded " + roles.size() + " roles");
+  }
+
+  private void seedUsers() {
+    List<User> users = new ArrayList<>();
+
+    // Create 25 random users
+    for (int i = 0; i < 25; i++) {
+      String firstName = faker.name().firstName();
+      String lastName = faker.name().lastName();
+
+      User user = User.builder()
+          .email(firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com")
+          .password(passwordEncoder.encode("password"))
+          .firstName(firstName)
+          .lastName(lastName)
+          .build();
+
+      users.add(user);
+    }
+
+    // Add a test admin user
+    User adminUser = User.builder()
+        .email("admin@example.com")
+        .password(passwordEncoder.encode("admin123"))
+        .firstName("Admin")
+        .lastName("User")
+        .build();
+
+    users.add(adminUser);
+
+    userRepo.saveAll(users);
+    System.out.println("Seeded " + users.size() + " users");
   }
 
   private void seedShelters() {
