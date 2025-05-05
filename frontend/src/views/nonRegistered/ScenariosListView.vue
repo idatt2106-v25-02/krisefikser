@@ -13,12 +13,12 @@ import {
 const { data: scenarios, isLoading, error } = useGetAllScenarios()
 const router = useRouter()
 
-const goToScenario = (id) => {
+const goToScenario = (id: string) => {
   router.push(`/scenario/${id}`)
 }
 
 // Choose icon based on scenario title
-const getScenarioIcon = (title) => {
+const getScenarioIcon = (title: string) => {
   if (!title) return AlertTriangle
 
   const titleLower = title.toLowerCase()
@@ -30,7 +30,7 @@ const getScenarioIcon = (title) => {
 }
 
 // Function to get a formatted preview of the content
-const getContentPreview = (content) => {
+const getContentPreview = (content: string) => {
   if (!content) return '';
 
   // Strip out any markdown or HTML for clean preview

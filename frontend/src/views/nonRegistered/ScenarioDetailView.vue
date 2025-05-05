@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { useGetScenarioById, useGetAllScenarios } from '@/api/generated/scenario/scenario'
+import { useGetScenarioById } from '@/api/generated/scenario/scenario'
 import { computed, onMounted } from 'vue'
 
 import {
@@ -16,14 +16,10 @@ const router = useRouter()
 const scenarioId = route.params.id as string
 
 const { data: scenario, isLoading, error } = useGetScenarioById(scenarioId)
-const { data: allScenarios } = useGetAllScenarios()
 
 const goBack = () => {
   router.push('/scenarioer')
 }
-const goToScenario = (id: string) => {
-  router.push(`/scenario/${id}`);
-};
 
 // Choose icon based on scenario title
 const scenarioIcon = computed(() => {
@@ -65,20 +61,6 @@ const formattedContent = computed(() => {
   });
 
   return content
-})
-
-// Get two random scenarios excluding the current one
-const relatedScenarios = computed(() => {
-  if (!allScenarios.value || !scenario.value) return []
-
-  // Filter out the current scenario and get two random ones
-  const otherScenarios = allScenarios.value.filter(s => s.id !== scenario.value.id)
-  if (otherScenarios.length <= 2) return otherScenarios
-
-  // Shuffle array and take first two
-  return [...otherScenarios]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 2)
 })
 
 // Add Quill's stylesheet to ensure proper rendering of Quill-specific classes

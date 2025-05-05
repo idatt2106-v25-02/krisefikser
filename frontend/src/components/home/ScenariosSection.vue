@@ -8,17 +8,18 @@ const { data: scenarios, isLoading, error } = useGetAllScenarios()
 const router = useRouter()
 
 const latestScenarios = computed(() => {
-  if (!scenarios?.value) return []
-  // Sort by createdAt if available, else by title
+  if (!scenarios?.value) return [];
   return [...scenarios.value]
     .sort((a, b) => {
-      if (a.createdAt && b.createdAt) {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      const aCreatedAt = (a as { createdAt?: string }).createdAt;
+      const bCreatedAt = (b as { createdAt?: string }).createdAt;
+      if (aCreatedAt && bCreatedAt) {
+        return new Date(bCreatedAt).getTime() - new Date(aCreatedAt).getTime();
       }
-      return a.title.localeCompare(b.title)
+      return a.title.localeCompare(b.title);
     })
-    .slice(0, 3)
-})
+    .slice(0, 3);
+});
 
 // Process preview content to preserve formatting
 const processPreviewContent = (content: string, maxLength: number = 120) => {
