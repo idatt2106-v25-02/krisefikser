@@ -271,19 +271,6 @@ public class HouseholdService {
   }
 
   /**
-   * Retrieves all households in the system.
-   *
-   * @return A list of all households
-   */
-  @Transactional(readOnly = true)
-  public List<HouseholdResponse> getAllHouseholds() {
-    List<Household> households = householdRepo.findAll();
-    return households.stream()
-        .map(this::toHouseholdResponse)
-        .toList();
-  }
-
-  /**
    * Adds a member to the household. Only the owner can add members.
    *
    * @param householdId The ID of the household
