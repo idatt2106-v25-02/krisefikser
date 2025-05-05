@@ -9,9 +9,27 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 
+/**
+ * Service class for loading and replacing variables in email templates.
+ *
+ * <p>This service provides functionality to load email templates from the classpath and replace
+ * placeholders with actual values.
+ *
+ * @since 1.0
+ */
 @Service
 public class EmailTemplateService {
 
+  /**
+   * Loads an email template by its name, replaces placeholders with the provided variable values,
+   * and returns the processed content.
+   *
+   * @param templateName the name of the template file to load, expected to be located in the
+   *                     "templates/" directory on the classpath
+   * @param variables    a map of placeholder keys and their corresponding replacement values
+   * @return the content of the template with placeholders replaced by provided values
+   * @throws IOException if an error occurs while reading the template file
+   */
   public String loadAndReplace(String templateName, Map<String, String> variables)
       throws IOException {
     ClassPathResource resource = new ClassPathResource("templates/" + templateName);

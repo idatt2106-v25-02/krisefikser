@@ -26,7 +26,7 @@ import stud.ntnu.krisefikser.common.ProblemDetailUtils;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
 import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
-import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
+import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 
 /**
  * Global exception handler for the Krisefikser application.
@@ -152,8 +152,8 @@ public class GlobalExceptionHandler {
    * @param exception the user does not exist exception
    * @return a problem detail with NOT_FOUND status and the exception message
    */
-  @ExceptionHandler(UserDoesNotExistException.class)
-  public ProblemDetail handleUserDoesNotExistException(UserDoesNotExistException exception) {
+  @ExceptionHandler(UserNotFoundException.class)
+  public ProblemDetail handleUserDoesNotExistException(UserNotFoundException exception) {
     log.warn("User does not exist: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND,
         exception.getMessage(), "user");

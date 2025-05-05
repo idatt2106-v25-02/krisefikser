@@ -12,6 +12,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
+/**
+ * Entity class representing a refresh token in the system. This class is used to store refresh
+ * tokens for user sessions.
+ *
+ * @since 1.0
+ */
 @Entity
 @Table(name = "refresh_tokens")
 @Data

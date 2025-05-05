@@ -13,8 +13,6 @@ import stud.ntnu.krisefikser.article.repository.ArticleRepository;
 /**
  * Service class for managing articles. This class provides methods to create, read, update, and
  * delete articles.
- *
- * @since 1.0
  */
 @Service
 @RequiredArgsConstructor
