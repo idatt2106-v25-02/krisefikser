@@ -1,7 +1,8 @@
+<!-- RichTextEditor.vue -->
 <script setup lang="ts">
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps<{
   modelValue: string
@@ -19,29 +20,56 @@ watch(() => props.modelValue, (newValue) => {
 })
 
 watch(content, (newValue) => {
+  console.log('Editor content:', newValue)
   emit('update:modelValue', newValue)
 })
 
+// Enhanced editor options with font size and more formatting options
 const editorOptions = {
   theme: 'snow',
   modules: {
     toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],
+      ['bold', 'italic', 'underline', 'strike'],       // toggled buttons
       ['blockquote', 'code-block'],
-      [{ 'header': 1 }, { 'header': 2 }],
+
+      [{ 'header': 1 }, { 'header': 2 }, { 'header': 3 }],  // custom button values
+
       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'script': 'sub'}, { 'script': 'super' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],
-      [{ 'direction': 'rtl' }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'font': [] }],
+      [{ 'indent': '-1'}, { 'indent': '+1' }],         // outdent/indent
+
+      [{ 'size': ['small', false, 'large', 'huge'] }], // font size
+      [{ 'color': [] }, { 'background': [] }],         // dropdown with defaults
       [{ 'align': [] }],
-      ['clean']
+
+      ['clean']                                         // remove formatting button
     ]
-  }
+  },
+  formats: [
+    'bold', 'italic', 'underline', 'strike',
+    'blockquote', 'code-block',
+    'header',
+    'list', 'bullet', 'indent',
+    'size', 'color', 'background',
+    'align'
+  ]
 }
+
+// This ensures that when the component is mounted, any existing content
+// is properly processed by Quill's formatter
+onMounted(() => {
+  // Make sure we're initializing with clean HTML
+  if (content.value) {
+    // This will trigger the editor to properly parse existing HTML content
+    setTimeout(() => {
+      // Small delay to ensure QuillEditor is fully mounted
+      const tempContent = content.value
+      content.value = ''
+      setTimeout(() => {
+        content.value = tempContent
+      }, 50)
+    }, 100)
+  }
+})
 </script>
 
 <template>
@@ -56,28 +84,4 @@ const editorOptions = {
   </div>
 </template>
 
-<style>
-.rich-text-editor {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
 
-.rich-text-editor .ql-toolbar {
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-}
-
-.rich-text-editor .ql-container {
-  border: none;
-}
-
-.rich-text-editor .ql-editor {
-  min-height: 200px;
-  padding: 1rem;
-}
-
-.rich-text-editor .ql-editor.ql-blank::before {
-  color: #9ca3af;
-}
-</style>

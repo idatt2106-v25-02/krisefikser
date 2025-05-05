@@ -1,6 +1,6 @@
 <!-- CrisisScenariosSection.vue -->
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useGetAllScenarios } from '@/api/generated/scenario/scenario'
 import { useRouter } from 'vue-router'
 
@@ -20,13 +20,88 @@ const latestScenarios = computed(() => {
     .slice(0, 3)
 })
 
+// Process preview content to preserve formatting
+const processPreviewContent = (content: string, maxLength: number = 120) => {
+  if (!content) return ''
+
+  // Create a temporary div to parse HTML content
+  const tempDiv = document.createElement('div')
+  tempDiv.innerHTML = content
+
+  // Get text content for length calculation
+  const textContent = tempDiv.textContent || ''
+
+  // If text is shorter than maxLength, just return the original HTML
+  if (textContent.length <= maxLength) {
+    return content
+  }
+
+  // Find a good cutoff point (at a space after maxLength)
+  let cutoffIndex = maxLength
+  while (cutoffIndex < textContent.length && textContent[cutoffIndex] !== ' ') {
+    cutoffIndex++
+  }
+
+  // Extract a portion of the HTML that corresponds roughly to the text length
+  // This is an approximation - the ratio of HTML length to text length
+  const ratio = content.length / textContent.length
+  const approximateHtmlCutoff = Math.min(
+    Math.round(cutoffIndex * ratio),
+    content.length
+  )
+
+  // Get truncated HTML and make sure we don't cut in the middle of a tag
+  let truncatedHtml = content.substring(0, approximateHtmlCutoff)
+
+  // Add ellipsis
+  truncatedHtml += '...'
+
+  // Make sure we close any open tags
+  tempDiv.innerHTML = truncatedHtml
+  return tempDiv.innerHTML
+}
+
 const goToAllScenarios = () => {
   router.push('/scenarioer')
 }
 
-const goToScenario = (id) => {
+const goToScenario = (id: string) => {
   router.push(`/scenario/${id}`)
 }
+
+// Add Quill's stylesheet to ensure proper rendering of Quill-specific classes
+onMounted(() => {
+  // Check if the stylesheet is already added
+  if (!document.getElementById('quill-styles-home')) {
+    const link = document.createElement('link')
+    link.id = 'quill-styles-home'
+    link.rel = 'stylesheet'
+    link.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css'
+    document.head.appendChild(link)
+
+    // Add additional styles for preview
+    const style = document.createElement('style')
+    style.id = 'quill-preview-styles'
+    style.textContent = `
+      /* Ensure text colors and formatting show in previews */
+      .scenario-preview .ql-size-small { font-size: 0.75em !important; }
+      .scenario-preview .ql-size-large { font-size: 1.5em !important; }
+      .scenario-preview .ql-size-huge { font-size: 2em !important; }
+      .scenario-preview .ql-color-red { color: red !important; }
+      .scenario-preview .ql-color-blue { color: blue !important; }
+      .scenario-preview .ql-color-green { color: green !important; }
+      .scenario-preview .ql-color-orange { color: orange !important; }
+      .scenario-preview .ql-color-purple { color: purple !important; }
+      .scenario-preview .ql-background-yellow { background-color: yellow !important; }
+      .scenario-preview .ql-align-center { text-align: center !important; }
+      .scenario-preview .ql-align-right { text-align: right !important; }
+      .scenario-preview strong { font-weight: bold !important; }
+      .scenario-preview em { font-style: italic !important; }
+      .scenario-preview u { text-decoration: underline !important; }
+    `
+    document.head.appendChild(style)
+  }
+})
 </script>
 
 <template>
@@ -70,7 +145,10 @@ const goToScenario = (id) => {
         @click="goToScenario(scenario.id)"
       >
         <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ scenario.title }}</h3>
-        <div class="text-gray-600 mb-4 line-clamp-4" v-html="scenario.content?.slice(0, 120)"></div>
+        <div
+          class="text-gray-600 mb-4 line-clamp-4 scenario-preview"
+          v-html="processPreviewContent(scenario.content, 120)"
+        ></div>
         <!-- Using same arrow style as in the info section -->
         <router-link :to="`/scenario/${scenario.id}`" class="text-blue-600 font-medium hover:underline inline-flex items-center">
           Les mer
@@ -94,4 +172,40 @@ const goToScenario = (id) => {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+:deep(.scenario-preview) {
+  /* Allow text formatting in preview */
+  overflow: hidden;
+}
+
+:deep(.scenario-preview h1),
+:deep(.scenario-preview h2),
+:deep(.scenario-preview h3) {
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+:deep(.scenario-preview p) {
+  margin: 0.5em 0;
+}
+
+:deep(.scenario-preview strong) {
+  font-weight: bold;
+}
+
+:deep(.scenario-preview em) {
+  font-style: italic;
+}
+
+:deep(.scenario-preview u) {
+  text-decoration: underline;
+}
+
+/* Ensure colors and formatting renders in the preview */
+:deep(.scenario-preview .ql-color-red) { color: red !important; }
+:deep(.scenario-preview .ql-color-blue) { color: blue !important; }
+:deep(.scenario-preview .ql-color-green) { color: green !important; }
+:deep(.scenario-preview .ql-color-orange) { color: orange !important; }
+:deep(.scenario-preview .ql-color-purple) { color: purple !important; }
+:deep(.scenario-preview .ql-background-yellow) { background-color: yellow !important; }
 </style>

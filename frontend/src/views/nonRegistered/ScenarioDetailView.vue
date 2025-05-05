@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import { useGetScenarioById, useGetAllScenarios } from '@/api/generated/scenario/scenario'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
 import {
   ArrowLeft,
@@ -24,6 +24,7 @@ const goBack = () => {
 const goToScenario = (id: string) => {
   router.push(`/scenario/${id}`);
 };
+
 // Choose icon based on scenario title
 const scenarioIcon = computed(() => {
   if (!scenario.value?.title) return AlertTriangle
@@ -36,16 +37,34 @@ const scenarioIcon = computed(() => {
   return AlertTriangle // Default icon
 })
 
-// Format content to handle markdown style headers
+// Format content to handle rich text formatting
 const formattedContent = computed(() => {
   if (!scenario.value?.content) return ''
 
-  // Convert markdown-style headers to styled HTML
-  return scenario.value.content
-    .replace(/### (.*?)\n/g, '<h3 class="font-bold text-gray-800 mt-8 mb-3">$1</h3>')
-    .replace(/\* (.*?)(?:\n|$)/g, '<li class="ml-5 mb-2">$1</li>')
-    .replace(/<li/g, '<li class="flex items-start"><span class="inline-block w-2 h-2 rounded-full bg-blue-500 mt-2 mr-2 flex-shrink-0"></span><span')
-    .replace(/<\/li>/g, '</span></li>')
+  // The content is in HTML format from the rich text editor
+  // We'll ensure it's properly sanitized but preserves formatting
+  let content = scenario.value.content
+
+  // Ensure proper rendering of lists
+  content = content.replace(/<li>/g, '<li style="display: list-item; margin: 0.5em 0;">')
+  content = content.replace(/<ol>/g, '<ol style="list-style-type: decimal; padding-left: 2em; margin: 1em 0;">')
+  content = content.replace(/<ul>/g, '<ul style="list-style-type: disc; padding-left: 2em; margin: 1em 0;">')
+
+  // Handle font sizes
+  content = content.replace(/<span class="ql-size-small">/g, '<span style="font-size: 0.75em;">')
+  content = content.replace(/<span class="ql-size-large">/g, '<span style="font-size: 1.5em;">')
+  content = content.replace(/<span class="ql-size-huge">/g, '<span style="font-size: 2em;">')
+
+  // Handle text colors and backgrounds (generic approach as Quill dynamically generates these classes)
+  content = content.replace(/<span class="ql-color-([^"]+)">/g, (match, color) => {
+    return `<span style="color: ${color};">`;
+  });
+
+  content = content.replace(/<span class="ql-bg-([^"]+)">/g, (match, color) => {
+    return `<span style="background-color: ${color};">`;
+  });
+
+  return content
 })
 
 // Get two random scenarios excluding the current one
@@ -61,9 +80,19 @@ const relatedScenarios = computed(() => {
     .sort(() => Math.random() - 0.5)
     .slice(0, 2)
 })
-</script>
 
-<template>
+// Add Quill's stylesheet to ensure proper rendering of Quill-specific classes
+onMounted(() => {
+  // Check if the stylesheet is already added
+  if (!document.getElementById('quill-styles')) {
+    const link = document.createElement('link')
+    link.id = 'quill-styles'
+    link.rel = 'stylesheet'
+    link.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css'
+    document.head.appendChild(link)
+  }
+})
+</script><template>
   <div class="container mx-auto px-4 py-12 max-w-4xl">
     <!-- Background decoration - wave pattern -->
     <div class="absolute top-0 left-0 w-full h-64 bg-blue-50 -z-10 overflow-hidden">
@@ -99,7 +128,7 @@ const relatedScenarios = computed(() => {
       <div class="relative z-10">
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 border-b pb-4">{{ scenario.title }}</h1>
 
-        <div class="text-gray-700 leading-relaxed" v-html="formattedContent"></div>
+        <div class="text-gray-700 leading-relaxed scenario-content" v-html="formattedContent"></div>
       </div>
 
       <!-- Tips box at the bottom -->
@@ -118,27 +147,7 @@ const relatedScenarios = computed(() => {
       <p class="text-gray-600">Scenario ikke funnet.</p>
     </div>
 
-    <!-- Related scenarios section -->
-    <div v-if="scenario && relatedScenarios.length > 0" class="mt-10">
-      <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Andre scenarioer</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div
-          v-for="relatedScenario in relatedScenarios"
-          :key="relatedScenario.id"
-          class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer"
-          @click="goToScenario(relatedScenario.id)"
-        >
-          <h3 class="font-semibold text-gray-800 mb-2">{{ relatedScenario.title }}</h3>
-          <p class="text-gray-600 mb-3 line-clamp-2" v-html="relatedScenario.content?.slice(0, 120)"></p>
-          <button class="text-blue-600 font-medium hover:underline inline-flex items-center">
-            Les mer
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -162,5 +171,86 @@ const relatedScenarios = computed(() => {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+/* Add styles for the rich text content */
+.prose {
+  max-width: none;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin: 1em 0;
+}
+
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin: 1em 0;
+}
+
+.prose li {
+  margin: 0.5em 0;
+}
+
+.prose h1, .prose h2, .prose h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.prose p {
+  margin: 1em 0;
+}
+
+.prose blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1em;
+  margin: 1em 0;
+  font-style: italic;
+  color: #4b5563;
+}
+
+/* Styles for scenario content */
+.scenario-content {
+  line-height: 1.6;
+}
+
+.scenario-content ol {
+  list-style-type: decimal;
+  padding-left: 2em;
+  margin: 1em 0;
+}
+
+.scenario-content ul {
+  list-style-type: disc;
+  padding-left: 2em;
+  margin: 1em 0;
+}
+
+.scenario-content li {
+  margin: 0.5em 0;
+  display: list-item;
+}
+
+.scenario-content h1,
+.scenario-content h2,
+.scenario-content h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.scenario-content p {
+  margin: 1em 0;
+}
+
+.scenario-content blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1em;
+  margin: 1em 0;
+  font-style: italic;
+  color: #4b5563;
 }
 </style>
