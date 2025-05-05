@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EmailVerificationService {
 
-    private final VerificationTokenRepository tokenRepository;
+    private static final VerificationTokenRepository tokenRepository = null;
     private final EmailService emailService;
     
     @Value("${verification.token.validity-hours:24}")

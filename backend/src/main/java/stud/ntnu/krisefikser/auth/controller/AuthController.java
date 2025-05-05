@@ -8,12 +8,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
@@ -24,7 +26,11 @@ import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
 import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.TurnstileService;
+import stud.ntnu.krisefikser.email.entity.VerificationToken;
+import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
+import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,35 +38,40 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 @Tag(name = "Authentication", description = "Authentication management APIs")
 @Validated
 public class AuthController {
+    private final UserRepository userRepository;
+    private final EmailVerificationService emailVerificationService;
     private final AuthService authService;
     private final TurnstileService turnstileService;
 
-    @Operation(
-        summary = "Register a new user", description = "Creates a new user account after CAPTCHA verification and input validation"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully registered user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RegisterResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA verification failed", content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "Unexpected server error", content = @Content(mediaType = "application/json"))
-    })
-    @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(
-            @Parameter(description = "Registration details including Turnstile token", required = true)
-            @RequestBody RegisterRequest request) {
-        boolean isHuman = turnstileService.verify(request.getTurnstileToken());
-        if (!isHuman) {
-            throw new TurnstileVerificationException(); // Will trigger 400 with message if @RestControllerAdvice is used
-        }
-        RegisterResponse response = authService.register(request);
-
-      // Create and send verification email
-      User newUser = userRepository.findByEmail(request.getEmail())
-          .orElseThrow(() -> new RuntimeException("User not found after registration"));
-      VerificationToken token = emailVerificationService.createVerificationToken(newUser);
-      emailVerificationService.sendVerificationEmail(newUser, token);
-
-        return ResponseEntity.ok(response);
+  @Operation(
+      summary = "Register a new user", description = "Creates a new user account after CAPTCHA verification and input validation"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully registered user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RegisterResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA verification failed", content = @Content(mediaType = "application/json")),
+      @ApiResponse(responseCode = "500", description = "Unexpected server error", content = @Content(mediaType = "application/json"))
+  })
+  @PostMapping("/register")
+  public ResponseEntity<RegisterResponse> register(
+      @Parameter(description = "Registration details including Turnstile token", required = true)
+      @RequestBody RegisterRequest request) {
+    // Verify human user with Turnstile
+    boolean isHuman = turnstileService.verify(request.getTurnstileToken());
+    if (!isHuman) {
+      throw new TurnstileVerificationException();
     }
+
+    // Register user through the service - AuthService already converts to CreateUser internally
+    RegisterResponse response = authService.register(request);
+
+    // Create and send verification email
+    User newUser = userRepository.findByEmail(request.getEmail())
+        .orElseThrow(() -> new RuntimeException("User not found after registration"));
+    VerificationToken token = emailVerificationService.createVerificationToken(newUser);
+    emailVerificationService.sendVerificationEmail(newUser, token);
+
+    return ResponseEntity.ok(response);
+  }
 
   @PostMapping("/verify-email")
   @Operation(summary = "Verify email address", description = "Verifies user's email address using a token")
