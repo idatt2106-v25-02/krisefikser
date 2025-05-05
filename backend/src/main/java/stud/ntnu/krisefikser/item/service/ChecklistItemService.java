@@ -55,7 +55,7 @@ public class ChecklistItemService {
   }
 
   /**
-   * Retrieves all checklist items for the active household
+   * Retrieves all checklist items for the active household.
    *
    * <p>This method fetches all checklist items for the active household from the repository and
    * converts them to response DTOs.</p>
@@ -85,7 +85,8 @@ public class ChecklistItemService {
             .household(household)
             .name("Varme klær/Tepper")
             .description(
-                "Ha tilgjengelig varme klær, pledd, dyner eller soveposer for å holde varmen ved strømbrudd.")
+                "Ha tilgjengelig varme klær, pledd, dyner eller soveposer for å holde varmen ved"
+                    + "strømbrudd.")
             .icon("shirt")
             .type(ChecklistCategory.HEAT_LIGHT)
             .build(),
@@ -138,7 +139,8 @@ public class ChecklistItemService {
             .household(household)
             .name("Radio (DAB)")
             .description(
-                "En DAB-radio som går på batterier, sveiv eller solceller for å holde deg oppdatert.")
+                "En DAB-radio som går på batterier, sveiv eller solceller for å holde deg"
+                    + "oppdatert.")
             .icon("radio")
             .type(ChecklistCategory.INFORMATION)
             .build(),
@@ -147,7 +149,8 @@ public class ChecklistItemService {
             .household(household)
             .name("Viktige telefonnummer (papir)")
             .description(
-                "Liste på papir med viktige telefonnummer som nødnummer, legevakt, veterinær, familie, venner og naboer.")
+                "Liste på papir med viktige telefonnummer som nødnummer, legevakt, veterinær,"
+                    + "familie, venner og naboer.")
             .icon("list")
             .type(ChecklistCategory.INFORMATION)
             .build(),
@@ -165,7 +168,8 @@ public class ChecklistItemService {
             .household(household)
             .name("Jodtabletter")
             .description(
-                "Jodtabletter for barn og voksne under 40 år, gravide og ammende ved atomhendelser.")
+                "Jodtabletter for barn og voksne under 40 år, gravide og ammende ved"
+                    + "atomhendelser.")
             .icon("pill")
             .type(ChecklistCategory.HEALTH_HYGIENE)
             .build(),

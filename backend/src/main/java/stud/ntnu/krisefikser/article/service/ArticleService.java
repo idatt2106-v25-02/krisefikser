@@ -10,6 +10,12 @@ import stud.ntnu.krisefikser.article.entity.Article;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.article.repository.ArticleRepository;
 
+/**
+ * Service class for managing articles. This class provides methods to create, read, update, and
+ * delete articles.
+ *
+ * @since 1.0
+ */
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
@@ -32,12 +38,25 @@ public class ArticleService {
         .build();
   }
 
+  /**
+   * Retrieves an article by its ID.
+   *
+   * @param id the ID of the article
+   * @return the article response
+   * @throws ArticleNotFoundException if the article with the given ID does not exist
+   */
   public ArticleResponse getArticleById(Long id) {
     Article article = articleRepository.findById(id)
         .orElseThrow(() -> new ArticleNotFoundException("Article not found with id: " + id));
     return convertToDto(article);
   }
 
+  /**
+   * Creates a new article.
+   *
+   * @param articleRequest the article data
+   * @return the created article response
+   */
   public ArticleResponse createArticle(ArticleRequest articleRequest) {
     Article article = Article.builder()
         .title(articleRequest.getTitle())
@@ -50,6 +69,14 @@ public class ArticleService {
     return convertToDto(savedArticle);
   }
 
+  /**
+   * Updates an existing article.
+   *
+   * @param id             the ID of the article to update
+   * @param articleRequest the new article data
+   * @return the updated article response
+   * @throws ArticleNotFoundException if the article with the given ID does not exist
+   */
   public ArticleResponse updateArticle(Long id, ArticleRequest articleRequest) {
     Article existingArticle = articleRepository.findById(id)
         .orElseThrow(() -> new ArticleNotFoundException("Article not found with id: " + id));
@@ -62,6 +89,12 @@ public class ArticleService {
     return convertToDto(updatedArticle);
   }
 
+  /**
+   * Deletes an article by its ID.
+   *
+   * @param id the ID of the article to delete
+   * @throws ArticleNotFoundException if the article with the given ID does not exist
+   */
   public void deleteArticle(Long id) {
     if (!articleRepository.existsById(id)) {
       throw new ArticleNotFoundException("Article not found with id: " + id);
