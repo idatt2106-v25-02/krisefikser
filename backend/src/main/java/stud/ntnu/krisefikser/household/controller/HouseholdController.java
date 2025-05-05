@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
@@ -206,8 +207,7 @@ public class HouseholdController {
   })
   @PostMapping("/guests")
   public ResponseEntity<HouseholdResponse> addGuestToHousehold(
-      @Parameter(description = "Household ID") @PathVariable UUID householdId,
-      @Parameter(description = "Guest data") @RequestBody CreateHouseholdRequest guest) {
-    return ResponseEntity.ok(householdService.addGuestToHousehold(householdId, guest));
+      @Parameter(description = "Guest data") @RequestBody CreateGuestRequest guest) {
+    return ResponseEntity.ok(householdService.addGuestToHousehold(guest));
   }
 }

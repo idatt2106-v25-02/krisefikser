@@ -5,11 +5,14 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
+import stud.ntnu.krisefikser.household.entity.Guest;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
+import stud.ntnu.krisefikser.household.repository.GuestRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.entity.User;
@@ -29,6 +32,7 @@ public class HouseholdService {
   private final HouseholdMemberService householdMemberService;
   private final UserService userService;
   private final ChecklistItemService checklistItemService;
+  private final GuestRepository guestRepository;
 
   /**
    * Retrieves all households that the current user is a member of.
@@ -118,23 +122,6 @@ public class HouseholdService {
     userService.updateActiveHousehold(household);
 
     return toHouseholdResponse(household);
-  }
-
-  /**
-   * Retrieves the currently active household for the logged-in user.
-   *
-   * @return The active household entity
-   * @throws HouseholdNotFoundException if no active household is set
-   */
-  public Household getActiveHousehold() {
-    User currentUser = userService.getCurrentUser();
-    Household household = currentUser.getActiveHousehold();
-
-    if (household == null) {
-      throw new HouseholdNotFoundException();
-    }
-
-    return household;
   }
 
   /**
@@ -326,12 +313,38 @@ public class HouseholdService {
   }
 
   /**
-   * Adds a guest to the household. A guest is a user who does not have a user account.
+   * Adds a guest to the active household. A guest is a user who does not have a user account.
    *
    * @param guest The guest to be added
    * @return The updated household response
    */
-  public HouseholdResponse addGuestToHousehold(CreateHouseholdRequest guest) {
+  public HouseholdResponse addGuestToHousehold(CreateGuestRequest guest) {
+    Household household = getActiveHousehold();
 
+    guestRepository.save(Guest.builder()
+        .name(guest.getName())
+        .icon(guest.getIcon())
+        .consumptionMultiplier(guest.getConsumptionMultiplier())
+        .household(household)
+        .build());
+
+    return toHouseholdResponse(household);
+  }
+
+  /**
+   * Retrieves the currently active household for the logged-in user.
+   *
+   * @return The active household entity
+   * @throws HouseholdNotFoundException if no active household is set
+   */
+  public Household getActiveHousehold() {
+    User currentUser = userService.getCurrentUser();
+    Household household = currentUser.getActiveHousehold();
+
+    if (household == null) {
+      throw new HouseholdNotFoundException();
+    }
+
+    return household;
   }
 }
