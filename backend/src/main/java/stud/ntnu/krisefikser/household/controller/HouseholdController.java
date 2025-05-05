@@ -192,4 +192,8 @@ public class HouseholdController {
   ) {
     return ResponseEntity.ok(householdService.removeMemberFromHousehold(householdId, userId));
   }
+
+  /**
+   * Add a guest to the household.
+   */
 }
