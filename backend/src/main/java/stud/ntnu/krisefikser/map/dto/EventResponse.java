@@ -1,0 +1,46 @@
+package stud.ntnu.krisefikser.map.dto;
+
+import jakarta.validation.constraints.NotNull;
+import java.time.ZonedDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import stud.ntnu.krisefikser.map.entity.EventLevel;
+import stud.ntnu.krisefikser.map.entity.EventStatus;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class EventResponse {
+
+  @NotNull
+  private Long id;
+
+  @NotNull
+  private String title;
+
+  @NotNull
+  private String description;
+
+  @NotNull
+  private Double radius;
+
+  @NotNull
+  private Double latitude;
+
+  @NotNull
+  private Double longitude;
+
+  @NotNull
+  private EventLevel level;
+
+  @NotNull
+  private ZonedDateTime startTime;
+
+  private ZonedDateTime endTime;
+
+  @NotNull
+  private EventStatus status;
+}

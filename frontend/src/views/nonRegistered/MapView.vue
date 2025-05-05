@@ -12,7 +12,12 @@ import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point
 import { useGetAllEvents } from '@/api/generated/event/event'
 import { webSocket } from '@/main.ts'
 import { useGetActiveHousehold } from '@/api/generated/household/household'
-import type { MapPoint, MapPointType, Event, MeetingPointResponse } from '@/api/generated/model'
+import type {
+  MapPointResponse as MapPoint,
+  MapPointTypeResponse as MapPointType,
+  EventResponse as Event,
+  MeetingPointResponse
+} from '@/api/generated/model'
 import L from 'leaflet'
 import {
   Dialog,

@@ -1,10 +1,19 @@
 package stud.ntnu.krisefikser.map.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import stud.ntnu.krisefikser.map.dto.MapPointResponse;
 
 @Entity
 @Data
@@ -13,17 +22,27 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "map_points")
 public class MapPoint {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Column(nullable = false)
-    private Double latitude;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false)
-    private Double longitude;
+  @Column(nullable = false)
+  private Double latitude;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "type_id", nullable = false)
-    private MapPointType type;
+  @Column(nullable = false)
+  private Double longitude;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "type_id", nullable = false)
+  private MapPointType type;
+
+  public MapPointResponse toResponse() {
+    return MapPointResponse.builder()
+        .id(this.id)
+        .latitude(this.latitude)
+        .longitude(this.longitude)
+        .type(this.type.toResponse())
+        .build();
+  }
 }

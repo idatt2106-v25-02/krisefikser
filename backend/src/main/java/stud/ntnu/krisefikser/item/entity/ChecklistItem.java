@@ -14,17 +14,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.item.dto.ChecklistItemResponse;
-import stud.ntnu.krisefikser.item.enums.ChecklistType;
+import stud.ntnu.krisefikser.item.enums.ChecklistCategory;
 
 /**
  * Entity representing an item in an emergency preparedness checklist.
- * 
+ *
  * <p>Checklist items help households track important tasks or items they should verify
- * or have on hand during emergency situations. Each item can be marked as checked to
- * indicate completion or availability.</p>
+ * or have on hand during emergency situations. Each item can be marked as checked to indicate
+ * completion or availability.</p>
  */
-@Entity
 @Data
+@Entity
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -51,6 +51,11 @@ public class ChecklistItem {
   private String name;
 
   /**
+   * Optional detailed description of the checklist item.
+   */
+  private String description;
+
+  /**
    * Icon identifier representing the checklist item visually in the UI.
    */
   private String icon;
@@ -59,12 +64,14 @@ public class ChecklistItem {
    * Whether the item has been checked (completed/verified) or not.
    */
   @Column(nullable = false)
+  @Builder.Default
   private Boolean checked = false;
 
   /**
    * Categorization of the checklist item.
    */
-  private ChecklistType type;
+  @Builder.Default
+  private ChecklistCategory type = ChecklistCategory.OTHER;
 
   /**
    * Converts this entity to a response DTO.

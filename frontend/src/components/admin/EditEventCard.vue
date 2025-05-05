@@ -10,9 +10,11 @@ import { Label } from '@/components/ui/label'
 import { ref, watch } from 'vue'
 
 // Import types
-import type { Event } from '@/api/generated/model/event'
-import { EventLevel } from '@/api/generated/model/eventLevel'
-import { EventStatus } from '@/api/generated/model/eventStatus'
+import type { EventResponse as Event } from '@/api/generated/model'
+import {
+  EventResponseLevel as EventLevel,
+  EventResponseStatus as EventStatus,
+} from '@/api/generated/model'
 
 const props = defineProps<{
   event: Event | null
@@ -107,12 +109,22 @@ const handleCancel = () => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="space-y-2">
             <Label for="latitude">Breddegrad</Label>
-            <Input id="latitude" v-model="localEvent.latitude" type="number" placeholder="Breddegrad" />
+            <Input
+              id="latitude"
+              v-model="localEvent.latitude"
+              type="number"
+              placeholder="Breddegrad"
+            />
           </div>
 
           <div class="space-y-2">
             <Label for="longitude">Lengdegrad</Label>
-            <Input id="longitude" v-model="localEvent.longitude" type="number" placeholder="Lengdegrad" />
+            <Input
+              id="longitude"
+              v-model="localEvent.longitude"
+              type="number"
+              placeholder="Lengdegrad"
+            />
           </div>
         </div>
 

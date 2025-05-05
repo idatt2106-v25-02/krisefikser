@@ -19,9 +19,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
-import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.user.entity.User;
 
+/**
+ * Entity representing a member of a household.
+ *
+ * @since 1.0
+ */
 @Entity
 @Getter
 @Setter
@@ -43,13 +47,8 @@ public class HouseholdMember {
   @JoinColumn(name = "household_id")
   private Household household;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private HouseholdMemberStatus status;
-
   public HouseholdMemberResponse toDto() {
     return new HouseholdMemberResponse(
-        user.toDto(),
-        status);
+        user.toDto());
   }
 }

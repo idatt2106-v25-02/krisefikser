@@ -6,10 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface MapPointType {
-  id?: number
-  title?: string
-  iconUrl?: string
+/**
+ * Map point type to create
+ */
+export interface MapPointTypeRequest {
+  title: string
+  iconUrl: string
   description?: string
   openingTime?: string
 }

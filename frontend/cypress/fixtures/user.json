@@ -1,0 +1,12 @@
+{
+  "registration": {
+    "firstName": "newUser",
+    "lastName": "newUser",
+    "email": "newUser@gmail.com",
+    "password": "Password123!"
+  },
+  "login": {
+    "email": "newUser@gmail.com",
+    "password": "Password123!"
+  }
+} 

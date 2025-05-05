@@ -2,11 +2,14 @@
 
 ## Overview
 
-This repository contains the backend service for Krisefikser, built with Spring Boot 3.4. It provides RESTful APIs for
-the Krisefikser crisis management platform, handling user authentication, emergency shelter tracking, crisis
+This repository contains the backend service for Krisefikser, built with Spring Boot 3.4. It
+provides RESTful APIs for
+the Krisefikser crisis management platform, handling user authentication, emergency shelter
+tracking, crisis
 information, and resource management functionalities.
 
-**Note:** Please review the complete documentation before beginning development or deployment, and familiarize yourself
+**Note:** Please review the complete documentation before beginning development or deployment, and
+familiarize yourself
 with existing code conventions.
 
 ## Tech Stack
@@ -68,11 +71,11 @@ src/
 2. **Run the application**
 
    ```bash
-   # Run with Maven
-   ./mvnw spring-boot:run
+   # Run with Maven (dev)
+   mvn spring-boot:run
 
-   # Or with dev profile for development settings
-   ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+   # Or with prod profile for development settings
+   mvn spring-boot:run -Dspring-boot.run.profiles=prod
    ```
 
 3. **Verify the application is running**
@@ -84,10 +87,10 @@ src/
 
 ```bash
 # Run all tests
-./mvnw test
+mvn test -Dspring.profiles.active=test
 
 # Run with coverage report
-./mvnw test jacoco:report
+mvn test jacoco:report
 ```
 
 Coverage reports will be generated in `target/site/jacoco`.
@@ -96,7 +99,8 @@ Coverage reports will be generated in `target/site/jacoco`.
 
 ### Package Structure
 
-We follow a domain-based package structure where each domain concept has its own package containing all related
+We follow a domain-based package structure where each domain concept has its own package containing
+all related
 components:
 
 ```
@@ -132,7 +136,7 @@ Follow JavaDoc standards for all public methods and classes:
  * @throws ResourceNotFoundException if the user doesn't exist
  */
 public UserDto getUserById(Long id) {
-    // Implementation
+  // Implementation
 }
 ```
 
@@ -160,15 +164,16 @@ Example, `HouseholdResponse.java`:
 @NoArgsConstructor
 @AllArgsConstructor
 public class HouseholdResponse {
-    private UUID id;
-    private String name;
-    private double latitude;
-    private double longitude;
-    private String address;
-    private UserDto owner;
-    private List<HouseholdMemberDto> members;
-    private LocalDateTime createdAt;
-    private boolean isActive;
+
+  private UUID id;
+  private String name;
+  private double latitude;
+  private double longitude;
+  private String address;
+  private UserDto owner;
+  private List<HouseholdMemberDto> members;
+  private LocalDateTime createdAt;
+  private boolean isActive;
 }
 ```
 
@@ -186,12 +191,12 @@ Name test methods descriptively:
 
 @Test
 void shouldReturnUserWhenValidIdProvided() {
-    // Test implementation
+  // Test implementation
 }
 
 @Test
 void shouldThrowExceptionWhenUserNotFound() {
-    // Test implementation
+  // Test implementation
 }
 ```
 
@@ -214,7 +219,7 @@ When the application is running, the full API documentation is available at:
 2. **Build failures**
 
     - Ensure you have JDK 21 installed: `java -version`
-    - Run `./mvnw clean` and try again
+    - Run `mvn clean` and try again
 
 3. **Test failures**
     - Check that H2 is properly configured in application-test.properties

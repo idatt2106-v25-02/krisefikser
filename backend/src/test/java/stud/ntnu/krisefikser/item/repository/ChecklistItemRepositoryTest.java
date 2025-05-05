@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Import;
 import stud.ntnu.krisefikser.common.RepositoryTestConfig;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.item.entity.ChecklistItem;
-import stud.ntnu.krisefikser.item.enums.ChecklistType;
+import stud.ntnu.krisefikser.item.enums.ChecklistCategory;
 import stud.ntnu.krisefikser.user.entity.User;
 
 @DataJpaTest
@@ -52,7 +52,7 @@ class ChecklistItemRepositoryTest {
     // Create a checklist item
     ChecklistItem item = ChecklistItem.builder()
         .name("First Aid Kit")
-        .type(ChecklistType.HEALTH)
+        .type(ChecklistCategory.HEALTH_HYGIENE)
         .checked(false)
         .household(household)
         .build();
@@ -66,7 +66,7 @@ class ChecklistItemRepositoryTest {
     // Verify the item was saved with an ID
     assertThat(savedItem.getId()).isNotNull();
     assertThat(savedItem.getName()).isEqualTo("First Aid Kit");
-    assertThat(savedItem.getType()).isEqualTo(ChecklistType.HEALTH);
+    assertThat(savedItem.getType()).isEqualTo(ChecklistCategory.HEALTH_HYGIENE);
     assertThat(savedItem.getChecked()).isFalse();
   }
 
@@ -98,7 +98,7 @@ class ChecklistItemRepositoryTest {
     // Create and persist a checklist item
     ChecklistItem item = ChecklistItem.builder()
         .name("Flashlight")
-        .type(ChecklistType.POWER)
+        .type(ChecklistCategory.HEAT_LIGHT)
         .checked(true)
         .household(household)
         .build();
@@ -143,14 +143,14 @@ class ChecklistItemRepositoryTest {
     // Create and persist multiple checklist items
     ChecklistItem item1 = ChecklistItem.builder()
         .name("Water Bottles")
-        .type(ChecklistType.OTHER)
+        .type(ChecklistCategory.OTHER)
         .checked(false)
         .household(household)
         .build();
 
     ChecklistItem item2 = ChecklistItem.builder()
         .name("Contact Family")
-        .type(ChecklistType.COMMUNICATION)
+        .type(ChecklistCategory.INFORMATION)
         .checked(true)
         .household(household)
         .build();
@@ -196,7 +196,7 @@ class ChecklistItemRepositoryTest {
     // Create and persist a checklist item
     ChecklistItem item = ChecklistItem.builder()
         .name("Batteries")
-        .type(ChecklistType.POWER)
+        .type(ChecklistCategory.HEAT_LIGHT)
         .checked(false)
         .household(household)
         .build();
@@ -243,7 +243,7 @@ class ChecklistItemRepositoryTest {
     // Create and persist a checklist item
     ChecklistItem item = ChecklistItem.builder()
         .name("Emergency Plan")
-        .type(ChecklistType.OTHER)
+        .type(ChecklistCategory.OTHER)
         .checked(false)
         .household(household)
         .build();

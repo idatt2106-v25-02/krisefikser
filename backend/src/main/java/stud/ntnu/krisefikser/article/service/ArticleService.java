@@ -10,12 +10,15 @@ import stud.ntnu.krisefikser.article.dto.ArticleResponse;
 import stud.ntnu.krisefikser.article.entity.Article;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
 import stud.ntnu.krisefikser.article.repository.ArticleRepository;
+import stud.ntnu.krisefikser.notification.NotificationResponse;
+import stud.ntnu.krisefikser.notification.NotificationService;
 
 @Service
 @RequiredArgsConstructor
 public class ArticleService {
 
   private final ArticleRepository articleRepository;
+  private final NotificationService notificationService;
 
   public List<ArticleResponse> getAllArticles() {
     return articleRepository.findAll().stream()
