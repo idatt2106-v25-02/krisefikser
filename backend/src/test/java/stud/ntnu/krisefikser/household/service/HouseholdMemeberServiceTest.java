@@ -18,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
-import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 
@@ -65,7 +64,6 @@ class HouseholdMemberServiceTest {
     testMember = HouseholdMember.builder()
         .user(testUser)
         .household(testHousehold)
-        .status(HouseholdMemberStatus.ACCEPTED)
         .build();
   }
 
@@ -126,7 +124,6 @@ class HouseholdMemberServiceTest {
     assertThat(result).isNotNull();
     assertThat(result.getUser()).isEqualTo(testUser);
     assertThat(result.getHousehold()).isEqualTo(testHousehold);
-    assertThat(result.getStatus()).isEqualTo(HouseholdMemberStatus.ACCEPTED);
     verify(householdMemberRepository).save(any(HouseholdMember.class));
   }
 
