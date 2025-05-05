@@ -115,7 +115,7 @@ const getContentPreview = (content: string) => {
       </div>
 
       <!-- Scrollable grid with fixed height cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto pr-2">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[750px] overflow-y-auto pr-2">
         <div
           v-for="scenario in scenarios"
           :key="scenario.id"
