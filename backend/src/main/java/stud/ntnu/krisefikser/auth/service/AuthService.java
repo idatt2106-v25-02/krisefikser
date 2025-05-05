@@ -1,7 +1,7 @@
 package stud.ntnu.krisefikser.auth.service;
 
-import jakarta.transaction.Transactional;
 import java.util.Date;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,21 +9,20 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.auth.config.JwtProperties;
-import stud.ntnu.krisefikser.auth.dto.LoginRequest;
-import stud.ntnu.krisefikser.auth.dto.LoginResponse;
-import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
-import stud.ntnu.krisefikser.auth.dto.RefreshResponse;
-import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
-import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
+import stud.ntnu.krisefikser.auth.dto.*;
 import stud.ntnu.krisefikser.auth.entity.RefreshToken;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.service.UserService;
-import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 
+/**
+ * Service class for handling authentication-related operations such as registration, login,
+ * token generation, refresh, and email verification.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -37,15 +36,19 @@ public class AuthService {
   private final RefreshTokenRepository refreshTokenRepository;
   private final EmailVerificationService emailVerificationService;
 
+  /**
+   * Registers a new user and generates access and refresh tokens.
+   *
+   * @param registerRequest The registration request.
+   * @return A response with tokens.
+   */
   public RegisterResponse register(RegisterRequest registerRequest) {
     userService.createUser(new CreateUser(
         registerRequest.getEmail(),
         registerRequest.getPassword(),
         registerRequest.getFirstName(),
         registerRequest.getLastName(),
-        true,
-        true,
-        true));
+        true, true, true));
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getEmail());
 
@@ -54,11 +57,15 @@ public class AuthService {
 
     refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
 
-    return new RegisterResponse(
-        accessToken,
-        refreshToken);
+    return new RegisterResponse(accessToken, refreshToken);
   }
 
+  /**
+   * Authenticates a user and returns new access and refresh tokens.
+   *
+   * @param loginRequest The login credentials.
+   * @return A response with tokens.
+   */
   public LoginResponse login(LoginRequest loginRequest) {
     authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
@@ -72,20 +79,21 @@ public class AuthService {
 
     refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
 
-    return new LoginResponse(
-        accessToken,
-        refreshToken);
+    return new LoginResponse(accessToken, refreshToken);
   }
 
+  /**
+   * Refreshes an access token using a valid refresh token.
+   *
+   * @param refreshRequest The request containing refresh token.
+   * @return A response with new tokens.
+   */
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
-    RefreshToken existingToken = refreshTokenRepository.findByToken(
-        refreshRequest.getRefreshToken()).orElseThrow(
-            RefreshTokenDoesNotExistException::new);
+    RefreshToken existingToken = refreshTokenRepository.findByToken(refreshRequest.getRefreshToken())
+        .orElseThrow(RefreshTokenDoesNotExistException::new);
 
     String email = tokenService.extractEmail(existingToken.getToken());
-    if (email == null) {
-      throw new InvalidTokenException();
-    }
+    if (email == null) throw new InvalidTokenException();
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
@@ -95,16 +103,19 @@ public class AuthService {
     refreshTokenRepository.delete(existingToken);
     refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).build());
 
-    return new RefreshResponse(
-        accessToken,
-        refreshToken);
+    return new RefreshResponse(accessToken, refreshToken);
   }
 
+  /**
+   * Verifies an email token sent to the user.
+   *
+   * @param token Email verification token.
+   * @return true if verification is successful.
+   */
   @Transactional
   public boolean verifyEmail(String token) {
     boolean verified = emailVerificationService.verifyToken(token);
     if (verified) {
-      // Any additional action after verification
       log.info("Email verified successfully with token: {}", token);
     } else {
       log.warn("Failed verification attempt with token: {}", token);
@@ -112,6 +123,11 @@ public class AuthService {
     return verified;
   }
 
+  /**
+   * Gets current authenticated user.
+   *
+   * @return User details.
+   */
   public UserResponse me() {
     return userService.getCurrentUser().toDto();
   }

@@ -22,14 +22,19 @@ import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
 import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.user.entity.User;
 
+/**
+ * Entity representing a member of a household.
+ *
+ * @since 1.0
+ */
 @Entity
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "household_id" }) })
-@ToString(exclude = { "user", "household" })
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "household_id"})})
+@ToString(exclude = {"user", "household"})
 public class HouseholdMember {
 
   @Id
@@ -47,7 +52,10 @@ public class HouseholdMember {
   @Column(nullable = false)
   private HouseholdMemberStatus status;
 
-  public HouseholdMemberResponse toDto() {
+  /**
+   * Method for converting the entity to a response DTO.
+   */
+  public HouseholdMemberResponse toResponse() {
     return new HouseholdMemberResponse(
         user.toDto(),
         status);

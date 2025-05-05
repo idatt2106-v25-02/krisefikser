@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuration class for frontend-related properties.
- * <p>
- * This class is used to bind properties prefixed with "frontend" from the application properties
- * file. It contains a single property, "url", which represents the URL of the frontend
+ *
+ * <p>This class is used to bind properties prefixed with "frontend" from the application
+ * properties file. It contains a single property, "url", which represents the URL of the frontend
  * application.
  * </p>
  */

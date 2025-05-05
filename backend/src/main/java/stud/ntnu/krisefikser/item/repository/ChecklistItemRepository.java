@@ -15,5 +15,11 @@ import stud.ntnu.krisefikser.item.entity.ChecklistItem;
  */
 public interface ChecklistItemRepository extends JpaRepository<ChecklistItem, UUID> {
 
+  /**
+   * Finds all checklist items associated with a specific household.
+   *
+   * @param activeHousehold the household to find checklist items for
+   * @return a list of checklist items associated with the specified household
+   */
   List<ChecklistItem> findByHousehold(Household activeHousehold);
 }
