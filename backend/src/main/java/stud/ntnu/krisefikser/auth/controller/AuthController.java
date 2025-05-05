@@ -26,6 +26,10 @@ import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
+/**
+ * REST controller for managing authentication-related operations. Provides endpoints for user
+ * registration, login, token refresh, and retrieving user details.
+ */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -36,6 +40,12 @@ public class AuthController {
   private final AuthService authService;
   private final TurnstileService turnstileService;
 
+  /**
+   * Registers a new user after verifying the CAPTCHA and validating the input.
+   *
+   * @param request The registration details including Turnstile token.
+   * @return ResponseEntity containing the registration response.
+   */
   @Operation(
       summary = "Register a new user", description = "Creates a new user account after CAPTCHA "
       + "verification and input validation"
@@ -62,6 +72,12 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Authenticates a user and returns access tokens.
+   *
+   * @param request The login credentials.
+   * @return ResponseEntity containing the access tokens.
+   */
   @Operation(summary = "Login user", description = "Authenticates a user and returns access tokens")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully authenticated", content =
@@ -76,6 +92,12 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Refreshes the access token using the provided refresh token.
+   *
+   * @param refreshToken The refresh token used to obtain a new access token.
+   * @return ResponseEntity containing the new access token.
+   */
   @Operation(summary = "Refresh token", description = "Generates new access token using refresh "
       + "token")
   @ApiResponses(value = {
@@ -91,6 +113,11 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Retrieves the currently authenticated user's details.
+   *
+   * @return ResponseEntity containing the user's details.
+   */
   @Operation(summary = "Get current user", description = "Retrieves the currently authenticated "
       + "user's details")
   @ApiResponses(value = {

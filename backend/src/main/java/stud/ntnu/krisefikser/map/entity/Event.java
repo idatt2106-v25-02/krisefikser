@@ -15,6 +15,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.map.dto.EventResponse;
 
+/**
+ * Entity class representing an event in the system. This class is used to store information about
+ * events, including their title, description, location, level, start and end times, and status.
+ */
 @Entity
 @Data
 @Builder
@@ -55,6 +59,12 @@ public class Event {
   @Column(nullable = false)
   private EventStatus status;
 
+  /**
+   * Converts the Event entity to an EventResponse DTO. This method is used to transfer event data
+   * to the client.
+   *
+   * @return EventResponse DTO containing event data
+   */
   public EventResponse toResponse() {
     return EventResponse.builder()
         .id(this.id)

@@ -15,6 +15,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.map.dto.MapPointResponse;
 
+/**
+ * Entity class representing a map point in the system. This class is used to store information
+ * about map points, including their latitude, longitude, and type.
+ */
 @Entity
 @Data
 @Builder
@@ -37,6 +41,11 @@ public class MapPoint {
   @JoinColumn(name = "type_id", nullable = false)
   private MapPointType type;
 
+  /**
+   * Method for converting the entity to a response DTO.
+   *
+   * @return MapPointResponse object containing the map point information
+   */
   public MapPointResponse toResponse() {
     return MapPointResponse.builder()
         .id(this.id)

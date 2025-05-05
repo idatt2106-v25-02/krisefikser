@@ -21,6 +21,10 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
+/**
+ * Service class for handling authentication-related operations such as user registration, login,
+ * token generation, and token refresh.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -32,6 +36,12 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
 
+  /**
+   * Registers a new user and generates access and refresh tokens.
+   *
+   * @param registerRequest The registration request containing user details.
+   * @return A response containing the access and refresh tokens.
+   */
   public RegisterResponse register(RegisterRequest registerRequest) {
     User user = userService.createUser(new CreateUser(
         registerRequest.getEmail(),
@@ -54,6 +64,28 @@ public class AuthService {
         refreshToken);
   }
 
+  private String createAccessToken(UserDetails userDetails) {
+    return tokenService.generate(userDetails, getAccessTokenExpiration());
+  }
+
+  private String createRefreshToken(UserDetails userDetails) {
+    return tokenService.generate(userDetails, getRefreshTokenExpiration());
+  }
+
+  private Date getAccessTokenExpiration() {
+    return new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
+  }
+
+  private Date getRefreshTokenExpiration() {
+    return new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
+  }
+
+  /**
+   * Authenticates a user and generates access and refresh tokens.
+   *
+   * @param loginRequest The login request containing user credentials.
+   * @return A response containing the access and refresh tokens.
+   */
   public LoginResponse login(LoginRequest loginRequest) {
     authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
@@ -74,6 +106,12 @@ public class AuthService {
         refreshToken);
   }
 
+  /**
+   * Refreshes the access token using the provided refresh token.
+   *
+   * @param refreshRequest The request containing the refresh token.
+   * @return A response containing the new access and refresh tokens.
+   */
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
     RefreshToken existingToken = refreshTokenRepository.findByToken(
         refreshRequest.getRefreshToken()).orElseThrow(
@@ -101,6 +139,11 @@ public class AuthService {
         refreshToken);
   }
 
+  /**
+   * Retrieves the currently authenticated user's details.
+   *
+   * @return UserResponse containing the user's details.
+   */
   public UserResponse me() {
     return userService.getCurrentUser().toDto();
   }

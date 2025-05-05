@@ -16,6 +16,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
 
+/**
+ * Filter for JWT authentication. This filter checks the presence of a JWT token in the request
+ * header, validates it, and sets the authentication in the security context if valid.
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

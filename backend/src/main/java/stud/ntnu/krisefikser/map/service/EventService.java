@@ -15,9 +15,8 @@ import stud.ntnu.krisefikser.map.repository.EventRepository;
  * events and integrates with WebSocket notifications to broadcast changes to connected clients in
  * real-time.
  *
- * <p>
- * This service acts as an intermediary between the controllers and the data access layer, adding
- * business validation and integrating with the WebSocket service for real-time updates.
+ * <p>This service acts as an intermediary between the controllers and the data access layer,
+ * adding business validation and integrating with the WebSocket service for real-time updates.
  * </p>
  *
  * @author NTNU Krisefikser Team
@@ -50,6 +49,13 @@ public class EventService {
     return eventRepository.findAll().stream().map(Event::toResponse).toList();
   }
 
+  /**
+   * Retrieves an event by its ID.
+   *
+   * @param id The ID of the event to retrieve
+   * @return The event with the specified ID
+   * @throws EntityNotFoundException If no event with the specified ID exists
+   */
   public EventResponse getEventById(Long id) {
     Event event = eventRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Event not found with id: " + id));
@@ -60,8 +66,7 @@ public class EventService {
   /**
    * Creates a new event in the database and notifies connected clients.
    *
-   * <p>
-   * This method broadcasts a WebSocket notification about the new event before saving it to the
+   * <p>This method broadcasts a WebSocket notification about the new event before saving it to the
    * database.
    * </p>
    *
@@ -87,8 +92,7 @@ public class EventService {
   /**
    * Updates an existing event in the database and notifies connected clients.
    *
-   * <p>
-   * This method checks if the event exists before updating, broadcasts a WebSocket notification
+   * <p>This method checks if the event exists before updating, broadcasts a WebSocket notification
    * about the update, and then saves the changes.
    * </p>
    *
@@ -143,9 +147,8 @@ public class EventService {
   /**
    * Deletes an event from the database and notifies connected clients.
    *
-   * <p>
-   * This method verifies the event exists before deleting it, broadcasts a WebSocket notification
-   * about the deletion, and then removes it from the database.
+   * <p>This method verifies the event exists before deleting it, broadcasts a WebSocket
+   * notification about the deletion, and then removes it from the database.
    * </p>
    *
    * @param id The ID of the event to delete

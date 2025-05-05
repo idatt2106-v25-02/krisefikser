@@ -8,7 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,7 +38,7 @@ import stud.ntnu.krisefikser.user.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class AuthServiceTest {
+class AuthServiceTest {
 
   @Mock
   private UserService userService;
