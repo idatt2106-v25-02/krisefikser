@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { MapPoint, MapPointType } from '@/api/generated/model'
+import type {
+  MapPointResponse as MapPoint,
+  MapPointTypeResponse as MapPointType,
+} from '@/api/generated/model'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 
 const props = defineProps<{
@@ -24,7 +27,7 @@ watch(
   (newValue) => {
     localValue.value = { ...newValue }
   },
-  { deep: true }
+  { deep: true },
 )
 
 watch(
@@ -32,7 +35,7 @@ watch(
   (newValue) => {
     emit('update:modelValue', newValue)
   },
-  { deep: true }
+  { deep: true },
 )
 
 function handleSubmit() {
@@ -54,16 +57,9 @@ function handleStartMapSelection() {
 
     <div class="space-y-2">
       <label class="text-sm font-medium">Kartpunkttype</label>
-      <select
-        v-model="localValue.type"
-        class="w-full px-3 py-2 border rounded-lg"
-      >
+      <select v-model="localValue.type" class="w-full px-3 py-2 border rounded-lg">
         <option :value="undefined">Velg type</option>
-        <option
-          v-for="type in mapPointTypes"
-          :key="type?.id"
-          :value="type"
-        >
+        <option v-for="type in mapPointTypes" :key="type?.id" :value="type">
           {{ type?.title || 'Ukjent tittel' }}
         </option>
       </select>
@@ -98,10 +94,7 @@ function handleStartMapSelection() {
     </div>
 
     <div class="flex justify-end space-x-2">
-      <button
-        @click="handleCancel"
-        class="px-4 py-2 text-gray-600 hover:text-gray-800"
-      >
+      <button @click="handleCancel" class="px-4 py-2 text-gray-600 hover:text-gray-800">
         Avbryt
       </button>
       <button

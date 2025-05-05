@@ -6,13 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 
-export type HouseholdInviteResponseStatus =
-  (typeof HouseholdInviteResponseStatus)[keyof typeof HouseholdInviteResponseStatus]
+export type HouseholdMemberResponseStatus =
+  (typeof HouseholdMemberResponseStatus)[keyof typeof HouseholdMemberResponseStatus]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const HouseholdInviteResponseStatus = {
-  PENDING: 'PENDING',
+
+export const HouseholdMemberResponseStatus = {
+  INVITED: 'INVITED',
   ACCEPTED: 'ACCEPTED',
-  DECLINED: 'DECLINED',
-  CANCELLED: 'CANCELLED',
+  REJECTED: 'REJECTED',
 } as const

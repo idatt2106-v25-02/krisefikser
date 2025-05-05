@@ -1,24 +1,27 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Event } from '@/api/generated/model'
-import { EventLevel, EventStatus } from '@/api/generated/model'
-import { useCreateEvent, useGetAllEvents, useUpdateEvent, useDeleteEvent } from '@/api/generated/event/event'
+import type { EventResponse as Event } from '@/api/generated/model'
+import {
+  EventResponseLevel as EventLevel,
+  EventResponseStatus as EventStatus,
+} from '@/api/generated/model'
+import {
+  useCreateEvent,
+  useGetAllEvents,
+  useUpdateEvent,
+  useDeleteEvent,
+} from '@/api/generated/event/event'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useAuthStore } from '@/stores/useAuthStore'
 import EventForm from './EventForm.vue'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const authStore = useAuthStore()
 const { data: eventsData, refetch: refetchEvents } = useGetAllEvents()
 const events = ref<Event[]>(Array.isArray(eventsData.value) ? eventsData.value : [])
 const { refetch: refetchMapPoints } = useGetAllMapPoints()
 
-const newEvent = ref<Partial<Event>>({
+const newEvent = ref({
   title: '',
   description: '',
   radius: 500,
@@ -26,6 +29,7 @@ const newEvent = ref<Partial<Event>>({
   longitude: 10.3951,
   level: EventLevel.GREEN,
   startTime: new Date().toISOString(),
+  endTime: undefined,
   status: EventStatus.UPCOMING,
 })
 const editingEvent = ref<Event | null>(null)
@@ -114,6 +118,7 @@ async function handleAddEvent() {
       longitude: 10.3951,
       level: EventLevel.GREEN,
       startTime: new Date().toISOString(),
+      endTime: undefined,
       status: EventStatus.UPCOMING,
     }
   } catch (error) {
@@ -171,16 +176,19 @@ function handleDialogCancel() {
       v-model="newEvent"
       title="Legg til ny krisehendelse"
       @submit="handleAddEvent"
-      @cancel="newEvent = {
-        title: '',
-        description: '',
-        radius: 500,
-        latitude: 63.4305,
-        longitude: 10.3951,
-        level: EventLevel.GREEN,
-        startTime: new Date().toISOString(),
-        status: EventStatus.UPCOMING,
-      }"
+      @cancel="
+        newEvent = {
+          title: '',
+          description: '',
+          radius: 500,
+          latitude: 63.4305,
+          longitude: 10.3951,
+          level: EventLevel.GREEN,
+          startTime: new Date().toISOString(),
+          endTime: undefined,
+          status: EventStatus.UPCOMING,
+        }
+      "
       @start-map-selection="handleStartMapSelection"
     />
 
@@ -197,10 +205,7 @@ function handleDialogCancel() {
             </p>
           </div>
           <div class="flex space-x-2">
-            <button
-              @click="handleEditClick(event)"
-              class="text-primary hover:text-primary/80"
-            >
+            <button @click="handleEditClick(event)" class="text-primary hover:text-primary/80">
               Rediger
             </button>
             <button
