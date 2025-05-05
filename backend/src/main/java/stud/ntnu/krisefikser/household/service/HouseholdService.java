@@ -43,17 +43,32 @@ public class HouseholdService {
       isActive = household.getId().equals(currentUser.getActiveHousehold().getId());
     }
 
-    return new HouseholdResponse(
-        household.getId(),
-        household.getName(),
-        household.getLatitude(),
-        household.getLongitude(),
-        household.getAddress(),
-        household.getOwner().toDto(),
-        members.stream().map(HouseholdMember::toDto).toList(),
-        household.getCreatedAt(),
-        isActive
-    );
+    // Use different DTO conversion based on whether this is an active household
+    if (isActive) {
+      // For active households, include location data
+      return new HouseholdResponse(
+          household.getId(),
+          household.getName(),
+          household.getLatitude(),
+          household.getLongitude(),
+          household.getAddress(),
+          household.getOwner().toDtoWithLocation(), // Include owner's location
+          members.stream().map(HouseholdMember::toDtoWithLocation).toList(), // Include members' location
+          household.getCreatedAt(),
+          true);
+    } else {
+      // For non-active households, don't include location data
+      return new HouseholdResponse(
+          household.getId(),
+          household.getName(),
+          household.getLatitude(),
+          household.getLongitude(),
+          household.getAddress(),
+          household.getOwner().toDto(), // Don't include owner's location
+          members.stream().map(HouseholdMember::toDto).toList(), // Don't include members' location
+          household.getCreatedAt(),
+          false);
+    }
   }
 
   @Transactional
@@ -165,7 +180,8 @@ public class HouseholdService {
   }
 
   /**
-   * Sets the water amount for the active household of the current user. Throws an exception if the
+   * Sets the water amount for the active household of the current user. Throws an
+   * exception if the
    * user does not have an active household.
    *
    * @param liters the new water amount

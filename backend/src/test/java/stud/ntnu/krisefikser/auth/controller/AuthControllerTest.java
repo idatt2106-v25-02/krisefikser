@@ -65,7 +65,7 @@ public class AuthControllerTest {
     refreshRequest = new RefreshRequest("refresh-token-123");
     userResponse = new UserResponse(UUID.randomUUID(), "test@example.com", List.of("USER"), "Test",
         "User",
-        false, false, false);
+        false, false, false, null, null);
   }
 
   @Test
@@ -77,8 +77,8 @@ public class AuthControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/auth/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(registerRequest)))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(registerRequest)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.accessToken").value("access-token"))
         .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
@@ -91,8 +91,8 @@ public class AuthControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/auth/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(registerRequest)))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(registerRequest)))
         .andExpect(status().isBadRequest());
   }
 
@@ -104,8 +104,8 @@ public class AuthControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(loginRequest)))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(loginRequest)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.accessToken").value("access-token"))
         .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
@@ -119,8 +119,8 @@ public class AuthControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/auth/refresh")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(refreshRequest)))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(refreshRequest)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.accessToken").value("new-access-token"))
         .andExpect(jsonPath("$.refreshToken").value("new-refresh-token"));

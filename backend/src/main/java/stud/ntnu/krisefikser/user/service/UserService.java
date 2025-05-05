@@ -89,6 +89,14 @@ public class UserService {
     user.setLastName(data.getLastName());
     user.setNotifications(data.isNotifications());
     user.setEmailUpdates(data.isEmailUpdates());
+
+    // Check if location sharing is being disabled
+    if (user.isLocationSharing() && !data.isLocationSharing()) {
+      // Clear location data when disabling location sharing
+      user.setLatitude(null);
+      user.setLongitude(null);
+    }
+
     user.setLocationSharing(data.isLocationSharing());
 
     // Only update password if it's provided
@@ -146,5 +154,31 @@ public class UserService {
   public User getUserById(UUID id) {
     return userRepository.findById(id)
         .orElseThrow(() -> new UserDoesNotExistException("User with ID " + id + " does not exist"));
+  }
+
+  /**
+   * Updates a user's location coordinates.
+   *
+   * @param userId    the UUID of the user to update
+   * @param latitude  the latitude coordinate
+   * @param longitude the longitude coordinate
+   * @return the updated User entity
+   * @throws UserDoesNotExistException if the user with the given ID does not
+   *                                   exist
+   */
+  public User updateUserLocation(UUID userId, Double latitude, Double longitude) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(
+            () -> new UserDoesNotExistException("User with id " + userId + " does not exist"));
+
+    // Only update location if user has enabled location sharing
+    if (user.isLocationSharing()) {
+      user.setLatitude(latitude);
+      user.setLongitude(longitude);
+      return userRepository.save(user);
+    }
+
+    // Return the user without updating location if sharing is disabled
+    return user;
   }
 }

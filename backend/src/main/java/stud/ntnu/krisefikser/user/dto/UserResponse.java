@@ -19,4 +19,6 @@ public class UserResponse {
   private boolean notifications;
   private boolean emailUpdates;
   private boolean locationSharing;
+  private Double latitude;
+  private Double longitude;
 }
