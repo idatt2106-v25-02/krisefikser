@@ -6,12 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
-import stud.ntnu.krisefikser.household.enums.HouseholdMemberStatus;
 import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 
 /**
- * Service class for managing household members. Provides methods to add, remove, and retrieve
+ * Service class for managing household members. Provides methods to add,
+ * remove, and retrieve
  * members of a household.
  *
  * @since 1.0
@@ -54,7 +54,6 @@ public class HouseholdMemberService {
     HouseholdMember member = new HouseholdMember();
     member.setHousehold(household);
     member.setUser(currentUser);
-    member.setStatus(HouseholdMemberStatus.ACCEPTED);
     return householdMemberRepo.save(member);
   }
 
