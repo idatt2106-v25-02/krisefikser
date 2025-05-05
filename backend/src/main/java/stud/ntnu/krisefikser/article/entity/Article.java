@@ -12,6 +12,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents an article entity. This class is used to map the articles' table in the database.
+ */
 @Data
 @Builder
 @NoArgsConstructor
