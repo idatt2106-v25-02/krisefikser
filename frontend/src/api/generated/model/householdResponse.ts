@@ -9,13 +9,13 @@ import type { UserResponse } from './userResponse'
 import type { HouseholdMemberResponse } from './householdMemberResponse'
 
 export interface HouseholdResponse {
-  id?: string
-  name?: string
-  latitude?: number
-  longitude?: number
-  address?: string
-  owner?: UserResponse
-  members?: HouseholdMemberResponse[]
-  createdAt?: string
-  isActive?: boolean
+  id: string
+  name: string
+  latitude: number
+  longitude: number
+  address: string
+  owner: UserResponse
+  members: HouseholdMemberResponse[]
+  createdAt: string
+  active?: boolean
 }
