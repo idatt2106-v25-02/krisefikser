@@ -16,6 +16,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.map.dto.MapPointTypeResponse;
 
+/**
+ * Entity class representing a type of map point in the system. This class is used to store
+ * information about different types of map points, including their title, icon URL, description,
+ * and opening time.
+ */
 @Entity
 @Data
 @Builder
@@ -43,6 +48,11 @@ public class MapPointType {
   @JsonIgnore
   private List<MapPoint> mapPoints;
 
+  /**
+   * Method for converting the entity to a response DTO.
+   *
+   * @return MapPointTypeResponse object containing the map point type information
+   */
   public MapPointTypeResponse toResponse() {
     return MapPointTypeResponse.builder()
         .id(this.id)

@@ -13,13 +13,12 @@ import stud.ntnu.krisefikser.auth.dto.TurnstileResponse;
  * Service class for handling Cloudflare Turnstile verification. This service is responsible for
  * verifying user interactions with Cloudflare Turnstile, which helps protect against automated
  * abuse and spam.
- * <p>
- * The service communicates with Cloudflare's Turnstile API to verify that a user interaction is
+ *
+ * <p>The service communicates with Cloudflare's Turnstile API to verify that a user interaction is
  * legitimate and not automated. It requires a secret key for authentication with the API.
  * </p>
  *
- * @see <a href="https://developers.cloudflare.com/turnstile/">Cloudflare Turnstile
- * Documentation</a>
+ * @see <a href="https://developers.cloudflare.com/turnstile/">Turnstile Documentation</a>
  */
 @Service
 public class TurnstileService {
@@ -57,16 +56,17 @@ public class TurnstileService {
 
   /**
    * Verifies a Turnstile token with Cloudflare's verification service.
-   * <p>
-   * This method sends a verification request to Cloudflare's Turnstile API with the provided token
-   * and the configured secret key. It handles various error cases and returns false if verification
-   * fails for any reason.
+   *
+   * <p>This method sends a verification request to Cloudflare's Turnstile API with the provided
+   * token and the configured secret key. It handles various error cases and returns false if
+   * verification fails for any reason. It returns true if the token is valid and verification is
+   * successful, false if the token is invalid, empty, or if verification fails for any other reason
+   * (e.g., network error, API error)
    * </p>
    *
    * @param token The Turnstile token to verify, obtained from the client-side Turnstile widget.
    *              Must not be null or empty.
-   * @return true if the token is valid and verification is successful, false if the token is
-   * invalid, empty, or if verification fails for any other reason (e.g., network error, API error)
+   * @return true if the token is valid and verification is successful, false otherwise.
    * @throws IllegalArgumentException if the token is null
    */
   public boolean verify(String token) {

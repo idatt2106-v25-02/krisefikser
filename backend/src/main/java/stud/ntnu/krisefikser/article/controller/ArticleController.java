@@ -45,9 +45,9 @@ public class ArticleController {
    * Retrieves all articles from the system.
    *
    * @return ResponseEntity containing a list of all articles.
-   * @since 1.0
    */
-  @Operation(summary = "Get all articles", description = "Retrieves a list of all articles in the system")
+  @Operation(summary = "Get all articles",
+      description = "Retrieves a list of all articles in the system")
   @ApiResponses(value = {
       @ApiResponse(
           responseCode = "200",
@@ -71,9 +71,12 @@ public class ArticleController {
    * @return ResponseEntity containing the requested article.
    * @since 1.0
    */
-  @Operation(summary = "Get an article by ID", description = "Retrieves a specific article by its ID")
+  @Operation(summary = "Get an article by ID",
+      description = "Retrieves a specific article by its ID")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the article", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ArticleResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the article",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = ArticleResponse.class))),
       @ApiResponse(responseCode = "404", description = "Article not found")
   })
   @GetMapping("/{id}")
@@ -91,7 +94,9 @@ public class ArticleController {
    */
   @Operation(summary = "Create a new article", description = "Creates a new article in the system")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "201", description = "Successfully created the article", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ArticleResponse.class))),
+      @ApiResponse(responseCode = "201", description = "Successfully created the article",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = ArticleResponse.class))),
       @ApiResponse(responseCode = "403", description = "Access denied")
   })
   @PostMapping
@@ -111,7 +116,9 @@ public class ArticleController {
    */
   @Operation(summary = "Update an article", description = "Updates an existing article by its ID")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully updated the article", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ArticleResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully updated the article",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = ArticleResponse.class))),
       @ApiResponse(responseCode = "404", description = "Article not found"),
       @ApiResponse(responseCode = "403", description = "Access denied")
   })
@@ -119,7 +126,8 @@ public class ArticleController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ArticleResponse> updateArticle(
       @Parameter(description = "ID of the article to update") @PathVariable Long id,
-      @Parameter(description = "Updated article details") @RequestBody ArticleRequest articleRequest) {
+      @Parameter(description = "Updated article details") @RequestBody
+      ArticleRequest articleRequest) {
     return ResponseEntity.ok(articleService.updateArticle(id, articleRequest));
   }
 

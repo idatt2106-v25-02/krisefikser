@@ -202,7 +202,7 @@ export const getAllUsers = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
 ) => {
-  return customInstance<unknown>(
+  return customInstance<UserResponse[]>(
     { url: `http://localhost:8080/api/users`, method: 'GET', signal },
     options,
   )

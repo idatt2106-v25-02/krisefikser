@@ -10,6 +10,10 @@ import stud.ntnu.krisefikser.map.dto.UpdateMapPointTypeRequest;
 import stud.ntnu.krisefikser.map.entity.MapPointType;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
 
+/**
+ * Service class for managing MapPointType entities. This class provides methods to create, update,
+ * delete, and retrieve MapPointType entities.
+ */
 @Service
 @RequiredArgsConstructor
 public class MapPointTypeService {
@@ -20,13 +24,25 @@ public class MapPointTypeService {
     return mapPointTypeRepository.findAll().stream().map(MapPointType::toResponse).toList();
   }
 
+  /**
+   * Retrieves a MapPointType by its ID.
+   *
+   * @param id The ID of the MapPointType to retrieve
+   * @return The MapPointType with the specified ID
+   * @throws EntityNotFoundException If no MapPointType with the specified ID exists
+   */
   public MapPointType getMapPointTypeById(Long id) {
-    MapPointType mapPointType = mapPointTypeRepository.findById(id)
+    return mapPointTypeRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("MapPointType not found with id: " + id));
-
-    return mapPointType;
   }
 
+  /**
+   * Creates a new MapPointType based on the provided request data.
+   *
+   * @param mapPointTypeRequest The request data containing the information for the new
+   *                            MapPointType
+   * @return The created MapPointType
+   */
   public MapPointTypeResponse createMapPointType(MapPointTypeRequest mapPointTypeRequest) {
     MapPointType mapPointType = MapPointType.builder()
         .title(mapPointTypeRequest.getTitle())
@@ -38,6 +54,14 @@ public class MapPointTypeService {
     return mapPointTypeRepository.save(mapPointType).toResponse();
   }
 
+  /**
+   * Updates an existing MapPointType with the provided ID and request data.
+   *
+   * @param id                  The ID of the MapPointType to update
+   * @param mapPointTypeRequest The request data containing the updated information
+   * @return The updated MapPointType
+   * @throws EntityNotFoundException If no MapPointType with the specified ID exists
+   */
   public MapPointTypeResponse updateMapPointType(Long id,
       UpdateMapPointTypeRequest mapPointTypeRequest) {
 
@@ -63,6 +87,12 @@ public class MapPointTypeService {
     return mapPointTypeRepository.save(mapPointType).toResponse();
   }
 
+  /**
+   * Deletes a MapPointType by its ID.
+   *
+   * @param id The ID of the MapPointType to delete
+   * @throws EntityNotFoundException If no MapPointType with the specified ID exists
+   */
   public void deleteMapPointType(Long id) {
     if (!mapPointTypeRepository.existsById(id)) {
       throw new EntityNotFoundException("MapPointType not found with id: " + id);
