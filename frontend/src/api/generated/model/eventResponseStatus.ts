@@ -8,7 +8,7 @@
 
 export type EventResponseStatus = (typeof EventResponseStatus)[keyof typeof EventResponseStatus]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const EventResponseStatus = {
   UPCOMING: 'UPCOMING',
   ONGOING: 'ONGOING',
