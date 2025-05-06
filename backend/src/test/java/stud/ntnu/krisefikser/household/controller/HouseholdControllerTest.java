@@ -27,7 +27,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
+import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
+import stud.ntnu.krisefikser.household.dto.GuestResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdMemberResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
@@ -55,9 +57,12 @@ class HouseholdControllerTest {
 
   private UUID householdId;
   private UUID userId;
+  private UUID guestId;
   private HouseholdResponse testHouseholdResponse;
   private CreateHouseholdRequest createHouseholdRequest;
   private JoinHouseholdRequest joinHouseholdRequest;
+  private CreateGuestRequest createGuestRequest;
+  private GuestResponse guestResponse;
   private UserResponse ownerResponse;
   private List<HouseholdResponse> householdResponses;
 
@@ -65,6 +70,7 @@ class HouseholdControllerTest {
   void setUp() {
     householdId = UUID.randomUUID();
     userId = UUID.randomUUID();
+    guestId = UUID.randomUUID();
 
     ownerResponse = new UserResponse(
         userId,
@@ -79,16 +85,25 @@ class HouseholdControllerTest {
     HouseholdMemberResponse memberResponse = new HouseholdMemberResponse(
         ownerResponse);
 
-    testHouseholdResponse = new HouseholdResponse(
-        householdId,
-        "Test Household",
-        63.4305,
-        10.3951,
-        "Test Address",
-        ownerResponse,
-        Collections.singletonList(memberResponse),
-        LocalDateTime.now(),
-        true);
+    guestResponse = GuestResponse.builder()
+        .id(guestId)
+        .name("Test Guest")
+        .icon("person")
+        .consumptionMultiplier(1.0)
+        .build();
+
+    testHouseholdResponse = HouseholdResponse.builder()
+        .id(householdId)
+        .name("Test Household")
+        .latitude(63.4305)
+        .longitude(10.3951)
+        .address("Test Address")
+        .owner(ownerResponse)
+        .members(Collections.singletonList(memberResponse))
+        .guests(Collections.singletonList(guestResponse))
+        .createdAt(LocalDateTime.now())
+        .isActive(true)
+        .build();
 
     createHouseholdRequest = CreateHouseholdRequest.builder()
         .name("New Household")
@@ -97,6 +112,12 @@ class HouseholdControllerTest {
         .postalCode("54321")
         .latitude(63.4305)
         .longitude(10.3951)
+        .build();
+
+    createGuestRequest = CreateGuestRequest.builder()
+        .name("New Guest")
+        .icon("person")
+        .consumptionMultiplier(1.2)
         .build();
 
     joinHouseholdRequest = new JoinHouseholdRequest(householdId);
@@ -116,7 +137,9 @@ class HouseholdControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$[0].id").value(householdId.toString()))
         .andExpect(jsonPath("$[0].name").value("Test Household"))
-        .andExpect(jsonPath("$[0].address").value("Test Address"));
+        .andExpect(jsonPath("$[0].address").value("Test Address"))
+        .andExpect(jsonPath("$[0].guests[0].id").value(guestId.toString()))
+        .andExpect(jsonPath("$[0].guests[0].name").value("Test Guest"));
   }
 
   @Test
@@ -127,9 +150,9 @@ class HouseholdControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/households/join")
-        .with(SecurityMockMvcRequestPostProcessors.csrf())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(householdId.toString()))
@@ -144,9 +167,9 @@ class HouseholdControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/households/active")
-        .with(SecurityMockMvcRequestPostProcessors.csrf())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(householdId.toString()))
@@ -167,7 +190,9 @@ class HouseholdControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(householdId.toString()))
         .andExpect(jsonPath("$.name").value("Test Household"))
-        .andExpect(jsonPath("$.active").value(true));
+        .andExpect(jsonPath("$.active").value(true))
+        .andExpect(jsonPath("$.guests[0].id").value(guestId.toString()))
+        .andExpect(jsonPath("$.guests[0].name").value("Test Guest"));
   }
 
   @Test
@@ -178,9 +203,9 @@ class HouseholdControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/households/leave")
-        .with(SecurityMockMvcRequestPostProcessors.csrf())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(joinHouseholdRequest)))
         .andExpect(status().isOk());
   }
 
@@ -204,12 +229,46 @@ class HouseholdControllerTest {
 
     // Act & Assert
     mockMvc.perform(post("/api/households")
-        .with(SecurityMockMvcRequestPostProcessors.csrf())
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createHouseholdRequest)))
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(createHouseholdRequest)))
         .andExpect(status().isCreated())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(householdId.toString()))
         .andExpect(jsonPath("$.name").value("Test Household"));
+  }
+
+  @Test
+  @WithMockUser
+  void addGuestToHousehold_ShouldAddGuestAndReturnHousehold() throws Exception {
+    // Arrange
+    when(householdService.addGuestToHousehold(any(CreateGuestRequest.class)))
+        .thenReturn(testHouseholdResponse);
+
+    // Act & Assert
+    mockMvc.perform(post("/api/households/guests")
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(createGuestRequest)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(householdId.toString()))
+        .andExpect(jsonPath("$.guests[0].id").value(guestId.toString()))
+        .andExpect(jsonPath("$.guests[0].name").value("Test Guest"));
+  }
+
+  @Test
+  @WithMockUser
+  void removeGuestFromHousehold_ShouldRemoveGuestAndReturnHousehold() throws Exception {
+    // Arrange
+    when(householdService.removeGuestFromHousehold(guestId))
+        .thenReturn(testHouseholdResponse);
+
+    // Act & Assert
+    mockMvc.perform(delete("/api/households/guests/{guestId}", guestId)
+            .with(SecurityMockMvcRequestPostProcessors.csrf()))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(householdId.toString()));
   }
 }

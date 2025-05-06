@@ -1,52 +1,48 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import NonRegisteredHomeView from "@/views/nonRegistered/HomeView.vue";
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 
 // Auth views
-import LoginView from "@/views/auth/LoginView.vue";
-import ResetPasswordView from "@/views/auth/ResetPasswordView.vue";
+import LoginView from "@/views/auth/login/LoginView.vue";
+import ResetPasswordView from "@/views/auth/password/ResetPasswordView.vue";
 
 // Error views
 import NotFoundView from "@/views/errors/NotFoundView.vue";
 
 // Admin views
-import AdminDashboardView from "@/views/admin/AdminDashboardView.vue";
-import AdminMapView from "@/views/admin/AdminMapView.vue";
-import AdminResetPasswordLink from "@/views/admin/AdminResetPasswordLink.vue";
-import AdminRegisterView from '@/views/admin/AdminRegisterView.vue';
-import AdminScenariosView from '@/views/admin/ScenariosView.vue';
-import AdminGamificationView from '@/views/admin/GamificationView.vue';
+import AdminDashboardView from "@/views/admin/dashboard/AdminDashboardView.vue";
+import AdminMapView from "@/views/admin/map/AdminMapView.vue";
+import AdminResetPasswordLink from "@/views/admin/resetPassword/AdminResetPasswordLink.vue";
+import AdminRegisterView from '@/views/admin/register/AdminRegisterView.vue';
+import AdminScenariosView from '@/views/admin/scenario/ScenariosView.vue';
+import AdminGamificationView from '@/views/admin/gamification/GamificationView.vue';
 
 import ManageAdminsView from "@/views/admin/ManageAdminsView.vue";
 
 // Registered User views
-import DashboardView from "@/views/registered/DashboardView.vue";
-import AddItemView from "@/views/registered/AddItemView.vue";
-import HouseholdView from "@/views/registered/HouseholdView.vue";
-import HouseholdDetailsView from "@/views/registered/HouseholdDetailsView.vue";
-import HouseholdInventoryView from "@/views/registered/HouseholdInventoryView.vue";
-import InviteView from "@/views/registered/InviteView.vue";
-import SearchView from "@/views/registered/SearchView.vue";
-import HomeAddressView from "@/views/registered/HomeAddressView.vue";
-import NewHouseholdView from "@/views/registered/NewHousehold.vue";
-import NotificationsPage from '@/views/registered/notification/NotificationView.vue';
+import DashboardView from "@/views/registered/dashboard/DashboardView.vue";
+import HouseholdView from "@/views/registered/household/HouseholdView.vue";
+import HouseholdDetailsView from "@/views/registered/household/HouseholdDetailsView.vue";
+import HouseholdInventoryView from "@/views/registered/inventory/HouseholdInventoryView.vue";
+import HomeAddressView from "@/views/registered/household/HomeAddressView.vue";
+import NewHouseholdView from "@/views/registered/household/NewHousehold.vue";
 // Non-Registered User views
-import JoinOrCreateHouseholdView from "@/views/nonRegistered/JoinOrCreateHouseholdView.vue";
-import MapView from "@/views/nonRegistered/MapView.vue";
-import RegisterView from "@/views/nonRegistered/RegisterView.vue";
-import PrivacyPolicyView from "@/views/nonRegistered/PrivacyPolicyView.vue";
-import NewsView from "@/views/nonRegistered/NewsView.vue";
-import ArticleView from "@/views/nonRegistered/ArticleView.vue";
-import AboutUsView from "@/views/nonRegistered/AboutUsView.vue";
-import ForgotPasswordView from "@/views/auth/ForgotPasswordView.vue";
+import JoinOrCreateHouseholdView from "@/views/nonRegistered/household/JoinOrCreateHouseholdView.vue";
+import MapView from "@/views/nonRegistered/map/MapView.vue";
+import RegisterView from "@/views/auth/register/RegisterView.vue";
+import PrivacyPolicyView from "@/views/nonRegistered/static/PrivacyPolicyView.vue";
+import NewsView from "@/views/nonRegistered/news/NewsView.vue";
+import ArticleView from "@/views/nonRegistered/news/ArticleView.vue";
+import AboutUsView from "@/views/nonRegistered/static/AboutUsView.vue";
+import ForgotPasswordView from "@/views/auth/password/ForgotPasswordView.vue";
 
 // Crisis Information views
 import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
 import DuringCrisisView from "@/views/nonRegistered/info/DuringCrisisView.vue";
 import AfterCrisisView from "@/views/nonRegistered/info/AfterCrisisView.vue";
 
-import ScenariosListView from '@/views/nonRegistered/ScenariosListView.vue';
-import ScenarioDetailView from '@/views/nonRegistered/ScenarioDetailView.vue';
+import ScenariosListView from '@/views/nonRegistered/scenario/ScenariosListView.vue';
+import ScenarioDetailView from '@/views/nonRegistered/scenario/ScenarioDetailView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -128,12 +124,7 @@ const router = createRouter({
       component: DashboardView,
       meta: { requiresAuth: true }
     },
-    {
-      path: '/legg-til-vare',
-      name: 'add-item',
-      component: AddItemView,
-      meta: { requiresAuth: true }
-    },
+
     {
       path: '/husstand',
       name: 'household',
@@ -152,18 +143,6 @@ const router = createRouter({
       component: HouseholdInventoryView,
     },
 
-    {
-      path: '/inviter-medlemmer',
-      name: 'invite',
-      component: InviteView,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/sok',
-      name: 'search',
-      component: SearchView,
-      meta: { requiresAuth: true }
-    },
     {
       path: '/adresse',
       name: 'home-address',
@@ -238,15 +217,6 @@ const router = createRouter({
       path: '/scenario/:id',
       name: 'scenario-detail',
       component: ScenarioDetailView,
-    },
-
-    {
-      path: '/varsler',
-      name: 'Notifications',
-      component: NotificationsPage,
-      meta: {
-        requiresAuth: true
-      }
     },
 
     // Error routes - must be last

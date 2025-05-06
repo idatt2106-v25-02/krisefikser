@@ -1,4 +1,4 @@
-import type { useAuthStore } from '@/stores/useAuthStore'
+import type { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 
 let storeRef: ReturnType<typeof useAuthStore> | null = null
 
