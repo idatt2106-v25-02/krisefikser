@@ -38,6 +38,7 @@ import NewsView from "@/views/nonRegistered/NewsView.vue";
 import ArticleView from "@/views/nonRegistered/ArticleView.vue";
 import AboutUsView from "@/views/nonRegistered/AboutUsView.vue";
 import ForgotPasswordView from "@/views/auth/ForgotPasswordView.vue";
+import VerifyEmailView from "@/views/auth/VerifyEmailView.vue";
 
 // Crisis Information views
 import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
@@ -186,6 +187,11 @@ const router = createRouter({
       path: '/registrer',
       name: 'register',
       component: RegisterView,
+    },
+    {
+      path: '/bekreft-e-post',
+      name: 'verify-email',
+      component: VerifyEmailView,
     },
     {
       path: '/personvern',

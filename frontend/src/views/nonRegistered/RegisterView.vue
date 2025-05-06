@@ -95,7 +95,7 @@ const onSubmit = handleSubmit(async (values) => {
       description: 'Kontoen din er opprettet og du er nå logget inn',
       variant: 'default',
     })
-    await router.push('/dashboard');
+    await router.push('/bekreft-e-post');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     toast({
@@ -283,6 +283,7 @@ onUnmounted(() => {
       <!-- Cloudflare Turnstile -->
       <div id="turnstile"></div>
 
+      <h2>{{captchaToken}}</h2>
       <!-- Submit button -->
       <Button
         type="submit"

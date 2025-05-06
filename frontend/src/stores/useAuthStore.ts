@@ -94,6 +94,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await registerMutation({ data })
 
+/*
       // After successful registration, log the user in automatically
       if (response.accessToken) {
         // Store tokens directly from registration response
@@ -111,6 +112,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         // Removed automatic redirection
       }
+*/
 
       return response
     } catch (error) {
