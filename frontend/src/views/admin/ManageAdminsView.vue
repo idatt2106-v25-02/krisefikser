@@ -37,10 +37,10 @@ import {
 } from '@/components/ui/alert';
 
 // Import custom components
-import EditHouseholdDialog from '@/components/admin/EditHouseholdDialog.vue';
-import AddMemberDialog from '@/components/admin/AddMemberDialog.vue';
-import HouseholdList from '@/components/admin/HouseholdList.vue';
-import UserSelect from '@/components/admin/UserSelect.vue';
+import EditHouseholdDialog from '@/components/admin/event/EditHouseholdDialog.vue';
+import AddMemberDialog from '@/components/admin/users/AddMemberDialog.vue';
+import HouseholdList from '@/components/admin/users/HouseholdList.vue';
+import UserSelect from '@/components/admin/users/UserSelect.vue';
 
 // Import API hooks
 import { useGetAllUsers, useDeleteUser, useUpdateUser } from '@/api/generated/user/user';

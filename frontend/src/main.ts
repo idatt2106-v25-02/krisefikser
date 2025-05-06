@@ -7,9 +7,9 @@ import App from './App.vue'
 import router from './router'
 import { setupVueQuery } from './plugins/vue-query'
 import { WebSocketService } from '@/api/websocket/WebSocketService.ts'
-import accessibilityPlugin from './plugins/accessibility'
-import posthogPlugin from './plugins/posthog'
-import { useAuthStore } from './stores/useAuthStore'
+import accessibilityPlugin from './plugins/tts/accessibility.ts'
+import posthogPlugin from './plugins/docs/posthog.ts'
+import { useAuthStore } from './stores/auth/useAuthStore.ts'
 import { setStoreRef } from './api/storeRef'
 const app = createApp(App)
 export const webSocket = new WebSocketService()

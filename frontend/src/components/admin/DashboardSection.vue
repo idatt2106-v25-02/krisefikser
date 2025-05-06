@@ -5,12 +5,12 @@ import { Map, AlertTriangle, BookOpen, Trophy, Mail, ArrowRight } from 'lucide-v
 
 // Import shadcn Button component
 import { Button } from '@/components/ui/button';
-import { useGetAllEvents } from '@/api/generated/event/event';
-import { useGetAllMapPoints } from '@/api/generated/map-point/map-point';
-import { useGetAllScenarios } from '@/api/generated/scenario/scenario';
-import type { EventResponse as Event, EventResponseLevel as EventLevel, MapPointResponse as MapPoint } from '@/api/generated/model/index';
+import { useGetAllEvents } from '@/api/generated/event/event.ts';
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts';
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts';
+import type { EventResponse as Event, EventResponseLevel as EventLevel, MapPointResponse as MapPoint } from '@/api/generated/model';
 import { RouterLink as Link } from 'vue-router';
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 
 defineEmits(['navigateToMap'])
 
