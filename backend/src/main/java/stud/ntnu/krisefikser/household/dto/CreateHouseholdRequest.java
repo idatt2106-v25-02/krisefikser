@@ -1,7 +1,6 @@
 package stud.ntnu.krisefikser.household.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,19 +37,7 @@ public class CreateHouseholdRequest {
    * @return a Household entity with the same data as this DTO
    */
   public Household toEntity(User owner) {
-    return toEntity(owner, null);
-  }
-
-  /**
-   * Converts this DTO to a Household entity with a specified ID.
-   *
-   * @param owner       the owner of the household
-   * @param householdId the ID of the household
-   * @return a Household entity with the same data as this DTO and the specified ID
-   */
-  public Household toEntity(User owner, UUID householdId) {
     return Household.builder()
-        .id(householdId)
         .name(name)
         .owner(owner)
         .latitude(latitude)

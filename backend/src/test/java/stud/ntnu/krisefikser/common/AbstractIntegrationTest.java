@@ -309,25 +309,4 @@ public abstract class AbstractIntegrationTest {
     }
     return getTestUser().getActiveHousehold();
   }
-
-  private Map<String, String> getPostResponse(String uri, String body) {
-    try {
-      String responseContent = mockMvc.perform(
-              post(uri)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(body))
-          .andExpect(status().isOk())
-          .andReturn()
-          .getResponse()
-          .getContentAsString();
-
-      // Parse response and extract token
-      return objectMapper.readValue(responseContent,
-          new TypeReference<>() {
-          });
-    } catch (Exception e) {
-      log.error("Failed to parse response", e);
-      throw new RuntimeException("Failed to parse response", e);
-    }
-  }
 }
