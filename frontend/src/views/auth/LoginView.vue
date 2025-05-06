@@ -94,8 +94,9 @@ const getLoginErrorMessage = (error: ApiError) => {
         if (minutesRemaining > 0) {
           return `Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen om ${minutesRemaining} minutt${minutesRemaining === 1 ? '' : 'er'}.`
         }
-      } catch (e) {
+      } catch (_e) {
         // If parsing fails, just use the generic message
+        return 'Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen senere.'
       }
     }
     return 'Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen senere.'
