@@ -22,7 +22,7 @@ const _props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'addItem', item: WaterItem): void
+  (e: 'add-item', item: WaterItem): void
 }>()
 
 // Form validation schema
@@ -49,7 +49,7 @@ function onSubmit(values: WaterItem) {
     amount: values.amount,
     unit: 'L', // Fixed unit for water
   }
-  emit('addItem', newItem)
+  emit('add-item', newItem)
   emit('close')
 }
 </script>

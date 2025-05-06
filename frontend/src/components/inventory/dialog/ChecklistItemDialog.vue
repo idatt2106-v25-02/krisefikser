@@ -37,7 +37,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'addItem', items: ChecklistItem[]): void
+  (e: 'add-item', item: any): void
 }>()
 
 // Predefined checklist items based on DSB's recommendations
@@ -97,16 +97,15 @@ const { handleSubmit } = useForm<FormValues>({
 })
 
 function onSubmit(values: FormValues): void {
-  // Only emit checked items
-  const checkedItems = values.items
-    .filter((item) => item.isChecked)
-    .map((item) => ({
+  // Emit an add-item event for each checked item
+  values.items.filter(item => item.isChecked).forEach(item => {
+    const newItem = {
       id: crypto.randomUUID(),
       name: item.name,
-      isChecked: true,
-    }))
-
-  emit('addItem', checkedItems)
+      checked: false,
+    }
+    emit('add-item', newItem)
+  })
   emit('close')
 }
 </script>

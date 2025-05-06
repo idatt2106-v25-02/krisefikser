@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { FunctionalComponent } from 'vue';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth/useAuthStore' // For enabling queries
@@ -28,9 +28,14 @@ import {
   useGetInventorySummary,
   useGetAllFoodItems,
   useGetAllChecklistItems,
-  getGetInventorySummaryQueryKey, // For invalidation if needed
-  getGetAllFoodItemsQueryKey,     // For invalidation if needed
-  getGetAllChecklistItemsQueryKey // For invalidation if needed
+  getGetInventorySummaryQueryKey,
+  getGetAllFoodItemsQueryKey,
+  getGetAllChecklistItemsQueryKey,
+  useCreateFoodItem,
+  useToggleChecklistItem,
+  useUpdateFoodItem,
+  useDeleteFoodItem,
+  useSetWaterAmount
 } from '@/api/generated/item/item'
 import type {
   InventorySummaryResponse,
@@ -160,28 +165,28 @@ const formattedInventory = computed<FormattedInventory>(() => {
       food: { current: 0, target: 0, unit: 'kcal' },
       water: { current: 0, target: 0, unit: 'L' },
       other: { current: 0, target: 0 },
-      preparedDays: 0, // Mocked for now
-      targetDays: 7,   // Mocked for now
+      preparedDays: 0,
+      targetDays: 7,
     };
   }
 
   return {
     food: {
-      current: inventorySummary.value.kcal || 0,
-      target: inventorySummary.value.kcalGoal || 0, // Assuming kcalGoal exists
+      current: inventorySummary.value.kcal ?? 0,
+      target: inventorySummary.value.kcalGoal ?? 0,
       unit: 'kcal',
     },
     water: {
-      current: inventorySummary.value.waterLiters || 0,
-      target: inventorySummary.value.waterLitersGoal || 0, // Assuming waterLitersGoal exists
+      current: inventorySummary.value.waterLiters ?? 0,
+      target: inventorySummary.value.waterLitersGoal ?? 0,
       unit: 'L',
     },
-    other: { // Represents checklist items summary
-      current: inventorySummary.value.checkedItems || 0,
-      target: inventorySummary.value.totalItems || 0,
+    other: {
+      current: inventorySummary.value.checkedItems ?? 0,
+      target: inventorySummary.value.totalItems ?? 0,
     },
-    preparedDays: 0, // Not in InventorySummaryResponse, needs to be calculated or removed
-    targetDays: 7,   // Not in InventorySummaryResponse, needs to be set differently or removed
+    preparedDays: 0,
+    targetDays: 7,
   };
 });
 
@@ -195,48 +200,51 @@ const displayedCategories = computed<Category[]>(() => {
       id: 'food',
       name: 'Mat',
       icon: Utensils,
-      current: inventorySummary.value.kcal || 0,
-      target: inventorySummary.value.kcalGoal || 0,
+      current: inventorySummary.value.kcal ?? 0,
+      target: inventorySummary.value.kcalGoal ?? 0,
       unit: 'kcal',
-      items: foodItems.value.map(fi => ({
-        id: fi.id,
-        name: fi.name,
-        kcal: fi.kcal,
-        expiryDate: fi.expirationDate ? new Date(fi.expirationDate).toISOString().split('T')[0] : null,
-        iconName: fi.icon,
-        // amount & unit for food items are not directly available from FoodItemResponse
-        // We might display kcal or a count. For now, leave them out or use placeholder.
-        amount: fi.kcal || 0, // Or 1 if each item is a single unit
-        unit: 'kcal', // Or 'stk'
-      })),
+      items: foodItems.value.map((fi: FoodItemResponse) => {
+        console.log('HouseholdInventoryView: Mapping food item for display. fi.expirationDate:', fi.expirationDate, 'Type:', typeof fi.expirationDate, 'Item name:', fi.name);
+        
+        let dateInputForProcessing: string | number | undefined = fi.expirationDate;
+        if (typeof fi.expirationDate === 'number') {
+          dateInputForProcessing = fi.expirationDate * 1000; // Convert seconds to milliseconds
+          console.log('HouseholdInventoryView: Converted numeric timestamp to milliseconds:', dateInputForProcessing, 'Item name:', fi.name);
+        }
+        
+        const processedExpiryDate = dateInputForProcessing ? new Date(dateInputForProcessing).toISOString().split('T')[0] : null;
+        console.log('HouseholdInventoryView: Processed expiryDate for display mapping:', processedExpiryDate, 'Item name:', fi.name);
+        return {
+          id: fi.id,
+          name: fi.name,
+          kcal: fi.kcal,
+          expiryDate: processedExpiryDate,
+          iconName: fi.icon,
+          amount: fi.kcal ?? 0,
+          unit: 'kcal',
+        };
+      }),
     });
   } else {
-     categories.push({ id: 'food', name: 'Mat', icon: Utensils, current: 0, target: 0, unit: 'kcal', items: [] });
+    categories.push({ id: 'food', name: 'Mat', icon: Utensils, current: 0, target: 0, unit: 'kcal', items: [] });
   }
 
-
-  // Water Category (Data primarily from summary)
+  // Water Category
   if (inventorySummary.value) {
-      categories.push({
+    categories.push({
       id: 'water',
       name: 'Vann',
       icon: Droplet,
-      current: inventorySummary.value.waterLiters || 0,
-      target: inventorySummary.value.waterLitersGoal || 0,
+      current: inventorySummary.value.waterLiters ?? 0,
+      target: inventorySummary.value.waterLitersGoal ?? 0,
       unit: 'L',
-      items: [
-        // Backend doesn't provide individual water items, only total.
-        // We can create a conceptual item or leave this empty and rely on summary.
-        // { id: 'water-total', name: 'Totalt Vann', amount: inventorySummary.value.waterLiters || 0, unit: 'L'}
-      ],
+      items: [],
     });
   } else {
     categories.push({ id: 'water', name: 'Vann', icon: Droplet, current: 0, target: 0, unit: 'L', items: [] });
   }
 
-  // Checklist Item Categories (Health, Power, Comm, Misc)
-  // This requires a strategy to map checklistItems to these categories.
-  // For now, let's create placeholder categories.
+  // Checklist Item Categories
   const checklistCategoryMapping: Record<string, { name: string; icon: FunctionalComponent }> = {
     health: { name: 'Helse & hygiene', icon: Ambulance },
     power: { name: 'Lys og strøm', icon: Zap },
@@ -245,46 +253,83 @@ const displayedCategories = computed<Category[]>(() => {
   };
 
   if (checklistItems.value) {
-    // Example: Group by a hypothetical 'type' or 'icon' property if available on ChecklistItemResponse,
-    // or implement a more sophisticated mapping.
-    // This is a simplified placeholder.
-    const tempChecklistItems: InventoryItem[] = checklistItems.value.map(ci => ({
-      id: ci.id,
-      name: ci.name,
-      checked: ci.checked,
-      iconName: ci.icon,
-      amount: ci.checked ? 1 : 0, // Represent as 1 if checked, for conceptual count
-      unit: 'stk',
-    }));
+    // Group items by their category based on icon/type
+    const categorizedItems: Record<string, InventoryItem[]> = {
+      health: [],
+      power: [],
+      comm: [],
+      misc: [],
+    };
 
-    // For now, lump all checklist items into 'misc' or distribute based on a strategy (e.g. item.icon)
-     categories.push({
-      id: 'misc',
-      name: 'Diverse Sjekkliste',
-      icon: Package,
-      current: inventorySummary.value?.checkedItems || 0,
-      target: inventorySummary.value?.totalItems || 0,
-      unit: 'stk',
-      items: tempChecklistItems,
+    checklistItems.value.forEach((ci: ChecklistItemResponse) => {
+      const item: InventoryItem = {
+        id: ci.id,
+        name: ci.name,
+        checked: ci.checked,
+        iconName: ci.icon,
+        amount: ci.checked ? 1 : 0,
+        unit: 'stk',
+      };
+
+      // Determine category based on icon/type
+      if (ci.icon?.toLowerCase().includes('health') ||
+          ci.icon?.toLowerCase().includes('medical') ||
+          ci.icon?.toLowerCase().includes('ambulance') ||
+          ci.name.toLowerCase().includes('medisin') ||
+          ci.name.toLowerCase().includes('førstehjelp') ||
+          ci.name.toLowerCase().includes('hygiene')) {
+        categorizedItems.health.push(item);
+      } else if (ci.icon?.toLowerCase().includes('power') ||
+                 ci.icon?.toLowerCase().includes('light') ||
+                 ci.icon?.toLowerCase().includes('battery') ||
+                 ci.name.toLowerCase().includes('strøm') ||
+                 ci.name.toLowerCase().includes('lys') ||
+                 ci.name.toLowerCase().includes('batteri')) {
+        categorizedItems.power.push(item);
+      } else if (ci.icon?.toLowerCase().includes('phone') ||
+                 ci.icon?.toLowerCase().includes('radio') ||
+                 ci.icon?.toLowerCase().includes('communication') ||
+                 ci.name.toLowerCase().includes('telefon') ||
+                 ci.name.toLowerCase().includes('radio') ||
+                 ci.name.toLowerCase().includes('kommunikasjon')) {
+        categorizedItems.comm.push(item);
+      } else {
+        categorizedItems.misc.push(item);
+      }
     });
-    // TODO: Implement proper categorization for Health, Power, Comm based on checklistItems data
-  } else {
+
+    // Create categories with their respective items
     Object.entries(checklistCategoryMapping).forEach(([key, val]) => {
-       categories.push({ id: key, name: val.name, icon: val.icon, current: 0, target: 0, unit: 'stk', items: [] });
+      const items = categorizedItems[key];
+      if (items.length > 0) {
+        categories.push({
+          id: key,
+          name: val.name,
+          icon: val.icon,
+          current: items.filter(item => item.checked).length,
+          target: items.length,
+          unit: 'stk',
+          items: items,
+        });
+      }
+    });
+  } else {
+    // If no items, create empty categories
+    Object.entries(checklistCategoryMapping).forEach(([key, val]) => {
+      categories.push({ id: key, name: val.name, icon: val.icon, current: 0, target: 0, unit: 'stk', items: [] });
     });
   }
-
 
   return categories;
 });
 
 const membersAndGuests = computed(() => {
-  if (!household.value) return []
+  if (!household.value) return [];
   return [
-    ...((household.value.members || []).map(m => ({ type: 'member', data: m }))),
-    ...((household.value.guests || []).map(g => ({ type: 'guest', data: g })))
-  ]
-})
+    ...((household.value.members ?? []).map(m => ({ type: 'member' as const, data: m }))),
+    ...((household.value.guests ?? []).map(g => ({ type: 'guest' as const, data: g })))
+  ];
+});
 
 // --- Mock data removal and old computed properties ---
 // const apiResponse = ref<ApiResponse>({ ... }); // REMOVE THIS MOCK
@@ -292,33 +337,34 @@ const membersAndGuests = computed(() => {
 // --- End mock data removal ---
 
 function navigateToHousehold(): void {
-  // TODO: Ensure householdId.value is the actual ID for navigation
-  router.push(`/husstand/${householdId.value}`)
+  if (household.value?.id) {
+    router.push(`/husstand/${household.value.id}`);
+  }
 }
 
 function openAddItemDialog(categoryId: string, categoryName: string): void {
-  selectedCategory.value = { id: categoryId, name: categoryName }
-  isAddItemDialogOpen.value = true
+  console.log('openAddItemDialog called with:', categoryId, categoryName);
+  selectedCategory.value = { id: categoryId, name: categoryName };
+  isAddItemDialogOpen.value = true;
+  console.log('selectedCategory:', selectedCategory.value);
+  console.log('isAddItemDialogOpen:', isAddItemDialogOpen.value);
 }
 
 function getDialogComponent(
   categoryId: string
 ): typeof WaterItemDialog | typeof FoodItemDialog | typeof ChecklistItemDialog | typeof MiscItemDialog | null {
-  // This logic might need adjustment based on how categories are now defined from backend data
+  console.log('getDialogComponent called with:', categoryId);
   switch (categoryId) {
     case 'water':
-      return WaterItemDialog; // Water might not have "items" to add in the same way now
+      return WaterItemDialog;
     case 'food':
       return FoodItemDialog;
-    // For checklist items, we'll need a generic dialog or specific ones if types are distinguishable
     case 'health':
     case 'power':
     case 'comm':
-    case 'misc': // Assuming 'misc' now covers all checklist items, or specific logic needed
-      return ChecklistItemDialog; // Or MiscItemDialog if more appropriate
+    case 'misc':
+      return ChecklistItemDialog;
     default:
-      // If we have dynamically created categories from checklist items, this needs to be smarter
-      // For now, if it's a checklist-derived category, use ChecklistItemDialog
       if (displayedCategories.value.find(c => c.id === categoryId && c.unit === 'stk')) {
         return ChecklistItemDialog;
       }
@@ -326,26 +372,140 @@ function getDialogComponent(
   }
 }
 
-// TODO: Update handleAddItem, deleteItem, startEdit, saveEdit to use mutation hooks
-function handleAddItem(newItem: InventoryItem): void {
-  // This needs to call a backend mutation, e.g., useCreateFoodItem or a checklist item creation hook
-  console.log('Adding item (TODO: backend integration):', newItem, 'to category:', selectedCategory.value);
+// Add mutation hooks
+const createFoodItem = useCreateFoodItem({
+  mutation: {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetAllFoodItemsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+    },
+  },
+});
 
-  // Optimistic update example (manual cache update or refetch on success)
-  // if (selectedCategory.value) {
-  //   const category = displayedCategories.value.find(c => c.id === selectedCategory.value!.id);
-  //   if (category) {
-  //     category.items.push(newItem); // This won't persist without backend
-  //   }
-  // }
+const toggleChecklistItem = useToggleChecklistItem({
+  mutation: {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetAllChecklistItemsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+    },
+  },
+});
 
-  isAddItemDialogOpen.value = false
-  selectedCategory.value = null
+const updateFoodItem = useUpdateFoodItem({
+  mutation: {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetAllFoodItemsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+    },
+  },
+});
+
+const deleteFoodItemMutation = useDeleteFoodItem({
+  mutation: {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetAllFoodItemsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+    },
+  },
+});
+
+// Add mutation hook for setting water amount
+const setWaterAmount = useSetWaterAmount({
+  mutation: {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+    },
+  },
+});
+
+// Update the handleAddItem function
+async function handleAddItem(newItem: InventoryItem): Promise<void> {
+  try {
+    console.log('HouseholdInventoryView: handleAddItem received newItem:', newItem);
+    console.log('HouseholdInventoryView: newItem.expiryDate value:', newItem.expiryDate);
+    console.log('HouseholdInventoryView: Type of newItem.expiryDate:', typeof newItem.expiryDate);
+
+    if (!household.value?.id) return;
+
+    if (selectedCategory.value?.id === 'food') {
+      const payload = {
+        data: {
+          name: newItem.name,
+          kcal: newItem.kcal ?? 0,
+          expirationDate: newItem.expiryDate ? new Date(newItem.expiryDate).toISOString() : undefined,
+          icon: newItem.iconName ?? 'utensils'
+        }
+      };
+      console.log('HouseholdInventoryView: Attempting to parse date for payload. Input to new Date():', newItem.expiryDate);
+      if (newItem.expiryDate) {
+        const dateObject = new Date(newItem.expiryDate);
+        console.log('HouseholdInventoryView: Date object created:', dateObject);
+        console.log('HouseholdInventoryView: dateObject.toISOString():', dateObject.toISOString());
+      }
+      console.log('mutating with payload:', payload);
+      await createFoodItem.mutateAsync(payload);
+    } else {
+      // For checklist items (health, power, comm, misc)
+      await toggleChecklistItem.mutateAsync({
+        id: newItem.id
+      });
+    }
+
+    isAddItemDialogOpen.value = false;
+    selectedCategory.value = null;
+  } catch (error) {
+    console.error('Error adding item:', error);
+    // TODO: Add proper error handling/notification
+  }
 }
 
-function deleteItem(categoryId: string, itemId: string): void {
-  // This needs to call useDeleteFoodItem or a checklist item deletion hook
-  console.log(`Deleting item with ID ${itemId} from category ${categoryId} (TODO: backend integration)`);
+// Update the saveEdit function
+async function saveEdit(category: Category, item: InventoryItem): Promise<void> {
+  try {
+    if (category.id === 'food') {
+      await updateFoodItem.mutateAsync({
+        id: item.id,
+        data: {
+          name: editingName.value,
+          kcal: editingAmount.value ?? 0,
+          expirationDate: item.expiryDate ? new Date(item.expiryDate).toISOString() : undefined,
+          icon: item.iconName ?? 'utensils'
+        }
+      });
+    } else {
+      // For checklist items
+      await toggleChecklistItem.mutateAsync({
+        id: item.id
+      });
+    }
+    cancelEdit();
+  } catch (error) {
+    console.error('Error updating item:', error);
+  }
+}
+
+// Update the deleteItem function
+async function deleteItem(categoryId: string, itemId: string): Promise<void> {
+  try {
+    if (categoryId === 'food') {
+      // This function will now handle the confirmation and deletion directly
+      // So this console.warn and return can be removed or adapted
+      // For now, let promptDeleteFoodItem handle it entirely
+      console.warn("Direct deletion of food item attempted via deleteItem, should use promptDeleteFoodItem or refactor.");
+      return;
+    } else {
+      // For checklist items, we'll use the same toggle mutation
+      await toggleChecklistItem.mutateAsync({ id: itemId });
+    }
+  } catch (error) {
+    console.error('Error deleting item:', error);
+  }
+}
+
+function saveEditWater() {
+  if (editingWaterAmount.value !== null) {
+    setWaterAmount.mutate({ amount: editingWaterAmount.value });
+  }
 }
 
 const originalCategoriesState = ref<string[]>([])
@@ -388,8 +548,7 @@ const editingAmount = ref<number | null>(null) // For food, this might be kcal o
 function startEdit(item: InventoryItem): void {
   editingItemId.value = item.id
   editingName.value = item.name
-  // For food, if we edit kcal directly:
-  editingAmount.value = item.kcal ?? (item.amount || 0) ; // Adapt based on what's being edited
+  editingAmount.value = item.kcal ?? (item.amount ?? 0)
 }
 
 function cancelEdit(): void {
@@ -398,15 +557,32 @@ function cancelEdit(): void {
   editingAmount.value = null
 }
 
-function saveEdit(category: Category, item: InventoryItem): void {
-  // This needs to call useUpdateFoodItem or a checklist item update hook
-  console.log('Saving edit (TODO: backend integration):', item, 'in category:', category);
-  // const idx = category.items.findIndex((i) => i.id === item.id)
-  // if (idx !== -1) {
-    // category.items[idx].name = editingName.value
-    // category.items[idx].amount = editingAmount.value as number // Adapt for kcal etc.
-  // }
-  cancelEdit()
+// Add a ref for editing water amount
+const editingWaterAmount = ref<number | null>(null)
+
+function startEditWater(currentAmount: number) {
+  editingWaterAmount.value = currentAmount
+}
+
+// When expanding the water category, initialize the editingWaterAmount
+watch(expandedCategories, (newVal) => {
+  const waterCategory = displayedCategories.value.find(c => c.id === 'water')
+  if (newVal.includes('water') && waterCategory) {
+    editingWaterAmount.value = waterCategory.current
+  }
+})
+
+// Updated function for food item deletion confirmation using window.confirm
+async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
+  if (window.confirm(`Er du sikker på at du vil slette matvaren "${item.name}"?`)) {
+    try {
+      await deleteFoodItemMutation.mutateAsync({ id: item.id });
+      // Optionally, add a success toast here if desired
+    } catch (error) {
+      console.error('Error deleting food item after confirmation:', error);
+      // Optionally, show an error toast here
+    }
+  }
 }
 </script>
 
@@ -452,7 +628,7 @@ function saveEdit(category: Category, item: InventoryItem): void {
             <ul class="space-y-4 max-h-40 overflow-y-auto pr-2">
               <li v-for="person in membersAndGuests" :key="person.type === 'member' ? (person.data as HouseholdMemberResponse).user?.id : (person.data as GuestResponse).id" class="flex items-center p-4 bg-gray-50 rounded">
                 <div class="h-12 w-12 rounded-full flex items-center justify-center mr-4"
-                  :class="person.type === 'member' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'">
+                     :class="person.type === 'member' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'">
                   <span class="font-bold">
                     {{ person.type === 'member' ? ((person.data as HouseholdMemberResponse).user?.firstName?.[0] ?? '?') : ((person.data as GuestResponse).name?.[0]?.toUpperCase() ?? 'G') }}
                   </span>
@@ -529,101 +705,121 @@ function saveEdit(category: Category, item: InventoryItem): void {
                 <!-- Category items -->
                 <div v-if="expandedCategories.includes(category.id)">
                   <div class="divide-y divide-gray-100">
-                    <!-- Individual items -->
-                    <div
-                      v-for="item in category.items"
-                      :key="item.id"
-                      :id="`item-${item.id}`"
-                      class="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors duration-200"
-                    >
-                      <div class="flex items-center">
-                        <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
-                        <template v-if="category.id === 'misc' && editingItemId === item.id && item.amount !== undefined && !item.expiryDate">
-                          <input v-model="editingName" class="border rounded px-2 py-1 text-sm mr-2 w-32" />
-                          <input v-model.number="editingAmount" type="number" min="0.1" step="0.1" class="border rounded px-2 py-1 text-sm w-16" />
-                        </template>
-                        <template v-else>
-                          <span
-                            class="text-xl text-gray-800"
-                            :class="{ 'cursor-pointer underline decoration-dotted': category.id === 'misc' && item.amount !== undefined && !item.expiryDate }"
-                            @click="category.id === 'misc' && item.amount !== undefined && !item.expiryDate ? startEdit(item) : null"
-                          >
-                            {{ item.name }}
-                          </span>
-                        </template>
+                    <!-- For water: show inline input and save button -->
+                    <template v-if="category.id === 'water'">
+                      <div class="flex items-center py-3 px-4">
+                        <label class="mr-4 text-lg text-gray-800">Antall liter vann:</label>
+                        <input type="number" min="0" step="0.1" v-model.number="editingWaterAmount" class="border rounded px-2 py-1 text-lg w-24 mr-4" />
+                        <button @click="saveEditWater" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-lg">Lagre</button>
                       </div>
-                      <div class="flex items-center space-x-6">
-                        <div class="text-right">
-                          <template v-if="category.id === 'misc' && editingItemId === item.id && true && !item.expiryDate">
-                            <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ editingAmount }}</span>
+                    </template>
+                    <!-- Individual items for other categories -->
+                    <template v-else>
+                      <div
+                        v-for="item in category.items"
+                        :key="item.id"
+                        :id="`item-${item.id}`"
+                        class="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
+                          <template v-if="category.id === 'food' && editingItemId === item.id">
+                            <input v-model="editingName" class="border rounded px-2 py-1 text-sm mr-2 w-32" />
+                            <input v-model.number="editingAmount" type="number" min="0.1" step="0.1" class="border rounded px-2 py-1 text-sm w-16" />
+                          </template>
+                          <template v-else-if="category.id === 'food'">
+                            <span
+                              class="text-xl text-gray-800 cursor-pointer underline decoration-dotted"
+                              @click="startEdit(item)"
+                            >
+                              {{ item.name }}
+                            </span>
+                          </template>
+                          <template v-else-if="category.id === 'water'">
+                            <span class="text-xl text-gray-800">{{ item.name }}</span>
                           </template>
                           <template v-else>
-                            <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ item.amount }} {{ item.unit }}</span>
+                            <!-- Checklist categories: show checkbox -->
+                            <input type="checkbox" :checked="item.checked" @change="toggleChecklistItem.mutateAsync({ id: item.id })" class="mr-2" />
+                            <span class="text-lg text-gray-800">{{ item.name }}</span>
                           </template>
                         </div>
-                        <template v-if="category.id === 'misc' && editingItemId === item.id && true && !item.expiryDate">
-                          <button @click="saveEdit(category, item)" class="text-green-600 hover:text-green-800 mr-2">✓</button>
-                          <button @click="cancelEdit" class="text-gray-500 hover:text-red-600">✗</button>
-                        </template>
-                        <template v-if="item.expiryDate">
-                          <div class="flex items-center">
-                            <span class="text-gray-600 mr-3 text-lg">Utløpsdato:</span>
-                            <span
-                              :class="[
-                                !item.expiryDate
-                                  ? 'text-gray-500'
-                                  : new Date(item.expiryDate) < new Date()
-                                    ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded'
-                                    : new Date(item.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                                      ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'
-                                      : 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded',
-                              ]"
-                              class="text-lg"
-                            >
-                              {{
-                                item.expiryDate
-                                  ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                  })
-                                  : 'Ingen dato'
-                              }}
-                            </span>
+                        <div class="flex items-center space-x-6">
+                          <div class="text-right">
+                            <template v-if="category.id === 'food' && editingItemId === item.id">
+                              <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ editingAmount }}</span>
+                            </template>
+                            <template v-else-if="category.id === 'food'">
+                              <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ item.amount }} {{ item.unit }}</span>
+                            </template>
+                            <!-- For water and checklist, do not show amount/unit here -->
                           </div>
-                        </template>
-                        <button
-                          class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
-                          @click="deleteItem(category.id, item.id)"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                          <template v-if="category.id === 'food' && editingItemId === item.id">
+                            <button @click="saveEdit(category, item)" class="text-green-600 hover:text-green-800 mr-2">✓</button>
+                            <button @click="cancelEdit" class="text-gray-500 hover:text-red-600">✗</button>
+                          </template>
+                          <template v-if="category.id === 'food' && item.expiryDate">
+                            <div class="flex items-center">
+                              <span class="text-gray-600 mr-3 text-lg">Utløpsdato:</span>
+                              <span
+                                :class="[
+                                  !item.expiryDate
+                                    ? 'text-gray-500'
+                                    : new Date(item.expiryDate) < new Date()
+                                      ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded'
+                                      : new Date(item.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                                        ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'
+                                        : 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded',
+                                ]"
+                                class="text-lg"
+                              >
+                                {{
+                                  item.expiryDate
+                                    ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      year: 'numeric',
+                                      timeZone: 'UTC'
+                                    })
+                                    : 'Ingen dato'
+                                }}
+                              </span>
+                            </div>
+                          </template>
+                          <button
+                            v-if="category.id === 'food'"
+                            class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
+                            @click="promptDeleteFoodItem(item)"
                           >
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                          </svg>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path d="M3 6h18"></path>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Add item button: only for food -->
+                      <div v-if="category.id === 'food'" class="p-3 bg-blue-50">
+                        <button
+                          @click="openAddItemDialog(category.id, category.name)"
+                          class="py-4 px-6 rounded-md flex items-center text-lg font-medium w-full justify-center bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <Plus class="mr-2 h-4 w-4" /> Legg til vare
                         </button>
                       </div>
-                    </div>
-
-                    <!-- Add item button -->
-                    <div class="p-3 bg-blue-50">
-                      <button
-                        @click="openAddItemDialog(category.id, category.name)"
-                        class="py-4 px-6 rounded-md flex items-center text-lg font-medium w-full justify-center bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        <Plus class="mr-2 h-4 w-4" /> Legg til vare
-                      </button>
-                    </div>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -645,3 +841,15 @@ function saveEdit(category: Category, item: InventoryItem): void {
     </div>
   </div>
 </template>
+
+<style>
+@keyframes modalShow {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-modalShow {
+  animation: modalShow 0.3s forwards;
+}
+</style>
