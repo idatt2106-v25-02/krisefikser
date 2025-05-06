@@ -58,22 +58,25 @@ public class HouseholdService {
   public HouseholdResponse toHouseholdResponse(Household household) {
     User currentUser = userService.getCurrentUser();
     List<HouseholdMember> members = householdMemberService.getMembers(household.getId());
+    List<Guest> guests = guestRepository.findByHousehold(household);
 
     boolean isActive = false;
     if (currentUser.getActiveHousehold() != null) {
       isActive = household.getId().equals(currentUser.getActiveHousehold().getId());
     }
 
-    return new HouseholdResponse(
-        household.getId(),
-        household.getName(),
-        household.getLatitude(),
-        household.getLongitude(),
-        household.getAddress(),
-        household.getOwner().toDto(),
-        members.stream().map(HouseholdMember::toDto).toList(),
-        household.getCreatedAt(),
-        isActive);
+    return HouseholdResponse.builder()
+        .id(household.getId())
+        .name(household.getName())
+        .latitude(household.getLatitude())
+        .longitude(household.getLongitude())
+        .address(household.getAddress())
+        .owner(household.getOwner().toDto())
+        .members(members.stream().map(HouseholdMember::toDto).toList())
+        .guests(guests.stream().map(Guest::toResponse).toList())
+        .createdAt(household.getCreatedAt())
+        .isActive(isActive)
+        .build();
   }
 
   /**
