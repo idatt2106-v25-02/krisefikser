@@ -183,7 +183,8 @@ const { mutate: deleteHousehold } = useDeleteHousehold({
   },
 })
 
-const { mutate: addMember } = useJoinHousehold({
+
+const { mutate: _addMember } = useJoinHousehold({
   mutation: {
     onSuccess: () => {
       refetchHousehold()
@@ -273,24 +274,6 @@ const { mutate: removeGuest, isPending: isRemovingGuest } = useRemoveGuestFromHo
   },
 })
 
-// Mock for updating household data
-const updatedHouseholdData = ref({
-  name: household.value?.name ?? '',
-  address: household.value?.address ?? '',
-  postalCode: household.value?.postalCode ?? '',
-  city: household.value?.city ?? '',
-})
-
-// Get formatted full // const getFormattedAddress = (household) => {
-//   if (!household) return '';
-
-//   const parts = [
-//     household.address,
-//     `${household.postalCode} ${household.city}`,
-//   ].filter(Boolean);
-
-//   return parts.join(', ');
-// }; for display
 
 // State for dialogs
 const isAddMemberDialogOpen = ref(false)
@@ -305,40 +288,34 @@ const { resetForm } = useForm<MemberFormValues>({
   validationSchema: memberFormSchema,
 })
 
-const { handleSubmit: submitHouseholdForm } = useForm<HouseholdFormValues>({
-  validationSchema: householdFormSchema,
-  initialValues: {
-    name: household.value?.name ?? '',
-    address: household.value?.address ?? '',
-    postalCode: household.value?.postalCode ?? '',
-    city: household.value?.city ?? '',
-  },
-})
+// If submitHouseholdForm is not used elsewhere, this entire useForm call can be removed.
+// For now, let's assume it might be used by another form or was intended for future use.
+// const { handleSubmit: submitHouseholdForm } = useForm<HouseholdFormValues>({
+//   validationSchema: householdFormSchema,
+//   initialValues: {
+//     name: household.value?.name ?? '',
+//     address: household.value?.address ?? '',
+//     postalCode: household.value?.postalCode ?? '',
+//     city: household.value?.city ?? '',
+//   },
+// });
 
 // Actions
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onMemberSubmit(values: MemberFormValues) {
-  if (!household.value) return
+// function onMemberSubmit(values: MemberFormValues) { // Assuming this was for the addMember form
+//   if (!household.value) return;
+//   addMember({
+//     data: {
+//       householdId: household.value.id ?? '',
+      // Ensure that if addMember expects other properties from MemberFormValues, they are included here
+//     },
+//   });
+// }
 
-  addMember({
-    data: {
-      householdId: household.value.id ?? '',
-    },
-  })
-}
-
-// Mock implementation for updating household
 const { mutateAsync: updateActiveHousehold } = useUpdateActiveHousehold({
   mutation: {
     onSuccess: (updatedHouseholdData) => {
       console.log('useUpdateActiveHousehold onSuccess. Response:', updatedHouseholdData);
-
-      // Manually set the query data for the active household
       queryClient.setQueryData(getGetActiveHouseholdQueryKey(), updatedHouseholdData);
-
-      // Optionally, still invalidate if you want other non-active queries relying on this to update
-      // queryClient.invalidateQueries({ queryKey: getGetActiveHouseholdQueryKey() }); 
-
       isEditHouseholdDialogOpen.value = false;
       toast({
         title: 'Husstand oppdatert',
@@ -356,8 +333,9 @@ const { mutateAsync: updateActiveHousehold } = useUpdateActiveHousehold({
   },
 });
 
-function onHouseholdSubmit(values: any) {
-  console.log('[HouseholdDetailsView] onHouseholdSubmit triggered. Values:', values);
+function onHouseholdSubmit(formData: Record<string, unknown>) {
+  // Cast the received formData to HouseholdFormValues
+  const values = formData as HouseholdFormValues;
 
   const householdData: CreateHouseholdRequest = {
     name: values.name,
@@ -367,7 +345,6 @@ function onHouseholdSubmit(values: any) {
     latitude: household.value?.latitude ?? 0,
     longitude: household.value?.longitude ?? 0,
   };
-  console.log('[HouseholdDetailsView] Attempting to call updateActiveHousehold with data:', householdData);
   updateActiveHousehold({ data: householdData });
 }
 
@@ -417,7 +394,6 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
 function viewMeetingPlace(placeId: string) {
   isMeetingMapDialogOpen.value = true
 
-  // Wait for dialog to open and map to initialize
   setTimeout(() => {
     if (mapRef.value) {
       mapRef.value.centerOnMeetingPlace(placeId)
@@ -457,7 +433,7 @@ const handleFormSubmit = (values: MemberFormValues) => {
         invitedEmail: values.email,
       }
     })
-  } else { // This is 'add' (uten konto / guest) mode
+  } else {
     if (!values.name || values.consumptionFactor === undefined || values.consumptionFactor === null) {
       toast({ title: 'Feil', description: 'Navn og forbruksfaktor er påkrevd for å legge til gjest.', variant: 'destructive' });
       return;
