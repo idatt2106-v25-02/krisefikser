@@ -44,10 +44,12 @@ import {
   useLeaveHousehold,
   useDeleteHousehold,
   useJoinHousehold,
+  useAddGuestToHousehold,
+  useRemoveGuestFromHousehold,
 } from '@/api/generated/household/household.ts'
 import { useCreateInvite, useGetPendingInvitesForUser, useAcceptInvite, useDeclineInvite, useGetPendingInvitesForHousehold } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import type { HouseholdResponse } from '@/api/generated/model'
+import type { HouseholdResponse, GuestResponse } from '@/api/generated/model'
 import { useToast } from '@/components/ui/toast/use-toast.ts'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 
@@ -86,6 +88,10 @@ type HouseholdFormValues = {
   description?: string
 }
 
+// Add Guest type alias for convenience
+type Guest = GuestResponse;
+
+// Extend ExtendedHouseholdResponse without redefining guests
 interface ExtendedHouseholdResponse extends HouseholdResponse {
   meetingPlaces?: MeetingPlace[]
   inventory?: Inventory
@@ -190,6 +196,50 @@ const { mutate: createInvite } = useCreateInvite({
       toast({
         title: 'Feil',
         description: err.message || 'Kunne ikke sende invitasjon',
+        variant: 'destructive',
+      })
+    },
+  },
+})
+
+const { mutate: addGuest, isPending: isAddingGuest } = useAddGuestToHousehold({
+  mutation: {
+    onSuccess: (response) => {
+      console.log('Add Guest onSuccess:', response);
+      toast({
+        title: 'Gjest lagt til',
+        description: 'Gjesten har blitt lagt til i husstanden.',
+      })
+      refetchHousehold()
+      isAddMemberDialogOpen.value = false
+      resetForm()
+    },
+    onError: (error: any) => {
+      console.error('Add Guest onError:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Kunne ikke legge til gjest.';
+      toast({
+        title: 'Feil ved tillegging av gjest',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+    },
+  },
+})
+
+const { mutate: removeGuest, isPending: isRemovingGuest } = useRemoveGuestFromHousehold({
+  mutation: {
+    onSuccess: () => {
+      toast({
+        title: 'Gjest fjernet',
+        description: 'Gjesten er fjernet fra husstanden.',
+      })
+      refetchHousehold()
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Kunne ikke fjerne gjest.';
+      toast({
+        title: 'Feil ved fjerning av gjest',
+        description: errorMessage,
         variant: 'destructive',
       })
     },
@@ -327,17 +377,41 @@ function viewMeetingPlace(placeId: string) {
 
 
 const handleFormSubmit = (values: MemberFormValues) => {
+  console.log('handleFormSubmit called with mode:', memberMode.value, 'and values:', values);
+
+  if (!household.value?.id) {
+    console.error('Household ID is missing');
+    toast({ title: 'Feil', description: 'Husstand ID mangler.', variant: 'destructive' });
+    return;
+  }
+
   if (memberMode.value === 'invite') {
+    console.log('Attempting to send invite for email:', values.email);
+    if (!values.email) {
+      toast({ title: 'Feil', description: 'E-post er påkrevd for invitasjon.', variant: 'destructive' });
+      return;
+    }
     createInvite({
       data: {
-        householdId: household.value?.id || '',
+        householdId: household.value.id,
         invitedEmail: values.email,
       }
     })
-  } else {
-    addMember({
+  } else { // This is 'add' (uten konto / guest) mode
+    if (!values.name || values.consumptionFactor === undefined || values.consumptionFactor === null) {
+      toast({ title: 'Feil', description: 'Navn og forbruksfaktor er påkrevd for å legge til gjest.', variant: 'destructive' });
+      return;
+    }
+    console.log('Attempting to add guest with data:', {
+      name: values.name,
+      icon: 'default_guest_icon.png',
+      consumptionMultiplier: values.consumptionFactor,
+    });
+    addGuest({
       data: {
-        householdId: household.value?.id || '',
+        name: values.name,
+        icon: 'default_guest_icon.png',
+        consumptionMultiplier: values.consumptionFactor,
       }
     })
   }
@@ -370,6 +444,13 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
     refetchOnWindowFocus: true,
   },
 })
+
+function handleRemoveGuest(guestId?: string) {
+  if (!guestId) return;
+  if (confirm('Er du sikker på at du vil fjerne denne gjesten?')) {
+    removeGuest({ guestId });
+  }
+}
 </script>
 
 <template>
@@ -540,6 +621,61 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                 :household-id="household.id || ''"
                 :show-details-button="false"
               />
+            </div>
+
+            <!-- Guests Section -->
+            <div
+              class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6"
+              v-if="household && household.guests && household.guests.length > 0"
+            >
+              <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-semibold text-gray-800">Gjester (Uten Konto)</h2>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div
+                  v-for="guest in household.guests"
+                  :key="guest.id"
+                  class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  <div class="p-4">
+                    <div class="flex justify-between items-start">
+                      <div class="flex items-center mb-3">
+                        <div
+                          class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 mr-3 flex-shrink-0"
+                        >
+                          <span class="text-md font-medium">{{ guest.name?.[0]?.toUpperCase() ?? 'G' }}</span>
+                        </div>
+                        <h3 class="text-md font-bold text-gray-900">
+                          {{ guest.name }}
+                        </h3>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                          <Button variant="ghost" size="icon" class="h-8 w-8">
+                            <span class="sr-only">Gjestalternativer</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                              <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
+                            </svg>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            @click="handleRemoveGuest(guest.id)"
+                            class="text-red-600"
+                            :disabled="isRemovingGuest"
+                          >
+                            <UserMinus class="h-4 w-4 mr-2" />
+                            Fjern gjest
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                      Forbruksfaktor: {{ guest.consumptionMultiplier }}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -749,7 +885,7 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                     </FormItem>
                   </FormField>
                   <DialogFooter>
-                    <Button type="submit">
+                    <Button type="submit" :disabled="isAddingGuest && memberMode === 'add'">
                       {{ memberMode === 'invite' ? 'Send invitasjon' : 'Legg til medlem' }}
                     </Button>
                   </DialogFooter>
