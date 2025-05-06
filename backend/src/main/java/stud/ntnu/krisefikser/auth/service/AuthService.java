@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
@@ -20,9 +21,12 @@ import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
+import stud.ntnu.krisefikser.user.repository.UserRepository;
+import java.time.LocalDateTime;
 
 /**
- * Service class for handling authentication-related operations such as user registration, login,
+ * Service class for handling authentication-related operations such as user
+ * registration, login,
  * token generation, and token refresh.
  */
 @Service
@@ -35,6 +39,7 @@ public class AuthService {
   private final TokenService tokenService;
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
+  private final UserRepository userRepository;
 
   /**
    * Registers a new user and generates access and refresh tokens.
@@ -71,14 +76,41 @@ public class AuthService {
    * @return A response containing the access and refresh tokens.
    */
   public LoginResponse login(LoginRequest loginRequest) {
-    authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-            loginRequest.getEmail(),
-            loginRequest.getPassword()));
+    User user = userService.getUserByEmail(loginRequest.getEmail());
+
+    // Check if account is locked
+    if (user.getLockedUntil() != null && LocalDateTime.now().isBefore(user.getLockedUntil())) {
+      log.warn("Account locked attempt for user: {}. Locked until: {}", user.getEmail(), user.getLockedUntil());
+      throw new LockedException("Account is locked until " + user.getLockedUntil());
+    }
+
+    try {
+      authenticationManager.authenticate(
+          new UsernamePasswordAuthenticationToken(
+              loginRequest.getEmail(),
+              loginRequest.getPassword()));
+
+      // Reset password retries on successful login
+      if (user.getPasswordRetries() > 0) {
+        user.setPasswordRetries(0);
+        user.setLockedUntil(LocalDateTime.now().minusMinutes(1)); // Set to past time
+        userRepository.save(user);
+      }
+    } catch (Exception e) {
+      // Handle failed login attempts
+      user.setPasswordRetries(user.getPasswordRetries() + 1);
+
+      // Lock account after 5 failed attempts
+      if (user.getPasswordRetries() >= 5) {
+        user.setLockedUntil(LocalDateTime.now().plusMinutes(5));
+        log.info("Account locked for user: {} until {}", user.getEmail(), user.getLockedUntil());
+      }
+
+      userRepository.save(user);
+      throw e;
+    }
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
-
-    User user = userService.getUserByEmail(loginRequest.getEmail());
 
     String accessToken = tokenService.generateAccessToken(userDetails);
     String refreshToken = tokenService.generateRefreshToken(userDetails);
@@ -99,7 +131,7 @@ public class AuthService {
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
     RefreshToken existingToken = refreshTokenRepository.findByToken(
         refreshRequest.getRefreshToken()).orElseThrow(
-        RefreshTokenDoesNotExistException::new);
+            RefreshTokenDoesNotExistException::new);
 
     String email = tokenService.extractEmail(existingToken.getToken());
     if (email == null) {
