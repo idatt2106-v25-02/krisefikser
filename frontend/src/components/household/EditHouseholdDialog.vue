@@ -1,6 +1,5 @@
-<!-- EditHouseholdDialog.vue -->
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,9 +26,28 @@ const updateData = ref<CreateHouseholdRequest>({
   latitude: props.household?.latitude || 0,
   longitude: props.household?.longitude || 0,
   address: props.household?.address || '',
-  city: '',
-  postalCode: ''
+  city: props.household?.city || '',
+  postalCode: props.household?.postalCode || ''
 });
+
+// Watch for dialog open and household prop changes to preload data
+watch(
+  () => [props.open, props.household],
+  (args) => {
+    const [open, household] = args as [boolean, HouseholdResponse | null];
+    if (open && household) {
+      updateData.value = {
+        name: household.name || '',
+        latitude: household.latitude || 0,
+        longitude: household.longitude || 0,
+        address: household.address || '',
+        city: household.city || '',
+        postalCode: household.postalCode || ''
+      };
+    }
+  },
+  { immediate: true }
+);
 
 const handleSave = () => {
   if (!props.household?.id) return;
@@ -66,6 +84,24 @@ const handleSave = () => {
             class="w-full p-2 border rounded-md"
             type="text"
           />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label class="text-sm font-medium">Postnummer</label>
+            <input
+              v-model="updateData.postalCode"
+              class="w-full p-2 border rounded-md"
+              type="text"
+            />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium">By</label>
+            <input
+              v-model="updateData.city"
+              class="w-full p-2 border rounded-md"
+              type="text"
+            />
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-2">
