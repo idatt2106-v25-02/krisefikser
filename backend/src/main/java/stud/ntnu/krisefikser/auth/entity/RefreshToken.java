@@ -35,7 +35,7 @@ public class RefreshToken {
   @UuidGenerator(style = UuidGenerator.Style.RANDOM)
   private UUID id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "TEXT")
   private String token;
 
   @ManyToOne(fetch = FetchType.LAZY)
