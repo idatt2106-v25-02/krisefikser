@@ -44,10 +44,12 @@ import {
   useLeaveHousehold,
   useDeleteHousehold,
   useJoinHousehold,
+  useAddGuestToHousehold,
+  useRemoveGuestFromHousehold,
 } from '@/api/generated/household/household.ts'
 import { useCreateInvite, useGetPendingInvitesForUser, useAcceptInvite, useDeclineInvite, useGetPendingInvitesForHousehold } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import type { HouseholdResponse } from '@/api/generated/model'
+import type { HouseholdResponse, GuestResponse, HouseholdMemberResponse } from '@/api/generated/model'
 import { useToast } from '@/components/ui/toast/use-toast.ts'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 
@@ -86,6 +88,8 @@ type HouseholdFormValues = {
   description?: string
 }
 
+
+// Extend ExtendedHouseholdResponse without redefining guests
 interface ExtendedHouseholdResponse extends HouseholdResponse {
   meetingPlaces?: MeetingPlace[]
   inventory?: Inventory
@@ -192,6 +196,57 @@ const { mutate: createInvite } = useCreateInvite({
         description: err.message || 'Kunne ikke sende invitasjon',
         variant: 'destructive',
       })
+    },
+  },
+})
+
+const { mutate: addGuest, isPending: isAddingGuest } = useAddGuestToHousehold({
+  mutation: {
+    onSuccess: (response) => {
+      console.log('Add Guest onSuccess:', response);
+      toast({
+        title: 'Gjest lagt til',
+        description: 'Gjesten har blitt lagt til i husstanden.',
+      })
+      refetchHousehold()
+      isAddMemberDialogOpen.value = false
+      resetForm()
+    },
+      onError: (error: unknown) => {
+      console.error('Add Guest onError:', error);
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (error as Error)?.message ||
+        'Kunne ikke legge til gjest.';
+
+      toast({
+        title: 'Feil ved tillegging av gjest',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    },
+  },
+})
+
+const { mutate: removeGuest, isPending: isRemovingGuest } = useRemoveGuestFromHousehold({
+  mutation: {
+    onSuccess: () => {
+      toast({
+        title: 'Gjest fjernet',
+        description: 'Gjesten er fjernet fra husstanden.',
+      })
+      refetchHousehold()
+    },
+    onError: (error: unknown) => {
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (error as Error)?.message ||
+        'Kunne ikke fjerne gjest.';
+      toast({
+        title: 'Feil ved fjerning av gjest',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     },
   },
 })
@@ -325,19 +380,53 @@ function viewMeetingPlace(placeId: string) {
   }, 300)
 }
 
+function goToHouseholdLocation() {
+  isMeetingMapDialogOpen.value = true
+  setTimeout(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const map = mapRef.value as any;
+    if (map && typeof map.centerOnHousehold === 'function') {
+      map.centerOnHousehold();
+    }
+  }, 300)
+}
 
 const handleFormSubmit = (values: MemberFormValues) => {
+  console.log('handleFormSubmit called with mode:', memberMode.value, 'and values:', values);
+
+  if (!household.value?.id) {
+    console.error('Household ID is missing');
+    toast({ title: 'Feil', description: 'Husstand ID mangler.', variant: 'destructive' });
+    return;
+  }
+
   if (memberMode.value === 'invite') {
+    console.log('Attempting to send invite for email:', values.email);
+    if (!values.email) {
+      toast({ title: 'Feil', description: 'E-post er påkrevd for invitasjon.', variant: 'destructive' });
+      return;
+    }
     createInvite({
       data: {
-        householdId: household.value?.id || '',
+        householdId: household.value.id,
         invitedEmail: values.email,
       }
     })
-  } else {
-    addMember({
+  } else { // This is 'add' (uten konto / guest) mode
+    if (!values.name || values.consumptionFactor === undefined || values.consumptionFactor === null) {
+      toast({ title: 'Feil', description: 'Navn og forbruksfaktor er påkrevd for å legge til gjest.', variant: 'destructive' });
+      return;
+    }
+    console.log('Attempting to add guest with data:', {
+      name: values.name,
+      icon: 'default_guest_icon.png',
+      consumptionMultiplier: values.consumptionFactor,
+    });
+    addGuest({
       data: {
-        householdId: household.value?.id || '',
+        name: values.name,
+        icon: 'default_guest_icon.png',
+        consumptionMultiplier: values.consumptionFactor,
       }
     })
   }
@@ -369,6 +458,32 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   },
+})
+
+function handleRemoveGuest(guestId?: string) {
+  if (!guestId) return;
+  if (confirm('Er du sikker på at du vil fjerne denne gjesten?')) {
+    removeGuest({ guestId });
+  }
+}
+
+// Filter tab state
+const memberGuestTab = ref<'alle' | 'medlemmer' | 'gjester'>('alle')
+
+const filteredPeople = computed(() => {
+  if (!household.value) return []
+  if (memberGuestTab.value === 'alle') {
+    // Combine members and guests
+    return [
+      ...household.value.members.map(m => ({ type: 'member', data: m })),
+      ...household.value.guests.map(g => ({ type: 'guest', data: g }))
+    ]
+  } else if (memberGuestTab.value === 'medlemmer') {
+    return household.value.members.map(m => ({ type: 'member', data: m }))
+  } else if (memberGuestTab.value === 'gjester') {
+    return household.value.guests.map(g => ({ type: 'guest', data: g }))
+  }
+  return []
 })
 </script>
 
@@ -402,14 +517,17 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
               <h1 class="text-4xl font-bold text-gray-900 mb-1">{{ household.name }}</h1>
               <div class="text-gray-600">
                 <div class="flex items-center">
-                  <MapPin class="h-4 w-4 text-gray-400 mr-1 flex-shrink-0" />
-                  <span class="flex flex-col">
-                    <span>{{ household.address }}</span>
-                    <span v-if="household.addressLine2">{{ household.addressLine2 }}</span>
-                    <span>{{ household.postalCode }} {{ household.city }}</span>
-                    <span v-if="household.country && household.country !== 'Norge'">{{
-                      household.country
-                    }}</span>
+                  <span
+                    class="flex items-center cursor-pointer group"
+                    @click="goToHouseholdLocation"
+                    title="Vis på kart"
+                  >
+                    <MapPin class="h-4 w-4 mr-1 flex-shrink-0 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                    <span
+                      class="transition-colors group-hover:text-blue-600 group-hover:underline text-gray-600"
+                    >
+                      {{ household.address }}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -429,7 +547,7 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
           <div class="lg:col-span-8">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
               <div class="flex justify-between items-center mb-5">
-                <h2 class="text-xl font-semibold text-gray-800">Medlemmer</h2>
+                <h2 class="text-xl font-semibold text-gray-800">Medlemmer og gjester</h2>
                 <Button
                   variant="outline"
                   size="sm"
@@ -440,27 +558,41 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                   <span>Legg til</span>
                 </Button>
               </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Member cards -->
+              <!-- Filter Tabs -->
+              <div class="flex gap-2 mb-4">
+                <Button :variant="memberGuestTab === 'alle' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'alle'">Alle</Button>
+                <Button :variant="memberGuestTab === 'medlemmer' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'medlemmer'">Medlemmer</Button>
+                <Button :variant="memberGuestTab === 'gjester' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'gjester'">Gjester</Button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2">
                 <div
-                  v-for="member in household.members"
-                  :key="member.user?.id"
+                  v-for="person in filteredPeople"
+                  :key="person.type === 'member' ? (person.data as HouseholdMemberResponse).user?.id : (person.data as GuestResponse).id"
                   class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <div class="p-4">
                     <div class="flex justify-between items-start">
                       <div class="flex items-center mb-3">
                         <div
+                          v-if="person.type === 'member'"
                           class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0"
                         >
-                          <span class="text-md font-medium">{{ member.user?.firstName?.[0] ?? '?' }}</span>
+                          <span class="text-md font-medium">{{ (person.data as HouseholdMemberResponse).user?.firstName?.[0] ?? '?' }}</span>
+                        </div>
+                        <div
+                          v-else
+                          class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 mr-3 flex-shrink-0"
+                        >
+                          <span class="text-md font-medium">{{ (person.data as GuestResponse).name?.[0]?.toUpperCase() ?? 'G' }}</span>
                         </div>
                         <h3 class="text-md font-bold text-gray-900">
-                          {{ member.user?.firstName }} {{ member.user?.lastName }}
+                          {{ person.type === 'member' ? ((person.data as HouseholdMemberResponse).user?.firstName + ' ' + (person.data as HouseholdMemberResponse).user?.lastName) : (person.data as GuestResponse).name }}
                         </h3>
+                        <span class="ml-2 text-xs" :class="person.type === 'member' ? 'text-gray-400' : 'text-green-500'">
+                          {{ person.type === 'member' ? 'Medlem' : 'Gjest' }}
+                        </span>
                       </div>
-                      <DropdownMenu v-if="member.user?.id !== authStore.currentUser?.id">
+                      <DropdownMenu v-if="person.type === 'member' && (person.data as HouseholdMemberResponse).user?.id !== authStore.currentUser?.id">
                         <DropdownMenuTrigger as-child>
                           <Button variant="ghost" size="icon" class="h-8 w-8">
                             <span class="sr-only">Medlemsalternativer</span>
@@ -484,7 +616,7 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            @click="onRemoveMember(member.user?.id)"
+                            @click="onRemoveMember((person.data as HouseholdMemberResponse).user?.id)"
                             class="text-red-600"
                           >
                             <UserMinus class="h-4 w-4 mr-2" />
@@ -492,11 +624,36 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      <DropdownMenu v-else-if="person.type === 'guest'">
+                        <DropdownMenuTrigger as-child>
+                          <Button variant="ghost" size="icon" class="h-8 w-8">
+                            <span class="sr-only">Gjestalternativer</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                              <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
+                            </svg>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            @click="handleRemoveGuest((person.data as GuestResponse).id)"
+                            class="text-red-600"
+                            :disabled="isRemovingGuest"
+                          >
+                            <UserMinus class="h-4 w-4 mr-2" />
+                            Fjern gjest
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <div class="text-sm text-gray-600">
-                      <div class="mt-1 truncate">
-                        {{ member.user?.email ?? '' }}
-                      </div>
+                      <template v-if="person.type === 'member'">
+                        <div class="mt-1 truncate">
+                          {{ (person.data as HouseholdMemberResponse).user?.email ?? '' }}
+                        </div>
+                      </template>
+                      <template v-else>
+                        Forbruksfaktor: {{ (person.data as GuestResponse).consumptionMultiplier }}
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -749,7 +906,7 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                     </FormItem>
                   </FormField>
                   <DialogFooter>
-                    <Button type="submit">
+                    <Button type="submit" :disabled="isAddingGuest && memberMode === 'add'">
                       {{ memberMode === 'invite' ? 'Send invitasjon' : 'Legg til medlem' }}
                     </Button>
                   </DialogFooter>

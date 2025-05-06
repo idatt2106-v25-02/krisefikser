@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import AddressForm from '@/components/layout/AddressForm.vue'
 import { useCreateHousehold } from '@/api/generated/household/household.ts'
 import type { CreateHouseholdRequest, HouseholdResponse } from '@/api/generated/model'
+import router from '@/router'
 
 // Props
 defineProps({
@@ -36,6 +37,7 @@ const {
 // Form handling
 const onSubmit = (values: CreateHouseholdRequest) => {
   createHousehold({ data: values })
+  router.push({ name: 'household' })
 }
 
 const isFormVisible = ref(true)
