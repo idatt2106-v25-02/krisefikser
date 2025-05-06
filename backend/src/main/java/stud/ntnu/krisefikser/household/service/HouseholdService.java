@@ -422,4 +422,23 @@ public class HouseholdService {
     guestRepository.delete(guest);
     return toHouseholdResponse(guest.getHousehold());
   }
+
+  public HouseholdResponse updateActiveHousehold(CreateHouseholdRequest createRequest) {
+    User currentUser = userService.getCurrentUser();
+    Household household = currentUser.getActiveHousehold();
+
+    if (household == null) {
+      throw new HouseholdNotFoundException();
+    }
+
+    household.setName(createRequest.getName());
+    household.setLatitude(createRequest.getLatitude());
+    household.setLongitude(createRequest.getLongitude());
+    household.setAddress(createRequest.getAddress());
+    household.setPostalCode(createRequest.getPostalCode());
+    household.setCity(createRequest.getCity());
+
+    householdRepo.save(household);
+    return toHouseholdResponse(household);
+  }
 }
