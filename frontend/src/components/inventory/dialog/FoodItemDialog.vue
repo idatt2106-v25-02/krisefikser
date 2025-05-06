@@ -31,7 +31,7 @@ const _props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'addItem', item: FoodItem): void
+  (e: 'add-item', item: FoodItem): void
 }>()
 
 // Form validation schema
@@ -44,7 +44,7 @@ const schema = toTypedSchema(
 )
 
 // Form handling
-const { handleSubmit } = useForm<FormValues>({
+const { handleSubmit, values: formValues, errors: formErrors } = useForm<FormValues>({
   validationSchema: schema,
   initialValues: {
     name: '',
@@ -54,14 +54,33 @@ const { handleSubmit } = useForm<FormValues>({
 })
 
 function onSubmit(values: FormValues): void {
+  console.log('FoodItemDialog: Form submitted with raw values:', values);
   const newItem: FoodItem = {
     id: crypto.randomUUID(),
     name: values.name,
     kcal: values.kcal,
     expiryDate: values.expiryDate,
   }
-  emit('addItem', newItem)
+  console.log('FoodItemDialog: Emitting newItem:', newItem);
+  emit('add-item', newItem)
   emit('close')
+}
+
+// New wrapper function to log errors
+async function handleFormSubmit() {
+  console.log('Attempting form submission...');
+  console.log('Current form values:', formValues);
+  console.log('Current form errors (before submit):', formErrors.value); // vee-validate errors are reactive
+
+  // Manually trigger validation to see errors if handleSubmit doesn't proceed
+  // const { valid } = await validate(); // Assuming 'validate' is available from useForm
+  // console.log('Is form valid according to vee-validate?:', valid);
+  // if (!valid) {
+  //   console.log('Validation failed. Errors:', errors.value);
+  //   return;
+  // }
+
+  handleSubmit(onSubmit)(); // Call the original handleSubmit
 }
 </script>
 
@@ -73,31 +92,34 @@ function onSubmit(values: FormValues): void {
     title="Legg til matvare"
     @close="emit('close')"
   >
-    <form @submit.prevent="handleSubmit(onSubmit)" class="space-y-4">
-      <FormField name="name">
+    <form @submit.prevent="handleFormSubmit" class="space-y-4">
+      <FormField name="name" v-slot="{ field, errors }">
         <FormItem>
           <FormLabel class="text-gray-700">Navn</FormLabel>
           <FormControl>
-            <Input placeholder="Matvare" />
+            <Input v-bind="field" placeholder="Matvare" />
           </FormControl>
+          <small v-if="errors.length" class="text-red-500">{{ errors[0] }}</small>
         </FormItem>
       </FormField>
 
-      <FormField name="kcal">
+      <FormField name="kcal" v-slot="{ field, errors }">
         <FormItem>
           <FormLabel class="text-gray-700">Kalorier (kcal)</FormLabel>
           <FormControl>
-            <Input type="number" min="0" step="1" />
+            <Input v-bind="field" type="number" min="0" step="1" />
           </FormControl>
+          <small v-if="errors.length" class="text-red-500">{{ errors[0] }}</small>
         </FormItem>
       </FormField>
 
-      <FormField name="expiryDate">
+      <FormField name="expiryDate" v-slot="{ field, errors }">
         <FormItem>
           <FormLabel class="text-gray-700">Utløpsdato</FormLabel>
           <FormControl>
-            <Input type="date" />
+            <Input v-bind="field" type="date" />
           </FormControl>
+          <small v-if="errors.length" class="text-red-500">{{ errors[0] }}</small>
         </FormItem>
       </FormField>
 
