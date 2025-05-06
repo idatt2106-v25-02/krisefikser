@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import stud.ntnu.krisefikser.household.entity.Household;
 
 /**
  * Data Transfer Object (DTO) for creating a household. This class is used to transfer data between
@@ -28,4 +29,15 @@ public class CreateHouseholdRequest {
   private String city;
   @NotBlank(message = "State is required")
   private String postalCode;
+
+  public Household toEntity() {
+    return Household.builder()
+        .name(name)
+        .latitude(latitude)
+        .longitude(longitude)
+        .address(address)
+        .city(city)
+        .postalCode(postalCode)
+        .build();
+  }
 }

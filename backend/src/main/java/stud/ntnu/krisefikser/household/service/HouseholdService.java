@@ -208,14 +208,7 @@ public class HouseholdService {
   @Transactional
   public HouseholdResponse createHousehold(CreateHouseholdRequest createHouseholdRequest) {
     User currentUser = userService.getCurrentUser();
-    Household newHousehold = new Household();
-    newHousehold.setName(createHouseholdRequest.getName());
-    newHousehold.setLatitude(createHouseholdRequest.getLatitude());
-    newHousehold.setLongitude(createHouseholdRequest.getLongitude());
-    newHousehold.setAddress(createHouseholdRequest.getAddress());
-    newHousehold.setPostalCode(createHouseholdRequest.getPostalCode());
-    newHousehold.setCity(createHouseholdRequest.getCity());
-    newHousehold.setOwner(currentUser);
+    Household newHousehold = createHouseholdRequest.toEntity();
 
     householdRepo.save(newHousehold);
     householdMemberService.addMember(newHousehold, currentUser);
@@ -423,6 +416,12 @@ public class HouseholdService {
     return toHouseholdResponse(guest.getHousehold());
   }
 
+  /**
+   * Updates the active household for the current user.
+   *
+   * @param createRequest The request containing updated household details
+   * @return The updated household response
+   */
   public HouseholdResponse updateActiveHousehold(CreateHouseholdRequest createRequest) {
     User currentUser = userService.getCurrentUser();
     Household household = currentUser.getActiveHousehold();
@@ -431,14 +430,10 @@ public class HouseholdService {
       throw new HouseholdNotFoundException();
     }
 
-    household.setName(createRequest.getName());
-    household.setLatitude(createRequest.getLatitude());
-    household.setLongitude(createRequest.getLongitude());
-    household.setAddress(createRequest.getAddress());
-    household.setPostalCode(createRequest.getPostalCode());
-    household.setCity(createRequest.getCity());
+    Household updatedHousehold = createRequest.toEntity();
+    updatedHousehold.setId(household.getId());
 
-    householdRepo.save(household);
+    householdRepo.save(updatedHousehold);
     return toHouseholdResponse(household);
   }
 }
