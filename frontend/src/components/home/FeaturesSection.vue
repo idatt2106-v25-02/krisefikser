@@ -14,7 +14,7 @@ export default defineComponent({
 });
 </script>
 <template>
-  <section class="mb-16">
+  <section class="mb-12 mt-12">
     <div class="text-center mb-12">
       <h2 class="text-3xl font-bold text-gray-800 mb-4">Nyttige funksjoner</h2>
       <p class="text-xl text-gray-600 max-w-3xl mx-auto">Disse verktøyene hjelper deg å være forberedt og informert før, under og etter en krisesituasjon.</p>

@@ -1,3 +1,4 @@
+<!-- NewsSection.vue -->
 <script lang="ts">
 export default {
   name: 'NewsSection',
@@ -7,8 +8,10 @@ export default {
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useGetAllArticles } from '@/api/generated/article/article'
+import { useRouter } from 'vue-router'
 
 const { data: articles, isLoading, error } = useGetAllArticles()
+const router = useRouter()
 
 const latestArticles = computed(() => {
   if (!articles?.value) return []
@@ -38,15 +41,34 @@ const getExcerpt = (text?: string) => {
   if (!text) return ''
   return text.length > 100 ? text.substring(0, 100) + '...' : text
 }
+
+const goToAllNews = () => {
+  router.push('/nyheter')
+}
 </script>
 
 <template>
-  <section>
-    <div class="text-center mb-12">
-      <h2 class="text-3xl font-bold text-gray-800 mb-4">Aktuelle nyheter</h2>
-      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+  <section class="mb-16">
+    <!-- Title centered -->
+    <div class="text-center mb-4">
+      <h2 class="text-3xl font-bold text-gray-800">Aktuelle nyheter</h2>
+    </div>
+
+    <!-- Description centered and "Se alle" button on same line -->
+    <div class="relative mb-8">
+      <!-- Centered paragraph -->
+      <p class="text-gray-600 max-w-3xl mx-auto text-center">
         Hold deg oppdatert på nyheter og hendelser relatert til beredskap.
       </p>
+
+      <!-- Absolutely positioned button -->
+      <a @click="goToAllNews"
+         class="text-blue-600 font-medium hover:underline inline-flex items-center cursor-pointer whitespace-nowrap absolute right-0 top-0">
+        Se alle nyheter
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
     </div>
 
     <div v-if="isLoading" class="text-center py-8">
@@ -76,11 +98,16 @@ const getExcerpt = (text?: string) => {
           <p class="text-sm text-gray-500 mb-2">{{ formatDate(article.createdAt) }}</p>
           <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ article.title }}</h3>
           <p class="text-gray-600 mb-4">{{ getExcerpt(article.text) }}</p>
+          <!-- Added the arrow icon to the Les mer link -->
           <router-link
             :to="`/artikkel/${article.id}`"
-            class="text-blue-600 font-medium hover:underline"
-            >Les mer</router-link
+            class="text-blue-600 font-medium hover:underline inline-flex items-center"
           >
+            Les mer
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
         </div>
       </div>
     </div>
