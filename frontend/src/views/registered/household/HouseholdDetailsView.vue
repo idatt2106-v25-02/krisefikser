@@ -192,13 +192,13 @@ const inventoryPreviewData = computed<Inventory>(() => {
 
   const dailyKcalNeeded = summary.kcalGoal > 0 ? summary.kcalGoal / DAYS_GOAL : 0;
   const effectiveFoodDays = (summary.kcalGoal === 0 && summary.kcal > 0)
-                            ? DAYS_GOAL
-                            : (dailyKcalNeeded > 0 ? (summary.kcal / dailyKcalNeeded) : 0);
+    ? DAYS_GOAL
+    : (dailyKcalNeeded > 0 ? (summary.kcal / dailyKcalNeeded) : 0);
 
   const dailyWaterNeeded = summary.waterLitersGoal > 0 ? summary.waterLitersGoal / DAYS_GOAL : 0;
   const effectiveWaterDays = (summary.waterLitersGoal === 0 && summary.waterLiters > 0)
-                             ? DAYS_GOAL
-                             : (dailyWaterNeeded > 0 ? (summary.waterLiters / dailyWaterNeeded) : 0);
+    ? DAYS_GOAL
+    : (dailyWaterNeeded > 0 ? (summary.waterLiters / dailyWaterNeeded) : 0);
 
   let derivedPreparedDays;
   if (summary.kcalGoal === 0 && summary.waterLitersGoal === 0) {
@@ -382,7 +382,7 @@ const { resetForm } = useForm<MemberFormValues>({
 //   addMember({
 //     data: {
 //       householdId: household.value.id ?? '',
-      // Ensure that if addMember expects other properties from MemberFormValues, they are included here
+// Ensure that if addMember expects other properties from MemberFormValues, they are included here
 //     },
 //   });
 // }
