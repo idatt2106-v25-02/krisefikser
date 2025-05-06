@@ -9,7 +9,7 @@
 export type UpdateEventRequestLevel =
   (typeof UpdateEventRequestLevel)[keyof typeof UpdateEventRequestLevel]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UpdateEventRequestLevel = {
   GREEN: 'GREEN',
   YELLOW: 'YELLOW',

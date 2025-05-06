@@ -5,8 +5,11 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { UserResponse } from './userResponse'
 
-export interface HouseholdMemberResponse {
-  user: UserResponse
+export interface Pageable {
+  /** @minimum 0 */
+  page?: number
+  /** @minimum 1 */
+  size?: number
+  sort?: string[]
 }

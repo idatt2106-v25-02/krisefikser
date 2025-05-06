@@ -5,8 +5,7 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { UserResponse } from './userResponse'
 
-export interface HouseholdMemberResponse {
-  user: UserResponse
+export type GetExpiringItemsParams = {
+  before: string
 }

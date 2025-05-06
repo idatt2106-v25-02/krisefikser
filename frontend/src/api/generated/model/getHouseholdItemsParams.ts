@@ -5,8 +5,9 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { UserResponse } from './userResponse'
+import type { Pageable } from './pageable'
 
-export interface HouseholdMemberResponse {
-  user: UserResponse
+export type GetHouseholdItemsParams = {
+  productTypeId?: string
+  pageable: Pageable
 }

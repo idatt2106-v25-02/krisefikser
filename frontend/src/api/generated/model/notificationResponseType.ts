@@ -6,11 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 
-export type EventRequestLevel = (typeof EventRequestLevel)[keyof typeof EventRequestLevel]
+export type NotificationResponseType =
+  (typeof NotificationResponseType)[keyof typeof NotificationResponseType]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const EventRequestLevel = {
-  GREEN: 'GREEN',
-  YELLOW: 'YELLOW',
-  RED: 'RED',
+export const NotificationResponseType = {
+  INVITE: 'INVITE',
+  EVENT: 'EVENT',
+  INFO: 'INFO',
 } as const
