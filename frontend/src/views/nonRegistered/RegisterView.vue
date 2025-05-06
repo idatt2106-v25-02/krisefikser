@@ -283,7 +283,6 @@ onUnmounted(() => {
       <!-- Cloudflare Turnstile -->
       <div id="turnstile"></div>
 
-      <h2>{{captchaToken}}</h2>
       <!-- Submit button -->
       <Button
         type="submit"
