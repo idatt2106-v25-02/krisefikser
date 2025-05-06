@@ -18,7 +18,7 @@ import AdminScenariosView from '@/views/admin/ScenariosView.vue';
 import AdminGamificationView from '@/views/admin/GamificationView.vue';
 
 import ManageAdminsView from "@/views/admin/ManageAdminsView.vue";
-
+import ManageUsersView from "@/views/admin/ManageUsersView.vue";
 // Registered User views
 import DashboardView from "@/views/registered/DashboardView.vue";
 import AddItemView from "@/views/registered/AddItemView.vue";
@@ -115,6 +115,12 @@ const router = createRouter({
       name: 'manage-admins',
       component: ManageAdminsView,
       meta: { requiresAuth: true, requiresSuperAdmin: true }
+    },
+    {
+      path: '/admin/behandle-brukere',
+      name: 'manage-users',
+      component: ManageUsersView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
 
     // Registered User routes
