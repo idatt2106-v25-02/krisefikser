@@ -40,16 +40,16 @@ function navigateToInventory() {
 
     <!-- Summary boxes -->
     <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-      <div class="grid grid-cols-3 gap-4 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-center sm:text-left">
         <div>
           <div class="text-sm text-gray-500 mb-1">Mat</div>
-          <div class="text-lg text-blue-600 font-semibold">
+          <div class="text-lg text-blue-600 font-semibold break-all">
             {{ inventory.food.current }}/{{ inventory.food.target }} {{ inventory.food.unit }}
           </div>
         </div>
         <div>
           <div class="text-sm text-gray-500 mb-1">Vann</div>
-          <div class="text-lg text-blue-600 font-semibold">
+          <div class="text-lg text-blue-600 font-semibold break-all">
             {{ inventory.water.current }}/{{ inventory.water.target }} {{ inventory.water.unit }}
           </div>
         </div>
