@@ -99,6 +99,15 @@ const getErrorMessage = (error: {
   return errorMessage || message
 }
 
+// Reset Turnstile function to rerender captcha
+function resetTurnstile() {
+  captchaToken.value = ''
+  // Reset the turnstile widget
+  if (turnstileWidgetId.value) {
+    turnstile.reset(turnstileWidgetId.value)
+  }
+}
+
 const onSubmit = handleSubmit(async (values) => {
   if (isLoading.value) return
 
@@ -115,6 +124,9 @@ const onSubmit = handleSubmit(async (values) => {
     await router.push('/dashboard')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
+    // Reset the captcha on failed registration
+    resetTurnstile()
+
     toast('Registreringsfeil', {
       description: getErrorMessage(error),
     })
