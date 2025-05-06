@@ -25,6 +25,7 @@ import HouseholdView from "@/views/registered/household/HouseholdView.vue";
 import HouseholdDetailsView from "@/views/registered/household/HouseholdDetailsView.vue";
 import HouseholdInventoryView from "@/views/registered/inventory/HouseholdInventoryView.vue";
 import HomeAddressView from "@/views/registered/household/HomeAddressView.vue";
+import NotificationsView from "@/views/registered/notification/NotificationView.vue";
 import NewHouseholdView from "@/views/registered/household/NewHousehold.vue";
 // Non-Registered User views
 import JoinOrCreateHouseholdView from "@/views/nonRegistered/household/JoinOrCreateHouseholdView.vue";
@@ -124,7 +125,12 @@ const router = createRouter({
       component: DashboardView,
       meta: { requiresAuth: true }
     },
-
+    {
+      path: '/varsler',
+      name: 'notifications',
+      component: NotificationsView,
+      meta: { requiresAuth: true }
+    },
     {
       path: '/husstand',
       name: 'household',

@@ -1,12 +1,38 @@
 <script lang="ts">
-import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut } from 'lucide-vue-next';
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import {
+  Map as MapIcon,
+  Home,
+  Package,
+  Menu as MenuIcon,
+  X,
+  LogIn,
+  User as UserIcon,
+  LogOut,
+  Bell as BellIcon,
+  AlertTriangle,
+  Calendar,
+  Bell,
+  Info,
+  RefreshCw,
+  ArrowRight,
+} from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
+import { ref, computed, watch } from 'vue'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem
-} from '@/components/ui/dropdown-menu';
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import {
+  useGetNotifications,
+  useGetUnreadCount,
+  useReadNotification,
+  useReadAll,
+} from '@/api/generated/notification/notification'
+import { useQueryClient } from '@tanstack/vue-query'
+import type { NotificationResponse } from '@/api/generated/model'
+import type { ErrorType } from '@/api/axios'
 
 export default {
   name: 'AppNavbar',
@@ -19,23 +45,141 @@ export default {
     LogIn,
     UserIcon,
     LogOut,
+    BellIcon,
+    AlertTriangle,
+    Calendar,
+    Bell,
+    Info,
+    RefreshCw,
+    ArrowRight,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
-    DropdownMenuItem
+    DropdownMenuItem,
   },
   setup() {
-    const authStore = useAuthStore();
-    return { authStore };
-  },
-  data() {
+    const authStore = useAuthStore()
+    const isMenuOpen = ref(false)
+    const showMobileNotifications = ref(false)
+
+    const queryClient = useQueryClient()
+
+    const notificationParams = computed(() => ({
+      pageable: {
+        page: 0,
+        size: 5,
+        sort: ['createdAt,desc'],
+      },
+    }))
+
+
+    const {
+      data: notificationsData,
+      isLoading: isLoadingNotifications,
+      isFetching: isFetchingNotifications,
+      error: notificationsError,
+      refetch: refetchNotifications,
+    } = useGetNotifications(notificationParams, {
+      query: {
+        enabled: computed(() => authStore.isAuthenticated),
+        staleTime: 1000 * 60 * 5,
+      },
+    })
+
+    const { data: unreadCountData, refetch: refetchUnreadCount } = useGetUnreadCount({
+      query: {
+        enabled: computed(() => authStore.isAuthenticated),
+        staleTime: 1000 * 60 * 5,
+      },
+    })
+
+    const { mutate: mutateReadNotification, isPending: _isMarkingAsRead } = useReadNotification({
+      mutation: {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
+        },
+        onError: (error: ErrorType<unknown>) => {
+          console.error('Failed to mark notification as read:', error)
+        },
+      },
+    })
+
+    const { mutate: mutateReadAll, isPending: isMarkingAllAsRead } = useReadAll({
+      mutation: {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
+        },
+        onError: (error: ErrorType<unknown>) => {
+          console.error('Failed to mark all notifications as read:', error)
+        },
+      },
+    })
+
+    const notifications = computed(() => notificationsData.value?.content || [])
+
+    const handleNotificationClick = (notification: NotificationResponse) => {
+      if (notification.id && !notification.read) {
+        mutateReadNotification({ id: notification.id })
+      }
+
+      if (notification.url) {
+        window.open(notification.url, '_blank')
+      }
+
+      showMobileNotifications.value = false
+    }
+
+    const markAllAsRead = () => {
+      mutateReadAll()
+    }
+
+    const formatDate = (dateString: string) => {
+      if (!dateString) return '-'
+      const now = new Date()
+      const notificationDate = new Date(dateString)
+      const diffInDays = Math.floor(
+        (now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60 * 24),
+      )
+      if (diffInDays === 0)
+        return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`
+      if (diffInDays === 1) return 'I går'
+      if (diffInDays < 7) {
+        const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
+        return days[notificationDate.getDay()]
+      }
+      return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`
+    }
+
+    watch(
+      () => authStore.isAuthenticated,
+      (isAuth) => {
+        if (isAuth) {
+          refetchNotifications()
+          refetchUnreadCount()
+        }
+      },
+    )
+
     return {
-      isMenuOpen: false,
+      authStore,
+      isMenuOpen,
+      isLoadingNotifications,
+      isFetchingNotifications,
+      notificationsError,
+      notifications,
+      unreadCountData,
+      handleNotificationClick,
+      markAllAsRead,
+      isMarkingAllAsRead,
+      formatDate,
+      showMobileNotifications,
+      refetchNotifications,
     }
   },
 }
 </script>
-
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
     <div class="container mx-auto px-4 py-3">
@@ -432,188 +576,4 @@ export default {
     </div>
   </nav>
 </template>
-<script lang="ts">
-import {
-  Map as MapIcon,
-  Home,
-  Package,
-  Menu as MenuIcon,
-  X,
-  LogIn,
-  User as UserIcon,
-  LogOut,
-  Bell as BellIcon,
-  AlertTriangle,
-  Calendar,
-  Bell,
-  Info,
-  RefreshCw,
-  ArrowRight,
-} from 'lucide-vue-next'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu'
-import {
-  useGetNotifications,
-  useGetUnreadCount,
-  useReadNotification,
-  useReadAll,
-} from '@/api/generated/notification/notification'
-import { useQueryClient } from '@tanstack/vue-query'
-import type { NotificationResponse, GetNotificationsParams } from '@/api/generated/model'
-import type { ErrorType } from '@/api/axios'
-import type { UseMutationOptions } from '@tanstack/vue-query'
 
-export default {
-  name: 'AppNavbar',
-  components: {
-    MapIcon,
-    Home,
-    Package,
-    MenuIcon,
-    X,
-    LogIn,
-    UserIcon,
-    LogOut,
-    BellIcon,
-    AlertTriangle,
-    Calendar,
-    Bell,
-    Info,
-    RefreshCw,
-    ArrowRight,
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuItem,
-  },
-  setup() {
-    const authStore = useAuthStore()
-    const router = useRouter()
-    const isMenuOpen = ref(false)
-    const showMobileNotifications = ref(false)
-
-    const queryClient = useQueryClient()
-
-    const notificationParams = computed(() => ({
-      pageable: {
-        page: 0,
-        size: 5,
-        sort: ['createdAt,desc'],
-      },
-    }))
-
-
-    const {
-      data: notificationsData,
-      isLoading: isLoadingNotifications,
-      isFetching: isFetchingNotifications,
-      error: notificationsError,
-      refetch: refetchNotifications,
-    } = useGetNotifications(notificationParams, {
-      query: {
-        enabled: computed(() => authStore.isAuthenticated),
-        staleTime: 1000 * 60 * 5,
-      },
-    })
-
-    const { data: unreadCountData, refetch: refetchUnreadCount } = useGetUnreadCount({
-      query: {
-        enabled: computed(() => authStore.isAuthenticated),
-        staleTime: 1000 * 60 * 5,
-      },
-    })
-
-    const { mutate: mutateReadNotification, isPending: _isMarkingAsRead } = useReadNotification({
-      mutation: {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
-        },
-        onError: (error: ErrorType<unknown>) => {
-          console.error('Failed to mark notification as read:', error)
-        },
-      },
-    })
-
-    const { mutate: mutateReadAll, isPending: isMarkingAllAsRead } = useReadAll({
-      mutation: {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
-        },
-        onError: (error: ErrorType<unknown>) => {
-          console.error('Failed to mark all notifications as read:', error)
-        },
-      },
-    })
-
-    const notifications = computed(() => notificationsData.value?.content || [])
-
-    const handleNotificationClick = (notification: NotificationResponse) => {
-      if (notification.id && !notification.read) {
-        mutateReadNotification({ id: notification.id })
-      }
-
-      if (notification.url) {
-        window.open(notification.url, '_blank')
-      }
-
-      showMobileNotifications.value = false
-    }
-
-    const markAllAsRead = () => {
-      mutateReadAll()
-    }
-
-    const formatDate = (dateString: string) => {
-      if (!dateString) return '-'
-      const now = new Date()
-      const notificationDate = new Date(dateString)
-      const diffInDays = Math.floor(
-        (now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60 * 24),
-      )
-      if (diffInDays === 0)
-        return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`
-      if (diffInDays === 1) return 'I går'
-      if (diffInDays < 7) {
-        const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
-        return days[notificationDate.getDay()]
-      }
-      return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`
-    }
-
-    watch(
-      () => authStore.isAuthenticated,
-      (isAuth) => {
-        if (isAuth) {
-          refetchNotifications()
-          refetchUnreadCount()
-        }
-      },
-    )
-
-    return {
-      authStore,
-      isMenuOpen,
-      isLoadingNotifications,
-      isFetchingNotifications,
-      notificationsError,
-      notifications,
-      unreadCountData,
-      handleNotificationClick,
-      markAllAsRead,
-      isMarkingAllAsRead,
-      formatDate,
-      showMobileNotifications,
-      refetchNotifications,
-    }
-  },
-}
-</script>
