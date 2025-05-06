@@ -30,6 +30,11 @@ public class CreateHouseholdRequest {
   @NotBlank(message = "State is required")
   private String postalCode;
 
+  /**
+   * Converts this DTO to a Household entity.
+   *
+   * @return a Household entity with the same data as this DTO
+   */
   public Household toEntity() {
     return Household.builder()
         .name(name)
