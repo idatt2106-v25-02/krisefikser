@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, onUnmounted } from 'vue'
+import { onMounted, ref, onUnmounted, nextTick } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -54,7 +54,7 @@ const rawSchema = z
   })
 
 // Set up consts for submit button deactivation
-const { handleSubmit, meta } = useForm({
+const { handleSubmit, meta, setFieldError } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
@@ -63,6 +63,7 @@ const authStore = useAuthStore()
 
 // Loading state
 const isLoading = ref(false)
+const emailInputRef = ref<HTMLInputElement | null>(null)
 
 // Function to parse error messages and provide specific user feedback
 const getErrorMessage = (error: {
@@ -79,7 +80,16 @@ const getErrorMessage = (error: {
   }
 
   if (error?.response?.status === 409) {
-    return 'E-postadressen er allerede registrert. Vennligst bruk en annen e-post eller prøv å logge inn.'
+    // Set error directly on the email field
+    setFieldError(
+      'email',
+      'E-postadressen er allerede registrert. Vennligst bruk en annen e-post eller prøv å logge inn.',
+    )
+    // Use nextTick to ensure DOM is updated before focusing
+    nextTick(() => {
+      emailInputRef.value?.focus()
+    })
+    return 'E-postadressen er allerede registrert.'
   }
 
   if (error?.response?.status === 500) {
@@ -210,6 +220,7 @@ onUnmounted(() => {
                 class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
               />
               <Input
+                ref="emailInputRef"
                 type="email"
                 placeholder="navn@eksempel.no"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
