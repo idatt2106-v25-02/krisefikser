@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.SignatureException;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -373,6 +374,12 @@ public class GlobalExceptionHandler {
     log.error("Unauthorized access: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
         exception.getMessage(), "user");
+  }
+
+  @ExceptionHandler(PropertyReferenceException.class)
+  public ProblemDetail handlePropertyReferenceException(PropertyReferenceException exception) {
+    log.error("Property reference exception: {}", exception.getMessage());
+    return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
   }
 
   // ===== General exceptions =====

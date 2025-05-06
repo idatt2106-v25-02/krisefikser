@@ -1,8 +1,6 @@
 package stud.ntnu.krisefikser.notification.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -62,6 +60,9 @@ public class NotificationController {
    */
   @Operation(summary = "Get all notifications for authenticated user",
       description = "Retrieves a page of the users notifications")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved notifications")
+  })
   @GetMapping
   public ResponseEntity<Page<NotificationResponse>> getNotifications(Pageable pageable) {
     return ResponseEntity.ok(notificationService.getNotifications(pageable));
@@ -80,9 +81,7 @@ public class NotificationController {
       description = "Returns the number of unread notifications for the authenticated user")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200",
-          description = "Successfully retrieved unread notification count",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = Long.class)))})
+          description = "Successfully retrieved unread notification count")})
   @GetMapping("/unread")
   public ResponseEntity<Long> getUnreadCount() {
     return ResponseEntity.ok(notificationService.countUnreadNotifications());

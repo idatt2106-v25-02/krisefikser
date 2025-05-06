@@ -59,6 +59,13 @@ public class NotificationService {
     return notificationRepository.findByUser(currentUser, pageable).map(Notification::toResponse);
   }
 
+  public List<NotificationResponse> getNotifications() {
+    User currentUser = userService.getCurrentUser();
+    return notificationRepository.findByUser(currentUser).stream()
+        .map(Notification::toResponse)
+        .toList();
+  }
+
 
   /**
    * Marks a specific notification as read for the currently authenticated user.
