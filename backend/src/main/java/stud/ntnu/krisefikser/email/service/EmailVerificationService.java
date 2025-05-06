@@ -61,7 +61,7 @@ public class EmailVerificationService {
     }
     
     public ResponseEntity<String> sendVerificationEmail(User user, VerificationToken token) {
-        String verificationLink = frontendUrl + "verify?token=" + token.getToken();
+        String verificationLink = frontendUrl + "/verify?token=" + token.getToken();
         String htmlContent = createVerificationEmailHtml(user.getFirstName(), verificationLink);
         
         return emailService.sendEmail(
