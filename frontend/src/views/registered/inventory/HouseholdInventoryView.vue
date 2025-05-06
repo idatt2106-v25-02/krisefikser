@@ -15,6 +15,10 @@ import {
   Phone,
   Package,
   Plus,
+  Save,
+  XCircle,
+  Edit,
+  Trash
 } from 'lucide-vue-next'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 import ProductSearch from '@/components/inventory/ProductSearch.vue'
@@ -38,49 +42,34 @@ import {
   useSetWaterAmount
 } from '@/api/generated/item/item'
 import type {
-  InventorySummaryResponse,
   FoodItemResponse,
   ChecklistItemResponse
 } from '@/api/generated/model' // Assuming DTOs are re-exported from model/index.ts
 import { useGetActiveHousehold } from '@/api/generated/household/household'
-import type { HouseholdResponse, HouseholdMemberResponse, GuestResponse } from '@/api/generated/model'
+import type { HouseholdMemberResponse, GuestResponse } from '@/api/generated/model'
 
 // Define types for data structures (will need adjustments based on backend DTOs)
 interface InventoryItem {
-  id: string; // Comes from FoodItemResponse.id or ChecklistItemResponse.id
-  name: string; // Comes from FoodItemResponse.name or ChecklistItemResponse.name
-  amount: number; // For food, this might be derived or managed differently. For checklist, not applicable.
-  unit: string; // For food, this might be derived or managed differently. For checklist, not applicable.
-  type?: string; // For food, can use FoodItemResponse.icon. For checklist, ChecklistItemResponse.icon
-  expiryDate?: string | null; // From FoodItemResponse.expirationDate (Instant -> string)
-  checked?: boolean; // From ChecklistItemResponse.checked
-  kcal?: number; // From FoodItemResponse.kcal
-  iconName?: string; // From FoodItemResponse.icon or ChecklistItemResponse.icon (to map to Lucide icon if needed)
+  id: string;
+  name: string;
+  amount: number;
+  unit: string;
+  type?: string;
+  expiryDate?: string | null;
+  checked?: boolean;
+  kcal?: number;
+  iconName?: string;
 }
 
 interface Category {
-  id: string; // e.g., 'food', 'water', 'health', 'power', 'comm', 'misc'
-  name: string; // e.g., 'Mat', 'Vann', 'Helse & hygiene'
-  icon: FunctionalComponent; // Lucide icon component
-  current: number; // For food (kcal), water (liters), checklist (checked count)
-  target: number; // For food (kcalGoal), water (litersGoal), checklist (total count)
-  unit: string; // e.g., 'kcal', 'L', 'stk' (for checklist count)
+  id: string;
+  name: string;
+  icon: FunctionalComponent;
+  current: number;
+  target: number;
+  unit: string;
   items: InventoryItem[];
 }
-
-// This will be largely replaced or heavily adapted
-// interface Inventory {
-//   preparedDays: number;
-//   targetDays: number;
-//   categories: Category[];
-// }
-
-// This might still be useful for the top-level household ID/name if not passed as prop
-// interface Household {
-//   id: string;
-//   name: string;
-//   // inventory: Inventory; // This will be reconstructed
-// }
 
 interface FormattedCategory {
   current: number;
@@ -88,29 +77,27 @@ interface FormattedCategory {
   unit: string;
 }
 
-interface FormattedInventory { // For HouseholdEmergencySupplies component
+interface FormattedInventory {
   food: FormattedCategory;
   water: FormattedCategory;
-  other: { // Represents checklist items
-    current: number; // checkedItems
-    target: number; // totalItems
+  other: {
+    current: number;
+    target: number;
   };
-  preparedDays: number; // This is not directly in summary, might need separate logic or be removed
-  targetDays: number; // This is not directly in summary, might need separate logic or be removed
+  preparedDays: number;
+  targetDays: number;
 }
 
 const router = useRouter()
 const authStore = useAuthStore()
-const queryClient = useQueryClient() // For later mutations
+const queryClient = useQueryClient()
 
 // --- Fetching Actual Data ---
-const householdId = ref('1'); // Placeholder: This needs to come from route, store, or props
+const householdId = ref('1');
 
 // 1. Fetch Inventory Summary
 const {
   data: inventorySummary,
-  isLoading: isLoadingSummary,
-  isError: isErrorSummary,
 } = useGetInventorySummary(
   { // Orval options object for useQuery
     query: {
@@ -123,8 +110,6 @@ const {
 // 2. Fetch Food Items
 const {
   data: foodItems, // This will be FoodItemResponse[] | undefined
-  isLoading: isLoadingFoodItems,
-  isError: isErrorFoodItems,
 } = useGetAllFoodItems(
   {
     query: {
@@ -136,8 +121,6 @@ const {
 // 3. Fetch Checklist Items
 const {
   data: checklistItems, // This will be ChecklistItemResponse[] | undefined
-  isLoading: isLoadingChecklistItems,
-  isError: isErrorChecklistItems,
 } = useGetAllChecklistItems(
   {
     query: {
@@ -147,7 +130,7 @@ const {
 );
 
 // 4. Fetch Household Members and Guests
-const { data: household, isLoading: isLoadingHousehold } = useGetActiveHousehold({
+const { data: household} = useGetActiveHousehold({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
@@ -205,13 +188,13 @@ const displayedCategories = computed<Category[]>(() => {
       unit: 'kcal',
       items: foodItems.value.map((fi: FoodItemResponse) => {
         console.log('HouseholdInventoryView: Mapping food item for display. fi.expirationDate:', fi.expirationDate, 'Type:', typeof fi.expirationDate, 'Item name:', fi.name);
-        
+
         let dateInputForProcessing: string | number | undefined = fi.expirationDate;
         if (typeof fi.expirationDate === 'number') {
-          dateInputForProcessing = fi.expirationDate * 1000; // Convert seconds to milliseconds
+          dateInputForProcessing = fi.expirationDate * 1000;
           console.log('HouseholdInventoryView: Converted numeric timestamp to milliseconds:', dateInputForProcessing, 'Item name:', fi.name);
         }
-        
+
         const processedExpiryDate = dateInputForProcessing ? new Date(dateInputForProcessing).toISOString().split('T')[0] : null;
         console.log('HouseholdInventoryView: Processed expiryDate for display mapping:', processedExpiryDate, 'Item name:', fi.name);
         return {
@@ -346,8 +329,6 @@ function openAddItemDialog(categoryId: string, categoryName: string): void {
   console.log('openAddItemDialog called with:', categoryId, categoryName);
   selectedCategory.value = { id: categoryId, name: categoryName };
   isAddItemDialogOpen.value = true;
-  console.log('selectedCategory:', selectedCategory.value);
-  console.log('isAddItemDialogOpen:', isAddItemDialogOpen.value);
 }
 
 function getDialogComponent(
@@ -418,98 +399,66 @@ const setWaterAmount = useSetWaterAmount({
   },
 });
 
-// Update the handleAddItem function
-async function handleAddItem(newItem: InventoryItem): Promise<void> {
-  try {
-    console.log('HouseholdInventoryView: handleAddItem received newItem:', newItem);
-    console.log('HouseholdInventoryView: newItem.expiryDate value:', newItem.expiryDate);
-    console.log('HouseholdInventoryView: Type of newItem.expiryDate:', typeof newItem.expiryDate);
+// Moved these declarations earlier to fix initialization error
+const originalCategoriesState = ref<string[]>([])
+const expandedCategories = ref<string[]>([])
 
-    if (!household.value?.id) return;
+// Add a ref for editing water amount
+const editingWaterAmount = ref<number | null>(null)
+const waterToAdd = ref<number | null>(null)      // New ref for water to add
+const waterToSubtract = ref<number | null>(null) // New ref for water to subtract
 
-    if (selectedCategory.value?.id === 'food') {
-      const payload = {
-        data: {
-          name: newItem.name,
-          kcal: newItem.kcal ?? 0,
-          expirationDate: newItem.expiryDate ? new Date(newItem.expiryDate).toISOString() : undefined,
-          icon: newItem.iconName ?? 'utensils'
-        }
-      };
-      console.log('HouseholdInventoryView: Attempting to parse date for payload. Input to new Date():', newItem.expiryDate);
-      if (newItem.expiryDate) {
-        const dateObject = new Date(newItem.expiryDate);
-        console.log('HouseholdInventoryView: Date object created:', dateObject);
-        console.log('HouseholdInventoryView: dateObject.toISOString():', dateObject.toISOString());
-      }
-      console.log('mutating with payload:', payload);
-      await createFoodItem.mutateAsync(payload);
-    } else {
-      // For checklist items (health, power, comm, misc)
-      await toggleChecklistItem.mutateAsync({
-        id: newItem.id
-      });
-    }
 
-    isAddItemDialogOpen.value = false;
-    selectedCategory.value = null;
-  } catch (error) {
-    console.error('Error adding item:', error);
-    // TODO: Add proper error handling/notification
+// When expanding the water category, initialize the editingWaterAmount and add/subtract fields
+watch(expandedCategories, (newVal) => {
+  const waterCategory = displayedCategories.value.find(c => c.id === 'water')
+  if (newVal.includes('water') && waterCategory) {
+    editingWaterAmount.value = waterCategory.current
+    waterToAdd.value = null
+    waterToSubtract.value = null
+  }
+})
+
+// Handler for when the 'waterToAdd' input changes
+function handleWaterAddChange() {
+  const currentActual = displayedCategories.value.find(c => c.id === 'water')?.current ?? 0;
+  if (waterToAdd.value !== null && waterToAdd.value >= 0) {
+    editingWaterAmount.value = currentActual + waterToAdd.value;
+    waterToSubtract.value = null; // Clear the other field
+  } else if (waterToAdd.value === null && waterToSubtract.value === null) {
+    editingWaterAmount.value = currentActual; // Both empty, revert to current actual
+  } else if (waterToAdd.value === null && waterToSubtract.value !== null) {
+    // If add is cleared but subtract has value, recalculate based on subtract
+    editingWaterAmount.value = Math.max(0, currentActual - (waterToSubtract.value || 0));
   }
 }
 
-// Update the saveEdit function
-async function saveEdit(category: Category, item: InventoryItem): Promise<void> {
-  try {
-    if (category.id === 'food') {
-      await updateFoodItem.mutateAsync({
-        id: item.id,
-        data: {
-          name: editingName.value,
-          kcal: editingAmount.value ?? 0,
-          expirationDate: item.expiryDate ? new Date(item.expiryDate).toISOString() : undefined,
-          icon: item.iconName ?? 'utensils'
-        }
-      });
-    } else {
-      // For checklist items
-      await toggleChecklistItem.mutateAsync({
-        id: item.id
-      });
-    }
-    cancelEdit();
-  } catch (error) {
-    console.error('Error updating item:', error);
-  }
-}
-
-// Update the deleteItem function
-async function deleteItem(categoryId: string, itemId: string): Promise<void> {
-  try {
-    if (categoryId === 'food') {
-      // This function will now handle the confirmation and deletion directly
-      // So this console.warn and return can be removed or adapted
-      // For now, let promptDeleteFoodItem handle it entirely
-      console.warn("Direct deletion of food item attempted via deleteItem, should use promptDeleteFoodItem or refactor.");
-      return;
-    } else {
-      // For checklist items, we'll use the same toggle mutation
-      await toggleChecklistItem.mutateAsync({ id: itemId });
-    }
-  } catch (error) {
-    console.error('Error deleting item:', error);
+// Handler for when the 'waterToSubtract' input changes
+function handleWaterSubtractChange() {
+  const currentActual = displayedCategories.value.find(c => c.id === 'water')?.current ?? 0;
+  if (waterToSubtract.value !== null && waterToSubtract.value >= 0) {
+    editingWaterAmount.value = Math.max(0, currentActual - waterToSubtract.value);
+    waterToAdd.value = null; // Clear the other field
+  } else if (waterToSubtract.value === null && waterToAdd.value === null) {
+    editingWaterAmount.value = currentActual; // Both empty, revert to current actual
+  } else if (waterToSubtract.value === null && waterToAdd.value !== null) {
+    // If subtract is cleared but add has value, recalculate based on add
+    editingWaterAmount.value = currentActual + (waterToAdd.value || 0);
   }
 }
 
 function saveEditWater() {
-  if (editingWaterAmount.value !== null) {
+  if (editingWaterAmount.value !== null && editingWaterAmount.value >= 0) {
     setWaterAmount.mutate({ amount: editingWaterAmount.value });
+    // Reset add/subtract fields after saving for a cleaner UI next time
+    waterToAdd.value = null;
+    waterToSubtract.value = null;
+    // Collapse the water category accordion
+    expandedCategories.value = expandedCategories.value.filter(id => id !== 'water');
+    // editingWaterAmount will be updated by the watch(expandedCategories) when data refetches
   }
 }
 
-const originalCategoriesState = ref<string[]>([])
-const expandedCategories = ref<string[]>([])
 const isAddItemDialogOpen = ref(false)
 const selectedCategory = ref<{ id: string; name: string } | null>(null)
 const isSearchActive = ref(false)
@@ -544,33 +493,25 @@ function handleSearchChanged(isActive: boolean): void {
 const editingItemId = ref<string | null>(null)
 const editingName = ref('')
 const editingAmount = ref<number | null>(null) // For food, this might be kcal or a new concept
+const editingExpiryDate = ref<string | null>(null) // Added for editing expiry date
 
 function startEdit(item: InventoryItem): void {
+  // Prevent re-entering edit mode if already editing this item
+  if (editingItemId.value === item.id) return;
+
   editingItemId.value = item.id
   editingName.value = item.name
   editingAmount.value = item.kcal ?? (item.amount ?? 0)
+  // Ensure expiryDate is in YYYY-MM-DD format for the date input
+  editingExpiryDate.value = item.expiryDate ? item.expiryDate.split('T')[0] : null
 }
 
 function cancelEdit(): void {
   editingItemId.value = null
   editingName.value = ''
   editingAmount.value = null
+  editingExpiryDate.value = null // Clear editing expiry date
 }
-
-// Add a ref for editing water amount
-const editingWaterAmount = ref<number | null>(null)
-
-function startEditWater(currentAmount: number) {
-  editingWaterAmount.value = currentAmount
-}
-
-// When expanding the water category, initialize the editingWaterAmount
-watch(expandedCategories, (newVal) => {
-  const waterCategory = displayedCategories.value.find(c => c.id === 'water')
-  if (newVal.includes('water') && waterCategory) {
-    editingWaterAmount.value = waterCategory.current
-  }
-})
 
 // Updated function for food item deletion confirmation using window.confirm
 async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
@@ -584,6 +525,80 @@ async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
     }
   }
 }
+
+// --- START RESTORED FUNCTIONS ---
+// Update the handleAddItem function
+async function handleAddItem(newItem: InventoryItem): Promise<void> {
+  try {
+    console.log('HouseholdInventoryView: handleAddItem received newItem:', newItem);
+    console.log('HouseholdInventoryView: newItem.expiryDate value:', newItem.expiryDate);
+    console.log('HouseholdInventoryView: Type of newItem.expiryDate:', typeof newItem.expiryDate);
+
+    if (!household.value?.id) return;
+
+    if (selectedCategory.value?.id === 'food') {
+      const payload = {
+        data: {
+          name: newItem.name,
+          kcal: newItem.kcal ?? 0,
+          expirationDate: newItem.expiryDate ? new Date(newItem.expiryDate).toISOString() : undefined,
+          icon: newItem.iconName ?? 'utensils'
+        }
+      };
+      console.log('HouseholdInventoryView: Attempting to parse date for payload. Input to new Date():', newItem.expiryDate);
+      if (newItem.expiryDate) {
+        const dateObject = new Date(newItem.expiryDate);
+        console.log('HouseholdInventoryView: Date object created:', dateObject);
+        console.log('HouseholdInventoryView: dateObject.toISOString():', dateObject.toISOString());
+      }
+      console.log('mutating with payload:', payload);
+      await createFoodItem.mutateAsync(payload);
+    } else {
+      // For checklist items (health, power, comm, misc)
+      // This assumes newItem has an ID for checklist items.
+      // If adding new checklist items, this might need adjustment or a different mutation.
+      await toggleChecklistItem.mutateAsync({
+        // id: newItem.id // This was the old logic, ensure newItem.id is correct for checklist adds
+        // For now, this handleAddItem is primarily for food. Checklist items might need their own add flow
+        // if they are created, not just toggled. Assuming toggle is if it exists.
+        // This part might need review based on checklist item creation flow.
+        id: newItem.id // Re-instating, assuming newItem always has a relevant ID.
+      });
+    }
+
+    isAddItemDialogOpen.value = false;
+    selectedCategory.value = null;
+  } catch (error) {
+    console.error('Error adding item:', error);
+    // TODO: Add proper error handling/notification
+  }
+}
+
+// Update the saveEdit function
+async function saveEdit(category: Category, item: InventoryItem): Promise<void> {
+  try {
+    if (category.id === 'food') {
+      await updateFoodItem.mutateAsync({
+        id: item.id,
+        data: {
+          name: editingName.value,
+          kcal: editingAmount.value ?? 0,
+          expirationDate: editingExpiryDate.value ? new Date(editingExpiryDate.value).toISOString() : undefined,
+          icon: item.iconName ?? 'utensils'
+        }
+      });
+    } else {
+      // For checklist items
+      await toggleChecklistItem.mutateAsync({
+        id: item.id
+      });
+    }
+    cancelEdit();
+  } catch (error) {
+    console.error('Error updating item:', error);
+  }
+}
+
 </script>
 
 <template>
@@ -707,10 +722,51 @@ async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
                   <div class="divide-y divide-gray-100">
                     <!-- For water: show inline input and save button -->
                     <template v-if="category.id === 'water'">
-                      <div class="flex items-center py-3 px-4">
-                        <label class="mr-4 text-lg text-gray-800">Antall liter vann:</label>
-                        <input type="number" min="0" step="0.1" v-model.number="editingWaterAmount" class="border rounded px-2 py-1 text-lg w-24 mr-4" />
-                        <button @click="saveEditWater" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-lg">Lagre</button>
+                      <div class="p-4 space-y-4">
+
+
+                        <div class="grid sm:grid-cols-2 gap-4 items-end">
+                          <div>
+                            <label for="waterAddInput" class="block mb-1 text-base text-gray-700">Legg til liter:</label>
+                            <input
+                              id="waterAddInput"
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              v-model.number="waterToAdd"
+                              @input="handleWaterAddChange"
+                              @keydown.enter.prevent="saveEditWater"
+                              class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full"
+                              placeholder="0.0"
+                            />
+                          </div>
+                          <div>
+                            <label for="waterSubtractInput" class="block mb-1 text-base text-gray-700">Trekk fra liter:</label>
+                            <input
+                              id="waterSubtractInput"
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              v-model.number="waterToSubtract"
+                              @input="handleWaterSubtractChange"
+                              @keydown.enter.prevent="saveEditWater"
+                              class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full"
+                              placeholder="0.0"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-3">
+                          <div class="text-lg text-gray-800">
+                            Nytt totalt antall: <span class="font-semibold text-blue-600">{{ editingWaterAmount === null ? category.current : editingWaterAmount }} L</span>
+                          </div>
+                          <button
+                            @click="saveEditWater"
+                            class="flex items-center bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md transition-colors text-lg font-medium"
+                          >
+                            <Save class="h-5 w-5 mr-2" /> Oppdater vannmengde
+                          </button>
+                        </div>
                       </div>
                     </template>
                     <!-- Individual items for other categories -->
@@ -719,18 +775,42 @@ async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
                         v-for="item in category.items"
                         :key="item.id"
                         :id="`item-${item.id}`"
-                        class="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors duration-200"
+                        class="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors duration-200 relative"
+                        @click="category.id === 'food' && editingItemId !== item.id ? startEdit(item) : null"
                       >
-                        <div class="flex items-center">
+                        <div class="flex items-center flex-grow">
                           <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
                           <template v-if="category.id === 'food' && editingItemId === item.id">
-                            <input v-model="editingName" class="border rounded px-2 py-1 text-sm mr-2 w-32" />
-                            <input v-model.number="editingAmount" type="number" min="0.1" step="0.1" class="border rounded px-2 py-1 text-sm w-16" />
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-grow">
+                              <input
+                                v-model="editingName"
+                                @keydown.enter.prevent="saveEdit(category, item)"
+                                @click.stop="()=>{}"
+                                class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:w-32"
+                                placeholder="Navn"
+                              />
+                              <input
+                                v-model.number="editingAmount"
+                                type="number"
+                                min="0.1"
+                                step="0.1"
+                                @keydown.enter.prevent="saveEdit(category, item)"
+                                @click.stop="()=>{}"
+                                class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-24 sm:w-20"
+                                placeholder="Kcal"
+                              />
+                              <input
+                                v-model="editingExpiryDate"
+                                type="date"
+                                @keydown.enter.prevent="saveEdit(category, item)"
+                                @click.stop="()=>{}"
+                                class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
                           </template>
                           <template v-else-if="category.id === 'food'">
                             <span
-                              class="text-xl text-gray-800 cursor-pointer underline decoration-dotted"
-                              @click="startEdit(item)"
+                              class="text-xl text-gray-800 cursor-pointer"
                             >
                               {{ item.name }}
                             </span>
@@ -740,25 +820,49 @@ async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
                           </template>
                           <template v-else>
                             <!-- Checklist categories: show checkbox -->
-                            <input type="checkbox" :checked="item.checked" @change="toggleChecklistItem.mutateAsync({ id: item.id })" class="mr-2" />
-                            <span class="text-lg text-gray-800">{{ item.name }}</span>
+                            <label
+                              :for="`checkbox-${item.id}`"
+                              class="flex items-center cursor-pointer flex-grow"
+                            >
+                              <input
+                                :id="`checkbox-${item.id}`"
+                                type="checkbox"
+                                :checked="item.checked"
+                                @change="toggleChecklistItem.mutateAsync({ id: item.id })"
+                                class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3 accent-blue-600"
+                              />
+                              <span class="text-lg text-gray-800">{{ item.name }}</span>
+                            </label>
                           </template>
                         </div>
-                        <div class="flex items-center space-x-6">
-                          <div class="text-right">
-                            <template v-if="category.id === 'food' && editingItemId === item.id">
-                              <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ editingAmount }}</span>
-                            </template>
-                            <template v-else-if="category.id === 'food'">
-                              <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ item.amount }} {{ item.unit }}</span>
-                            </template>
-                            <!-- For water and checklist, do not show amount/unit here -->
+                        <div class="flex items-center space-x-2 sm:space-x-3">
+                          <!-- AMOUNT DISPLAY (only when not editing food) -->
+                          <div class="text-right min-w-[70px] sm:min-w-[90px]" v-if="category.id === 'food' && editingItemId !== item.id">
+                            <span class="font-medium px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800">{{ item.amount }} {{ item.unit }}</span>
                           </div>
+
+                          <!-- EDIT MODE SAVE/CANCEL BUTTONS -->
                           <template v-if="category.id === 'food' && editingItemId === item.id">
-                            <button @click="saveEdit(category, item)" class="text-green-600 hover:text-green-800 mr-2">✓</button>
-                            <button @click="cancelEdit" class="text-gray-500 hover:text-red-600">✗</button>
+                            <div class="flex items-center space-x-2">
+                              <button
+                                @click.stop="saveEdit(category, item)"
+                                class="flex items-center bg-green-600 text-white hover:bg-green-500 px-3 py-1.5 rounded-md transition-colors text-sm"
+                                title="Lagre endringer"
+                              >
+                                <Save class="h-4 w-4 sm:mr-1" /> <span class="hidden sm:inline">Lagre</span>
+                              </button>
+                              <button
+                                @click.stop="cancelEdit"
+                                class="flex items-center bg-red-600 text-white hover:bg-red-500 px-3 py-1.5 rounded-md transition-colors text-sm"
+                                title="Avbryt redigering"
+                              >
+                                <XCircle class="h-4 w-4 sm:mr-1" /> <span class="hidden sm:inline">Avbryt</span>
+                              </button>
+                            </div>
                           </template>
-                          <template v-if="category.id === 'food' && item.expiryDate">
+
+                          <!-- EXPIRY DATE DISPLAY (only when not editing food) -->
+                          <template v-if="category.id === 'food' && editingItemId !== item.id && item.expiryDate">
                             <div class="flex items-center">
                               <span class="text-gray-600 mr-3 text-lg">Utløpsdato:</span>
                               <span
@@ -786,27 +890,26 @@ async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
                               </span>
                             </div>
                           </template>
-                          <button
-                            v-if="category.id === 'food'"
-                            class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
-                            @click="promptDeleteFoodItem(item)"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="18"
-                              height="18"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <path d="M3 6h18"></path>
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                            </svg>
-                          </button>
+
+                          <!-- ACTION BUTTONS (Edit/Delete - only when not editing food) -->
+                          <template v-if="category.id === 'food' && editingItemId !== item.id">
+                            <div class="flex items-center space-x-1 sm:space-x-2">
+                              <button
+                                @click.stop="startEdit(item)"
+                                class="text-blue-600 hover:text-blue-800 p-1.5 rounded-md hover:bg-blue-50 transition-colors"
+                                title="Rediger matvare"
+                              >
+                                <Edit class="h-5 w-5" />
+                              </button>
+                              <button
+                                class="text-red-500 hover:text-red-700 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+                                @click.stop="promptDeleteFoodItem(item)"
+                                title="Slett matvare"
+                              >
+                                <Trash class="h-5 w-5" />
+                              </button>
+                            </div>
+                          </template>
                         </div>
                       </div>
 
@@ -848,8 +951,5 @@ async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
     transform: scale(1);
     opacity: 1;
   }
-}
-.animate-modalShow {
-  animation: modalShow 0.3s forwards;
 }
 </style>
