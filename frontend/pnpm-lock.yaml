@@ -59,6 +59,9 @@ importers:
       posthog-js:
         specifier: ^1.239.0
         version: 1.239.1
+      qs:
+        specifier: ^6.14.0
+        version: 6.14.0
       reka-ui:
         specifier: ^2.2.0
         version: 2.2.0(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
@@ -126,6 +129,9 @@ importers:
       '@types/node':
         specifier: ^22.14.1
         version: 22.14.1
+      '@types/qs':
+        specifier: ^6.9.18
+        version: 6.9.18
       '@types/sockjs-client':
         specifier: ^1.5.4
         version: 1.5.4
@@ -1110,6 +1116,9 @@ packages:
 
   '@types/node@22.14.1':
     resolution: {integrity: sha512-u0HuPQwe/dHrItgHHpmw3N2fYCR6x4ivMNbPHRkBVP4CvN+kiRrKHWk3i8tXiO/joPwXLMYvF9TTF0eqgHIuOw==}
+
+  '@types/qs@6.9.18':
+    resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
 
   '@types/sinonjs__fake-timers@8.1.1':
     resolution: {integrity: sha512-0kSuKjAS0TrGLJ0M/+8MaFkGsQhZpB6pxOmvS3K8FYI72K//YmdfoW9X2qPsAKh1mkwxGD5zib9s1FIFed6E8g==}
@@ -5341,6 +5350,8 @@ snapshots:
   '@types/node@22.14.1':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/qs@6.9.18': {}
 
   '@types/sinonjs__fake-timers@8.1.1': {}
 
