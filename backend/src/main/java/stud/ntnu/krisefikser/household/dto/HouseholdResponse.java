@@ -1,14 +1,14 @@
 package stud.ntnu.krisefikser.household.dto;
 
-import stud.ntnu.krisefikser.user.dto.UserResponse;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 /**
  * DTO for representing a household's response.
@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
  * @since 1.0
  */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class HouseholdResponse {
@@ -34,6 +35,8 @@ public class HouseholdResponse {
   private UserResponse owner;
   @NotNull
   private List<HouseholdMemberResponse> members;
+  @NotNull
+  private List<GuestResponse> guests;
   @NotNull
   private LocalDateTime createdAt;
   @NotNull

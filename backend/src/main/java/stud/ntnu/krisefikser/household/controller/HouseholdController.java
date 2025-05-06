@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.dto.JoinHouseholdRequest;
@@ -194,6 +195,41 @@ public class HouseholdController {
     return ResponseEntity.ok(householdService.removeMemberFromHousehold(householdId, userId));
   }
 
+  /**
+   * Add a guest to the household.
+   */
+  @Operation(summary = "Add guest to current household",
+      description = "Adds a guest to current household. A guest is a user who does not have a user "
+          + "account.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully added guest"),
+      @ApiResponse(responseCode = "400", description = "Invalid household or guest data"),
+      @ApiResponse(responseCode = "404", description = "Household not found")
+  })
+  @PostMapping("/guests")
+  public ResponseEntity<HouseholdResponse> addGuestToHousehold(
+      @Parameter(description = "Guest data") @RequestBody CreateGuestRequest guest) {
+    return ResponseEntity.ok(householdService.addGuestToHousehold(guest));
+  }
+
+  /**
+   * Removes a guest from a household.
+   *
+   * @param guestId The ID of the guest to remove
+   * @return ResponseEntity containing the updated household
+   */
+  @Operation(summary = "Remove guest from household",
+      description = "Removes a guest from your household. You must be owner.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully removed guest"),
+      @ApiResponse(responseCode = "400", description = "Invalid household or guest ID"),
+      @ApiResponse(responseCode = "404", description = "Household or guest not found")
+  })
+  @DeleteMapping("/guests/{guestId}")
+  public ResponseEntity<HouseholdResponse> removeGuestFromHousehold(
+      @Parameter(description = "Guest ID") @PathVariable UUID guestId) {
+    return ResponseEntity.ok(householdService.removeGuestFromHousehold(guestId));
+  }
 
   /**
    * Retrieves all households in the system. Only accessible to users with ADMIN * role. * * @return

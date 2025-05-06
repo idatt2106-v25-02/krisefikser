@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import stud.ntnu.krisefikser.household.dto.GuestResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 import stud.ntnu.krisefikser.item.dto.InventorySummaryResponse;
@@ -25,7 +26,7 @@ public class SummaryService {
   public InventorySummaryResponse getInventorySummary() {
     return InventorySummaryResponse.builder()
         .kcal(totalKcal())
-        .kcalGoal(kcalGoal())
+        .kcalGoal((int) kcalGoal())
         .waterLiters(totalWaterLiters())
         .waterLitersGoal(waterLitersGoal())
         .checkedItems(checkedItems())
@@ -38,7 +39,7 @@ public class SummaryService {
         0, (sum, item) -> sum + item.getKcal(), Integer::sum);
   }
 
-  private int kcalGoal() {
+  private double kcalGoal() {
     return DAILY_KCAL * DAYS_GOAL * totalMultiplier();
   }
 
@@ -60,10 +61,15 @@ public class SummaryService {
     return checklistItemService.getAllChecklistItems().size();
   }
 
-  private int totalMultiplier() {
+  private double totalMultiplier() {
     HouseholdResponse activeHousehold = householdService.toHouseholdResponse(
         householdService.getActiveHousehold());
 
-    return activeHousehold.getMembers().size();
+    double memberMultiplier = activeHousehold.getMembers().size();
+    double guestMultiplier = activeHousehold.getGuests().stream()
+        .mapToDouble(GuestResponse::getConsumptionMultiplier)
+        .sum();
+
+    return memberMultiplier + guestMultiplier;
   }
 }
