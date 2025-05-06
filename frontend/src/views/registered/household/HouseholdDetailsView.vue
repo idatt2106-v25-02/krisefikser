@@ -130,8 +130,16 @@ const householdFormSchema = toTypedSchema(
   z.object({
     name: z.string().min(1, 'Navn på husstanden er påkrevd'),
     address: z.string().min(1, 'Adresse er påkrevd'),
-    postalCode: z.string().min(4, 'Postnummer må være minst 4 siffer'),
-    city: z.string().min(1, 'By/sted er påkrevd'),
+    postalCode: z.string().refine(val => /^\d{4}$/.test(val), {
+      message: "Postnummer må bestå av nøyaktig 4 siffer.",
+    }),
+    city: z
+      .string()
+      .min(1, 'By/sted er påkrevd')
+      .max(50, 'By/sted kan ikke være lenger enn 50 tegn')
+      .refine(val => /^[a-zA-ZæøåÆØÅ -]+$/.test(val), {
+        message: 'By/sted kan kun inneholde bokstaver, bindestrek og mellomrom.',
+      }),
   }),
 )
 
