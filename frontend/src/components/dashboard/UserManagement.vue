@@ -47,7 +47,7 @@ import type { HouseholdResponse, CreateHouseholdRequest } from '@/api/generated/
 const props = defineProps({
   isSuperAdmin: {
     type: Boolean,
-    default: true
+    default: true,
   },
   // The users data from parent component
   usersData: {
@@ -364,9 +364,8 @@ const getRoleDisplay = (roles?: string[]) => {
             <Users class="h-4 w-4 mr-1" />
             Alle brukere
           </Button>
-          <!-- Only show admin and user filter buttons for Super Admin -->
           <Button
-            v-if="isSuperAdmin"
+          v-if="!isSuperAdmin"
             variant="ghost"
             :class="{'bg-blue-50 text-blue-600': viewMode === 'admins'}"
             @click="viewMode = 'admins'"
@@ -375,7 +374,7 @@ const getRoleDisplay = (roles?: string[]) => {
             Kun admins
           </Button>
           <Button
-            v-if="isSuperAdmin"
+            v-if="!isSuperAdmin"
             variant="ghost"
             :class="{'bg-blue-50 text-blue-600': viewMode === 'users'}"
             @click="viewMode = 'users'"

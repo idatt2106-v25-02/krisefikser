@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+  import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLogin, useRegister, useMe } from '@/api/generated/authentication/authentication'

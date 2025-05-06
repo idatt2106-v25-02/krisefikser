@@ -2,18 +2,13 @@
 <script setup lang="ts">
 import AdminLayout from '@/components/admin/AdminLayout.vue';
 import UserManagementComponent from '@/components/dashboard/UserManagement.vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 // Import the same API hooks as AdminSection
 import { useGetAllUsers, useDeleteUser, useUpdateUser } from '@/api/generated/user/user';
 import type { UserResponse } from '@/api/generated/model';
 
-const props = defineProps({
-  isSuperAdmin: {
-    type: Boolean,
-    default: false
-  }
-});
+const isSuperAdmin = ref(false)
 
 const emit = defineEmits(['navigate']);
 
@@ -57,7 +52,7 @@ const handleNavigate = (path: string) => {
 <template>
   <AdminLayout>
     <UserManagementComponent
-      :isSuperAdmin="isSuperAdmin"
+      :isSuperAdmin="false"
       :usersData="filteredUsersData"
       :householdsData="[]"
       :isLoadingUsers="isLoadingUsers"
