@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { Home, MapPin, Users, CheckCircle } from 'lucide-vue-next'
-import { useGetAllUserHouseholds, useGetActiveHousehold } from '@/api/generated/household/household.ts'
+import {
+  useGetAllUserHouseholds,
+  useGetActiveHousehold,
+} from '@/api/generated/household/household.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import { watch } from 'vue'
 import {
@@ -14,7 +17,11 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 // Get household data from API
-const { data: households, isLoading: isLoadingHouseholds, refetch: refetchHouseholds } = useGetAllUserHouseholds({
+const {
+  data: households,
+  isLoading: isLoadingHouseholds,
+  refetch: refetchHouseholds,
+} = useGetAllUserHouseholds({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
@@ -22,11 +29,21 @@ const { data: households, isLoading: isLoadingHouseholds, refetch: refetchHouseh
   },
 })
 
-const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold({
+const {
+  data: activeHousehold,
+  isLoading: isLoadingActiveHousehold,
+  error: activeHouseholdError,
+} = useGetActiveHousehold({
   query: {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
+    retry: (failureCount, error) => {
+      // Don't retry on 404 errors
+      if (error?.response?.status === 404) return false
+      // Default retry behavior for other errors (3 times)
+      return failureCount < 3
+    },
   },
 })
 
@@ -78,6 +95,10 @@ const { mutate: declineInvite } = useDeclineInvite({
   },
 })
 
+// Check if activeHousehold returned a 404 error
+const isActiveHouseholdNotFound = () => {
+  return activeHouseholdError?.value?.response?.status === 404
+}
 </script>
 
 <template>
@@ -92,8 +113,10 @@ const { mutate: declineInvite } = useDeclineInvite({
           class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-2 flex flex-col gap-2"
         >
           <div class="mb-2">
-            <span class="font-semibold">Husstand:</span> {{ invite.household?.name ?? 'Ukjent' }}<br />
-            <span class="font-semibold">Invitert av:</span> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}
+            <span class="font-semibold">Husstand:</span> {{ invite.household?.name ?? 'Ukjent'
+            }}<br />
+            <span class="font-semibold">Invitert av:</span> {{ invite.createdBy?.firstName }}
+            {{ invite.createdBy?.lastName }}
           </div>
           <div class="flex gap-2">
             <button
@@ -118,7 +141,7 @@ const { mutate: declineInvite } = useDeclineInvite({
       </div>
 
       <div
-        v-if="isLoadingHouseholds || isLoadingActiveHousehold"
+        v-if="isLoadingHouseholds || (isLoadingActiveHousehold && !isActiveHouseholdNotFound())"
         class="flex justify-center items-center h-64"
       >
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
