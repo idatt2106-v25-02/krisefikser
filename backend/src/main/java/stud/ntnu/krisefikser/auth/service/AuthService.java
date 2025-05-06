@@ -21,6 +21,9 @@ import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
+import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.repository.UserRepository;
+import stud.ntnu.krisefikser.auth.exception.EmailNotVerifiedException;
 import stud.ntnu.krisefikser.user.service.UserService;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 
@@ -36,6 +39,7 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
   private final EmailVerificationService emailVerificationService;
+  private final UserRepository userRepository;
 
   public RegisterResponse register(RegisterRequest registerRequest) {
     userService.createUser(new CreateUser(
@@ -65,8 +69,16 @@ public class AuthService {
             loginRequest.getEmail(),
             loginRequest.getPassword()));
 
-    UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
+    User applicationUser = userRepository.findByEmail(loginRequest.getEmail())
+        .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(
+            "User not found after authentication: " + loginRequest.getEmail()));
 
+    if (!applicationUser.isEmailVerified()) {
+      throw new EmailNotVerifiedException("Email address not verified. Please verify your email before logging in.");
+    }
+
+    UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
+    
     String accessToken = createAccessToken(userDetails);
     String refreshToken = createRefreshToken(userDetails);
 
