@@ -1,3 +1,234 @@
+<script lang="ts" setup>
+import { ref, computed, watch } from 'vue'
+import {
+  Bell,
+  Calendar,
+  AlertTriangle,
+  Check as CheckIcon,
+  BellOff as BellOffIcon,
+  Info,
+  Link as LinkIcon,
+} from 'lucide-vue-next'
+import {
+  useGetNotifications,
+  useGetUnreadCount,
+  useReadNotification,
+  useReadAll,
+} from '@/api/generated/notification/notification'
+import { useQueryClient } from '@tanstack/vue-query'
+import type { NotificationResponse } from '@/api/generated/model'
+import type { ErrorType } from '@/api/axios'
+import { useNotificationStore } from '@/stores/notificationStore';
+
+const activeFilter = ref('all')
+
+// Pagination State
+const currentPage = ref(0)
+
+// Vue Query Client
+const queryClient = useQueryClient()
+const notificationStore = useNotificationStore();
+
+const formatDate = (dateInput: string | number[] | undefined): string => {
+  if (!dateInput) {
+    return '-';
+  }
+
+  let notificationDate: Date;
+
+  if (typeof dateInput === 'string') {
+    notificationDate = new Date(dateInput);
+  } else if (Array.isArray(dateInput) && dateInput.length >= 6) {
+    // Jackson LocalDateTime array: [year, month(1-12), day, hour, minute, second, nanoseconds]
+    // JavaScript Date constructor: month is 0-indexed (0=Jan, 1=Feb, ...)
+    notificationDate = new Date(
+      dateInput[0],    // year
+      dateInput[1] - 1, // month (adjusting for 0-indexed month)
+      dateInput[2],    // day
+      dateInput[3],    // hour
+      dateInput[4],    // minute
+      dateInput[5],    // second
+      dateInput[6] ? Math.floor(dateInput[6] / 1000000) : 0 // nanoseconds to milliseconds
+    );
+  } else {
+    console.error('formatDate: Received unparseable date format:', dateInput);
+    return 'Invalid date format'; // Handle cases that are neither string nor expected array
+  }
+
+  if (isNaN(notificationDate.getTime())) {
+    console.error('formatDate: Failed to parse date from input:', dateInput);
+    return 'Invalid date';
+  }
+
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000);
+
+  if (diffInSeconds < 0) return 'In the future';
+  if (diffInSeconds < 5) return 'Nå nettopp';
+  if (diffInSeconds < 60) return `${diffInSeconds} sek siden`;
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min siden`;
+
+  const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
+
+  if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
+  if (diffInDays === 1) return 'I går';
+  if (diffInDays < 7) {
+    const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+    return days[notificationDate.getDay()];
+  }
+  return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
+};
+
+// Fetch Unread Count
+const { data: unreadCountData } = useGetUnreadCount({
+  query: {
+    // Optional: Configure staleTime, refetchInterval, etc.
+  },
+})
+
+// Fetch Notifications (paginated)
+const notificationParams = computed(() => ({
+  pageable: {
+    page: 0,
+    size: 5,
+    sort: ['createdAt,desc'],
+  },
+}))
+
+
+const {
+  data: notificationsData,
+  isLoading: isLoadingNotifications,
+  error: notificationsError,
+  refetch: refetchNotifications,
+} = useGetNotifications(notificationParams)
+
+// Mutations
+const { mutate: mutateReadNotification, isPending: isMarkingAsRead } = useReadNotification({
+  mutation: {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
+    },
+    onError: (error: ErrorType<unknown>) => {
+      console.error('Failed to mark notification as read:', error)
+    },
+  },
+})
+
+const { mutate: mutateReadAll, isPending: isMarkingAllAsRead } = useReadAll({
+  mutation: {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
+    },
+    onError: (error: ErrorType<unknown>) => {
+      console.error('Failed to mark all notifications as read:', error)
+    },
+  },
+})
+
+// --- Computed Properties ---
+const notifications = computed(() => notificationsData.value?.content || [])
+const totalPages = computed(() => notificationsData.value?.totalPages || 0)
+
+const filteredNotifications = computed(() => {
+  const currentNotifications = notifications.value
+
+  switch (activeFilter.value) {
+    case 'unread':
+      return currentNotifications.filter((n) => !n.read)
+    case 'crisis':
+      return currentNotifications.filter((n) => (n.type as string) === 'CRISIS')
+    case 'expiry':
+      return currentNotifications.filter((n) => (n.type as string) === 'EXPIRY')
+    case 'update':
+      return currentNotifications.filter((n) => (n.type as string) === 'UPDATE')
+    default:
+      return currentNotifications
+  }
+})
+
+// Use dedicated unread count hook data
+const hasUnread = computed(() => {
+  return (unreadCountData.value ?? 0) > 0
+})
+
+// --- Methods ---
+const handleNotificationClick = (notification: NotificationResponse) => {
+  // Mark as read first
+  if (notification.id && !notification.read) {
+    markAsRead(notification.id)
+  }
+
+  console.log('Notification clicked:', notification)
+  // Routing logic - prefer URL if available
+  if (notification.url) {
+    window.open(notification.url, '_blank')
+  }
+  // Add back specific routing if needed and if backend provides necessary IDs
+  // else if (notification.type === 'CRISIS' && notification.referenceId) {
+  //    router.push(...)
+  // }
+}
+
+// Call local mutation function
+const markAsRead = (notificationId: string) => {
+  if (!notificationId) {
+    console.error('Notification ID missing')
+    return
+  }
+  // 1. Optimistic update for Pinia store (for unread count, potentially navbar items)
+  notificationStore.markNotificationAsRead(notificationId);
+
+  // 2. Optimistic update for Vue Query cache (for NotificationView.vue list)
+  const queryKey = ['/api/notifications', notificationParams.value];
+  // Assuming the cached data structure matches { content?: NotificationResponse[] } along with other pagination fields
+  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(queryKey);
+
+  if (previousNotificationsData && previousNotificationsData.content) {
+    const updatedContent = previousNotificationsData.content.map((notif: NotificationResponse) =>
+      notif.id === notificationId ? { ...notif, read: true } : notif
+    );
+    queryClient.setQueryData<{ content?: NotificationResponse[] }>(queryKey, {
+      ...previousNotificationsData,
+      content: updatedContent,
+    });
+  }
+
+  // 3. Actual mutation to backend
+  mutateReadNotification({ id: notificationId });
+}
+
+// Call local mutation function
+const markAllAsRead = () => {
+  // 1. Optimistic update for Pinia store
+  notificationStore.markAllNotificationsAsRead();
+
+  // 2. Optimistic update for Vue Query cache
+  const queryKey = ['/api/notifications', notificationParams.value];
+  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(queryKey);
+
+  if (previousNotificationsData && previousNotificationsData.content) {
+    const updatedContent = previousNotificationsData.content.map((notif: NotificationResponse) =>
+      ({ ...notif, read: true }) // Mark all as read
+    );
+    queryClient.setQueryData<{ content?: NotificationResponse[] }>(queryKey, {
+      ...previousNotificationsData,
+      content: updatedContent,
+    });
+  }
+
+  // 3. Actual mutation to backend
+  mutateReadAll();
+}
+
+// Reset to first page when filter changes
+watch(activeFilter, () => {
+  currentPage.value = 0
+})
+</script>
+
 <template>
   <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
@@ -217,204 +448,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts" setup>
-import { ref, computed, watch } from 'vue'
-import {
-  Bell,
-  Calendar,
-  AlertTriangle,
-  Check as CheckIcon,
-  BellOff as BellOffIcon,
-  Info,
-  Link as LinkIcon,
-} from 'lucide-vue-next'
-import {
-  useGetNotifications,
-  useGetUnreadCount,
-  useReadNotification,
-  useReadAll,
-} from '@/api/generated/notification/notification'
-import { useQueryClient } from '@tanstack/vue-query'
-import type { NotificationResponse, GetNotificationsParams } from '@/api/generated/model'
-import type { ErrorType } from '@/api/axios'
-import { useNotificationStore } from '@/stores/notificationStore';
-
-const activeFilter = ref('all')
-
-// Pagination State
-const currentPage = ref(0)
-const pageSize = ref(10)
-
-// Vue Query Client
-const queryClient = useQueryClient()
-const notificationStore = useNotificationStore();
-
-const formatDate = (dateInput: string | number[] | undefined): string => {
-  if (!dateInput) {
-    return '-';
-  }
-
-  let notificationDate: Date;
-
-  if (typeof dateInput === 'string') {
-    notificationDate = new Date(dateInput);
-  } else if (Array.isArray(dateInput) && dateInput.length >= 6) {
-    // Jackson LocalDateTime array: [year, month(1-12), day, hour, minute, second, nanoseconds]
-    // JavaScript Date constructor: month is 0-indexed (0=Jan, 1=Feb, ...)
-    notificationDate = new Date(
-      dateInput[0],    // year
-      dateInput[1] - 1, // month (adjusting for 0-indexed month)
-      dateInput[2],    // day
-      dateInput[3],    // hour
-      dateInput[4],    // minute
-      dateInput[5],    // second
-      dateInput[6] ? Math.floor(dateInput[6] / 1000000) : 0 // nanoseconds to milliseconds
-    );
-  } else {
-    console.error('formatDate: Received unparseable date format:', dateInput);
-    return 'Invalid date format'; // Handle cases that are neither string nor expected array
-  }
-
-  if (isNaN(notificationDate.getTime())) {
-    console.error('formatDate: Failed to parse date from input:', dateInput);
-    return 'Invalid date';
-  }
-
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000);
-
-  if (diffInSeconds < 0) return 'In the future'; 
-  if (diffInSeconds < 5) return 'Nå nettopp'; 
-  if (diffInSeconds < 60) return `${diffInSeconds} sek siden`;
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min siden`;
-  
-  const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
-
-  if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
-  if (diffInDays === 1) return 'I går';
-  if (diffInDays < 7) {
-    const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-    return days[notificationDate.getDay()];
-  }
-  return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
-};
-
-// Fetch Unread Count
-const { data: unreadCountData, isLoading: isLoadingUnreadCount } = useGetUnreadCount({
-  query: {
-    // Optional: Configure staleTime, refetchInterval, etc.
-  },
-})
-
-// Fetch Notifications (paginated)
-const notificationParams = computed(() => ({
-  pageable: {
-    page: 0,
-    size: 5,
-    sort: ['createdAt,desc'],
-  },
-}))
-
-
-const {
-  data: notificationsData,
-  isLoading: isLoadingNotifications,
-  error: notificationsError,
-  refetch: refetchNotifications,
-} = useGetNotifications(notificationParams)
-
-// Mutations
-const { mutate: mutateReadNotification, isPending: isMarkingAsRead } = useReadNotification({
-  mutation: {
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
-    },
-    onError: (error: ErrorType<unknown>) => {
-      console.error('Failed to mark notification as read:', error)
-    },
-  },
-})
-
-const { mutate: mutateReadAll, isPending: isMarkingAllAsRead } = useReadAll({
-  mutation: {
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
-    },
-    onError: (error: ErrorType<unknown>) => {
-      console.error('Failed to mark all notifications as read:', error)
-    },
-  },
-})
-
-// --- Computed Properties ---
-const notifications = computed(() => notificationsData.value?.content || [])
-const totalPages = computed(() => notificationsData.value?.totalPages || 0)
-
-const filteredNotifications = computed(() => {
-  const currentNotifications = notifications.value
-
-  switch (activeFilter.value) {
-    case 'unread':
-      return currentNotifications.filter((n) => !n.read)
-    case 'crisis':
-      return currentNotifications.filter((n) => (n.type as string) === 'CRISIS')
-    case 'expiry':
-      return currentNotifications.filter((n) => (n.type as string) === 'EXPIRY')
-    case 'update':
-      return currentNotifications.filter((n) => (n.type as string) === 'UPDATE')
-    default:
-      return currentNotifications
-  }
-})
-
-// Use dedicated unread count hook data
-const hasUnread = computed(() => {
-  return (unreadCountData.value ?? 0) > 0
-})
-
-// --- Methods ---
-const handleNotificationClick = (notification: NotificationResponse) => {
-  // Mark as read first
-  if (notification.id && !notification.read) {
-    markAsRead(notification.id)
-  }
-
-  console.log('Notification clicked:', notification)
-  // Routing logic - prefer URL if available
-  if (notification.url) {
-    window.open(notification.url, '_blank')
-  }
-  // Add back specific routing if needed and if backend provides necessary IDs
-  // else if (notification.type === 'CRISIS' && notification.referenceId) {
-  //    router.push(...)
-  // }
-}
-
-// Call local mutation function
-const markAsRead = (notificationId: string) => {
-  if (!notificationId) {
-    console.error('Notification ID missing')
-    return
-  }
-  // Optimistic update
-  notificationStore.markNotificationAsRead(notificationId);
-  mutateReadNotification({ id: notificationId })
-}
-
-// Call local mutation function
-const markAllAsRead = () => {
-  mutateReadAll()
-}
-
-// Reset to first page when filter changes
-watch(activeFilter, () => {
-  currentPage.value = 0
-})
-</script>
-
-<style scoped>
-/* Add any specific styles if needed */
-</style>
