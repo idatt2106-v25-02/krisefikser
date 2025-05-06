@@ -5,5 +5,5 @@ export interface BackendNotification {
   type: 'INVITE' | 'EVENT' | 'INFO' | 'EXPIRY_REMINDER'; // From NotificationType enum
   url?: string;
   read: boolean;
-  createdAt: string; // LocalDateTime maps to string (ISO format)
+  createdAt: string | number[]; // Allow string OR number array for createdAt
 } 

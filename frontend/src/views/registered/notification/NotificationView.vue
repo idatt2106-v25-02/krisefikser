@@ -238,6 +238,7 @@ import {
 import { useQueryClient } from '@tanstack/vue-query'
 import type { NotificationResponse, GetNotificationsParams } from '@/api/generated/model'
 import type { ErrorType } from '@/api/axios'
+import { useNotificationStore } from '@/stores/notificationStore';
 
 const activeFilter = ref('all')
 
@@ -247,8 +248,58 @@ const pageSize = ref(10)
 
 // Vue Query Client
 const queryClient = useQueryClient()
+const notificationStore = useNotificationStore();
 
-// --- Vue Query Hooks ---
+const formatDate = (dateInput: string | number[] | undefined): string => {
+  if (!dateInput) {
+    return '-';
+  }
+
+  let notificationDate: Date;
+
+  if (typeof dateInput === 'string') {
+    notificationDate = new Date(dateInput);
+  } else if (Array.isArray(dateInput) && dateInput.length >= 6) {
+    // Jackson LocalDateTime array: [year, month(1-12), day, hour, minute, second, nanoseconds]
+    // JavaScript Date constructor: month is 0-indexed (0=Jan, 1=Feb, ...)
+    notificationDate = new Date(
+      dateInput[0],    // year
+      dateInput[1] - 1, // month (adjusting for 0-indexed month)
+      dateInput[2],    // day
+      dateInput[3],    // hour
+      dateInput[4],    // minute
+      dateInput[5],    // second
+      dateInput[6] ? Math.floor(dateInput[6] / 1000000) : 0 // nanoseconds to milliseconds
+    );
+  } else {
+    console.error('formatDate: Received unparseable date format:', dateInput);
+    return 'Invalid date format'; // Handle cases that are neither string nor expected array
+  }
+
+  if (isNaN(notificationDate.getTime())) {
+    console.error('formatDate: Failed to parse date from input:', dateInput);
+    return 'Invalid date';
+  }
+
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000);
+
+  if (diffInSeconds < 0) return 'In the future'; 
+  if (diffInSeconds < 5) return 'Nå nettopp'; 
+  if (diffInSeconds < 60) return `${diffInSeconds} sek siden`;
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min siden`;
+  
+  const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
+
+  if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
+  if (diffInDays === 1) return 'I går';
+  if (diffInDays < 7) {
+    const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+    return days[notificationDate.getDay()];
+  }
+  return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
+};
+
 // Fetch Unread Count
 const { data: unreadCountData, isLoading: isLoadingUnreadCount } = useGetUnreadCount({
   query: {
@@ -348,6 +399,8 @@ const markAsRead = (notificationId: string) => {
     console.error('Notification ID missing')
     return
   }
+  // Optimistic update
+  notificationStore.markNotificationAsRead(notificationId);
   mutateReadNotification({ id: notificationId })
 }
 
@@ -360,37 +413,6 @@ const markAllAsRead = () => {
 watch(activeFilter, () => {
   currentPage.value = 0
 })
-
-const formatDate = (dateString: string): string => {
-  if (!dateString) return ''
-  try {
-    const now = new Date()
-    const notificationDate = new Date(dateString)
-
-    const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000)
-    const diffInMinutes = Math.floor(diffInSeconds / 60)
-    const diffInHours = Math.floor(diffInMinutes / 60)
-    const diffInDays = Math.floor(diffInHours / 24)
-
-    if (diffInDays === 0) {
-      if (diffInHours > 0) return `${diffInHours}t siden`
-      if (diffInMinutes > 0) return `${diffInMinutes}m siden`
-      return `Nå nettopp`
-    } else if (diffInDays === 1) {
-      return `I går, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`
-    } else if (diffInDays < 7) {
-      return `${diffInDays}d siden`
-    } else {
-      const day = notificationDate.getDate().toString().padStart(2, '0')
-      const month = (notificationDate.getMonth() + 1).toString().padStart(2, '0')
-      const year = notificationDate.getFullYear()
-      return `${day}.${month}.${year}`
-    }
-  } catch (e) {
-    console.error('Error formatting date:', e)
-    return dateString
-  }
-}
 </script>
 
 <style scoped>
