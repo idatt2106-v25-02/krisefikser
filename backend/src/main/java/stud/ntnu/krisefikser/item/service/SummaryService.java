@@ -26,7 +26,7 @@ public class SummaryService {
   public InventorySummaryResponse getInventorySummary() {
     return InventorySummaryResponse.builder()
         .kcal(totalKcal())
-        .kcalGoal(kcalGoal())
+        .kcalGoal((int) kcalGoal())
         .waterLiters(totalWaterLiters())
         .waterLitersGoal(waterLitersGoal())
         .checkedItems(checkedItems())
@@ -39,8 +39,8 @@ public class SummaryService {
         0, (sum, item) -> sum + item.getKcal(), Integer::sum);
   }
 
-  private int kcalGoal() {
-    return DAILY_KCAL * DAYS_GOAL * ((int) totalMultiplier());
+  private double kcalGoal() {
+    return DAILY_KCAL * DAYS_GOAL * totalMultiplier();
   }
 
   private double totalWaterLiters() {
