@@ -6,8 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  empty?: boolean
-  unsorted?: boolean
-  sorted?: boolean
+/**
+ * Guest data
+ */
+export interface CreateGuestRequest {
+  name: string
+  icon: string
+  consumptionMultiplier: number
 }

@@ -21,13 +21,263 @@ import type {
 import { unref } from 'vue'
 import type { MaybeRef } from 'vue'
 
-import type { CreateHouseholdRequest, HouseholdResponse, JoinHouseholdRequest } from '.././model'
+import type {
+  CreateGuestRequest,
+  CreateHouseholdRequest,
+  HouseholdResponse,
+  JoinHouseholdRequest,
+} from '.././model'
 
 import { customInstance } from '../../axios'
 import type { ErrorType, BodyType } from '../../axios'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
+/**
+ * Retrieves the currently active household for the logged-in user
+ * @summary Get active household
+ */
+export const getActiveHousehold = (
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<HouseholdResponse>(
+    { url: `http://localhost:8080/api/households/active`, method: 'GET', signal },
+    options,
+  )
+}
+
+export const getGetActiveHouseholdQueryKey = () => {
+  return ['http:', 'localhost:8080', 'api', 'households', 'active'] as const
+}
+
+export const getGetActiveHouseholdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getActiveHousehold>>,
+  TError = ErrorType<HouseholdResponse>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveHousehold>>, TError, TData>>
+  request?: SecondParameter<typeof customInstance>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetActiveHouseholdQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveHousehold>>> = ({ signal }) =>
+    getActiveHousehold(requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getActiveHousehold>>,
+    TError,
+    TData
+  >
+}
+
+export type GetActiveHouseholdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getActiveHousehold>>
+>
+export type GetActiveHouseholdQueryError = ErrorType<HouseholdResponse>
+
+/**
+ * @summary Get active household
+ */
+
+export function useGetActiveHousehold<
+  TData = Awaited<ReturnType<typeof getActiveHousehold>>,
+  TError = ErrorType<HouseholdResponse>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveHousehold>>, TError, TData>>
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetActiveHouseholdQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
+ * Updates the active household with the provided data
+ * @summary Update active household
+ */
+export const updateActiveHousehold = (
+  createHouseholdRequest: MaybeRef<CreateHouseholdRequest>,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  createHouseholdRequest = unref(createHouseholdRequest)
+
+  return customInstance<HouseholdResponse>(
+    {
+      url: `http://localhost:8080/api/households/active`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: createHouseholdRequest,
+    },
+    options,
+  )
+}
+
+export const getUpdateActiveHouseholdMutationOptions = <
+  TError = ErrorType<HouseholdResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateActiveHousehold>>,
+    TError,
+    { data: BodyType<CreateHouseholdRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateActiveHousehold>>,
+  TError,
+  { data: BodyType<CreateHouseholdRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateActiveHousehold']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateActiveHousehold>>,
+    { data: BodyType<CreateHouseholdRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return updateActiveHousehold(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UpdateActiveHouseholdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateActiveHousehold>>
+>
+export type UpdateActiveHouseholdMutationBody = BodyType<CreateHouseholdRequest>
+export type UpdateActiveHouseholdMutationError = ErrorType<HouseholdResponse>
+
+/**
+ * @summary Update active household
+ */
+export const useUpdateActiveHousehold = <TError = ErrorType<HouseholdResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateActiveHousehold>>,
+      TError,
+      { data: BodyType<CreateHouseholdRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof updateActiveHousehold>>,
+  TError,
+  { data: BodyType<CreateHouseholdRequest> },
+  TContext
+> => {
+  const mutationOptions = getUpdateActiveHouseholdMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Sets the specified household as the active household for the current user
+ * @summary Set active household
+ */
+export const setActiveHousehold = (
+  joinHouseholdRequest: MaybeRef<JoinHouseholdRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  joinHouseholdRequest = unref(joinHouseholdRequest)
+
+  return customInstance<HouseholdResponse>(
+    {
+      url: `http://localhost:8080/api/households/active`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: joinHouseholdRequest,
+      signal,
+    },
+    options,
+  )
+}
+
+export const getSetActiveHouseholdMutationOptions = <
+  TError = ErrorType<HouseholdResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setActiveHousehold>>,
+    TError,
+    { data: BodyType<JoinHouseholdRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof setActiveHousehold>>,
+  TError,
+  { data: BodyType<JoinHouseholdRequest> },
+  TContext
+> => {
+  const mutationKey = ['setActiveHousehold']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof setActiveHousehold>>,
+    { data: BodyType<JoinHouseholdRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return setActiveHousehold(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type SetActiveHouseholdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof setActiveHousehold>>
+>
+export type SetActiveHouseholdMutationBody = BodyType<JoinHouseholdRequest>
+export type SetActiveHouseholdMutationError = ErrorType<HouseholdResponse>
+
+/**
+ * @summary Set active household
+ */
+export const useSetActiveHousehold = <TError = ErrorType<HouseholdResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof setActiveHousehold>>,
+      TError,
+      { data: BodyType<JoinHouseholdRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof setActiveHousehold>>,
+  TError,
+  { data: BodyType<JoinHouseholdRequest> },
+  TContext
+> => {
+  const mutationOptions = getSetActiveHouseholdMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
 /**
  * Creates a new household and sets it as active
  * @summary Create household
@@ -286,6 +536,95 @@ export const useJoinHousehold = <TError = ErrorType<HouseholdResponse>, TContext
   TContext
 > => {
   const mutationOptions = getJoinHouseholdMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Adds a guest to current household. A guest is a user who does not have a user account.
+ * @summary Add guest to current household
+ */
+export const addGuestToHousehold = (
+  createGuestRequest: MaybeRef<CreateGuestRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  createGuestRequest = unref(createGuestRequest)
+
+  return customInstance<HouseholdResponse>(
+    {
+      url: `http://localhost:8080/api/households/guests`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: createGuestRequest,
+      signal,
+    },
+    options,
+  )
+}
+
+export const getAddGuestToHouseholdMutationOptions = <
+  TError = ErrorType<HouseholdResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addGuestToHousehold>>,
+    TError,
+    { data: BodyType<CreateGuestRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addGuestToHousehold>>,
+  TError,
+  { data: BodyType<CreateGuestRequest> },
+  TContext
+> => {
+  const mutationKey = ['addGuestToHousehold']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addGuestToHousehold>>,
+    { data: BodyType<CreateGuestRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return addGuestToHousehold(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AddGuestToHouseholdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addGuestToHousehold>>
+>
+export type AddGuestToHouseholdMutationBody = BodyType<CreateGuestRequest>
+export type AddGuestToHouseholdMutationError = ErrorType<HouseholdResponse>
+
+/**
+ * @summary Add guest to current household
+ */
+export const useAddGuestToHousehold = <TError = ErrorType<HouseholdResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof addGuestToHousehold>>,
+      TError,
+      { data: BodyType<CreateGuestRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof addGuestToHousehold>>,
+  TError,
+  { data: BodyType<CreateGuestRequest> },
+  TContext
+> => {
+  const mutationOptions = getAddGuestToHouseholdMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -640,164 +979,6 @@ export const useRemoveMemberFromHousehold = <
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Retrieves the currently active household for the logged-in user
- * @summary Get active household
- */
-export const getActiveHousehold = (
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
-) => {
-  return customInstance<HouseholdResponse>(
-    { url: `http://localhost:8080/api/households/active`, method: 'GET', signal },
-    options,
-  )
-}
-
-export const getGetActiveHouseholdQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'households', 'active'] as const
-}
-
-export const getGetActiveHouseholdQueryOptions = <
-  TData = Awaited<ReturnType<typeof getActiveHousehold>>,
-  TError = ErrorType<HouseholdResponse>,
->(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveHousehold>>, TError, TData>>
-  request?: SecondParameter<typeof customInstance>
-}) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = getGetActiveHouseholdQueryKey()
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveHousehold>>> = ({ signal }) =>
-    getActiveHousehold(requestOptions, signal)
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getActiveHousehold>>,
-    TError,
-    TData
-  >
-}
-
-export type GetActiveHouseholdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getActiveHousehold>>
->
-export type GetActiveHouseholdQueryError = ErrorType<HouseholdResponse>
-
-/**
- * @summary Get active household
- */
-
-export function useGetActiveHousehold<
-  TData = Awaited<ReturnType<typeof getActiveHousehold>>,
-  TError = ErrorType<HouseholdResponse>,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveHousehold>>, TError, TData>>
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetActiveHouseholdQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
-
-  return query
-}
-
-/**
- * Sets the specified household as the active household for the current user
- * @summary Set active household
- */
-export const setActiveHousehold = (
-  joinHouseholdRequest: MaybeRef<JoinHouseholdRequest>,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
-) => {
-  joinHouseholdRequest = unref(joinHouseholdRequest)
-
-  return customInstance<HouseholdResponse>(
-    {
-      url: `http://localhost:8080/api/households/active`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: joinHouseholdRequest,
-      signal,
-    },
-    options,
-  )
-}
-
-export const getSetActiveHouseholdMutationOptions = <
-  TError = ErrorType<HouseholdResponse>,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof setActiveHousehold>>,
-    TError,
-    { data: BodyType<JoinHouseholdRequest> },
-    TContext
-  >
-  request?: SecondParameter<typeof customInstance>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof setActiveHousehold>>,
-  TError,
-  { data: BodyType<JoinHouseholdRequest> },
-  TContext
-> => {
-  const mutationKey = ['setActiveHousehold']
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof setActiveHousehold>>,
-    { data: BodyType<JoinHouseholdRequest> }
-  > = (props) => {
-    const { data } = props ?? {}
-
-    return setActiveHousehold(data, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type SetActiveHouseholdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof setActiveHousehold>>
->
-export type SetActiveHouseholdMutationBody = BodyType<JoinHouseholdRequest>
-export type SetActiveHouseholdMutationError = ErrorType<HouseholdResponse>
-
-/**
- * @summary Set active household
- */
-export const useSetActiveHousehold = <TError = ErrorType<HouseholdResponse>, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof setActiveHousehold>>,
-      TError,
-      { data: BodyType<JoinHouseholdRequest> },
-      TContext
-    >
-    request?: SecondParameter<typeof customInstance>
-  },
-  queryClient?: QueryClient,
-): UseMutationReturnType<
-  Awaited<ReturnType<typeof setActiveHousehold>>,
-  TError,
-  { data: BodyType<JoinHouseholdRequest> },
-  TContext
-> => {
-  const mutationOptions = getSetActiveHouseholdMutationOptions(options)
-
-  return useMutation(mutationOptions, queryClient)
-}
-/**
  * Retrieves a list of all households that the user is a member of
  * @summary Get all households of user
  */
@@ -1106,6 +1287,91 @@ export const useRemoveMemberFromHouseholdOwner = <
   TContext
 > => {
   const mutationOptions = getRemoveMemberFromHouseholdOwnerMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Removes a guest from your household. You must be owner.
+ * @summary Remove guest from household
+ */
+export const removeGuestFromHousehold = (
+  guestId: MaybeRef<string>,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  guestId = unref(guestId)
+
+  return customInstance<HouseholdResponse>(
+    { url: `http://localhost:8080/api/households/guests/${guestId}`, method: 'DELETE' },
+    options,
+  )
+}
+
+export const getRemoveGuestFromHouseholdMutationOptions = <
+  TError = ErrorType<HouseholdResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+    TError,
+    { guestId: string },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+  TError,
+  { guestId: string },
+  TContext
+> => {
+  const mutationKey = ['removeGuestFromHousehold']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+    { guestId: string }
+  > = (props) => {
+    const { guestId } = props ?? {}
+
+    return removeGuestFromHousehold(guestId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type RemoveGuestFromHouseholdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof removeGuestFromHousehold>>
+>
+
+export type RemoveGuestFromHouseholdMutationError = ErrorType<HouseholdResponse>
+
+/**
+ * @summary Remove guest from household
+ */
+export const useRemoveGuestFromHousehold = <
+  TError = ErrorType<HouseholdResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+      TError,
+      { guestId: string },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+  TError,
+  { guestId: string },
+  TContext
+> => {
+  const mutationOptions = getRemoveGuestFromHouseholdMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
