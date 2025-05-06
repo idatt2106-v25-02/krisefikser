@@ -376,9 +376,9 @@ function viewMeetingPlace(placeId: string) {
 function goToHouseholdLocation() {
   isMeetingMapDialogOpen.value = true
   setTimeout(() => {
-    if (mapRef.value) {
-      // If your map supports this method, call it. Otherwise, center using props.
-      mapRef.value.centerOnHousehold?.()
+    const map = mapRef.value as any;
+    if (map && typeof map.centerOnHousehold === 'function') {
+      map.centerOnHousehold();
     }
   }, 300)
 }
@@ -509,16 +509,17 @@ const filteredPeople = computed(() => {
               <h1 class="text-4xl font-bold text-gray-900 mb-1">{{ household.name }}</h1>
               <div class="text-gray-600">
                 <div class="flex items-center">
-                  <MapPin class="h-4 w-4 text-gray-400 mr-1 flex-shrink-0" />
                   <span
-                    class="flex flex-col cursor-pointer text-blue-600 hover:underline"
+                    class="flex items-center cursor-pointer group"
                     @click="goToHouseholdLocation"
                     title="Vis på kart"
                   >
-                    <span>{{ household.address }}</span>
-                    <span v-if="household.addressLine2">{{ household.addressLine2 }}</span>
-                    <span>{{ household.postalCode }} {{ household.city }}</span>
-                    <span v-if="household.country && household.country !== 'Norge'">{{ household.country }}</span>
+                    <MapPin class="h-4 w-4 mr-1 flex-shrink-0 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                    <span
+                      class="transition-colors group-hover:text-blue-600 group-hover:underline text-gray-600"
+                    >
+                      {{ household.address }}
+                    </span>
                   </span>
                 </div>
               </div>
