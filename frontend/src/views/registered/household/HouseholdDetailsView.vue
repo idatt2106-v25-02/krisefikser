@@ -36,6 +36,7 @@ import {
   AlertCircle,
   Map as MapIcon,
   Edit,
+  Info,
 } from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
@@ -61,6 +62,7 @@ import { useToast } from '@/components/ui/toast/use-toast.ts'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useGetInventorySummary, getGetInventorySummaryQueryKey } from '@/api/generated/item/item'
+import PreparednessInfoDialog from '@/components/inventory/info/PreparednessInfoDialog.vue'
 
 interface MeetingPlace {
   id: string
@@ -358,6 +360,7 @@ const isMeetingMapDialogOpen = ref(false)
 const memberMode = ref<'invite' | 'add'>('invite')
 const mapRef = ref<InstanceType<typeof HouseholdMeetingMap> | null>(null)
 const selectedMeetingPlace = ref<MeetingPlace | null>(null)
+const isPreparednessInfoDialogOpen = ref(false)
 
 // Form handling
 const { resetForm } = useForm<MemberFormValues>({
@@ -761,14 +764,24 @@ const filteredPeople = computed(() => {
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div class="flex justify-between items-center mb-5">
                 <h2 class="text-xl font-semibold text-gray-800">Beredskapslager</h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  @click="navigateToEditHouseholdInfo"
-                  class="flex items-center gap-1"
-                >
-                  <span>Se detaljer</span>
-                </Button>
+                <!-- Group for Info and Se Detaljer buttons -->
+                <div class="flex items-center space-x-2">
+                  <button 
+                    @click="isPreparednessInfoDialogOpen = true"
+                    class="text-blue-600 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
+                    title="Vis informasjon om beredskapsberegning"
+                  >
+                    <Info class="h-5 w-5" />
+                  </button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    @click="navigateToEditHouseholdInfo"
+                    class="flex items-center gap-1"
+                  >
+                    <span>Se detaljer</span>
+                  </Button>
+                </div>
               </div>
 
               <HouseholdEmergencySupplies
@@ -776,6 +789,7 @@ const filteredPeople = computed(() => {
                 :inventory-items="household.inventoryItems || []"
                 :household-id="household.id || ''"
                 :show-details-button="false"
+                @open-info-dialog="isPreparednessInfoDialogOpen = true"
               />
             </div>
           </div>
@@ -1040,6 +1054,13 @@ const filteredPeople = computed(() => {
             </div>
           </DialogContent>
         </Dialog>
+
+        <!-- Preparedness Info Dialog for HouseholdDetailsView -->
+        <PreparednessInfoDialog 
+          :is-open="isPreparednessInfoDialogOpen" 
+          @close="isPreparednessInfoDialogOpen = false" 
+        />
+
       </div>
 
       <div v-else class="text-center py-12">

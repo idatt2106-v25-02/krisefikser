@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
 
 interface InventoryItem {
@@ -29,6 +29,10 @@ interface Props {
 
 const props = defineProps<Props>()
 const router = useRouter()
+
+const emit = defineEmits<{
+  (e: 'open-info-dialog'): void
+}>()
 
 function navigateToInventory() {
   router.push(`/husstand/${props.householdId}/beredskapslager`)
@@ -62,7 +66,13 @@ function navigateToInventory() {
       </div>
 
       <!-- Days prepared -->
-      <div class="mb-4 bg-blue-50 p-4 rounded-lg border border-blue-100">
+      <div 
+        class="mb-4 bg-blue-50 p-4 rounded-lg border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors duration-150"
+        @click="emit('open-info-dialog')" 
+        role="button" 
+        tabindex="0"
+        aria-label="Vis informasjon om beredskapsberegning"
+      >
         <div class="flex justify-between items-center mb-3">
           <span class="text-base font-medium text-blue-800">Dager forberedt</span>
           <div class="flex items-center">

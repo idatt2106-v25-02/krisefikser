@@ -670,6 +670,7 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
               :inventory="formattedInventory"
               :household-id="householdId"
               :show-details-button="false"
+              @open-info-dialog="isPreparednessInfoDialogOpen = true"
             />
           </div>
 
