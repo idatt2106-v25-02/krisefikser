@@ -5,8 +5,9 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
-import type { UserResponse } from './userResponse'
 
-export interface HouseholdMemberResponse {
-  user: UserResponse
+export interface ScenarioResponse {
+  id: string
+  title: string
+  content: string
 }
