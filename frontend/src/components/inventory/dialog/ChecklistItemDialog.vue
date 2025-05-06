@@ -16,17 +16,17 @@ interface PredefinedItem {
   description: string;
 }
 
-interface ChecklistItem {
-  id: string;
-  name: string;
-  isChecked: boolean;
-}
-
 interface FormValues {
   items: Array<{
     name: string;
     isChecked: boolean;
   }>;
+}
+
+interface ChecklistItem {
+  id: string;
+  name: string;
+  checked: boolean;
 }
 
 const props = defineProps<{
@@ -37,7 +37,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'add-item', item: any): void
+  (e: 'add-item', item: ChecklistItem): void
 }>()
 
 // Predefined checklist items based on DSB's recommendations
@@ -65,7 +65,6 @@ const predefinedItems: Record<string, PredefinedItem[]> = {
   ],
 }
 
-// Get items for current category
 const categoryItems = computed(() => {
   if (props.categoryId && props.categoryId in predefinedItems) {
     return predefinedItems[props.categoryId as keyof typeof predefinedItems]
