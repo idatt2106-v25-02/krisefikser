@@ -255,19 +255,19 @@ function onHouseholdSubmit(values: HouseholdFormValues) {
   // Update the local data instead of calling an API
   if (household.value) {
     // Update the mock data
-    updatedHouseholdData.value = values;
+    updatedHouseholdData.value = values
 
     // Update the household data directly (instead of refetching from API)
-    household.value.name = values.name;
-    household.value.address = values.address;
-    household.value.postalCode = values.postalCode;
-    household.value.city = values.city;
+    household.value.name = values.name
+    household.value.address = values.address
+    household.value.postalCode = values.postalCode
+    household.value.city = values.city
 
     // Close the dialog
-    isEditHouseholdDialogOpen.value = false;
+    isEditHouseholdDialogOpen.value = false
 
     // Show success feedback (optional)
-    alert('Husstandsinformasjon oppdatert!');
+    alert('Husstandsinformasjon oppdatert!')
   }
 }
 
@@ -407,7 +407,9 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                     <span>{{ household.address }}</span>
                     <span v-if="household.addressLine2">{{ household.addressLine2 }}</span>
                     <span>{{ household.postalCode }} {{ household.city }}</span>
-                    <span v-if="household.country && household.country !== 'Norge'">{{ household.country }}</span>
+                    <span v-if="household.country && household.country !== 'Norge'">{{
+                      household.country
+                    }}</span>
                   </span>
                 </div>
               </div>
@@ -630,13 +632,14 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
               </DialogDescription>
             </DialogHeader>
 
-            <Form :initial-values="{
+            <Form
+              :initial-values="{
                 name: household.name,
                 address: household.address,
                 postalCode: household.postalCode || '',
                 city: household.city || '',
               }"
-                  @submit="submitHouseholdForm(onHouseholdSubmit)"
+              @submit="submitHouseholdForm(onHouseholdSubmit)"
             >
               <div class="grid gap-4 py-4">
                 <FormField name="name">
@@ -680,7 +683,6 @@ const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useG
                     </FormItem>
                   </FormField>
                 </div>
-
               </div>
 
               <DialogFooter>
