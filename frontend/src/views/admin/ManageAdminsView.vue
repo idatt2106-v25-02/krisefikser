@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/alert';
 
 // Import custom components
-import EditHouseholdDialog from '@/components/admin/event/EditHouseholdDialog.vue';
+import EditHouseholdDialog from '@/components/household/EditHouseholdDialog.vue';
 import AddMemberDialog from '@/components/admin/users/AddMemberDialog.vue';
 import HouseholdList from '@/components/admin/users/HouseholdList.vue';
 import UserSelect from '@/components/admin/users/UserSelect.vue';

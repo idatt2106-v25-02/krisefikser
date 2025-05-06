@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -46,12 +46,20 @@ import {
   useJoinHousehold,
   useAddGuestToHousehold,
   useRemoveGuestFromHousehold,
+  useUpdateActiveHousehold,
+  getGetActiveHouseholdQueryKey,
 } from '@/api/generated/household/household.ts'
 import { useCreateInvite, useGetPendingInvitesForUser, useAcceptInvite, useDeclineInvite, useGetPendingInvitesForHousehold } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import type { HouseholdResponse, GuestResponse, HouseholdMemberResponse } from '@/api/generated/model'
+import type {
+  HouseholdResponse,
+  GuestResponse,
+  HouseholdMemberResponse,
+  CreateHouseholdRequest,
+} from '@/api/generated/model'
 import { useToast } from '@/components/ui/toast/use-toast.ts'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
+import { useQueryClient } from '@tanstack/vue-query'
 
 interface MeetingPlace {
   id: string
@@ -94,8 +102,8 @@ interface ExtendedHouseholdResponse extends HouseholdResponse {
   meetingPlaces?: MeetingPlace[]
   inventory?: Inventory
   addressLine2?: string
-  postalCode?: string
-  city?: string
+  postalCode: string
+  city: string
   country?: string
   inventoryItems?: Array<{
     name: string
@@ -122,14 +130,23 @@ const householdFormSchema = toTypedSchema(
   z.object({
     name: z.string().min(1, 'Navn på husstanden er påkrevd'),
     address: z.string().min(1, 'Adresse er påkrevd'),
-    postalCode: z.string().min(4, 'Postnummer må være minst 4 siffer'),
-    city: z.string().min(1, 'By/sted er påkrevd'),
+    postalCode: z.string().refine(val => /^\d{4}$/.test(val), {
+      message: "Postnummer må bestå av nøyaktig 4 siffer.",
+    }),
+    city: z
+      .string()
+      .min(1, 'By/sted er påkrevd')
+      .max(50, 'By/sted kan ikke være lenger enn 50 tegn')
+      .refine(val => /^[a-zA-ZæøåÆØÅ -]+$/.test(val), {
+        message: 'By/sted kan kun inneholde bokstaver, bindestrek og mellomrom.',
+      }),
   }),
 )
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { toast } = useToast()
+const queryClient = useQueryClient()
 
 // Get household data
 const {
@@ -143,6 +160,11 @@ const {
     refetchOnWindowFocus: true,
   },
 })
+
+
+watchEffect(() => {
+  console.log('[HouseholdDetailsView] household data changed (from watchEffect):', JSON.parse(JSON.stringify(household.value)));
+});
 
 // Mutations
 const { mutate: leaveHousehold } = useLeaveHousehold({
@@ -161,7 +183,8 @@ const { mutate: deleteHousehold } = useDeleteHousehold({
   },
 })
 
-const { mutate: addMember } = useJoinHousehold({
+
+const { mutate: _addMember } = useJoinHousehold({
   mutation: {
     onSuccess: () => {
       refetchHousehold()
@@ -212,7 +235,7 @@ const { mutate: addGuest, isPending: isAddingGuest } = useAddGuestToHousehold({
       isAddMemberDialogOpen.value = false
       resetForm()
     },
-      onError: (error: unknown) => {
+    onError: (error: unknown) => {
       console.error('Add Guest onError:', error);
       const errorMessage =
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -251,24 +274,6 @@ const { mutate: removeGuest, isPending: isRemovingGuest } = useRemoveGuestFromHo
   },
 })
 
-// Mock for updating household data
-const updatedHouseholdData = ref({
-  name: household.value?.name ?? '',
-  address: household.value?.address ?? '',
-  postalCode: household.value?.postalCode ?? '',
-  city: household.value?.city ?? '',
-})
-
-// Get formatted full // const getFormattedAddress = (household) => {
-//   if (!household) return '';
-
-//   const parts = [
-//     household.address,
-//     `${household.postalCode} ${household.city}`,
-//   ].filter(Boolean);
-
-//   return parts.join(', ');
-// }; for display
 
 // State for dialogs
 const isAddMemberDialogOpen = ref(false)
@@ -283,47 +288,64 @@ const { resetForm } = useForm<MemberFormValues>({
   validationSchema: memberFormSchema,
 })
 
-const { handleSubmit: submitHouseholdForm } = useForm<HouseholdFormValues>({
-  validationSchema: householdFormSchema,
-  initialValues: {
-    name: household.value?.name ?? '',
-    address: household.value?.address ?? '',
-    postalCode: household.value?.postalCode ?? '',
-    city: household.value?.city ?? '',
-  },
-})
+// If submitHouseholdForm is not used elsewhere, this entire useForm call can be removed.
+// For now, let's assume it might be used by another form or was intended for future use.
+// const { handleSubmit: submitHouseholdForm } = useForm<HouseholdFormValues>({
+//   validationSchema: householdFormSchema,
+//   initialValues: {
+//     name: household.value?.name ?? '',
+//     address: household.value?.address ?? '',
+//     postalCode: household.value?.postalCode ?? '',
+//     city: household.value?.city ?? '',
+//   },
+// });
 
 // Actions
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onMemberSubmit(values: MemberFormValues) {
-  if (!household.value) return
+// function onMemberSubmit(values: MemberFormValues) { // Assuming this was for the addMember form
+//   if (!household.value) return;
+//   addMember({
+//     data: {
+//       householdId: household.value.id ?? '',
+      // Ensure that if addMember expects other properties from MemberFormValues, they are included here
+//     },
+//   });
+// }
 
-  addMember({
-    data: {
-      householdId: household.value.id ?? '',
+const { mutateAsync: updateActiveHousehold } = useUpdateActiveHousehold({
+  mutation: {
+    onSuccess: (updatedHouseholdData) => {
+      console.log('useUpdateActiveHousehold onSuccess. Response:', updatedHouseholdData);
+      queryClient.setQueryData(getGetActiveHouseholdQueryKey(), updatedHouseholdData);
+      isEditHouseholdDialogOpen.value = false;
+      toast({
+        title: 'Husstand oppdatert',
+        description: 'Husstandsinformasjonen ble oppdatert.',
+      });
     },
-  })
-}
+    onError: (error) => {
+      console.error('useUpdateActiveHousehold onError. Error:', error);
+      toast({
+        title: 'Feil',
+        description: (error as unknown as Error)?.message || 'Kunne ikke oppdatere husstand.',
+        variant: 'destructive',
+      });
+    },
+  },
+});
 
-// Mock implementation for updating household
-function onHouseholdSubmit(values: HouseholdFormValues) {
-  // Update the local data instead of calling an API
-  if (household.value) {
-    // Update the mock data
-    updatedHouseholdData.value = values
+function onHouseholdSubmit(formData: Record<string, unknown>) {
+  // Cast the received formData to HouseholdFormValues
+  const values = formData as HouseholdFormValues;
 
-    // Update the household data directly (instead of refetching from API)
-    household.value.name = values.name
-    household.value.address = values.address
-    household.value.postalCode = values.postalCode
-    household.value.city = values.city
-
-    // Close the dialog
-    isEditHouseholdDialogOpen.value = false
-
-    // Show success feedback (optional)
-    alert('Husstandsinformasjon oppdatert!')
-  }
+  const householdData: CreateHouseholdRequest = {
+    name: values.name,
+    address: values.address,
+    postalCode: values.postalCode,
+    city: values.city,
+    latitude: household.value?.latitude ?? 0,
+    longitude: household.value?.longitude ?? 0,
+  };
+  updateActiveHousehold({ data: householdData });
 }
 
 function onRemoveMember(userId?: string) {
@@ -372,7 +394,6 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
 function viewMeetingPlace(placeId: string) {
   isMeetingMapDialogOpen.value = true
 
-  // Wait for dialog to open and map to initialize
   setTimeout(() => {
     if (mapRef.value) {
       mapRef.value.centerOnMeetingPlace(placeId)
@@ -412,7 +433,7 @@ const handleFormSubmit = (values: MemberFormValues) => {
         invitedEmail: values.email,
       }
     })
-  } else { // This is 'add' (uten konto / guest) mode
+  } else {
     if (!values.name || values.consumptionFactor === undefined || values.consumptionFactor === null) {
       toast({ title: 'Feil', description: 'Navn og forbruksfaktor er påkrevd for å legge til gjest.', variant: 'destructive' });
       return;
@@ -499,8 +520,8 @@ const filteredPeople = computed(() => {
             <div><b>Invitert av:</b> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}</div>
           </div>
           <div class="flex gap-2">
-<button class="bg-green-500 text-white px-3 py-1 rounded" @click="acceptInvite({ inviteId: invite.id ?? '' })">Godta</button>
-<button class="bg-red-500 text-white px-3 py-1 rounded" @click="declineInvite({ inviteId: invite.id ?? '' })">Avslå</button>
+            <button class="bg-green-500 text-white px-3 py-1 rounded" @click="acceptInvite({ inviteId: invite.id ?? '' })">Godta</button>
+            <button class="bg-red-500 text-white px-3 py-1 rounded" @click="declineInvite({ inviteId: invite.id ?? '' })">Avslå</button>
           </div>
         </div>
       </div>
@@ -526,7 +547,7 @@ const filteredPeople = computed(() => {
                     <span
                       class="transition-colors group-hover:text-blue-600 group-hover:underline text-gray-600"
                     >
-                      {{ household.address }}
+                      {{ household.address }}, {{ household.postalCode }} {{ household.city }}
                     </span>
                   </span>
                 </div>
@@ -770,7 +791,7 @@ const filteredPeople = computed(() => {
               </div>
             </div>
 
-           <!-- Invited (pending and declined) section as its own component -->
+            <!-- Invited (pending and declined) section as its own component -->
             <InvitedPendingList
               :invites="(householdPendingInvites || []).filter(i => i.status === 'PENDING') as any"
               :declined-invites="(householdPendingInvites || []).filter(i => i.status === 'DECLINED') as any"
@@ -790,51 +811,52 @@ const filteredPeople = computed(() => {
             </DialogHeader>
 
             <Form
+              :validation-schema="householdFormSchema"
               :initial-values="{
                 name: household.name,
                 address: household.address,
                 postalCode: household.postalCode || '',
                 city: household.city || '',
               }"
-              @submit="submitHouseholdForm(onHouseholdSubmit)"
+              @submit="onHouseholdSubmit"
             >
               <div class="grid gap-4 py-4">
-                <FormField name="name">
+                <FormField v-slot="{ componentField }" name="name">
                   <FormItem>
                     <FormLabel>Navn på husstanden</FormLabel>
                     <FormControl>
-                      <Input placeholder="F.eks. Familien Hansen" />
+                      <Input placeholder="F.eks. Familien Hansen" v-bind="componentField" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 </FormField>
 
-                <FormField name="address">
+                <FormField v-slot="{ componentField }" name="address">
                   <FormItem>
                     <FormLabel>Adresse</FormLabel>
                     <FormControl>
-                      <Input placeholder="F.eks. Østensjøveien 123" />
+                      <Input placeholder="F.eks. Østensjøveien 123" v-bind="componentField" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 </FormField>
 
                 <div class="grid grid-cols-2 gap-4">
-                  <FormField name="postalCode">
+                  <FormField v-slot="{ componentField }" name="postalCode">
                     <FormItem>
                       <FormLabel>Postnummer</FormLabel>
                       <FormControl>
-                        <Input placeholder="F.eks. 0650" />
+                        <Input placeholder="F.eks. 0650" v-bind="componentField" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   </FormField>
 
-                  <FormField name="city">
+                  <FormField v-slot="{ componentField }" name="city">
                     <FormItem>
                       <FormLabel>By/sted</FormLabel>
                       <FormControl>
-                        <Input placeholder="F.eks. Oslo" />
+                        <Input placeholder="F.eks. Oslo" v-bind="componentField" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

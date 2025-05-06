@@ -15,6 +15,8 @@ export interface HouseholdResponse {
   latitude: number
   longitude: number
   address: string
+  postalCode: string
+  city: string
   owner: UserResponse
   members: HouseholdMemberResponse[]
   guests: GuestResponse[]

@@ -71,6 +71,8 @@ public class HouseholdService {
         .latitude(household.getLatitude())
         .longitude(household.getLongitude())
         .address(household.getAddress())
+        .postalCode(household.getPostalCode())
+        .city(household.getCity())
         .owner(household.getOwner().toDto())
         .members(members.stream().map(HouseholdMember::toDto).toList())
         .guests(guests.stream().map(Guest::toResponse).toList())
