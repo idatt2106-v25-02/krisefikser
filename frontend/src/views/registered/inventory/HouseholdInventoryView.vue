@@ -143,33 +143,86 @@ const { data: household} = useGetActiveHousehold({
 
 // Create a computed property to format data for the HouseholdEmergencySupplies component
 const formattedInventory = computed<FormattedInventory>(() => {
+  const DAYS_GOAL = 7; // Align with backend's target days
+
   if (!inventorySummary.value) {
     return {
       food: { current: 0, target: 0, unit: 'kcal' },
       water: { current: 0, target: 0, unit: 'L' },
       other: { current: 0, target: 0 },
       preparedDays: 0,
-      targetDays: 7,
+      targetDays: DAYS_GOAL,
     };
   }
 
+  const summary = inventorySummary.value;
+  let foodDays = 0;
+  // Calculate daily kcal needed based on the goal provided by the backend (which includes household multiplier)
+  const dailyKcalNeeded = summary.kcalGoal > 0 ? summary.kcalGoal / DAYS_GOAL : 0;
+  if (dailyKcalNeeded > 0) {
+    foodDays = summary.kcal / dailyKcalNeeded;
+  } else if (summary.kcal > 0 && summary.kcalGoal === 0) { // Has food, but goal is 0 (e.g. no members)
+    foodDays = DAYS_GOAL; // Or Infinity, but capping at DAYS_GOAL makes sense if goal is 0
+  }
+
+  let waterDays = 0;
+  // Calculate daily water needed based on the goal provided by the backend
+  const dailyWaterNeeded = summary.waterLitersGoal > 0 ? summary.waterLitersGoal / DAYS_GOAL : 0;
+  if (dailyWaterNeeded > 0) {
+    waterDays = summary.waterLiters / dailyWaterNeeded;
+  } else if (summary.waterLiters > 0 && summary.waterLitersGoal === 0) { // Has water, but goal is 0
+    waterDays = DAYS_GOAL; // Or Infinity, capping makes sense
+  }
+
+  const calculatedPreparedDays = Math.min(foodDays, waterDays);
+  // Ensure preparedDays is a finite number, floor it, and cap it at DAYS_GOAL
+  let finalPreparedDays = 0;
+  if (isFinite(calculatedPreparedDays)) {
+    finalPreparedDays = Math.min(Math.floor(calculatedPreparedDays), DAYS_GOAL);
+  }
+  
+  // If either goal is 0, but there are supplies, it implies infinite days for that category up to DAYS_GOAL if the other also has supplies.
+  // However, if kcalGoal is 0 (no daily need defined), foodDays would be Infinity if any kcal exists.
+  // Let's refine: if a goal is 0, that category doesn't limit preparedness days unless its current amount is also 0.
+
+  // Refined logic for when goals might be zero:
+  const effectiveFoodDays = (summary.kcalGoal === 0 && summary.kcal > 0) ? DAYS_GOAL : (dailyKcalNeeded > 0 ? (summary.kcal / dailyKcalNeeded) : 0);
+  const effectiveWaterDays = (summary.waterLitersGoal === 0 && summary.waterLiters > 0) ? DAYS_GOAL : (dailyWaterNeeded > 0 ? (summary.waterLiters / dailyWaterNeeded) : 0);
+
+  // If one goal is 0 but has supply, it shouldn't bring down prepared days if the other category is stocked.
+  // If both goals are 0, but supplies exist, prepared days could be considered DAYS_GOAL.
+  let derivedPreparedDays;
+  if (summary.kcalGoal === 0 && summary.waterLitersGoal === 0) {
+    derivedPreparedDays = (summary.kcal > 0 || summary.waterLiters > 0) ? DAYS_GOAL : 0;
+  } else if (summary.kcalGoal === 0) { // Only food goal is 0
+    derivedPreparedDays = (summary.kcal > 0) ? Math.floor(effectiveWaterDays) : 0;
+  } else if (summary.waterLitersGoal === 0) { // Only water goal is 0
+    derivedPreparedDays = (summary.waterLiters > 0) ? Math.floor(effectiveFoodDays) : 0;
+  } else { // Both goals are > 0
+    derivedPreparedDays = Math.floor(Math.min(effectiveFoodDays, effectiveWaterDays));
+  }
+
+  finalPreparedDays = Math.min(derivedPreparedDays, DAYS_GOAL);
+  if(finalPreparedDays < 0 ) finalPreparedDays = 0; // Ensure not negative
+
+
   return {
     food: {
-      current: inventorySummary.value.kcal ?? 0,
-      target: inventorySummary.value.kcalGoal ?? 0,
+      current: summary.kcal ?? 0,
+      target: summary.kcalGoal ?? 0,
       unit: 'kcal',
     },
     water: {
-      current: inventorySummary.value.waterLiters ?? 0,
-      target: inventorySummary.value.waterLitersGoal ?? 0,
+      current: summary.waterLiters ?? 0,
+      target: summary.waterLitersGoal ?? 0,
       unit: 'L',
     },
     other: {
-      current: inventorySummary.value.checkedItems ?? 0,
-      target: inventorySummary.value.totalItems ?? 0,
+      current: summary.checkedItems ?? 0,
+      target: summary.totalItems ?? 0,
     },
-    preparedDays: 0,
-    targetDays: 7,
+    preparedDays: finalPreparedDays,
+    targetDays: DAYS_GOAL,
   };
 });
 
