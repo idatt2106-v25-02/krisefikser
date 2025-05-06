@@ -376,6 +376,13 @@ public class GlobalExceptionHandler {
         exception.getMessage(), "user");
   }
 
+  /**
+   * Handles exceptions thrown when an invalid property reference is made, such as referencing
+   * a non-existent property in a query or request.
+   *
+   * @param exception the property reference exception
+   * @return a problem detail with BAD_REQUEST status and the exception message
+   */
   @ExceptionHandler(PropertyReferenceException.class)
   public ProblemDetail handlePropertyReferenceException(PropertyReferenceException exception) {
     log.error("Property reference exception: {}", exception.getMessage());

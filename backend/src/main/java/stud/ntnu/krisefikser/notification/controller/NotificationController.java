@@ -95,7 +95,7 @@ public class NotificationController {
    * unread notifications total.</p>
    *
    * @param id the unique identifier of the notification to mark as read. Must be a valid UUID.
-   * @return ResponseEntity with HTTP status 204 (No Content) indicating successful operation
+   * @return ResponseEntity with HTTP status 204 (No Content) indicating a successful operation
    * @throws jakarta.persistence.EntityNotFoundException if no notification
    *                                                     with the specified ID exists
    */
@@ -117,7 +117,7 @@ public class NotificationController {
    * This is useful for bulk management of notifications when the user wishes to clear all
    * notification indicators at once.</p>
    *
-   * @return ResponseEntity with HTTP status 204 (No Content) indicating successful operation
+   * @return ResponseEntity with HTTP status 204 (No Content) indicating a successful operation
    */
   @Operation(summary = "Mark all notifications as read",
       description = "Marks all notifications for the authenticated user as read")

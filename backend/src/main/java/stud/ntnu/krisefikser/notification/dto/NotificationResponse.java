@@ -45,7 +45,7 @@ public class NotificationResponse {
   private String url;
 
   /**
-   * Indicates whether the notification has been read by the recipient.
+   * Indicates whether the recipient has read the notification.
    */
   private Boolean read;
 
