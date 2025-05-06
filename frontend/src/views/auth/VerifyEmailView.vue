@@ -14,7 +14,7 @@
       </div>
       <div class="mt-8 text-center">
         <router-link
-          to="/login"
+          to="/logg-inn"
           class="font-medium text-blue-600 hover:text-blue-500"
         >
           Tilbake til innlogging
