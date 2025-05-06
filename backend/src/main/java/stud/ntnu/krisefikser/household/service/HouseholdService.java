@@ -208,7 +208,7 @@ public class HouseholdService {
   @Transactional
   public HouseholdResponse createHousehold(CreateHouseholdRequest createHouseholdRequest) {
     User currentUser = userService.getCurrentUser();
-    Household newHousehold = createHouseholdRequest.toEntity();
+    Household newHousehold = createHouseholdRequest.toEntity(currentUser);
 
     householdRepo.save(newHousehold);
     householdMemberService.addMember(newHousehold, currentUser);
@@ -430,10 +430,9 @@ public class HouseholdService {
       throw new HouseholdNotFoundException();
     }
 
-    Household updatedHousehold = createRequest.toEntity();
-    updatedHousehold.setId(household.getId());
+    Household updatedHousehold = createRequest.toEntity(currentUser, household.getId());
 
     householdRepo.save(updatedHousehold);
-    return toHouseholdResponse(household);
+    return toHouseholdResponse(updatedHousehold);
   }
 }
