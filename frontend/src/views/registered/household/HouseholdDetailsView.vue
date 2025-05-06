@@ -212,14 +212,18 @@ const { mutate: addGuest, isPending: isAddingGuest } = useAddGuestToHousehold({
       isAddMemberDialogOpen.value = false
       resetForm()
     },
-    onError: (error: any) => {
+      onError: (error: unknown) => {
       console.error('Add Guest onError:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Kunne ikke legge til gjest.';
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (error as Error)?.message ||
+        'Kunne ikke legge til gjest.';
+
       toast({
         title: 'Feil ved tillegging av gjest',
         description: errorMessage,
         variant: 'destructive',
-      })
+      });
     },
   },
 })
@@ -233,13 +237,16 @@ const { mutate: removeGuest, isPending: isRemovingGuest } = useRemoveGuestFromHo
       })
       refetchHousehold()
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Kunne ikke fjerne gjest.';
+    onError: (error: unknown) => {
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (error as Error)?.message ||
+        'Kunne ikke fjerne gjest.';
       toast({
         title: 'Feil ved fjerning av gjest',
         description: errorMessage,
         variant: 'destructive',
-      })
+      });
     },
   },
 })
@@ -376,6 +383,7 @@ function viewMeetingPlace(placeId: string) {
 function goToHouseholdLocation() {
   isMeetingMapDialogOpen.value = true
   setTimeout(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const map = mapRef.value as any;
     if (map && typeof map.centerOnHousehold === 'function') {
       map.centerOnHousehold();
