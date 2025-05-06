@@ -21,7 +21,12 @@ import type {
 import { unref } from 'vue'
 import type { MaybeRef } from 'vue'
 
-import type { CreateHouseholdRequest, HouseholdResponse, JoinHouseholdRequest } from '.././model'
+import type {
+  CreateGuestRequest,
+  CreateHouseholdRequest,
+  HouseholdResponse,
+  JoinHouseholdRequest,
+} from '.././model'
 
 import { customInstance } from '../../axios'
 import type { ErrorType, BodyType } from '../../axios'
@@ -286,6 +291,95 @@ export const useJoinHousehold = <TError = ErrorType<HouseholdResponse>, TContext
   TContext
 > => {
   const mutationOptions = getJoinHouseholdMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Adds a guest to current household. A guest is a user who does not have a user account.
+ * @summary Add guest to current household
+ */
+export const addGuestToHousehold = (
+  createGuestRequest: MaybeRef<CreateGuestRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  createGuestRequest = unref(createGuestRequest)
+
+  return customInstance<HouseholdResponse>(
+    {
+      url: `http://localhost:8080/api/households/guests`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: createGuestRequest,
+      signal,
+    },
+    options,
+  )
+}
+
+export const getAddGuestToHouseholdMutationOptions = <
+  TError = ErrorType<HouseholdResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addGuestToHousehold>>,
+    TError,
+    { data: BodyType<CreateGuestRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addGuestToHousehold>>,
+  TError,
+  { data: BodyType<CreateGuestRequest> },
+  TContext
+> => {
+  const mutationKey = ['addGuestToHousehold']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addGuestToHousehold>>,
+    { data: BodyType<CreateGuestRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return addGuestToHousehold(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AddGuestToHouseholdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addGuestToHousehold>>
+>
+export type AddGuestToHouseholdMutationBody = BodyType<CreateGuestRequest>
+export type AddGuestToHouseholdMutationError = ErrorType<HouseholdResponse>
+
+/**
+ * @summary Add guest to current household
+ */
+export const useAddGuestToHousehold = <TError = ErrorType<HouseholdResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof addGuestToHousehold>>,
+      TError,
+      { data: BodyType<CreateGuestRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof addGuestToHousehold>>,
+  TError,
+  { data: BodyType<CreateGuestRequest> },
+  TContext
+> => {
+  const mutationOptions = getAddGuestToHouseholdMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1106,6 +1200,91 @@ export const useRemoveMemberFromHouseholdOwner = <
   TContext
 > => {
   const mutationOptions = getRemoveMemberFromHouseholdOwnerMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Removes a guest from your household. You must be owner.
+ * @summary Remove guest from household
+ */
+export const removeGuestFromHousehold = (
+  guestId: MaybeRef<string>,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  guestId = unref(guestId)
+
+  return customInstance<HouseholdResponse>(
+    { url: `http://localhost:8080/api/households/guests/${guestId}`, method: 'DELETE' },
+    options,
+  )
+}
+
+export const getRemoveGuestFromHouseholdMutationOptions = <
+  TError = ErrorType<HouseholdResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+    TError,
+    { guestId: string },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+  TError,
+  { guestId: string },
+  TContext
+> => {
+  const mutationKey = ['removeGuestFromHousehold']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+    { guestId: string }
+  > = (props) => {
+    const { guestId } = props ?? {}
+
+    return removeGuestFromHousehold(guestId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type RemoveGuestFromHouseholdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof removeGuestFromHousehold>>
+>
+
+export type RemoveGuestFromHouseholdMutationError = ErrorType<HouseholdResponse>
+
+/**
+ * @summary Remove guest from household
+ */
+export const useRemoveGuestFromHousehold = <
+  TError = ErrorType<HouseholdResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+      TError,
+      { guestId: string },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof removeGuestFromHousehold>>,
+  TError,
+  { guestId: string },
+  TContext
+> => {
+  const mutationOptions = getRemoveGuestFromHouseholdMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
