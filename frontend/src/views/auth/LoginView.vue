@@ -96,6 +96,7 @@ const getLoginErrorMessage = (error: ApiError) => {
         }
       } catch (_e) {
         // If parsing fails, just use the generic message
+        console.error('Error parsing lock time:', _e)
         return 'Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen senere.'
       }
     }
