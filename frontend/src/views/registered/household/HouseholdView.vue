@@ -16,6 +16,14 @@ import {
 const router = useRouter()
 const authStore = useAuthStore()
 
+// Define error type
+type ApiError = {
+  response?: {
+    data?: { message?: string }
+    status?: number
+  }
+}
+
 // Get household data from API
 const {
   data: households,
@@ -38,7 +46,7 @@ const {
     enabled: authStore.isAuthenticated,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    retry: (failureCount, error) => {
+    retry: (failureCount, error: ApiError) => {
       // Don't retry on 404 errors
       if (error?.response?.status === 404) return false
       // Default retry behavior for other errors (3 times)
@@ -97,7 +105,7 @@ const { mutate: declineInvite } = useDeclineInvite({
 
 // Check if activeHousehold returned a 404 error
 const isActiveHouseholdNotFound = () => {
-  return activeHouseholdError?.value?.response?.status === 404
+  return activeHouseholdError.value?.response?.status === 404
 }
 </script>
 
