@@ -69,6 +69,14 @@ export const useAuthStore = defineStore('auth', () => {
       return response
     } catch (error) {
       console.error('Login failed:', error)
+
+      // Clear any partial auth data on login failure
+      // especially important for 401 unauthorized errors
+      accessToken.value = null
+      refreshToken.value = null
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+
       throw error
     }
   }

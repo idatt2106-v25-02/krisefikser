@@ -35,14 +35,7 @@ const formSchema = computed(() =>
       identifier: isAdmin.value
         ? z.string().min(3, 'Brukernavn må være minst 3 tegn')
         : z.string().email('Ugyldig e-post').min(5, 'E-post er for kort'),
-      password: z
-        .string()
-        .min(8, 'Passord må være minst 8 tegn')
-        .max(50, 'Passord kan være maks 50 tegn')
-        .regex(/[A-Z]/, 'Passord må inneholde minst én stor bokstav')
-        .regex(/[a-z]/, 'Passord må inneholde minst én liten bokstav')
-        .regex(/[0-9]/, 'Passord må inneholde minst ett tall')
-        .regex(/[^A-Za-z0-9]/, 'Passord må inneholde minst ett spesialtegn'),
+      password: z.string().min(1, 'Passord er påkrevd'),
     }),
   ),
 )
@@ -55,11 +48,16 @@ const { handleSubmit, meta, resetForm } = useForm({
 
 // Loading state
 const isLoading = ref(false)
+// Track login attempts to allow resubmission
+const hasAttemptedLogin = ref(false)
+
+// Define error type for reuse
+type ApiError = {
+  response?: { data?: { message?: string }; status?: number }
+}
 
 // Function to provide specific error messages based on error responses
-const getLoginErrorMessage = (error: {
-  response?: { data?: { message?: string }; status?: number }
-}) => {
+const getLoginErrorMessage = (error: ApiError) => {
   const message = 'Kunne ikke logge inn. Vennligst prøv igjen.'
 
   const errorMessage = error?.response?.data?.message || ''
@@ -81,8 +79,32 @@ const getLoginErrorMessage = (error: {
       : 'E-postadressen er ikke registrert. Vennligst registrer deg eller sjekk om du har skrevet riktig e-post.'
   }
 
-  if (errorMessage.includes('locked') || errorMessage.includes('disabled')) {
-    return 'Kontoen er låst. Vennligst kontakt administrator for hjelp.'
+  if (errorMessage.includes('locked')) {
+    // Extract timestamp if available
+    const lockTimeMatch = errorMessage.match(/locked until (.+)/i)
+    if (lockTimeMatch && lockTimeMatch[1]) {
+      try {
+        // Parse the datetime from the error message
+        const lockTime = new Date(lockTimeMatch[1])
+        const now = new Date()
+
+        // Calculate minutes remaining
+        const minutesRemaining = Math.ceil((lockTime.getTime() - now.getTime()) / 60000)
+
+        if (minutesRemaining > 0) {
+          return `Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen om ${minutesRemaining} minutt${minutesRemaining === 1 ? '' : 'er'}.`
+        }
+      } catch (_e) {
+        // If parsing fails, just use the generic message
+        console.error('Error parsing lock time:', _e)
+        return 'Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen senere.'
+      }
+    }
+    return 'Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen senere.'
+  }
+
+  if (errorMessage.includes('disabled')) {
+    return 'Kontoen er deaktivert. Vennligst kontakt administrator for hjelp.'
   }
 
   if (statusCode === 429) {
@@ -97,32 +119,44 @@ const onSubmit = handleSubmit(async (values) => {
   if (isLoading.value) return
 
   isLoading.value = true
+  hasAttemptedLogin.value = true
+
   try {
     // Map identifier to email for backend compatibility
     const loginData = {
       email: values.identifier,
       password: values.password,
     }
-
-    await authStore.login(loginData)
-    toast('Suksess', {
-      description: 'Du er nå logget inn',
-    })
+    try {
+      await authStore.login(loginData)
+      toast('Suksess', {
+        description: 'Du er nå logget inn',
+      })
+    } catch (error: unknown) {
+      toast('Innloggingsfeil', {
+        description: getLoginErrorMessage(error as ApiError),
+      })
+    }
 
     // Redirect to the intended page after successful login
     await router.push(redirectPath.value)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error: unknown) {
     toast('Innloggingsfeil', {
-      description: getLoginErrorMessage(error),
+      description: getLoginErrorMessage(error as ApiError),
     })
 
+    // Clear password field but maintain identifier
     resetForm({
       values: {
         identifier: values.identifier,
         password: '',
       },
+      touched: { identifier: true, password: false },
+      errors: {}, // Clear all validation errors
     })
+
+    // Re-enable the form for submission
+    hasAttemptedLogin.value = false
   } finally {
     isLoading.value = false
   }
@@ -188,7 +222,7 @@ function toggleLoginType() {
       <!-- Submit Button (disabled unless form is valid and touched) -->
       <Button
         type="submit"
-        :disabled="!meta.valid || !meta.dirty || isLoading"
+        :disabled="(!meta.valid || !meta.dirty) && !hasAttemptedLogin || isLoading"
         class="w-full hover:cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
         <template v-if="isLoading">Logger inn...</template>

@@ -230,6 +230,7 @@ onUnmounted(() => {
           :componentField="componentField"
           :showToggle="true"
           :showIcon="true"
+          :showComplexityRequirements="true"
         />
       </FormField>
 
