@@ -12,13 +12,13 @@ import type { PageableObject } from './pageableObject'
 export interface PageNotificationResponse {
   totalElements?: number
   totalPages?: number
+  first?: boolean
+  last?: boolean
   size?: number
   content?: NotificationResponse[]
   number?: number
   sort?: SortObject
   numberOfElements?: number
   pageable?: PageableObject
-  first?: boolean
-  last?: boolean
   empty?: boolean
 }

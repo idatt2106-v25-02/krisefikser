@@ -208,14 +208,7 @@ public class HouseholdService {
   @Transactional
   public HouseholdResponse createHousehold(CreateHouseholdRequest createHouseholdRequest) {
     User currentUser = userService.getCurrentUser();
-    Household newHousehold = new Household();
-    newHousehold.setName(createHouseholdRequest.getName());
-    newHousehold.setLatitude(createHouseholdRequest.getLatitude());
-    newHousehold.setLongitude(createHouseholdRequest.getLongitude());
-    newHousehold.setAddress(createHouseholdRequest.getAddress());
-    newHousehold.setPostalCode(createHouseholdRequest.getPostalCode());
-    newHousehold.setCity(createHouseholdRequest.getCity());
-    newHousehold.setOwner(currentUser);
+    Household newHousehold = createHouseholdRequest.toEntity(currentUser);
 
     householdRepo.save(newHousehold);
     householdMemberService.addMember(newHousehold, currentUser);
@@ -329,29 +322,6 @@ public class HouseholdService {
   }
 
   /**
-   * Updates the details of a household.
-   *
-   * @param id      The ID of the household to update
-   * @param request The request containing updated household details
-   * @return The updated household response
-   */
-  @Transactional
-  public HouseholdResponse updateHousehold(UUID id, CreateHouseholdRequest request) {
-    Household household = householdRepo.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
-
-    household.setName(request.getName());
-    household.setLatitude(request.getLatitude());
-    household.setLongitude(request.getLongitude());
-    household.setAddress(request.getAddress());
-    household.setPostalCode(request.getPostalCode());
-    household.setCity(request.getCity());
-
-    householdRepo.save(household);
-    return toHouseholdResponse(household);
-  }
-
-  /**
    * Deletes a household and clears the active household for all members.
    *
    * @param id The ID of the household to delete
@@ -421,5 +391,46 @@ public class HouseholdService {
 
     guestRepository.delete(guest);
     return toHouseholdResponse(guest.getHousehold());
+  }
+
+  /**
+   * Updates the active household for the current user.
+   *
+   * @param createRequest The request containing updated household details
+   * @return The updated household response
+   */
+  @Transactional
+  public HouseholdResponse updateActiveHousehold(CreateHouseholdRequest createRequest) {
+    User currentUser = userService.getCurrentUser();
+    Household household = currentUser.getActiveHousehold();
+
+    if (household == null) {
+      throw new HouseholdNotFoundException();
+    }
+
+    return updateHousehold(household.getId(), createRequest);
+  }
+
+  /**
+   * Updates the details of a household.
+   *
+   * @param id      The ID of the household to update
+   * @param request The request containing updated household details
+   * @return The updated household response
+   */
+  @Transactional
+  public HouseholdResponse updateHousehold(UUID id, CreateHouseholdRequest request) {
+    Household household = householdRepo.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Household not found"));
+
+    household.setName(request.getName());
+    household.setLatitude(request.getLatitude());
+    household.setLongitude(request.getLongitude());
+    household.setAddress(request.getAddress());
+    household.setPostalCode(request.getPostalCode());
+    household.setCity(request.getCity());
+
+    householdRepo.save(household);
+    return toHouseholdResponse(household);
   }
 }
