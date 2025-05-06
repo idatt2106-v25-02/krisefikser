@@ -19,7 +19,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import stud.ntnu.krisefikser.notification.dto.NotificationResponse;
 import stud.ntnu.krisefikser.user.entity.User;
-import org.hibernate.annotations.ColumnDefault;
 
 /**
  * Entity class representing a notification in the system.
@@ -74,7 +73,7 @@ public class Notification {
   private String url;
 
   /**
-   * Indicates whether the notification has been read by the user.
+   * Indicates whether the user has read the notification.
    * Defaults to false when created.
    */
   @Column(name = "is_read", nullable = false)

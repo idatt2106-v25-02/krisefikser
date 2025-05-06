@@ -23,7 +23,7 @@ public class NotificationWebSocketService {
    *
    * @param user                 the recipient user of the notification
    * @param notificationResponse the notification data to be sent
-   * @throws org.springframework.messaging.MessagingException if message sending fails
+   * @throws org.springframework.messaging.MessagingException if the message sending fails
    */
   public void sendNotification(User user, NotificationResponse notificationResponse) {
     messagingTemplate.convertAndSendToUser(
