@@ -43,7 +43,7 @@ import ForgotPasswordView from "@/views/auth/ForgotPasswordView.vue";
 import BeforeCrisisView from "@/views/nonRegistered/info/BeforeCrisisView.vue";
 import DuringCrisisView from "@/views/nonRegistered/info/DuringCrisisView.vue";
 import AfterCrisisView from "@/views/nonRegistered/info/AfterCrisisView.vue";
-
+import TokenVerifier from "@/views/TokenVerifier.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -115,6 +115,12 @@ const router = createRouter({
       name: 'manage-admins',
       component: ManageAdminsView,
       meta: { requiresAuth: true, requiresSuperAdmin: true }
+    },
+    {
+      path: '/verify',
+      name: 'verify',
+      component: TokenVerifier,
+      meta: { requiresGuest: true }
     },
 
     // Registered User routes
