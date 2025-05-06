@@ -49,7 +49,7 @@ import {
 } from '@/api/generated/household/household.ts'
 import { useCreateInvite, useGetPendingInvitesForUser, useAcceptInvite, useDeclineInvite, useGetPendingInvitesForHousehold } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import type { HouseholdResponse, GuestResponse } from '@/api/generated/model'
+import type { HouseholdResponse, GuestResponse, HouseholdMemberResponse } from '@/api/generated/model'
 import { useToast } from '@/components/ui/toast/use-toast.ts'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 
@@ -88,8 +88,6 @@ type HouseholdFormValues = {
   description?: string
 }
 
-// Add Guest type alias for convenience
-type Guest = GuestResponse;
 
 // Extend ExtendedHouseholdResponse without redefining guests
 interface ExtendedHouseholdResponse extends HouseholdResponse {
@@ -375,6 +373,15 @@ function viewMeetingPlace(placeId: string) {
   }, 300)
 }
 
+function goToHouseholdLocation() {
+  isMeetingMapDialogOpen.value = true
+  setTimeout(() => {
+    if (mapRef.value) {
+      // If your map supports this method, call it. Otherwise, center using props.
+      mapRef.value.centerOnHousehold?.()
+    }
+  }, 300)
+}
 
 const handleFormSubmit = (values: MemberFormValues) => {
   console.log('handleFormSubmit called with mode:', memberMode.value, 'and values:', values);
@@ -451,6 +458,25 @@ function handleRemoveGuest(guestId?: string) {
     removeGuest({ guestId });
   }
 }
+
+// Filter tab state
+const memberGuestTab = ref<'alle' | 'medlemmer' | 'gjester'>('alle')
+
+const filteredPeople = computed(() => {
+  if (!household.value) return []
+  if (memberGuestTab.value === 'alle') {
+    // Combine members and guests
+    return [
+      ...household.value.members.map(m => ({ type: 'member', data: m })),
+      ...household.value.guests.map(g => ({ type: 'guest', data: g }))
+    ]
+  } else if (memberGuestTab.value === 'medlemmer') {
+    return household.value.members.map(m => ({ type: 'member', data: m }))
+  } else if (memberGuestTab.value === 'gjester') {
+    return household.value.guests.map(g => ({ type: 'guest', data: g }))
+  }
+  return []
+})
 </script>
 
 <template>
@@ -484,13 +510,15 @@ function handleRemoveGuest(guestId?: string) {
               <div class="text-gray-600">
                 <div class="flex items-center">
                   <MapPin class="h-4 w-4 text-gray-400 mr-1 flex-shrink-0" />
-                  <span class="flex flex-col">
+                  <span
+                    class="flex flex-col cursor-pointer text-blue-600 hover:underline"
+                    @click="goToHouseholdLocation"
+                    title="Vis på kart"
+                  >
                     <span>{{ household.address }}</span>
                     <span v-if="household.addressLine2">{{ household.addressLine2 }}</span>
                     <span>{{ household.postalCode }} {{ household.city }}</span>
-                    <span v-if="household.country && household.country !== 'Norge'">{{
-                      household.country
-                    }}</span>
+                    <span v-if="household.country && household.country !== 'Norge'">{{ household.country }}</span>
                   </span>
                 </div>
               </div>
@@ -510,7 +538,7 @@ function handleRemoveGuest(guestId?: string) {
           <div class="lg:col-span-8">
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
               <div class="flex justify-between items-center mb-5">
-                <h2 class="text-xl font-semibold text-gray-800">Medlemmer</h2>
+                <h2 class="text-xl font-semibold text-gray-800">Medlemmer og gjester</h2>
                 <Button
                   variant="outline"
                   size="sm"
@@ -521,27 +549,41 @@ function handleRemoveGuest(guestId?: string) {
                   <span>Legg til</span>
                 </Button>
               </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Member cards -->
+              <!-- Filter Tabs -->
+              <div class="flex gap-2 mb-4">
+                <Button :variant="memberGuestTab === 'alle' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'alle'">Alle</Button>
+                <Button :variant="memberGuestTab === 'medlemmer' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'medlemmer'">Medlemmer</Button>
+                <Button :variant="memberGuestTab === 'gjester' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'gjester'">Gjester</Button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2">
                 <div
-                  v-for="member in household.members"
-                  :key="member.user?.id"
+                  v-for="person in filteredPeople"
+                  :key="person.type === 'member' ? (person.data as HouseholdMemberResponse).user?.id : (person.data as GuestResponse).id"
                   class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <div class="p-4">
                     <div class="flex justify-between items-start">
                       <div class="flex items-center mb-3">
                         <div
+                          v-if="person.type === 'member'"
                           class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0"
                         >
-                          <span class="text-md font-medium">{{ member.user?.firstName?.[0] ?? '?' }}</span>
+                          <span class="text-md font-medium">{{ (person.data as HouseholdMemberResponse).user?.firstName?.[0] ?? '?' }}</span>
+                        </div>
+                        <div
+                          v-else
+                          class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 mr-3 flex-shrink-0"
+                        >
+                          <span class="text-md font-medium">{{ (person.data as GuestResponse).name?.[0]?.toUpperCase() ?? 'G' }}</span>
                         </div>
                         <h3 class="text-md font-bold text-gray-900">
-                          {{ member.user?.firstName }} {{ member.user?.lastName }}
+                          {{ person.type === 'member' ? ((person.data as HouseholdMemberResponse).user?.firstName + ' ' + (person.data as HouseholdMemberResponse).user?.lastName) : (person.data as GuestResponse).name }}
                         </h3>
+                        <span class="ml-2 text-xs" :class="person.type === 'member' ? 'text-gray-400' : 'text-green-500'">
+                          {{ person.type === 'member' ? 'Medlem' : 'Gjest' }}
+                        </span>
                       </div>
-                      <DropdownMenu v-if="member.user?.id !== authStore.currentUser?.id">
+                      <DropdownMenu v-if="person.type === 'member' && (person.data as HouseholdMemberResponse).user?.id !== authStore.currentUser?.id">
                         <DropdownMenuTrigger as-child>
                           <Button variant="ghost" size="icon" class="h-8 w-8">
                             <span class="sr-only">Medlemsalternativer</span>
@@ -565,7 +607,7 @@ function handleRemoveGuest(guestId?: string) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            @click="onRemoveMember(member.user?.id)"
+                            @click="onRemoveMember((person.data as HouseholdMemberResponse).user?.id)"
                             class="text-red-600"
                           >
                             <UserMinus class="h-4 w-4 mr-2" />
@@ -573,11 +615,36 @@ function handleRemoveGuest(guestId?: string) {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      <DropdownMenu v-else-if="person.type === 'guest'">
+                        <DropdownMenuTrigger as-child>
+                          <Button variant="ghost" size="icon" class="h-8 w-8">
+                            <span class="sr-only">Gjestalternativer</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                              <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
+                            </svg>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            @click="handleRemoveGuest((person.data as GuestResponse).id)"
+                            class="text-red-600"
+                            :disabled="isRemovingGuest"
+                          >
+                            <UserMinus class="h-4 w-4 mr-2" />
+                            Fjern gjest
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <div class="text-sm text-gray-600">
-                      <div class="mt-1 truncate">
-                        {{ member.user?.email ?? '' }}
-                      </div>
+                      <template v-if="person.type === 'member'">
+                        <div class="mt-1 truncate">
+                          {{ (person.data as HouseholdMemberResponse).user?.email ?? '' }}
+                        </div>
+                      </template>
+                      <template v-else>
+                        Forbruksfaktor: {{ (person.data as GuestResponse).consumptionMultiplier }}
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -621,61 +688,6 @@ function handleRemoveGuest(guestId?: string) {
                 :household-id="household.id || ''"
                 :show-details-button="false"
               />
-            </div>
-
-            <!-- Guests Section -->
-            <div
-              class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6"
-              v-if="household && household.guests && household.guests.length > 0"
-            >
-              <div class="flex justify-between items-center mb-5">
-                <h2 class="text-xl font-semibold text-gray-800">Gjester (Uten Konto)</h2>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div
-                  v-for="guest in household.guests"
-                  :key="guest.id"
-                  class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  <div class="p-4">
-                    <div class="flex justify-between items-start">
-                      <div class="flex items-center mb-3">
-                        <div
-                          class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 mr-3 flex-shrink-0"
-                        >
-                          <span class="text-md font-medium">{{ guest.name?.[0]?.toUpperCase() ?? 'G' }}</span>
-                        </div>
-                        <h3 class="text-md font-bold text-gray-900">
-                          {{ guest.name }}
-                        </h3>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                          <Button variant="ghost" size="icon" class="h-8 w-8">
-                            <span class="sr-only">Gjestalternativer</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
-                              <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
-                            </svg>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            @click="handleRemoveGuest(guest.id)"
-                            class="text-red-600"
-                            :disabled="isRemovingGuest"
-                          >
-                            <UserMinus class="h-4 w-4 mr-2" />
-                            Fjern gjest
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                      Forbruksfaktor: {{ guest.consumptionMultiplier }}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
