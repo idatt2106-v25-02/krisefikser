@@ -60,6 +60,7 @@ import type {
 import { useToast } from '@/components/ui/toast/use-toast.ts'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 import { useQueryClient } from '@tanstack/vue-query'
+import { useGetInventorySummary, getGetInventorySummaryQueryKey } from '@/api/generated/item/item'
 
 interface MeetingPlace {
   id: string
@@ -69,6 +70,7 @@ interface MeetingPlace {
   longitude: number
   description?: string
   type: 'primary' | 'secondary'
+  targetDays: number
 }
 
 interface Inventory {
@@ -161,6 +163,76 @@ const {
   },
 })
 
+// Fetch Inventory Summary specifically for the preview
+const {
+  data: inventorySummary,
+} = useGetInventorySummary({
+  query: {
+    enabled: computed(() => authStore.isAuthenticated && !!household.value?.id),
+  },
+})
+
+// Computed property to format inventory data for the preview, similar to HouseholdInventoryView
+const inventoryPreviewData = computed<Inventory>(() => {
+  const DAYS_GOAL = 7;
+
+  if (!inventorySummary.value) {
+    // Fallback if summary isn't loaded - might use household.inventory as a rough estimate or just zeros
+    // For consistency, if summary is crucial, show loading or default to all zeros until summary loads.
+    return {
+      food: { current: household.value?.inventory?.food?.current || 0, target: household.value?.inventory?.food?.target || 0, unit: 'kcal' },
+      water: { current: household.value?.inventory?.water?.current || 0, target: household.value?.inventory?.water?.target || 0, unit: 'L' },
+      other: { current: household.value?.inventory?.other?.current || 0, target: household.value?.inventory?.other?.target || 0 },
+      preparedDays: 0, // Default until summary loads and calculates
+      targetDays: DAYS_GOAL,
+    };
+  }
+
+  const summary = inventorySummary.value;
+
+  const dailyKcalNeeded = summary.kcalGoal > 0 ? summary.kcalGoal / DAYS_GOAL : 0;
+  const effectiveFoodDays = (summary.kcalGoal === 0 && summary.kcal > 0)
+                            ? DAYS_GOAL
+                            : (dailyKcalNeeded > 0 ? (summary.kcal / dailyKcalNeeded) : 0);
+
+  const dailyWaterNeeded = summary.waterLitersGoal > 0 ? summary.waterLitersGoal / DAYS_GOAL : 0;
+  const effectiveWaterDays = (summary.waterLitersGoal === 0 && summary.waterLiters > 0)
+                             ? DAYS_GOAL
+                             : (dailyWaterNeeded > 0 ? (summary.waterLiters / dailyWaterNeeded) : 0);
+
+  let derivedPreparedDays;
+  if (summary.kcalGoal === 0 && summary.waterLitersGoal === 0) {
+    derivedPreparedDays = (summary.kcal > 0 || summary.waterLiters > 0) ? DAYS_GOAL : 0;
+  } else if (summary.kcalGoal === 0) {
+    derivedPreparedDays = (summary.kcal > 0) ? Math.floor(effectiveWaterDays) : 0;
+  } else if (summary.waterLitersGoal === 0) {
+    derivedPreparedDays = (summary.waterLiters > 0) ? Math.floor(effectiveFoodDays) : 0;
+  } else {
+    derivedPreparedDays = Math.floor(Math.min(effectiveFoodDays, effectiveWaterDays));
+  }
+
+  let finalPreparedDays = Math.min(derivedPreparedDays, DAYS_GOAL);
+  if (finalPreparedDays < 0) finalPreparedDays = 0;
+
+  return {
+    food: {
+      current: summary.kcal ?? 0,
+      target: summary.kcalGoal ?? 0,
+      unit: 'kcal',
+    },
+    water: {
+      current: summary.waterLiters ?? 0,
+      target: summary.waterLitersGoal ?? 0,
+      unit: 'L',
+    },
+    other: {
+      current: summary.checkedItems ?? 0,
+      target: summary.totalItems ?? 0,
+    },
+    preparedDays: finalPreparedDays,
+    targetDays: DAYS_GOAL,
+  };
+});
 
 watchEffect(() => {
   console.log('[HouseholdDetailsView] household data changed (from watchEffect):', JSON.parse(JSON.stringify(household.value)));
@@ -188,6 +260,7 @@ const { mutate: _addMember } = useJoinHousehold({
   mutation: {
     onSuccess: () => {
       refetchHousehold()
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
       isAddMemberDialogOpen.value = false
     },
   },
@@ -197,6 +270,7 @@ const { mutate: removeMember } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       refetchHousehold()
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
     },
   },
 })
@@ -232,6 +306,7 @@ const { mutate: addGuest, isPending: isAddingGuest } = useAddGuestToHousehold({
         description: 'Gjesten har blitt lagt til i husstanden.',
       })
       refetchHousehold()
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
       isAddMemberDialogOpen.value = false
       resetForm()
     },
@@ -259,6 +334,7 @@ const { mutate: removeGuest, isPending: isRemovingGuest } = useRemoveGuestFromHo
         description: 'Gjesten er fjernet fra husstanden.',
       })
       refetchHousehold()
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
     },
     onError: (error: unknown) => {
       const errorMessage =
@@ -696,24 +772,7 @@ const filteredPeople = computed(() => {
               </div>
 
               <HouseholdEmergencySupplies
-                :inventory="{
-                  food: {
-                    current: household.inventory?.food?.current || 0,
-                    target: household.inventory?.food?.target || 0,
-                    unit: household.inventory?.food?.unit || '',
-                  },
-                  water: {
-                    current: household.inventory?.water?.current || 0,
-                    target: household.inventory?.water?.target || 0,
-                    unit: household.inventory?.water?.unit || '',
-                  },
-                  other: {
-                    current: household.inventory?.other?.current || 0,
-                    target: household.inventory?.other?.target || 0,
-                  },
-                  preparedDays: household.inventory?.preparedDays || 0,
-                  targetDays: household.inventory?.targetDays || 7,
-                }"
+                :inventory="inventoryPreviewData"
                 :inventory-items="household.inventoryItems || []"
                 :household-id="household.id || ''"
                 :show-details-button="false"
