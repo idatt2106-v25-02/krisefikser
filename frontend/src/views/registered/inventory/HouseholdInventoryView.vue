@@ -18,7 +18,8 @@ import {
   Save,
   XCircle,
   Edit,
-  Trash
+  Trash,
+  Info
 } from 'lucide-vue-next'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 import ProductSearch from '@/components/inventory/ProductSearch.vue'
@@ -26,6 +27,7 @@ import WaterItemDialog from '@/components/inventory/dialog/WaterItemDialog.vue'
 import FoodItemDialog from '@/components/inventory/dialog/FoodItemDialog.vue'
 import ChecklistItemDialog from '@/components/inventory/dialog/ChecklistItemDialog.vue'
 import MiscItemDialog from '@/components/inventory/dialog/MiscItemDialog.vue'
+import PreparednessInfoDialog from '@/components/inventory/info/PreparednessInfoDialog.vue'
 
 // Import API hooks and types
 import {
@@ -44,7 +46,7 @@ import {
 import type {
   FoodItemResponse,
   ChecklistItemResponse
-} from '@/api/generated/model' // Assuming DTOs are re-exported from model/index.ts
+} from '@/api/generated/model'
 import { useGetActiveHousehold } from '@/api/generated/household/household'
 import type { HouseholdMemberResponse, GuestResponse } from '@/api/generated/model'
 
@@ -157,40 +159,31 @@ const formattedInventory = computed<FormattedInventory>(() => {
 
   const summary = inventorySummary.value;
   let foodDays = 0;
-  // Calculate daily kcal needed based on the goal provided by the backend (which includes household multiplier)
   const dailyKcalNeeded = summary.kcalGoal > 0 ? summary.kcalGoal / DAYS_GOAL : 0;
   if (dailyKcalNeeded > 0) {
     foodDays = summary.kcal / dailyKcalNeeded;
-  } else if (summary.kcal > 0 && summary.kcalGoal === 0) { // Has food, but goal is 0 (e.g. no members)
-    foodDays = DAYS_GOAL; // Or Infinity, but capping at DAYS_GOAL makes sense if goal is 0
+  } else if (summary.kcal > 0 && summary.kcalGoal === 0) {
+    foodDays = DAYS_GOAL;
   }
 
   let waterDays = 0;
-  // Calculate daily water needed based on the goal provided by the backend
   const dailyWaterNeeded = summary.waterLitersGoal > 0 ? summary.waterLitersGoal / DAYS_GOAL : 0;
   if (dailyWaterNeeded > 0) {
     waterDays = summary.waterLiters / dailyWaterNeeded;
-  } else if (summary.waterLiters > 0 && summary.waterLitersGoal === 0) { // Has water, but goal is 0
-    waterDays = DAYS_GOAL; // Or Infinity, capping makes sense
+  } else if (summary.waterLiters > 0 && summary.waterLitersGoal === 0) {
+    waterDays = DAYS_GOAL;
   }
 
   const calculatedPreparedDays = Math.min(foodDays, waterDays);
-  // Ensure preparedDays is a finite number, floor it, and cap it at DAYS_GOAL
-  let finalPreparedDays = 0;
+  let finalPreparedDays;
   if (isFinite(calculatedPreparedDays)) {
     finalPreparedDays = Math.min(Math.floor(calculatedPreparedDays), DAYS_GOAL);
   }
-  
-  // If either goal is 0, but there are supplies, it implies infinite days for that category up to DAYS_GOAL if the other also has supplies.
-  // However, if kcalGoal is 0 (no daily need defined), foodDays would be Infinity if any kcal exists.
-  // Let's refine: if a goal is 0, that category doesn't limit preparedness days unless its current amount is also 0.
 
   // Refined logic for when goals might be zero:
   const effectiveFoodDays = (summary.kcalGoal === 0 && summary.kcal > 0) ? DAYS_GOAL : (dailyKcalNeeded > 0 ? (summary.kcal / dailyKcalNeeded) : 0);
   const effectiveWaterDays = (summary.waterLitersGoal === 0 && summary.waterLiters > 0) ? DAYS_GOAL : (dailyWaterNeeded > 0 ? (summary.waterLiters / dailyWaterNeeded) : 0);
 
-  // If one goal is 0 but has supply, it shouldn't bring down prepared days if the other category is stocked.
-  // If both goals are 0, but supplies exist, prepared days could be considered DAYS_GOAL.
   let derivedPreparedDays;
   if (summary.kcalGoal === 0 && summary.waterLitersGoal === 0) {
     derivedPreparedDays = (summary.kcal > 0 || summary.waterLiters > 0) ? DAYS_GOAL : 0;
@@ -452,7 +445,6 @@ const setWaterAmount = useSetWaterAmount({
   },
 });
 
-// Moved these declarations earlier to fix initialization error
 const originalCategoriesState = ref<string[]>([])
 const expandedCategories = ref<string[]>([])
 
@@ -481,7 +473,6 @@ function handleWaterAddChange() {
   } else if (waterToAdd.value === null && waterToSubtract.value === null) {
     editingWaterAmount.value = currentActual; // Both empty, revert to current actual
   } else if (waterToAdd.value === null && waterToSubtract.value !== null) {
-    // If add is cleared but subtract has value, recalculate based on subtract
     editingWaterAmount.value = Math.max(0, currentActual - (waterToSubtract.value || 0));
   }
 }
@@ -495,7 +486,6 @@ function handleWaterSubtractChange() {
   } else if (waterToSubtract.value === null && waterToAdd.value === null) {
     editingWaterAmount.value = currentActual; // Both empty, revert to current actual
   } else if (waterToSubtract.value === null && waterToAdd.value !== null) {
-    // If subtract is cleared but add has value, recalculate based on add
     editingWaterAmount.value = currentActual + (waterToAdd.value || 0);
   }
 }
@@ -515,6 +505,7 @@ function saveEditWater() {
 const isAddItemDialogOpen = ref(false)
 const selectedCategory = ref<{ id: string; name: string } | null>(null)
 const isSearchActive = ref(false)
+const isPreparednessInfoDialogOpen = ref(false)
 
 function jumpToItem(categoryId: string, itemId: string): void {
   expandedCategories.value = [categoryId]
@@ -545,17 +536,15 @@ function handleSearchChanged(isActive: boolean): void {
 
 const editingItemId = ref<string | null>(null)
 const editingName = ref('')
-const editingAmount = ref<number | null>(null) // For food, this might be kcal or a new concept
-const editingExpiryDate = ref<string | null>(null) // Added for editing expiry date
+const editingAmount = ref<number | null>(null)
+const editingExpiryDate = ref<string | null>(null)
 
 function startEdit(item: InventoryItem): void {
-  // Prevent re-entering edit mode if already editing this item
   if (editingItemId.value === item.id) return;
 
   editingItemId.value = item.id
   editingName.value = item.name
   editingAmount.value = item.kcal ?? (item.amount ?? 0)
-  // Ensure expiryDate is in YYYY-MM-DD format for the date input
   editingExpiryDate.value = item.expiryDate ? item.expiryDate.split('T')[0] : null
 }
 
@@ -566,21 +555,16 @@ function cancelEdit(): void {
   editingExpiryDate.value = null // Clear editing expiry date
 }
 
-// Updated function for food item deletion confirmation using window.confirm
 async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
   if (window.confirm(`Er du sikker på at du vil slette matvaren "${item.name}"?`)) {
     try {
       await deleteFoodItemMutation.mutateAsync({ id: item.id });
-      // Optionally, add a success toast here if desired
     } catch (error) {
       console.error('Error deleting food item after confirmation:', error);
-      // Optionally, show an error toast here
     }
   }
 }
 
-// --- START RESTORED FUNCTIONS ---
-// Update the handleAddItem function
 async function handleAddItem(newItem: InventoryItem): Promise<void> {
   try {
     console.log('HouseholdInventoryView: handleAddItem received newItem:', newItem);
@@ -607,15 +591,8 @@ async function handleAddItem(newItem: InventoryItem): Promise<void> {
       console.log('mutating with payload:', payload);
       await createFoodItem.mutateAsync(payload);
     } else {
-      // For checklist items (health, power, comm, misc)
-      // This assumes newItem has an ID for checklist items.
-      // If adding new checklist items, this might need adjustment or a different mutation.
       await toggleChecklistItem.mutateAsync({
-        // id: newItem.id // This was the old logic, ensure newItem.id is correct for checklist adds
-        // For now, this handleAddItem is primarily for food. Checklist items might need their own add flow
-        // if they are created, not just toggled. Assuming toggle is if it exists.
-        // This part might need review based on checklist item creation flow.
-        id: newItem.id // Re-instating, assuming newItem always has a relevant ID.
+        id: newItem.id
       });
     }
 
@@ -681,6 +658,13 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-2xl font-semibold text-gray-800">Oversikt</h2>
+              <button
+                @click="isPreparednessInfoDialogOpen = true"
+                class="text-blue-600 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors -mr-1"
+                title="Vis informasjon om beredskapsberegning"
+              >
+                <Info class="h-5 w-5" />
+              </button>
             </div>
             <HouseholdEmergencySupplies
               :inventory="formattedInventory"
@@ -994,6 +978,13 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
         @close="isAddItemDialogOpen = false"
         @add-item="handleAddItem"
       />
+
+      <!-- Preparedness Info Dialog -->
+      <PreparednessInfoDialog
+        :is-open="isPreparednessInfoDialogOpen"
+        @close="isPreparednessInfoDialogOpen = false"
+      />
+
     </div>
   </div>
 </template>
