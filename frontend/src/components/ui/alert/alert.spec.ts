@@ -1,4 +1,5 @@
-import { createComponentWrapper, describe, it, expect } from '@/components/__tests__/test-utils'
+import { createComponentWrapper } from '@/components/__tests__/test-utils'
+import { describe, it, expect } from 'vitest'
 import { Alert, AlertDescription, AlertTitle } from '.'
 import { mount } from '@vue/test-utils'
 
