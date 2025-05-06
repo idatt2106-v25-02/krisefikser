@@ -42,7 +42,7 @@ const formSchema = computed(() =>
 
 // === Form logic ===
 // useForm returns handleSubmit, meta, and resetForm for tracking state
-const { handleSubmit, meta, resetForm, setFieldError, setErrors } = useForm({
+const { handleSubmit, meta, resetForm } = useForm({
   validationSchema: formSchema,
 })
 
@@ -51,10 +51,13 @@ const isLoading = ref(false)
 // Track login attempts to allow resubmission
 const hasAttemptedLogin = ref(false)
 
-// Function to provide specific error messages based on error responses
-const getLoginErrorMessage = (error: {
+// Define error type for reuse
+type ApiError = {
   response?: { data?: { message?: string }; status?: number }
-}) => {
+}
+
+// Function to provide specific error messages based on error responses
+const getLoginErrorMessage = (error: ApiError) => {
   const message = 'Kunne ikke logge inn. Vennligst prøv igjen.'
 
   const errorMessage = error?.response?.data?.message || ''
@@ -127,18 +130,17 @@ const onSubmit = handleSubmit(async (values) => {
       toast('Suksess', {
         description: 'Du er nå logget inn',
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast('Innloggingsfeil', {
-        description: getLoginErrorMessage(error),
+        description: getLoginErrorMessage(error as ApiError),
       })
     }
 
     // Redirect to the intended page after successful login
     await router.push(redirectPath.value)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error: unknown) {
     toast('Innloggingsfeil', {
-      description: getLoginErrorMessage(error),
+      description: getLoginErrorMessage(error as ApiError),
     })
 
     // Clear password field but maintain identifier

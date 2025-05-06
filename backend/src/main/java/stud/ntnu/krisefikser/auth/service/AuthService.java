@@ -79,7 +79,7 @@ public class AuthService {
     User user = userService.getUserByEmail(loginRequest.getEmail());
 
     // Check if account is locked
-    if (user.getLockedUntil() != null && LocalDateTime.now().isBefore(user.getLockedUntil())) {
+    if (user != null && user.getLockedUntil() != null && LocalDateTime.now().isBefore(user.getLockedUntil())) {
       log.warn("Account locked attempt for user: {}. Locked until: {}", user.getEmail(), user.getLockedUntil());
       throw new LockedException("Account is locked until " + user.getLockedUntil());
     }
@@ -91,7 +91,7 @@ public class AuthService {
               loginRequest.getPassword()));
 
       // Reset password retries on successful login
-      if (user.getPasswordRetries() > 0) {
+      if (user != null && user.getPasswordRetries() > 0) {
         user.setPasswordRetries(0);
         user.setLockedUntil(LocalDateTime.now().minusMinutes(1)); // Set to past time
         userRepository.save(user);
@@ -101,7 +101,7 @@ public class AuthService {
       user.setPasswordRetries(user.getPasswordRetries() + 1);
 
       // Lock account after 5 failed attempts
-      if (user.getPasswordRetries() >= 5) {
+      if (user != null && user.getPasswordRetries() >= 5) {
         user.setLockedUntil(LocalDateTime.now().plusMinutes(5));
         log.info("Account locked for user: {} until {}", user.getEmail(), user.getLockedUntil());
       }
