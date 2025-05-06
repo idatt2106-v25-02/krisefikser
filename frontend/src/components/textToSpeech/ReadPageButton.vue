@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useAccessibilityStore } from '@/stores/accessibilityStore';
-import speechService from '@/services/speechService';
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts';
+import speechService from '@/services/tts/speechService.ts';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 const store = useAccessibilityStore();

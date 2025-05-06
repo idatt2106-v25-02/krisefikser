@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useAuthStore } from '@/stores/useAuthStore.ts'; // Adjust path if necessary
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'; // Adjust path if necessary
 
 export default defineComponent({
   name: 'FeaturesSection',

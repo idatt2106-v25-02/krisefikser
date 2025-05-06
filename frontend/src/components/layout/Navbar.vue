@@ -1,3 +1,41 @@
+<script lang="ts">
+import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut } from 'lucide-vue-next';
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from '@/components/ui/dropdown-menu';
+
+export default {
+  name: 'AppNavbar',
+  components: {
+    MapIcon,
+    Home,
+    Package,
+    MenuIcon,
+    X,
+    LogIn,
+    UserIcon,
+    LogOut,
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem
+  },
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  },
+  data() {
+    return {
+      isMenuOpen: false,
+    }
+  },
+}
+</script>
+
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
     <div class="container mx-auto px-4 py-3">
@@ -164,40 +202,4 @@
     </div>
   </nav>
 </template>
-<script lang="ts">
-import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut } from 'lucide-vue-next';
-import { useAuthStore } from '@/stores/useAuthStore';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem
-} from '@/components/ui/dropdown-menu';
 
-export default {
-  name: 'AppNavbar',
-  components: {
-    MapIcon,
-    Home,
-    Package,
-    MenuIcon,
-    X,
-    LogIn,
-    UserIcon,
-    LogOut,
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuItem
-  },
-  setup() {
-    const authStore = useAuthStore();
-    return { authStore };
-  },
-  data() {
-    return {
-      isMenuOpen: false,
-    }
-  },
-}
-</script>
