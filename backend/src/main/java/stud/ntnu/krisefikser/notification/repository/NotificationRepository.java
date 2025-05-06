@@ -37,9 +37,9 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   /**
    * Counts all notifications by user and read status.
    *
+   * @param read the read status for the notifications to count (corresponding to the 'isRead' field)
    * @param user the user whose notifications to count
-   * @param read the read status for the notifications to count
    * @return a {@link Long} representing the count
    */
-  Long countByReadAndUser(Boolean read, User user);
+  Long countByIsReadAndUser(Boolean read, User user);
 }

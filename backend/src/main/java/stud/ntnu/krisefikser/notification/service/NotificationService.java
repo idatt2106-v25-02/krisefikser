@@ -1,6 +1,7 @@
 package stud.ntnu.krisefikser.notification.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -73,7 +74,7 @@ public class NotificationService {
     if (!notification.getUser().getId().equals(userService.getCurrentUser().getId())) {
       throw new AccessDeniedException("You do not have permission to read this notification");
     }
-    notification.setRead(true);
+    notification.setIsRead(true);
     notificationRepository.save(notification);
   }
 
@@ -81,9 +82,11 @@ public class NotificationService {
    * Marks all notifications for the current user as read.
    */
   public void markAllNotificationsAsRead() {
-    notificationRepository.findByUser(userService.getCurrentUser()).forEach(notification -> {
-      notification.setRead(true);
+    List<Notification> notificationsToUpdate = notificationRepository.findByUser(userService.getCurrentUser());
+    notificationsToUpdate.forEach(notification -> {
+      notification.setIsRead(true);
     });
+    notificationRepository.saveAll(notificationsToUpdate);
   }
 
   /**
@@ -92,6 +95,6 @@ public class NotificationService {
    * @return the number of unread notifications for the current user.
    */
   public Long countUnreadNotifications() {
-    return notificationRepository.countByReadAndUser(false, userService.getCurrentUser());
+    return notificationRepository.countByIsReadAndUser(false, userService.getCurrentUser());
   }
 }

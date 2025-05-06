@@ -108,7 +108,7 @@
                     </div>
                   </DropdownMenuItem>
                 </div>
-                <div v-if="notifications && notifications.length > 0" class="p-2 border-t border-gray-100">
+                <div v-if="notifications && notifications.length > 0" class="p-2 border-t border-gray-100 space-y-2">
                   <button
                     @click="markAllAsRead"
                     :disabled="isMarkingAllAsRead"
@@ -116,6 +116,12 @@
                   >
                     {{ isMarkingAllAsRead ? 'Markerer...' : 'Marker alle som lest' }}
                   </button>
+                </div>
+                <div class="p-2 border-t border-gray-100">
+                  <router-link to="/varsler" class="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center">
+                    <span>Se alle varsler</span>
+                    <ArrowRight class="h-3 w-3 ml-1" />
+                  </router-link>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -249,10 +255,20 @@
             <button
               @click="markAllAsRead"
               :disabled="isMarkingAllAsRead"
-              class="text-sm text-blue-600 hover:text-blue-800 w-full text-center disabled:opacity-50"
+              class="text-sm text-blue-600 hover:text-blue-800 w-full text-center disabled:opacity-50 mb-2"
             >
               {{ isMarkingAllAsRead ? 'Markerer...' : 'Marker alle som lest' }}
             </button>
+          </div>
+          <div class="p-2 border-t border-gray-100">
+            <router-link
+              to="/varsler"
+              class="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center"
+              @click="showMobileNotifications = false"
+            >
+              <span>Se alle varsler</span>
+              <ArrowRight class="h-3 w-3 ml-1" />
+            </router-link>
           </div>
         </div>
 
@@ -304,7 +320,7 @@
   </nav>
 </template>
 <script lang="ts">
-import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut, Bell as BellIcon, AlertTriangle, Calendar, Bell, Info, RefreshCw } from 'lucide-vue-next';
+import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut, Bell as BellIcon, AlertTriangle, Calendar, Bell, Info, RefreshCw, ArrowRight } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -315,10 +331,10 @@ import {
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
 import {
-    useGetNotifications,
-    useGetUnreadCount,
-    useReadNotification,
-    useReadAll
+  useGetNotifications,
+  useGetUnreadCount,
+  useReadNotification,
+  useReadAll
 } from '@/api/generated/notification/notification';
 import { useQueryClient } from '@tanstack/vue-query';
 import type { NotificationResponse, GetNotificationsParams } from '@/api/generated/model';
@@ -342,6 +358,7 @@ export default {
     Bell,
     Info,
     RefreshCw,
+    ArrowRight,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
@@ -356,58 +373,58 @@ export default {
     const queryClient = useQueryClient();
 
     const notificationParams = computed<GetNotificationsParams>(() => ({
-        pageable: {
-            page: 0,
-            size: 5,
-            sort: ['createdAt,desc']
-        }
+      pageable: {
+        page: 0,
+        size: 5,
+        sort: ['createdAt,desc']
+      }
     }));
 
     const {
-        data: notificationsData,
-        isLoading: isLoadingNotifications,
-        isFetching: isFetchingNotifications,
-        error: notificationsError,
-        refetch: refetchNotifications
+      data: notificationsData,
+      isLoading: isLoadingNotifications,
+      isFetching: isFetchingNotifications,
+      error: notificationsError,
+      refetch: refetchNotifications
     } = useGetNotifications(notificationParams, {
-        query: {
-            enabled: computed(() => authStore.isAuthenticated),
-            staleTime: 1000 * 60 * 5
-        }
+      query: {
+        enabled: computed(() => authStore.isAuthenticated),
+        staleTime: 1000 * 60 * 5
+      }
     });
 
     const {
-        data: unreadCountData,
-        refetch: refetchUnreadCount
+      data: unreadCountData,
+      refetch: refetchUnreadCount
     } = useGetUnreadCount({
-        query: {
-            enabled: computed(() => authStore.isAuthenticated),
-            staleTime: 1000 * 60 * 5
-        }
+      query: {
+        enabled: computed(() => authStore.isAuthenticated),
+        staleTime: 1000 * 60 * 5
+      }
     });
 
     const { mutate: mutateReadNotification, isPending: _isMarkingAsRead } = useReadNotification({
-        mutation: {
-            onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-                queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
-            },
-            onError: (error: ErrorType<unknown>) => {
-                console.error("Failed to mark notification as read:", error);
-            }
+      mutation: {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+        },
+        onError: (error: ErrorType<unknown>) => {
+          console.error("Failed to mark notification as read:", error);
         }
+      }
     });
 
     const { mutate: mutateReadAll, isPending: isMarkingAllAsRead } = useReadAll({
-        mutation: {
-             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-                queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
-            },
-            onError: (error: ErrorType<unknown>) => {
-                console.error("Failed to mark all notifications as read:", error);
-            }
+      mutation: {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] });
+        },
+        onError: (error: ErrorType<unknown>) => {
+          console.error("Failed to mark all notifications as read:", error);
         }
+      }
     });
 
     const notifications = computed(() => notificationsData.value?.content || []);
@@ -425,28 +442,28 @@ export default {
     };
 
     const markAllAsRead = () => {
-        mutateReadAll();
+      mutateReadAll();
     };
 
     const formatDate = (dateString: string) => {
-       if (!dateString) return '-';
-       const now = new Date();
-       const notificationDate = new Date(dateString);
-       const diffInDays = Math.floor((now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60 * 24));
-       if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
-       if (diffInDays === 1) return 'I går';
-       if (diffInDays < 7) {
-           const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-           return days[notificationDate.getDay()];
-       }
-       return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
+      if (!dateString) return '-';
+      const now = new Date();
+      const notificationDate = new Date(dateString);
+      const diffInDays = Math.floor((now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
+      if (diffInDays === 1) return 'I går';
+      if (diffInDays < 7) {
+        const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+        return days[notificationDate.getDay()];
+      }
+      return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
     };
 
     watch(() => authStore.isAuthenticated, (isAuth) => {
-        if (isAuth) {
-            refetchNotifications();
-            refetchUnreadCount();
-        }
+      if (isAuth) {
+        refetchNotifications();
+        refetchUnreadCount();
+      }
     });
 
     return {
