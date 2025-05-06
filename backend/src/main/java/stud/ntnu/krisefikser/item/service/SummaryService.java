@@ -40,7 +40,7 @@ public class SummaryService {
   }
 
   private int kcalGoal() {
-    return DAILY_KCAL * DAYS_GOAL * totalMultiplier();
+    return DAILY_KCAL * DAYS_GOAL * ((int) totalMultiplier());
   }
 
   private double totalWaterLiters() {
