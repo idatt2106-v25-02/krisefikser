@@ -1,49 +1,39 @@
-<script lang="ts">
-import { Home, ChevronRight } from 'lucide-vue-next';
+<script setup lang="ts">
+import { Home, ChevronRight } from 'lucide-vue-next'
+import { computed, type Component } from 'vue'
 
-export default {
-  name: 'PageLayout',
-  components: {
-    Home,
-    ChevronRight
-  },
-  props: {
-    pageTitle: {
-      type: String,
-      required: true
-    },
-    sectionName: {
-      type: String,
-      required: true
-    },
-    iconComponent: {
-      type: Object,
-      required: true
-    },
-    iconBgColor: {
-      type: String as () => 'blue' | 'yellow' | 'green',
-      default: 'blue'
-    }
-  },
-  computed: {
-    iconBackgroundClass(): string {
-      const colors: Record<'blue' | 'yellow' | 'green', string> = {
-        blue: 'bg-blue-100',
-        yellow: 'bg-yellow-100',
-        green: 'bg-green-100'
-      };
-      return colors[this.iconBgColor];
-    },
-    iconTextClass(): string {
-      const colors: Record<'blue' | 'yellow' | 'green', string> = {
-        blue: 'text-blue-600',
-        yellow: 'text-yellow-600',
-        green: 'text-green-600'
-      };
-      return colors[this.iconBgColor];
-    }
-  }
+type Color = 'blue' | 'yellow' | 'green'
+
+// Define props using Vue's Component type
+interface Props {
+  pageTitle: string
+  sectionName: string
+  iconComponent: Component
+  iconBgColor?: Color
 }
+
+const props = withDefaults(defineProps<Props>(), {
+  iconBgColor: 'blue',
+})
+
+// Computed properties
+const iconBackgroundClass = computed(() => {
+  const colors: Record<Color, string> = {
+    blue: 'bg-blue-100',
+    yellow: 'bg-yellow-100',
+    green: 'bg-green-100',
+  }
+  return colors[props.iconBgColor]
+})
+
+const iconTextClass = computed(() => {
+  const colors: Record<Color, string> = {
+    blue: 'text-blue-600',
+    yellow: 'text-yellow-600',
+    green: 'text-green-600',
+  }
+  return colors[props.iconBgColor]
+})
 </script>
 <template>
   <div class="min-h-screen flex flex-col bg-slate-50 overflow-hidden">
@@ -54,7 +44,10 @@ export default {
         <nav class="flex" aria-label="Breadcrumb">
           <ol class="inline-flex items-center space-x-1 md:space-x-3">
             <li class="inline-flex items-center">
-              <router-link to="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+              <router-link
+                to="/"
+                class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600"
+              >
                 <Home class="w-4 h-4 mr-2" />
                 Hjem
               </router-link>
@@ -62,7 +55,9 @@ export default {
             <li>
               <div class="flex items-center">
                 <ChevronRight class="w-4 h-4 text-gray-400" />
-                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{ sectionName }}</span>
+                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{
+                  sectionName
+                }}</span>
               </div>
             </li>
           </ol>

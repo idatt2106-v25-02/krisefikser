@@ -1,12 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import router from '@/router'
 import { useLogin, useRegister, useMe } from '@/api/generated/authentication/authentication.ts'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
 import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
-  const router = useRouter()
 
   // State
   const accessToken = ref<string | null>(localStorage.getItem('accessToken'))
