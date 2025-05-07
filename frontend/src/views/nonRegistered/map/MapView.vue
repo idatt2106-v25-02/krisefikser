@@ -16,7 +16,7 @@ import type {
   MapPointResponse as MapPoint,
   MapPointTypeResponse as MapPointType,
   EventResponse as Event,
-  MeetingPointResponse
+  MeetingPointResponse,
 } from '@/api/generated/model'
 import L from 'leaflet'
 import {
@@ -216,7 +216,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="relative w-full h-screen">
+  <div class="relative w-full h-screen overflow-hidden">
     <MapComponent ref="mapRef" @map-created="onMapCreated" />
 
     <div
@@ -238,9 +238,17 @@ onMounted(() => {
         @user-location-available="onUserLocationStatus"
       />
       <HomeLocationLayer
-        v-if="activeHousehold?.id && mapInstance && activeHousehold.latitude && activeHousehold.longitude"
+        v-if="
+          activeHousehold?.id &&
+          mapInstance &&
+          activeHousehold.latitude &&
+          activeHousehold.longitude
+        "
         :map="mapInstance as any"
-        :home-location="{ latitude: activeHousehold.latitude, longitude: activeHousehold.longitude }"
+        :home-location="{
+          latitude: activeHousehold.latitude,
+          longitude: activeHousehold.longitude,
+        }"
       />
       <MeetingPointLayer
         v-if="canShowMeetingPointLayer && mapInstance"
@@ -249,19 +257,6 @@ onMounted(() => {
         @meeting-point-clicked="handleMeetingPointClick"
       />
     </template>
-
-    <div class="absolute top-4 right-4 flex flex-col gap-2">
-      <button
-        v-if="activeHousehold?.id"
-        @click="toggleMeetingPointCreation"
-        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        :class="{ 'bg-blue-600': isAddingMeetingPoint }"
-      >
-        {{
-          isAddingMeetingPoint ? 'Klikk på kartet for å legge til møtepunkt' : 'Legg til møtepunkt'
-        }}
-      </button>
-    </div>
 
     <MapLegend
       :user-location-available="userLocationAvailable"
@@ -310,3 +305,12 @@ onMounted(() => {
     </Dialog>
   </div>
 </template>
+
+<style scoped>
+/* Prevent scrolling on the map page */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+</style>

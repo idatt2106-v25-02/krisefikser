@@ -21,8 +21,7 @@ import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 /**
- * Service class for managing users. This class provides methods to create,
- * update, delete, and
+ * Service class for managing users. This class provides methods to create, update, delete, and
  * retrieve users.
  */
 @Service
@@ -38,8 +37,7 @@ public class UserService {
    *
    * @param data the user data
    * @return the created User entity
-   * @throws EmailAlreadyExistsException if the email is already in use by another
-   *                                     user
+   * @throws EmailAlreadyExistsException if the email is already in use by another user
    */
   public User createUser(CreateUser data) {
     if (userRepository.existsByEmail(data.getEmail())) {
@@ -64,15 +62,29 @@ public class UserService {
   }
 
   /**
+   * Updates the password of an existing user.
+   *
+   * @param userId      the UUID of the user to update
+   * @param newPassword the new password
+   * @return the updated User entity
+   * @throws UserNotFoundException if the user with the given ID does not exist
+   */
+  public User updatePassword(UUID userId, String newPassword) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
+
+    user.setPassword(passwordEncoder.encode(newPassword));
+    return userRepository.save(user);
+  }
+
+  /**
    * Updates an existing user's information.
    *
    * @param userId the UUID of the user to update
    * @param data   the updated user data
    * @return the updated User entity
-   * @throws UserNotFoundException       if the user with the given ID does not
-   *                                     exist
-   * @throws EmailAlreadyExistsException if the new email is already in use by
-   *                                     another user
+   * @throws UserNotFoundException       if the user with the given ID does not exist
+   * @throws EmailAlreadyExistsException if the new email is already in use by another user
    */
   public User updateUser(UUID userId, CreateUser data) {
     User user =
@@ -121,6 +133,11 @@ public class UserService {
     return userRepository.findAll();
   }
 
+  /**
+   * Retrieves all admins in the system.
+   *
+   * @return a list of all User entities
+   */
   public List<User> getAllAdmins() {
     return userRepository.findByRolesName(RoleType.ADMIN);
   }
@@ -129,12 +146,15 @@ public class UserService {
    * Checks if the current user is either an admin or the user being accessed.
    *
    * @param userId the UUID of the user being accessed
-   * @return true if the current user is an admin or the user being accessed, false otherwise
+   * @return true if the current user is an admin or the user being accessed,
+   * false otherwise
    */
   public boolean isAdminOrSelf(UUID userId) {
     User currentUser = getCurrentUser();
-    return currentUser.getId().equals(userId) || currentUser.getRoles().stream().anyMatch(
-        role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
+    return currentUser.getId().equals(userId)
+        || currentUser.getRoles().stream()
+        .anyMatch(
+            role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
   }
 
   /**
