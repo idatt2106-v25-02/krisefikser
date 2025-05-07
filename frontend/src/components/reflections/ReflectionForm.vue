@@ -87,7 +87,7 @@ export default defineComponent({
     eventId: { type: Number as PropType<number>, required: true },
     initialData: { type: Object as PropType<ReflectionResponse | null>, default: null },
   },
-  emits: ['reflection-created', 'reflection-updated', 'cancel'],
+  emits: ['submitted', 'cancel'],
   setup(props, { emit }) {
     const queryClient = useQueryClient();
     const VisibilityEnum = CreateReflectionRequestVisibility;
@@ -152,10 +152,10 @@ export default defineComponent({
             id: props.initialData.id, 
             data: commonPayload as UpdateReflectionRequest
           });
-          emit('reflection-updated');
+          emit('submitted');
         } else {
           await mutation.mutateAsync({ data: commonPayload as CreateReflectionRequest });
-          emit('reflection-created');
+          emit('submitted');
         }
         queryClient.invalidateQueries({
           queryKey: getGetReflectionsByEventIdQueryKey(props.eventId)

@@ -177,16 +177,35 @@ const errorMessage = computed(() => {
   return e ? 'En ukjent feil oppstod.' : '';
 });
 
-const formatDate = (dateTimeString?: string) => {
-  if (!dateTimeString) return 'Ukjent dato';
-  try {
-    return new Date(dateTimeString).toLocaleDateString('nb-NO', {
-      year: 'numeric', month: 'long', day: 'numeric',
+const formatDate = (dateInput?: string | number[] | null) => {
+  if (!dateInput) return 'Ukjent dato';
+
+  // If it's an array, convert to Date
+  if (Array.isArray(dateInput)) {
+    // Java months are 1-based, JS months are 0-based
+    const [year, month, day, hour, minute, second, nanosecond] = dateInput;
+    const ms = Math.floor((nanosecond || 0) / 1e6); // Convert nanoseconds to milliseconds
+    const date = new Date(year, month - 1, day, hour, minute, second, ms);
+    if (isNaN(date.getTime())) return 'Ukjent dato';
+    return date.toLocaleDateString('nb-NO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
-  } catch (e) {
-    console.warn("Invalid date format:", dateTimeString);
-    return dateTimeString;
   }
+
+  // If it's a string, try to parse as date
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return 'Ukjent dato';
+  return date.toLocaleDateString('nb-NO', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
 const mapReflectionVisibility = (visibility?: ReflectionResponseVisibility): string => {

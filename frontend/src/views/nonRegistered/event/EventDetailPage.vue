@@ -89,19 +89,35 @@ const reflectionsErrorMessage = computed(() => {
   return reflectionsError.value ? 'En ukjent feil oppstod ved lasting av refleksjoner.' : '';
 });
 
-const formatDate = (dateTimeString?: string) => {
-  if (!dateTimeString) return 'Ukjent dato';
-  try {
-    return new Date(dateTimeString).toLocaleDateString('nb-NO', {
+const formatDate = (dateInput?: string | number[] | null) => {
+  if (!dateInput) return 'Ukjent dato';
+
+  // If it's an array, convert to Date
+  if (Array.isArray(dateInput)) {
+    // Java months are 1-based, JS months are 0-based
+    const [year, month, day, hour, minute, second, nanosecond] = dateInput;
+    const ms = Math.floor((nanosecond || 0) / 1e6); // Convert nanoseconds to milliseconds
+    const date = new Date(year, month - 1, day, hour, minute, second, ms);
+    if (isNaN(date.getTime())) return 'Ukjent dato';
+    return date.toLocaleDateString('nb-NO', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
-  } catch (e) {
-    return dateTimeString;
   }
+
+  // If it's a string, try to parse as date
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return 'Ukjent dato';
+  return date.toLocaleDateString('nb-NO', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
 const canManageReflection = (reflection: ReflectionResponse) => {
@@ -153,6 +169,9 @@ const cancelEditIfNotOpen = (openState: boolean) => {
 const handleReflectionSubmitted = () => {
   cancelEdit();
   refetchReflections();
+  queryClient.invalidateQueries({ queryKey: getGetReflectionsByEventIdQueryKey(eventId.value) });
+  showCreateReflectionForm.value = false;
+  isEditing.value = false;
 };
 
 const confirmDeleteReflection = async (reflectionId: string | undefined) => {
@@ -270,14 +289,13 @@ watch(() => route.query, (newQuery) => {
       </div>
 
       <!-- Reflections Section -->
-      <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+      <div v-if="event && event.status === EventResponseStatus.FINISHED" class="bg-white rounded-lg shadow-lg p-6 mb-8">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800 flex items-center">
             <BookText class="h-6 w-6 mr-2 text-blue-500" />
             Refleksjoner
           </h2>
           <Button
-            v-if="event.status === EventResponseStatus.FINISHED"
             @click="openNewReflectionDialog"
             class="bg-blue-500 hover:bg-blue-600 text-white"
           >
@@ -332,9 +350,14 @@ watch(() => route.query, (newQuery) => {
                 >
                   {{ mapReflectionVisibility(reflection.visibility) }}
                 </span>
-                <span class="ml-2 text-sm text-gray-500">
-                  {{ formatDate(reflection.createdAt) }}
-                </span>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 ml-2">
+                  <span class="text-sm text-gray-500">
+                    Opprettet: {{ formatDate(reflection.createdAt) }}
+                  </span>
+                  <span v-if="reflection.updatedAt" class="text-sm text-gray-400">
+                    Sist endret: {{ formatDate(reflection.updatedAt) }}
+                  </span>
+                </div>
               </div>
               <div v-if="canManageReflection(reflection)" class="flex space-x-2">
                 <Button
@@ -355,7 +378,8 @@ watch(() => route.query, (newQuery) => {
                 </Button>
               </div>
             </div>
-            <p class="text-gray-700 whitespace-pre-wrap">{{ reflection.content }}</p>
+            <h3 class="font-semibold text-lg mb-2">{{ reflection.title }}</h3>
+            <div class="text-gray-700 prose max-w-none" v-html="reflection.content"></div>
           </div>
         </div>
       </div>
