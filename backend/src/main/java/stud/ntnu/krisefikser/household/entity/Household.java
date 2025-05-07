@@ -75,4 +75,7 @@ public class Household {
 
   @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<HouseholdMember> members = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<Guest> guests = new HashSet<>();
 }

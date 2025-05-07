@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Switch } from '@/components/ui/switch'
+import { Switch } from '@/components/ui/switch/switches.vue'
 import { useMe } from '@/api/generated/authentication/authentication'
 import { useUpdateUser } from '@/api/generated/user/user'
 import type { CreateUser } from '@/api/generated/model'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 
 // Get auth store
 const authStore = useAuthStore()

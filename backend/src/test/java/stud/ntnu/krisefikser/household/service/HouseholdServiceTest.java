@@ -28,6 +28,7 @@ import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
+import stud.ntnu.krisefikser.household.repository.GuestRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
@@ -48,6 +49,9 @@ class HouseholdServiceTest {
 
   @Mock
   private ChecklistItemService checklistItemService;
+  
+  @Mock
+  private GuestRepository guestRepository;
 
   @InjectMocks
   private HouseholdService householdService;
@@ -112,6 +116,9 @@ class HouseholdServiceTest {
         "Test", "User", false, false, false);
 
     memberResponse = new HouseholdMemberResponse(userResponse);
+    
+    // Set up mock for GuestRepository using lenient() to avoid UnnecessaryStubbingException
+    lenient().when(guestRepository.findByHousehold(any(Household.class))).thenReturn(Collections.emptyList());
   }
 
   @Test
