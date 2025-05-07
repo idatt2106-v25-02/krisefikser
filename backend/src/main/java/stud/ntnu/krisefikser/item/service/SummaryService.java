@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import stud.ntnu.krisefikser.household.dto.GuestResponse;
 import stud.ntnu.krisefikser.household.dto.HouseholdResponse;
 import stud.ntnu.krisefikser.household.service.HouseholdService;
 import stud.ntnu.krisefikser.item.dto.InventorySummaryResponse;
@@ -25,7 +26,7 @@ public class SummaryService {
   public InventorySummaryResponse getInventorySummary() {
     return InventorySummaryResponse.builder()
         .kcal(totalKcal())
-        .kcalGoal(kcalGoal())
+        .kcalGoal((int) kcalGoal())
         .waterLiters(totalWaterLiters())
         .waterLitersGoal(waterLitersGoal())
         .checkedItems(checkedItems())
@@ -33,37 +34,42 @@ public class SummaryService {
         .build();
   }
 
-  private int totalMultiplier() {
-    HouseholdResponse activeHousehold = householdService.toHouseholdResponse(
-        householdService.getActiveHousehold());
-
-    return activeHousehold.getMembers().size();
-  }
-
   private int totalKcal() {
     return foodItemService.getAllFoodItems().stream().reduce(
         0, (sum, item) -> sum + item.getKcal(), Integer::sum);
+  }
+
+  private double kcalGoal() {
+    return DAILY_KCAL * DAYS_GOAL * totalMultiplier();
   }
 
   private double totalWaterLiters() {
     return householdService.getActiveHousehold().getWaterLiters();
   }
 
-  private int kcalGoal() {
-    return DAILY_KCAL * DAYS_GOAL * totalMultiplier();
-  }
-
   private double waterLitersGoal() {
     return DAILY_WATER_LITERS * DAYS_GOAL * totalMultiplier();
-  }
-
-  private int totalCheckedItems() {
-    return checklistItemService.getAllChecklistItems().size();
   }
 
   private int checkedItems() {
     return checklistItemService.getAllChecklistItems().stream()
         .reduce(0, (sum, item) -> sum + (Boolean.TRUE.equals(item.getChecked()) ? 1 : 0),
             Integer::sum);
+  }
+
+  private int totalCheckedItems() {
+    return checklistItemService.getAllChecklistItems().size();
+  }
+
+  private double totalMultiplier() {
+    HouseholdResponse activeHousehold = householdService.toHouseholdResponse(
+        householdService.getActiveHousehold());
+
+    double memberMultiplier = activeHousehold.getMembers().size();
+    double guestMultiplier = activeHousehold.getGuests().stream()
+        .mapToDouble(GuestResponse::getConsumptionMultiplier)
+        .sum();
+
+    return memberMultiplier + guestMultiplier;
   }
 }

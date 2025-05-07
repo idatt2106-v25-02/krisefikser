@@ -26,7 +26,7 @@ import stud.ntnu.krisefikser.common.ProblemDetailUtils;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
 import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
-import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
+import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 
 /**
  * Global exception handler for the Krisefikser application.
@@ -123,8 +123,15 @@ public class GlobalExceptionHandler {
         exception.getMessage(), "auth");
   }
 
+  /**
+   * Handles exceptions thrown when Turnstile verification fails.
+   *
+   * @param exception the Turnstile verification exception
+   * @return a problem detail with BAD_REQUEST status and the exception message
+   */
   @ExceptionHandler(TurnstileVerificationException.class)
-  public ProblemDetail handleTurnstileVerificationException(TurnstileVerificationException exception) {
+  public ProblemDetail handleTurnstileVerificationException(
+      TurnstileVerificationException exception) {
     return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
   }
 
@@ -151,8 +158,8 @@ public class GlobalExceptionHandler {
    * @param exception the user does not exist exception
    * @return a problem detail with NOT_FOUND status and the exception message
    */
-  @ExceptionHandler(UserDoesNotExistException.class)
-  public ProblemDetail handleUserDoesNotExistException(UserDoesNotExistException exception) {
+  @ExceptionHandler(UserNotFoundException.class)
+  public ProblemDetail handleUserDoesNotExistException(UserNotFoundException exception) {
     log.warn("User does not exist: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND,
         exception.getMessage(), "user");
@@ -241,7 +248,8 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles authentication exceptions thrown by Spring Security when no valid authentication is present.
+   * Handles authentication exceptions thrown by Spring Security when no valid authentication is
+   * present.
    *
    * @param exception the authentication exception
    * @return a problem detail with UNAUTHORIZED status and an authentication required message
@@ -312,8 +320,7 @@ public class GlobalExceptionHandler {
    * Handles exceptions thrown when a required request parameter is missing.
    *
    * @param exception the missing servlet request parameter exception
-   * @return a problem detail with BAD_REQUEST status and a message identifying the missing
-   * parameter
+   * @return a problem detail with BAD_REQUEST status and a message identifying missing parameter.
    */
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ProblemDetail handleMissingParameterException(

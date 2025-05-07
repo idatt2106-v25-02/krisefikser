@@ -1,11 +1,11 @@
 <script lang="ts">
- 
+
 import { CheckCircle, Info, Heart, PhoneCall, Users, BookOpen, Calendar, ClipboardCheck } from 'lucide-vue-next';
 import QuizComponent from '@/components/quiz/QuizComponent.vue';
 import PageLayout from '@/components/layout/PageLayout.vue';
-import ContentCard from '@/components/ui/ContentCard.vue';
-import AlertBox from '@/components/ui/AlertBox.vue';
-import CTASection from '@/components/ui/CTASection.vue';
+import ContentCard from '@/components/ui/card/ContentCard.vue';
+import AlertBox from '@/components/ui/alert/AlertBox.vue';
+import CTASection from '@/components/ui/cta/CTASection.vue';
 
 export default {
   name: 'AfterCrisisView',

@@ -1,3 +1,20 @@
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import { LogOut } from 'lucide-vue-next';
+
+export default defineComponent({
+  name: 'AppFooter',
+  components: {
+    LogOut
+  },
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  }
+});
+</script>
+
 <template>
   <footer class="bg-blue-900 text-white">
     <div class="container mx-auto px-4 py-12">
@@ -77,19 +94,4 @@
   </footer>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { LogOut } from 'lucide-vue-next';
 
-export default defineComponent({
-  name: 'AppFooter',
-  components: {
-    LogOut
-  },
-  setup() {
-    const authStore = useAuthStore();
-    return { authStore };
-  }
-});
-</script>
