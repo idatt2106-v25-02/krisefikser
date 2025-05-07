@@ -25,6 +25,9 @@ import HouseholdDetailsView from '@/views/registered/household/HouseholdView.vue
 import HouseholdInventoryView from '@/views/registered/inventory/HouseholdInventoryView.vue'
 import HomeAddressView from '@/views/registered/household/HomeAddressView.vue'
 import NewHouseholdView from '@/views/registered/household/NewHousehold.vue'
+import HouseholdReflectionsPage from '@/views/registered/household/HouseholdReflectionsPage.vue';
+const PublicReflectionsPage = () => import('@/views/registered/reflections/PublicReflectionsPage.vue');
+
 // Non-Registered User views
 import JoinOrCreateHouseholdView from '@/views/nonRegistered/household/JoinOrCreateHouseholdView.vue'
 import MapView from '@/views/nonRegistered/map/MapView.vue'
@@ -42,6 +45,10 @@ import AfterCrisisView from '@/views/nonRegistered/info/AfterCrisisView.vue'
 
 import ScenariosListView from '@/views/nonRegistered/scenario/ScenariosListView.vue'
 import ScenarioDetailView from '@/views/nonRegistered/scenario/ScenarioDetailView.vue'
+import KriserPage from '@/views/nonRegistered/event/KriserPage.vue';
+import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue';
+import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue';
+import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +57,18 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: NonRegisteredHomeView,
+    },
+    // New Kriser Route
+    {
+      path: '/kriser',
+      name: 'kriser',
+      component: KriserPage,
+    },
+    {
+      path: '/kriser/:id',
+      name: 'event-detail',
+      component: EventDetailPage,
+      props: true
     },
     // Auth routes
     {
@@ -122,11 +141,30 @@ const router = createRouter({
       component: DashboardView,
       meta: { requiresAuth: true },
     },
-
+    {
+      path: '/mine-refleksjoner',
+      name: 'my-reflections',
+      component: MyReflectionsPage,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/refleksjon/:id',
+      name: 'reflection-detail',
+      component: ReflectionDetailView,
+      props: true,
+      meta: { requiresAuth: true }
+    },
     {
       path: '/husstand',
       name: 'household',
       component: HouseholdDetailsView,
+      meta: { requiresAuth: true },
+    },
+
+    {
+      path: '/husstand/refleksjoner',
+      name: 'HouseholdReflections',
+      component: HouseholdReflectionsPage,
       meta: { requiresAuth: true },
     },
     {
@@ -210,6 +248,13 @@ const router = createRouter({
       path: '/scenario/:id',
       name: 'scenario-detail',
       component: ScenarioDetailView,
+    },
+
+    {
+      path: '/refleksjoner/offentlige',
+      name: 'PublicReflections',
+      component: PublicReflectionsPage,
+      meta: { requiresAuth: false },
     },
 
     // Error routes - must be last

@@ -61,4 +61,12 @@ public interface ReflectionRepository extends JpaRepository<Reflection, UUID> {
             "(r.visibility = 'HOUSEHOLD' AND r.household.id IN " +
             "(SELECT hm.household.id FROM HouseholdMember hm WHERE hm.user.id = :userId))")
     List<Reflection> findReflectionsAccessibleToUser(@Param("userId") UUID userId);
+
+    /**
+     * Finds all reflections associated with a specific event ID.
+     *
+     * @param eventId the ID of the event
+     * @return list of reflections associated with the specified event ID
+     */
+    List<Reflection> findByEventId(Long eventId);
 }

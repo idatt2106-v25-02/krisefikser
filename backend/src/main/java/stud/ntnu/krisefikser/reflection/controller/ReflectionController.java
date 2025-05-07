@@ -245,6 +245,25 @@ public class ReflectionController {
         }
 
         /**
+         * Retrieves reflections for a specific event, accessible to the current user.
+         *
+         * @param eventId the ID of the event
+         * @return ResponseEntity containing a list of accessible reflections for the event with HTTP status 200 (OK)
+         */
+        @GetMapping("/event/{eventId}")
+        @Operation(summary = "Get reflections by event ID")
+        @ApiResponses(value = {
+                @ApiResponse(responseCode = "200", description = "Reflections for event retrieved successfully"),
+                @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                @ApiResponse(responseCode = "404", description = "Event not found or no reflections for event") // Or handle specific event not found if service throws it
+        })
+        public ResponseEntity<List<ReflectionResponse>> getReflectionsByEventId(
+                @Parameter(description = "Event ID") @PathVariable Long eventId) {
+                List<ReflectionResponse> reflections = reflectionService.getReflectionsByEventId(eventId);
+                return ResponseEntity.ok(reflections);
+        }
+
+        /**
          * Admin method to retrieve all reflections in the system.
          *
          * @return ResponseEntity containing a list of all reflections with HTTP status

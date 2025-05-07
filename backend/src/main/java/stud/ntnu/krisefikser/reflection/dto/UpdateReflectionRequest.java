@@ -51,4 +51,9 @@ public class UpdateReflectionRequest {
      * Required only when visibility is set to HOUSEHOLD.
      */
     private UUID householdId;
+
+    /**
+     * ID of the event associated with the reflection. Optional.
+     */
+    private Long eventId;
 }

@@ -37,6 +37,7 @@ import {
   Info,
   RefreshCw,
   CheckCircle,
+  BookText,
 } from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
@@ -730,26 +731,35 @@ function handleChangeActiveHousehold(householdId: string) {
               </div>
             </div>
             <div
-              class="mt-4 md:mt-0 flex-col items-center justify-items-start md:justify-items-end space-y-2"
+              class="mt-4 md:mt-0 flex flex-col items-end space-y-2"
             >
+              <div class="flex flex-row space-x-2">
+                <router-link
+                  to="/husstand/refleksjoner"
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                >
+                  <BookText class="h-4 w-4 mr-2" />
+                  Husstandens Refleksjoner
+                </router-link>
+                <Button
+                  variant="outline"
+                  class="flex items-center"
+                  size="sm"
+                  @click="openEditHouseholdDialog"
+                >
+                  <Edit class="h-4 w-4 mr-2" />
+                  Endre informasjon
+                </Button>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
                 @click="isChangeHouseholdDialogOpen = true"
-                class="flex items-center w-full"
+                class="flex items-center"
                 :disabled="!allHouseholds || allHouseholds.length <= 1"
               >
-                <RefreshCw class="h-4 w-4" />
+                <RefreshCw class="h-4 w-4 mr-2" />
                 Bytt husstand
-              </Button>
-              <Button
-                variant="outline"
-                class="flex w-full"
-                size="sm"
-                @click="openEditHouseholdDialog"
-              >
-                <Edit class="h-4 w-4" />
-                Endre informasjon
               </Button>
             </div>
           </div>

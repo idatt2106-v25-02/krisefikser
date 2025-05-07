@@ -8,6 +8,8 @@ import {
   LogIn,
   User as UserIcon,
   LogOut,
+  ListChecks,
+  BookText,
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import {
@@ -34,6 +36,8 @@ export default {
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
+    ListChecks,
+    BookText,
   },
   setup() {
     const authStore = useAuthStore()
@@ -50,6 +54,12 @@ export default {
         label: 'Kart',
         to: '/kart',
         icon: MapIcon,
+        show: true,
+      },
+      {
+        label: 'Kriser',
+        to: '/kriser',
+        icon: ListChecks,
         show: true,
       },
       {
@@ -152,6 +162,14 @@ export default {
                       <span>Min Profil</span>
                     </DropdownMenuItem>
                   </router-link>
+                  <router-link v-if="authStore.isAuthenticated" to="/mine-refleksjoner">
+                    <DropdownMenuItem
+                      :class="{ 'bg-blue-50 text-blue-600': isActive('/mine-refleksjoner') }"
+                    >
+                      <BookText class="h-5 w-5 mr-2" />
+                      <span>Mine Refleksjoner</span>
+                    </DropdownMenuItem>
+                  </router-link>
                   <DropdownMenuItem @select="authStore.logout" variant="destructive">
                     <LogOut class="h-4 w-4 mr-2" />
                     <span>Logg ut</span>
@@ -222,6 +240,14 @@ export default {
                   <DropdownMenuItem :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }">
                     <UserIcon class="h-5 w-5 mr-2" />
                     <span>Min Profil</span>
+                  </DropdownMenuItem>
+                </router-link>
+                <router-link v-if="authStore.isAuthenticated" to="/mine-refleksjoner">
+                  <DropdownMenuItem
+                    :class="{ 'bg-blue-50 text-blue-600': isActive('/mine-refleksjoner') }"
+                  >
+                    <BookText class="h-5 w-5 mr-2" />
+                    <span>Mine Refleksjoner</span>
                   </DropdownMenuItem>
                 </router-link>
                 <DropdownMenuItem @select="authStore.logout" variant="destructive">

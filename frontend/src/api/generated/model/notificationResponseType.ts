@@ -14,5 +14,4 @@ export const NotificationResponseType = {
   INVITE: 'INVITE',
   EVENT: 'EVENT',
   INFO: 'INFO',
-  EXPIRY_REMINDER: 'EXPIRY_REMINDER',
 } as const
