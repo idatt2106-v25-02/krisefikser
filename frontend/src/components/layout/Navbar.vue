@@ -18,6 +18,7 @@ import {
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { ref, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -30,9 +31,8 @@ import {
   useReadNotification,
   useReadAll,
 } from '@/api/generated/notification/notification'
-import { useQueryClient } from '@tanstack/vue-query'
 import type { NotificationResponse } from '@/api/generated/model'
-import type { ErrorType } from '@/api/axios'
+import { NotificationResponseType } from '@/api/generated/model/notificationResponseType'
 import { useNotificationStore } from '@/stores/notificationStore'
 
 export default {
@@ -61,15 +61,15 @@ export default {
   setup() {
     const authStore = useAuthStore()
     const notificationStore = useNotificationStore()
+    const router = useRouter()
     const isMenuOpen = ref(false)
     const showMobileNotifications = ref(false)
-
-    const queryClient = useQueryClient()
+    const audioPlayerRef = ref<HTMLAudioElement | null>(null);
 
     const notificationParams = computed(() => ({
       pageable: {
         page: 0,
-        size: 10,
+        size: 5,
         sort: ['createdAt,desc'],
       },
     }))
@@ -99,10 +99,29 @@ export default {
 
     const displayedNotifications = computed(() => {
       const notificationsFromFetch = fetchedNotificationsData.value?.content || []
-      return notificationsFromFetch.slice(0, 10)
+      return notificationsFromFetch
+        .slice(0, 5)
+        .sort((a, b) => {
+          const dateA = new Date(Array.isArray(a.createdAt) ? new Date(a.createdAt[0], a.createdAt[1] -1, a.createdAt[2], a.createdAt[3], a.createdAt[4], a.createdAt[5]).toISOString() : a.createdAt || 0).getTime();
+          const dateB = new Date(Array.isArray(b.createdAt) ? new Date(b.createdAt[0], b.createdAt[1] -1, b.createdAt[2], b.createdAt[3], b.createdAt[4], b.createdAt[5]).toISOString() : b.createdAt || 0).getTime();
+          return dateB - dateA;
+        });
     })
 
     const displayUnreadCount = computed(() => fetchedUnreadCountData.value ?? 0)
+
+    watch(displayUnreadCount, (newCount, oldCount) => {
+      if (newCount !== undefined && oldCount !== undefined && newCount > oldCount) {
+        if (audioPlayerRef.value) {
+          audioPlayerRef.value.play().catch(error => {
+            console.warn("Audio play was prevented. User interaction might be required.", error);
+          });
+        }
+        if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
+      }
+    });
 
     const handleNotificationClick = (notification: NotificationResponse) => {
       if (notification.id && !notification.read) {
@@ -115,11 +134,28 @@ export default {
         })
       }
 
+      if (notification.type === NotificationResponseType.EXPIRY_REMINDER) {
+        // @ts-ignore: Will be available once UserResponse DTO and type are updated
+        const householdId = authStore.currentUser?.activeHouseholdId;
+        if (householdId) {
+          router.push(`/husstand/${householdId}/beredskapslager`);
+          showMobileNotifications.value = false;
+          return;
+        } else {
+          // @ts-ignore: Will be available once UserResponse DTO and type are updated
+          console.warn('Expiry notification clicked, but no activeHouseholdId found on currentUser for routing.', authStore.currentUser);
+        }
+      }
+
       if (notification.url) {
         window.open(notification.url, '_blank')
       }
 
       showMobileNotifications.value = false
+      if (displayUnreadCount.value > 0) {
+        // This part is tricky due to autoplay policies.
+        // Best to trigger sound/vibration when count *changes* from a lower to a higher number.
+      }
     }
 
     const markAllAsReadAndRefresh = () => {
@@ -166,11 +202,11 @@ export default {
       const now = new Date();
       const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000);
 
-      if (diffInSeconds < 0) return 'In the future'; 
-      if (diffInSeconds < 5) return 'Nå nettopp'; 
+      if (diffInSeconds < 0) return 'In the future';
+      if (diffInSeconds < 5) return 'Nå nettopp';
       if (diffInSeconds < 60) return `${diffInSeconds} sek siden`;
       if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min siden`;
-      
+
       const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
 
       if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
@@ -180,6 +216,28 @@ export default {
         return days[notificationDate.getDay()];
       }
       return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
+    };
+
+    const getIconBgClass = (type: string | undefined) => {
+      switch (type) {
+        case 'EXPIRY_REMINDER': return 'bg-yellow-100';
+        case 'CRISIS_UPDATE':
+        case 'NEARBY_CRISIS': return 'bg-red-100';
+        case 'HOUSEHOLD_INVITE': return 'bg-purple-100';
+        case 'SYSTEM_WIDE': return 'bg-blue-100';
+        default: return 'bg-gray-100';
+      }
+    };
+
+    const getIconColorClass = (type: string | undefined) => {
+      switch (type) {
+        case 'EXPIRY_REMINDER': return 'text-yellow-600';
+        case 'CRISIS_UPDATE':
+        case 'NEARBY_CRISIS': return 'text-red-600';
+        case 'HOUSEHOLD_INVITE': return 'text-purple-600';
+        case 'SYSTEM_WIDE': return 'text-blue-600';
+        default: return 'text-gray-600';
+      }
     };
 
     watch(
@@ -210,12 +268,17 @@ export default {
       formatDate,
       showMobileNotifications,
       refetchNotifications: refetchFetchedNotifications,
+      audioPlayerRef,
+      getIconBgClass,
+      getIconColorClass,
+      NotificationResponseType,
     }
   },
 }
 </script>
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
+    <audio ref="audioPlayerRef" src="/sounds/notification.mp3" preload="auto"></audio>
     <div class="container mx-auto px-4 py-3">
       <div class="flex justify-between items-center">
         <div class="flex items-center">
@@ -253,8 +316,8 @@ export default {
 
           <!-- Emergency supply link - only for authenticated users -->
           <router-link
-            to="/husstand/:id/beredskapslager"
             v-if="authStore.isAuthenticated"
+            to="/husstand/:id/beredskapslager"
             class="flex items-center text-gray-700 hover:text-blue-600 transition"
           >
             <Package class="h-5 w-5 mr-1" />
@@ -291,7 +354,7 @@ export default {
               <DropdownMenuContent align="end" class="w-80 max-h-96 overflow-y-auto">
                 <div class="p-2 flex justify-between items-center border-b">
                   <h3 class="text-sm font-semibold">Varsler</h3>
-                  <button 
+                  <button
                     v-if="notifications.length > 0 && unreadCountData > 0"
                     @click="markAllAsRead"
                     class="text-xs text-blue-600 hover:underline"
@@ -314,18 +377,28 @@ export default {
                   :key="notification.id"
                   @click="() => handleNotificationClick(notification)"
                   :class="[
-                    'flex flex-col items-start p-3 hover:bg-gray-100 cursor-pointer',
-                    !notification.read ? 'bg-blue-50' : ''
+                    'hover:bg-gray-100 cursor-pointer border-b last:border-b-0 border-gray-200',
+                    !notification.read ? 'bg-blue-50 border-l-4 border-blue-500' : 'border-l-4 border-transparent'
                   ]"
                 >
-                  <div class="flex justify-between w-full">
-                    <span class="font-semibold text-sm text-gray-800">{{ notification.title }}</span>
-                    <span :class="['text-xs', !notification.read ? 'text-blue-600 font-bold' : 'text-gray-500']">
-                      {{ formatDate(notification.createdAt) }}
-                    </span>
+                  <div class="flex items-start p-3 w-full">
+                    <div :class="['mr-3 p-1.5 rounded-full flex-shrink-0', getIconBgClass(notification.type)]">
+                      <Calendar v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                      <AlertTriangle v-else-if="notification.type === NotificationResponseType.CRISIS_UPDATE || notification.type === NotificationResponseType.NEARBY_CRISIS" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                      <UserIcon v-else-if="notification.type === NotificationResponseType.INVITE" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                      <Bell v-else-if="notification.type === NotificationResponseType.SYSTEM_WIDE" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                      <Info v-else :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                    </div>
+                    <div class="flex-grow overflow-hidden">
+                      <div class="flex justify-between w-full items-center">
+                        <span class="font-semibold text-sm text-gray-800 truncate pr-2" :title="notification.title">{{ notification.title }}</span>
+                        <span :class="['text-xs ml-1 flex-shrink-0', !notification.read ? 'text-blue-600 font-bold' : 'text-gray-500']">
+                          {{ formatDate(notification.createdAt) }}
+                        </span>
+                      </div>
+                      <p class="text-xs text-gray-600 mt-1 whitespace-normal break-words">{{ notification.message }}</p>
+                    </div>
                   </div>
-                  <p class="text-xs text-gray-600 mt-1 whitespace-normal">{{ notification.message }}</p>
-                   <span v-if="!notification.read" class="mt-1 h-2 w-2 bg-blue-500 rounded-full"></span>
                 </DropdownMenuItem>
                 <div class="p-2 border-t mt-1">
                   <router-link to="/varsler" class="text-sm text-blue-600 hover:underline w-full text-center block">

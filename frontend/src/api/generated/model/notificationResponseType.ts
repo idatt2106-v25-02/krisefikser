@@ -15,4 +15,7 @@ export const NotificationResponseType = {
   EVENT: 'EVENT',
   INFO: 'INFO',
   EXPIRY_REMINDER: 'EXPIRY_REMINDER',
+  CRISIS_UPDATE: 'CRISIS_UPDATE',
+  NEARBY_CRISIS: 'NEARBY_CRISIS',
+  SYSTEM_WIDE: 'SYSTEM_WIDE',
 } as const

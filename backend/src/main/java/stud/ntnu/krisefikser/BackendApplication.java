@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import stud.ntnu.krisefikser.config.FrontendConfig;
 
 /**
@@ -16,6 +17,7 @@ import stud.ntnu.krisefikser.config.FrontendConfig;
  * server.
  */
 @SpringBootApplication
+@EnableScheduling
 @RequiredArgsConstructor
 public class BackendApplication {
 

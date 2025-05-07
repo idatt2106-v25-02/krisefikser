@@ -77,7 +77,15 @@ public class Notification {
    * Defaults to false when created.
    */
   @Column(name = "is_read", nullable = false)
+  @Builder.Default
   private Boolean isRead = false;
+
+  /**
+   * Optional: The ID of the specific item this notification might refer to (e.g., a FoodItem).
+   * Used to prevent duplicate notifications for the same item or to link to the item.
+   */
+  @Column(name = "item_id", nullable = true)
+  private UUID itemId;
 
   /**
    * Timestamp of when the notification was created.

@@ -19,5 +19,9 @@ public enum NotificationType {
   /**
    * General information.
    */
-  INFO
+  INFO,
+  /**
+   * Represents an item expiry reminder notification.
+   */
+  EXPIRY_REMINDER
 }
