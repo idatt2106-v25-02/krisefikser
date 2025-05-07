@@ -9,7 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +56,9 @@ class AuthServiceTest {
 
   @Mock
   private CustomUserDetailsService userDetailsService;
+
+  @Mock
+  private TurnstileService turnstileService;
 
   @Mock
   private JwtProperties jwtProperties;
@@ -132,6 +134,7 @@ class AuthServiceTest {
     when(userService.createUser(any(CreateUser.class))).thenReturn(user);
     when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
+    when(turnstileService.verify(anyString())).thenReturn(true);
 
     // Act
     var response = authService.register(registerRequest);
@@ -141,7 +144,7 @@ class AuthServiceTest {
     assertThat(response.getAccessToken()).isEqualTo("generated-token");
     assertThat(response.getRefreshToken()).isEqualTo("generated-token");
 
-    verify(userService).createUser(any(CreateUser.class));
+    verify(userService).createUser(any(CreateUser.class), eq(Role.RoleType.USER));
     verify(userDetailsService).loadUserByUsername("test@example.com");
     verify(refreshTokenRepository).save(any(RefreshToken.class));
   }
@@ -154,6 +157,7 @@ class AuthServiceTest {
         .thenReturn(authentication);
     when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
+    when(userService.getUserByEmail(anyString())).thenReturn(user);
 
     // Act
     LoginResponse response = authService.login(loginRequest);
