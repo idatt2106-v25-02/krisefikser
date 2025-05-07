@@ -1,12 +1,23 @@
 <script lang="ts">
-import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut, ListChecks, BookText } from 'lucide-vue-next';
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import {
+  Map as MapIcon,
+  Home,
+  Package,
+  Menu as MenuIcon,
+  X,
+  LogIn,
+  User as UserIcon,
+  LogOut,
+} from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem
-} from '@/components/ui/dropdown-menu';
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'AppNavbar',
@@ -19,119 +30,138 @@ export default {
     LogIn,
     UserIcon,
     LogOut,
-    ListChecks,
-    BookText,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
-    DropdownMenuItem
+    DropdownMenuItem,
   },
   setup() {
-    const authStore = useAuthStore();
-    return { authStore };
+    const authStore = useAuthStore()
+    const route = useRoute()
+
+    const allNavItems = computed(() => [
+      {
+        label: 'Admin',
+        to: '/admin',
+        icon: UserIcon,
+        show: authStore.isAuthenticated && authStore.isAdmin,
+      },
+      {
+        label: 'Kart',
+        to: '/kart',
+        icon: MapIcon,
+        show: true,
+      },
+      {
+        label: 'Husstand',
+        to: authStore.isAuthenticated ? '/husstand' : '/bli-med-eller-opprett-husstand',
+        icon: Home,
+        show: true,
+      },
+      {
+        label: 'Beredskapslager',
+        to: '/husstand/beredskapslager',
+        icon: Package,
+        show: authStore.isAuthenticated,
+      },
+    ])
+
+    // Filtered nav items to display (pre-filters the show condition)
+    const filteredNavItems = computed(() => allNavItems.value.filter((item) => item.show))
+
+    // Check if a route is active - exact match only
+    const isActive = (path: string) => {
+      return route.path === path
+    }
+
+    return { authStore, filteredNavItems, isActive, route }
   },
   data() {
     return {
       isMenuOpen: false,
     }
   },
+  watch: {
+    // Close the mobile menu when the route changes
+    $route() {
+      this.isMenuOpen = false
+    },
+  },
 }
 </script>
 
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-3">
+    <div class="container mx-auto px-4 py-4">
       <div class="flex justify-between items-center">
         <div class="flex items-center">
           <router-link to="/" class="flex items-center">
-            <img src="/favicon.ico" alt="Krisefikser.app" class="h-6 w-auto mr-2" />
-            <span class="text-xl font-bold text-blue-700">Krisefikser.app</span>
+            <img src="/favicon.ico" alt="Krisefikser.app" class="h-5 w-auto mr-2" />
+            <span class="text-lg font-bold text-blue-700">Krisefikser.app</span>
           </router-link>
         </div>
 
         <div class="hidden md:flex items-center space-x-8">
           <router-link
-            v-if="authStore.isAuthenticated && authStore.isAdmin"
-            to="/admin"
-            class="flex items-center text-gray-700 hover:text-blue-600 transition"
+            v-for="item in filteredNavItems"
+            :key="item.label"
+            :to="item.to"
+            :class="[
+              'flex items-center transition text-sm',
+              isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
+            ]"
           >
-            <UserIcon class="h-5 w-5 mr-1" />
-            <span>Admin</span>
-          </router-link>
-          <router-link
-            to="/kart"
-            class="flex items-center text-gray-700 hover:text-blue-600 transition"
-          >
-            <MapIcon class="h-5 w-5 mr-1" />
-            <span>Kart</span>
+            <component :is="item.icon" class="h-4 w-4 mr-1" />
+            <span>{{ item.label }}</span>
           </router-link>
 
-          <router-link
-            to="/kriser"
-            class="flex items-center text-gray-700 hover:text-blue-600 transition"
-          >
-            <ListChecks class="h-5 w-5 mr-1" />
-            <span>Kriser</span>
-          </router-link>
-
-          <!-- Household link - different destination based on auth status -->
-          <router-link
-            :to="authStore.isAuthenticated ? '/husstand' : '/bli-med-eller-opprett-husstand'"
-            class="flex items-center text-gray-700 hover:text-blue-600 transition"
-          >
-            <Home class="h-5 w-5 mr-1" />
-            <span>Husstand</span>
-          </router-link>
-
-          <!-- Emergency supply link - only for authenticated users -->
-          <router-link
-            to="/husstand/:id/beredskapslager"
-            v-if="authStore.isAuthenticated"
-            class="flex items-center text-gray-700 hover:text-blue-600 transition"
-          >
-            <Package class="h-5 w-5 mr-1" />
-            <span>Beredskapslager</span>
-          </router-link>
-
-          <!-- Show login button when not authenticated -->
-          <router-link v-if="!authStore.isAuthenticated" to="/logg-inn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2">
-            Logg inn
-          </router-link>
-
-          <!-- Show user profile when authenticated -->
-          <div v-else class="flex items-center space-x-2">
-            <span class="text-gray-700">{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span>
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <button class="flex items-center text-gray-700 hover:text-blue-600 transition" aria-label="Min profil">
-                  <UserIcon class="h-5 w-5" aria-label="Min profil" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <router-link to="/dashboard">
-                  <DropdownMenuItem>
-                    <UserIcon class="h-5 w-5 mr-2" />
-                    <span>Min Profil</span>
+          <template v-if="!authStore.isAuthenticated">
+            <router-link
+              to="/logg-inn"
+              class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2"
+            >
+              Logg inn
+            </router-link>
+          </template>
+          <template v-else>
+            <div class="flex items-center space-x-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <button
+                    :class="[
+                      'flex items-center gap-2 px-3 py-1.5 rounded-md border transition-all duration-200 shadow-sm',
+                      isActive('/dashboard')
+                        ? 'text-blue-700 border-blue-300 bg-blue-50/70'
+                        : 'text-gray-700 border-gray-200 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50',
+                    ]"
+                    aria-label="Min profil"
+                  >
+                    <UserIcon class="h-4 w-4 flex-shrink-0" />
+                    <span class="font-medium text-sm">
+                      {{ authStore.currentUser?.firstName }}
+                      {{ authStore.currentUser?.lastName }}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <router-link to="/dashboard">
+                    <DropdownMenuItem
+                      :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }"
+                    >
+                      <UserIcon class="h-5 w-5 mr-2" />
+                      <span>Min Profil</span>
+                    </DropdownMenuItem>
+                  </router-link>
+                  <DropdownMenuItem @select="authStore.logout" variant="destructive">
+                    <LogOut class="h-4 w-4 mr-2" />
+                    <span>Logg ut</span>
                   </DropdownMenuItem>
-                </router-link>
-                <router-link to="/mine-refleksjoner">
-                  <DropdownMenuItem>
-                    <BookText class="h-5 w-5 mr-2" />
-                    <span>Mine Refleksjoner</span>
-                  </DropdownMenuItem>
-                </router-link>
-                <DropdownMenuItem @select="authStore.logout" variant="destructive">
-                  <LogOut class="h-4 w-4 mr-2" />
-                  <span>Logg ut</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </template>
         </div>
 
-        <!-- Mobile menu button -->
         <div class="md:hidden">
           <button @click="isMenuOpen = !isMenuOpen" class="text-gray-700 focus:outline-none">
             <MenuIcon v-if="!isMenuOpen" class="h-6 w-6" />
@@ -141,95 +171,68 @@ export default {
       </div>
     </div>
 
-    <!-- Mobile menu -->
-    <div v-if="isMenuOpen" class="md:hidden">
-      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
+    <div v-if="isMenuOpen" class="md:hidden bg-gray-50">
+      <div class="container mx-auto px-4 pt-2 pb-3 space-y-1">
         <router-link
-          to="/kart"
-          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
+          v-for="item in filteredNavItems"
+          :key="item.label"
+          :to="item.to"
+          :class="[
+            'flex items-center px-3 py-2 rounded',
+            isActive(item.to)
+              ? 'text-blue-600 font-medium bg-blue-50 text-sm'
+              : 'text-gray-700 hover:bg-gray-200 text-sm',
+          ]"
         >
-          <MapIcon class="h-5 w-5 mr-2" />
-          <span>Kart</span>
+          <component :is="item.icon" class="h-4 w-4 mr-2" />
+          <span>{{ item.label }}</span>
         </router-link>
 
-        <router-link
-          to="/kriser"
-          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
-        >
-          <ListChecks class="h-5 w-5 mr-2" />
-          <span>Kriser</span>
-        </router-link>
-
-        <!-- Mobile Household link - different destination based on auth status -->
-        <router-link
-          :to="authStore.isAuthenticated ? '/husstand' : '/bli-med-eller-opprett-husstand'"
-          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
-        >
-          <Home class="h-5 w-5 mr-2" />
-          <span>Husstand</span>
-        </router-link>
-
-        <!-- Emergency supply link - only for authenticated users -->
-        <router-link
-          v-if="authStore.isAuthenticated"
-          to="/husstand/:id/beredskapslager"
-          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
-        >
-          <Package class="h-5 w-5 mr-2" />
-          <span>Beredskapslager</span>
-        </router-link>
-
-        <router-link
-          v-if="authStore.isAuthenticated && authStore.isAdmin"
-          to="/admin"
-          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
-        >
-          <UserIcon class="h-5 w-5 mr-2" />
-          <span>Admin</span>
-        </router-link>
-
-        <!-- Authentication options -->
-        <!-- Show login button when not authenticated -->
-        <router-link
-          v-if="!authStore.isAuthenticated"
-          to="/logg-inn"
-          class="flex items-center px-3 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700"
-        >
-          <LogIn class="h-5 w-5 mr-2" />
-          <span>Logg inn</span>
-        </router-link>
-
-        <!-- Show user profile when authenticated -->
-        <div v-else class="flex items-center justify-between px-3 py-2 mt-2 rounded text-gray-700">
-          <span>{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <button class="text-gray-700 hover:text-blue-600">
-                <UserIcon class="h-5 w-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <router-link to="/dashboard">
-                <DropdownMenuItem>
-                  <UserIcon class="h-5 w-5 mr-2" />
-                  <span>Min Profil</span>
+        <template v-if="!authStore.isAuthenticated">
+          <router-link
+            to="/logg-inn"
+            class="flex items-center px-3 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+          >
+            <LogIn class="h-5 w-5 mr-2" />
+            <span>Logg inn</span>
+          </router-link>
+        </template>
+        <template v-else>
+          <div class="flex items-center px-3 py-2 mt-2 rounded text-gray-700">
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <button
+                  :class="[
+                    'flex items-center gap-2 w-full px-3 py-2 rounded-md border transition-all duration-200',
+                    isActive('/dashboard')
+                      ? 'text-blue-700 border-blue-300 bg-blue-50/70'
+                      : 'text-gray-700 border-gray-200 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50',
+                  ]"
+                  aria-label="Min profil"
+                >
+                  <UserIcon class="h-4 w-4 flex-shrink-0" />
+                  <span class="font-medium text-sm">
+                    {{ authStore.currentUser?.firstName }}
+                    {{ authStore.currentUser?.lastName }}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <router-link to="/dashboard">
+                  <DropdownMenuItem :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }">
+                    <UserIcon class="h-5 w-5 mr-2" />
+                    <span>Min Profil</span>
+                  </DropdownMenuItem>
+                </router-link>
+                <DropdownMenuItem @select="authStore.logout" variant="destructive">
+                  <LogOut class="h-4 w-4 mr-2" />
+                  <span>Logg ut</span>
                 </DropdownMenuItem>
-              </router-link>
-              <router-link to="/mine-refleksjoner">
-                <DropdownMenuItem>
-                  <BookText class="h-5 w-5 mr-2" />
-                  <span>Mine Refleksjoner</span>
-                </DropdownMenuItem>
-              </router-link>
-              <DropdownMenuItem @select="authStore.logout" variant="destructive">
-                <LogOut class="h-4 w-4 mr-2" />
-                <span>Logg ut</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </template>
       </div>
     </div>
   </nav>
 </template>
-
