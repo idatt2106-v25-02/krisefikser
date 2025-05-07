@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'AppNavbar',
@@ -36,6 +37,7 @@ export default {
   },
   setup() {
     const authStore = useAuthStore()
+    const route = useRoute()
 
     const allNavItems = computed(() => [
       {
@@ -67,7 +69,12 @@ export default {
     // Filtered nav items to display (pre-filters the show condition)
     const filteredNavItems = computed(() => allNavItems.value.filter((item) => item.show))
 
-    return { authStore, filteredNavItems }
+    // Check if a route is active - exact match only
+    const isActive = (path: string) => {
+      return route.path === path
+    }
+
+    return { authStore, filteredNavItems, isActive }
   },
   data() {
     return {
@@ -93,7 +100,10 @@ export default {
             v-for="item in filteredNavItems"
             :key="item.label"
             :to="item.to"
-            class="flex items-center text-gray-700 hover:text-blue-600 transition"
+            :class="[
+              'flex items-center transition',
+              isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
+            ]"
           >
             <component :is="item.icon" class="h-5 w-5 mr-1" />
             <span>{{ item.label }}</span>
@@ -154,7 +164,12 @@ export default {
           v-for="item in filteredNavItems"
           :key="item.label"
           :to="item.to"
-          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
+          :class="[
+            'flex items-center px-3 py-2 rounded',
+            isActive(item.to)
+              ? 'text-blue-600 font-medium bg-blue-50'
+              : 'text-gray-700 hover:bg-gray-200',
+          ]"
         >
           <component :is="item.icon" class="h-5 w-5 mr-2" />
           <span>{{ item.label }}</span>
