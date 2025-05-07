@@ -38,8 +38,6 @@ import {
 } from '@/components/ui/alert';
 
 // Import custom components
-import EditHouseholdDialog from '@/components/household/EditHouseholdDialog.vue';
-import AddMemberDialog from '@/components/admin/users/AddMemberDialog.vue';
 import HouseholdList from '@/components/admin/users/HouseholdList.vue';
 import UserSelect from '@/components/admin/users/UserSelect.vue';
 
@@ -85,11 +83,10 @@ const { mutate: updateUserMutation } = useUpdateUser({
 });
 
 // Fetch households using TanStack Query
-const { 
-  data: householdsData, 
-  isLoading: isLoadingHouseholds, 
-  refetch: refetchHouseholds,
-  error: householdsError 
+const {
+  data: householdsData,
+  isLoading: isLoadingHouseholds,
+  error: householdsError
 } = useGetAllHouseholdsAdmin<HouseholdResponse[]>({
   query: {
     enabled: computed(() => {
@@ -156,9 +153,9 @@ const filteredHouseholds = computed(() => {
     result = result.filter(household => {
       // Search in household name
       if (household.name?.toLowerCase().includes(query)) return true;
-      
+
       // Search in member names and emails
-      return household.members?.some(member => 
+      return household.members?.some(member =>
         (member.user.firstName?.toLowerCase().includes(query) || false) ||
         (member.user.lastName?.toLowerCase().includes(query) || false) ||
         (member.user.email?.toLowerCase().includes(query) || false)
