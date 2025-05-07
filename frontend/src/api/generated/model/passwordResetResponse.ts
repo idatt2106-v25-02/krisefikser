@@ -6,8 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  empty?: boolean
-  unsorted?: boolean
-  sorted?: boolean
+export interface PasswordResetResponse {
+  message?: string
+  success?: boolean
 }
