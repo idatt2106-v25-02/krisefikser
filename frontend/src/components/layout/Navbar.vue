@@ -1,12 +1,21 @@
 <script lang="ts">
-import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut } from 'lucide-vue-next';
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import {
+  Map as MapIcon,
+  Home,
+  Package,
+  Menu as MenuIcon,
+  X,
+  LogIn,
+  User as UserIcon,
+  LogOut,
+} from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem
-} from '@/components/ui/dropdown-menu';
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
 
 export default {
   name: 'AppNavbar',
@@ -22,11 +31,11 @@ export default {
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
-    DropdownMenuItem
+    DropdownMenuItem,
   },
   setup() {
-    const authStore = useAuthStore();
-    return { authStore };
+    const authStore = useAuthStore()
+    return { authStore }
   },
   data() {
     return {
@@ -84,26 +93,27 @@ export default {
           </router-link>
 
           <!-- Show login button when not authenticated -->
-          <router-link v-if="!authStore.isAuthenticated" to="/logg-inn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2">
+          <router-link
+            v-if="!authStore.isAuthenticated"
+            to="/logg-inn"
+            class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2"
+          >
             Logg inn
           </router-link>
 
           <!-- Show user profile when authenticated -->
           <div v-else class="flex items-center space-x-2">
-            <span class="text-gray-700">{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span>
+            <router-link
+              to="/dashboard"
+              class="flex items-center text-gray-700 hover:text-blue-600 transition"
+            >
+              <span
+                >{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span
+              >
+              <UserIcon class="h-5 w-5 ml-2" aria-label="Min profil" />
+            </router-link>
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <button class="flex items-center text-gray-700 hover:text-blue-600 transition" aria-label="Min profil">
-                  <UserIcon class="h-5 w-5" aria-label="Min profil" />
-                </button>
-              </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <router-link to="/dashboard">
-                  <DropdownMenuItem>
-                    <UserIcon class="h-5 w-5 mr-2" />
-                    <span>Min Profil</span>
-                  </DropdownMenuItem>
-                </router-link>
                 <DropdownMenuItem @select="authStore.logout" variant="destructive">
                   <LogOut class="h-4 w-4 mr-2" />
                   <span>Logg ut</span>
@@ -111,8 +121,6 @@ export default {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
-
         </div>
 
         <!-- Mobile menu button -->
@@ -177,7 +185,12 @@ export default {
 
         <!-- Show user profile when authenticated -->
         <div v-else class="flex items-center justify-between px-3 py-2 mt-2 rounded text-gray-700">
-          <span>{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span>
+          <router-link to="/dashboard" class="flex items-center text-gray-700 hover:text-blue-600">
+            <UserIcon class="h-5 w-5 mr-1" />
+            <span
+              >{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span
+            >
+          </router-link>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <button class="text-gray-700 hover:text-blue-600">
@@ -202,4 +215,3 @@ export default {
     </div>
   </nav>
 </template>
-
