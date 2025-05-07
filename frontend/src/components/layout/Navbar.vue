@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut } from 'lucide-vue-next';
+import { Map as MapIcon, Home, Package, Menu as MenuIcon, X, LogIn, User as UserIcon, LogOut, ListChecks, BookText } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
 import {
   DropdownMenu,
@@ -19,6 +19,8 @@ export default {
     LogIn,
     UserIcon,
     LogOut,
+    ListChecks,
+    BookText,
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
@@ -64,6 +66,14 @@ export default {
             <span>Kart</span>
           </router-link>
 
+          <router-link
+            to="/kriser"
+            class="flex items-center text-gray-700 hover:text-blue-600 transition"
+          >
+            <ListChecks class="h-5 w-5 mr-1" />
+            <span>Kriser</span>
+          </router-link>
+
           <!-- Household link - different destination based on auth status -->
           <router-link
             :to="authStore.isAuthenticated ? '/husstand' : '/bli-med-eller-opprett-husstand'"
@@ -104,6 +114,12 @@ export default {
                     <span>Min Profil</span>
                   </DropdownMenuItem>
                 </router-link>
+                <router-link to="/mine-refleksjoner">
+                  <DropdownMenuItem>
+                    <BookText class="h-5 w-5 mr-2" />
+                    <span>Mine Refleksjoner</span>
+                  </DropdownMenuItem>
+                </router-link>
                 <DropdownMenuItem @select="authStore.logout" variant="destructive">
                   <LogOut class="h-4 w-4 mr-2" />
                   <span>Logg ut</span>
@@ -134,6 +150,14 @@ export default {
         >
           <MapIcon class="h-5 w-5 mr-2" />
           <span>Kart</span>
+        </router-link>
+
+        <router-link
+          to="/kriser"
+          class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
+        >
+          <ListChecks class="h-5 w-5 mr-2" />
+          <span>Kriser</span>
         </router-link>
 
         <!-- Mobile Household link - different destination based on auth status -->
@@ -189,6 +213,12 @@ export default {
                 <DropdownMenuItem>
                   <UserIcon class="h-5 w-5 mr-2" />
                   <span>Min Profil</span>
+                </DropdownMenuItem>
+              </router-link>
+              <router-link to="/mine-refleksjoner">
+                <DropdownMenuItem>
+                  <BookText class="h-5 w-5 mr-2" />
+                  <span>Mine Refleksjoner</span>
                 </DropdownMenuItem>
               </router-link>
               <DropdownMenuItem @select="authStore.logout" variant="destructive">
