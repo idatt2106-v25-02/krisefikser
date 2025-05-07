@@ -251,23 +251,23 @@ onMounted(() => {
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Page Header with background -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div class="flex flex-col md:flex-row md:items-start md:justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-1">Mine Refleksjoner</h1>
-            <p class="text-gray-600 max-w-3xl">
-              Her finner du alle refleksjonene du har skrevet knyttet til ulike hendelser.
-            </p>
-          </div>
-          <div class="mt-4 md:mt-0 flex space-x-2">
-            <Button variant="outline" class="flex items-center" @click="openEventSelectDialog">
-              <PlusCircle class="h-4 w-4 mr-2" />
-              Ny refleksjon
-            </Button>
-            <Button variant="outline" class="flex items-center" @click="goBack">
-              <ArrowLeft class="h-4 w-4 mr-2" />
-              Tilbake
-            </Button>
-          </div>
+        <div class="flex items-center justify-between mb-4">
+          <router-link
+            to="/kriser"
+            class="inline-flex items-center text-blue-600 hover:text-blue-800"
+          >
+            ← Tilbake til kriser
+          </router-link>
+          <Button variant="outline" class="flex items-center" @click="openEventSelectDialog">
+            <PlusCircle class="h-4 w-4 mr-2" />
+            Ny refleksjon
+          </Button>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-1">Mine Refleksjoner</h1>
+          <p class="text-gray-600 max-w-3xl">
+            Her finner du alle refleksjonene du har skrevet knyttet til ulike hendelser.
+          </p>
         </div>
       </div>
 

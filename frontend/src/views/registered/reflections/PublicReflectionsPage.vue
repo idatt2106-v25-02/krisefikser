@@ -3,19 +3,17 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Page Header with background -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div class="flex flex-col md:flex-row md:items-start md:justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-1">Offentlige Refleksjoner</h1>
-            <p class="text-gray-600 max-w-3xl">
-              Her finner du alle refleksjoner som er delt offentlig av brukere i systemet.
-            </p>
-          </div>
-          <div class="mt-4 md:mt-0">
-            <Button variant="outline" class="flex items-center" @click="goBackToKriser">
-              <ArrowLeft class="h-4 w-4 mr-2" />
-              Tilbake til Kriser
-            </Button>
-          </div>
+        <router-link
+          to="/kriser"
+          class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        >
+          ← Tilbake til kriser
+        </router-link>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-1">Offentlige Refleksjoner</h1>
+          <p class="text-gray-600 max-w-3xl">
+            Her finner du alle refleksjoner som er delt offentlig av brukere i systemet.
+          </p>
         </div>
       </div>
 
@@ -246,10 +244,6 @@ const confirmDeleteReflection = async (id: string) => {
       // Error handling is in mutation's onError
     }
   }
-};
-
-const goBackToKriser = () => {
-  router.push('/kriser');
 };
 
 const navigateToMyReflections = () => {
