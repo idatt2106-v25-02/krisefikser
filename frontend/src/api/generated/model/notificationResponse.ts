@@ -12,7 +12,10 @@ export interface NotificationResponse {
   title?: string
   message?: string
   type?: NotificationResponseType
-  url?: string
   read?: boolean
   createdAt?: string
+  itemId?: string
+  eventId?: number
+  inviteId?: string
+  householdId?: string
 }

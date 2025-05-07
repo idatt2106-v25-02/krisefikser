@@ -25,15 +25,17 @@ import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
 import stud.ntnu.krisefikser.auth.entity.PasswordResetToken;
 import stud.ntnu.krisefikser.auth.entity.RefreshToken;
+import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
+import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.repository.PasswordResetTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
-import stud.ntnu.krisefikser.email.service.EmailService;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 import stud.ntnu.krisefikser.user.service.UserService;
 
@@ -52,18 +54,26 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
   private final UserRepository userRepository;
+  private final TurnstileService turnstileService;
   private final PasswordEncoder passwordEncoder;
   private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final JwtProperties jwtProperties;
-  private final EmailService emailService;
 
   /**
-   * Registers a new user and generates access and refresh tokens.
+   * Registers a new admin user and generates access and refresh tokens.
    *
-   * @param registerRequest The registration request containing user details.
+   * @param request The registration request containing admin user details.
    * @return A response containing the access and refresh tokens.
    */
-  public RegisterResponse register(RegisterRequest registerRequest) {
+  public RegisterResponse registerAdmin(RegisterRequest request) {
+    // Validate email has permission to register as admin
+    // TODO: Implement email validation logic, if fails, throw org.springframework.security.access.AccessDeniedException
+    return registerWithRole(request, RoleType.ADMIN);
+  }
+
+  private RegisterResponse registerWithRole(RegisterRequest registerRequest, RoleType roleType) {
+    validateTurnstileToken(registerRequest.getTurnstileToken());
+
     User user = userService.createUser(new CreateUser(
         registerRequest.getEmail(),
         registerRequest.getPassword(),
@@ -71,7 +81,7 @@ public class AuthService {
         registerRequest.getLastName(),
         true,
         true,
-        true));
+        true), roleType);
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getEmail());
 
@@ -85,6 +95,23 @@ public class AuthService {
         refreshToken);
   }
 
+  private void validateTurnstileToken(String turnstileToken) throws TurnstileVerificationException {
+    boolean isHuman = turnstileService.verify(turnstileToken);
+    if (!isHuman) {
+      throw new TurnstileVerificationException();
+    }
+  }
+
+  /**
+   * Registers a new user and generates access and refresh tokens.
+   *
+   * @param registerRequest The registration request containing user details.
+   * @return A response containing the access and refresh tokens.
+   */
+  public RegisterResponse register(RegisterRequest registerRequest) {
+    return registerWithRole(registerRequest, RoleType.USER);
+  }
+
   /**
    * Authenticates a user and generates access and refresh tokens.
    *
@@ -93,13 +120,23 @@ public class AuthService {
    */
   public LoginResponse login(LoginRequest loginRequest) {
     User user = userService.getUserByEmail(loginRequest.getEmail());
+    if (user == null) {
+      log.warn("Login attempt for non-existing user: {}", loginRequest.getEmail());
+      throw new UserNotFoundException("User not found");
+    }
 
     // Check if account is locked
-    if (user != null && user.getLockedUntil() != null && LocalDateTime.now()
+    if (user.getLockedUntil() != null && LocalDateTime.now()
         .isBefore(user.getLockedUntil())) {
       log.warn("Account locked attempt for user: {}. Locked until: {}", user.getEmail(),
           user.getLockedUntil());
       throw new LockedException("Account is locked until " + user.getLockedUntil());
+    }
+
+    if (user.getRoles().stream()
+        .anyMatch(role -> role.getName().equals(RoleType.ADMIN))) {
+      log.info("Admin login attempt for user: {}", user.getEmail());
+      // TODO: Implement 2FA verification for admin login
     }
 
     try {

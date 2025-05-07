@@ -1,8 +1,6 @@
 package stud.ntnu.krisefikser.notification.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,7 +36,6 @@ import stud.ntnu.krisefikser.notification.service.NotificationService;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
-@CrossOrigin
 @Tag(name = "Notification", description = "Notification management APIs")
 public class NotificationController {
 
@@ -64,6 +60,9 @@ public class NotificationController {
    */
   @Operation(summary = "Get all notifications for authenticated user",
       description = "Retrieves a page of the users notifications")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved notifications")
+  })
   @GetMapping
   public ResponseEntity<Page<NotificationResponse>> getNotifications(Pageable pageable) {
     return ResponseEntity.ok(notificationService.getNotifications(pageable));
@@ -82,9 +81,7 @@ public class NotificationController {
       description = "Returns the number of unread notifications for the authenticated user")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200",
-          description = "Successfully retrieved unread notification count",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = Long.class)))})
+          description = "Successfully retrieved unread notification count")})
   @GetMapping("/unread")
   public ResponseEntity<Long> getUnreadCount() {
     return ResponseEntity.ok(notificationService.countUnreadNotifications());
@@ -98,7 +95,7 @@ public class NotificationController {
    * unread notifications total.</p>
    *
    * @param id the unique identifier of the notification to mark as read. Must be a valid UUID.
-   * @return ResponseEntity with HTTP status 204 (No Content) indicating successful operation
+   * @return ResponseEntity with HTTP status 204 (No Content) indicating a successful operation
    * @throws jakarta.persistence.EntityNotFoundException if no notification
    *                                                     with the specified ID exists
    */
@@ -120,7 +117,7 @@ public class NotificationController {
    * This is useful for bulk management of notifications when the user wishes to clear all
    * notification indicators at once.</p>
    *
-   * @return ResponseEntity with HTTP status 204 (No Content) indicating successful operation
+   * @return ResponseEntity with HTTP status 204 (No Content) indicating a successful operation
    */
   @Operation(summary = "Mark all notifications as read",
       description = "Marks all notifications for the authenticated user as read")
