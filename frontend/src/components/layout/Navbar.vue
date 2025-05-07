@@ -143,8 +143,8 @@ export default {
     </div>
 
     <!-- Mobile menu -->
-    <div v-if="isMenuOpen" class="md:hidden">
-      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
+    <div v-if="isMenuOpen" class="md:hidden bg-gray-50">
+      <div class="container mx-auto px-4 pt-2 pb-3 space-y-1">
         <router-link
           to="/kart"
           class="flex items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200"
