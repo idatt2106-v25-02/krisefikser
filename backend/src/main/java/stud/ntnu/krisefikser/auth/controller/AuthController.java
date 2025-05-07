@@ -7,29 +7,32 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.LockedException;
+import stud.ntnu.krisefikser.auth.dto.CompletePasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
+import stud.ntnu.krisefikser.auth.dto.PasswordResetResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RefreshResponse;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
-import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
+import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
+import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
+import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
 import stud.ntnu.krisefikser.auth.service.AuthService;
-import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * REST controller for managing authentication-related operations. Provides endpoints for user
@@ -43,7 +46,6 @@ import java.util.Map;
 public class AuthController {
 
   private final AuthService authService;
-  private final TurnstileService turnstileService;
 
   /**
    * Registers a new user after verifying the CAPTCHA and validating the input.
@@ -154,24 +156,6 @@ public class AuthController {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved user details",
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = UserResponse.class))),
-      @ApiResponse(responseCode = "401", description = "Not authenticated")
-  })
-  @GetMapping("/me")
-  public ResponseEntity<UserResponse> me() {
-    UserResponse response = authService.me();
-    return ResponseEntity.ok(response);
-  }
-  /**
-   * Retrieves the currently authenticated user's details.
-   *
-   * @return ResponseEntity containing the user's details.
-   */
-  @Operation(summary = "Get current user", description = "Retrieves the currently authenticated "
-      + "user's details")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved user details",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
-              UserResponse.class))),
       @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
   @GetMapping("/me")
