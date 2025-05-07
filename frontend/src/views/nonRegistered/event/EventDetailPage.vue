@@ -1,4 +1,3 @@
-
 <script lang="ts">
 import { defineComponent, ref, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
@@ -304,39 +303,7 @@ export default defineComponent({
         </div>
       </div>
 
-      <!-- Reflections section with improved card design -->
-      <div v-if="event?.status === EventResponseStatus.FINISHED" class="mb-10">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-            <BookText class="h-6 w-6 mr-2 text-blue-600" /> Refleksjoner
-          </h2>
-
-          <!-- Add reflection button always visible but conditionally disabled -->
-          <Button
-            v-if="authStore.isAuthenticated"
-            @click="openNewReflectionDialog"
-            class="flex items-center px-4 py-2 rounded-md transition-colors"
-          >
-            <Plus class="h-4 w-4 mr-2" /> Legg til Refleksjon
-          </Button>
-
-          <Button
-            v-else
-            disabled
-            class="flex items-center bg-gray-300 text-gray-600 px-4 py-2 rounded-md cursor-not-allowed"
-            title="Logg inn for å legge til refleksjoner"
-          >
-            <Plus class="h-4 w-4 mr-2" /> Logg inn for å reflektere
-          </Button>
-        </div>
-
-        <!-- Rest of the template remains the same -->
-        <!-- ... -->
       </div>
-    </div>
-
-    <!-- ReflectionForm Dialog with improved styling -->
-    <!-- ... -->
   </div>
 </template>
 
