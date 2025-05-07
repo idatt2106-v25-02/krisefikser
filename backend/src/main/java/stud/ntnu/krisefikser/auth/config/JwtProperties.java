@@ -1,5 +1,6 @@
 package stud.ntnu.krisefikser.auth.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -14,22 +15,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "jwt")
 @Getter
+@AllArgsConstructor
 public class JwtProperties {
 
   private final String secret;
   private final Long accessTokenExpiration;
   private final Long refreshTokenExpiration;
-
-  /**
-   * Constructs a new JwtProperties object with the specified secret key and expiration times.
-   *
-   * @param secret                 the secret key used for signing JWTs
-   * @param accessTokenExpiration  the expiration time for access tokens in milliseconds
-   * @param refreshTokenExpiration the expiration time for refresh tokens in milliseconds
-   */
-  public JwtProperties(String secret, Long accessTokenExpiration, Long refreshTokenExpiration) {
-    this.secret = secret;
-    this.accessTokenExpiration = accessTokenExpiration;
-    this.refreshTokenExpiration = refreshTokenExpiration;
-  }
+  private final Long resetPasswordTokenExpiration;
 }
