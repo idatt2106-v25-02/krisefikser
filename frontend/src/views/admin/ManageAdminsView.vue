@@ -56,6 +56,7 @@ import type { UserResponse, CreateUser } from '@/api/generated/model';
 import type { HouseholdResponse, CreateHouseholdRequest } from '@/api/generated/model';
 
 // Import auth store
+// new comment to force pipeline to run
 import { useAuthStore } from '@/stores/useAuthStore';
 
 const router = useRouter();
