@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -50,6 +52,7 @@ import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.service.UserService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
+import stud.ntnu.krisefikser.email.service.EmailService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -81,6 +84,9 @@ class AuthServiceTest {
 
   @Mock
   private PasswordResetTokenRepository passwordResetTokenRepository;
+
+  @Mock
+  private EmailService emailService;
 
   @InjectMocks
   private AuthService authService;
@@ -127,6 +133,10 @@ class AuthServiceTest {
     when(tokenService.generateAccessToken(any(UserDetails.class))).thenReturn("generated-token");
     when(tokenService.generateRefreshToken(any(UserDetails.class))).thenReturn("generated-token");
     when(tokenService.extractEmail(anyString())).thenReturn("test@example.com");
+
+    // Configure email service
+    when(emailService.sendEmail(anyString(), anyString(), anyString()))
+        .thenReturn(ResponseEntity.ok("Email sent successfully"));
   }
 
   @Test
