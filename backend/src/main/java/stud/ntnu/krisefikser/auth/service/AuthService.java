@@ -24,6 +24,7 @@ import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 import stud.ntnu.krisefikser.user.service.UserService;
 
@@ -106,13 +107,23 @@ public class AuthService {
    */
   public LoginResponse login(LoginRequest loginRequest) {
     User user = userService.getUserByEmail(loginRequest.getEmail());
+    if (user == null) {
+      log.warn("Login attempt for non-existing user: {}", loginRequest.getEmail());
+      throw new UserNotFoundException("User not found");
+    }
 
     // Check if account is locked
-    if (user != null && user.getLockedUntil() != null && LocalDateTime.now()
+    if (user.getLockedUntil() != null && LocalDateTime.now()
         .isBefore(user.getLockedUntil())) {
       log.warn("Account locked attempt for user: {}. Locked until: {}", user.getEmail(),
           user.getLockedUntil());
       throw new LockedException("Account is locked until " + user.getLockedUntil());
+    }
+
+    if (user.getRoles().stream()
+        .anyMatch(role -> role.getName().equals(RoleType.ADMIN))) {
+      log.info("Admin login attempt for user: {}", user.getEmail());
+      // TODO: Implement 2FA verification for admin login
     }
 
     try {
