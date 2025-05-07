@@ -18,5 +18,8 @@ import stud.ntnu.krisefikser.decorators.ValidPassword;
 public class UpdatePasswordRequest {
 
   @ValidPassword
+  String oldPassword;
+
+  @ValidPassword
   String password;
 }

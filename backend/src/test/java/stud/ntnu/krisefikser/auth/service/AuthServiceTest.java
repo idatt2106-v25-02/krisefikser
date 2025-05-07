@@ -220,15 +220,17 @@ class AuthServiceTest {
   @Test
   void updatePassword_WhenPasswordValid_ShouldUpdateUserPassword() {
     // Arrange
-    UpdatePasswordRequest updatePasswordRequest = new UpdatePasswordRequest("password");
+    String oldPassword = "oldPassword123";
+    String newPassword = "newPassword456";
+    UpdatePasswordRequest updatePasswordRequest = new UpdatePasswordRequest(oldPassword,
+        newPassword);
     stud.ntnu.krisefikser.user.entity.User currentUser = mock(
         stud.ntnu.krisefikser.user.entity.User.class);
 
     when(userService.getCurrentUser()).thenReturn(currentUser);
     when(currentUser.getId()).thenReturn(UUID.randomUUID());
-
-    when(currentUser.getPassword()).thenReturn("encoded-password");
-    when(passwordEncoder.matches("password", "encoded-password")).thenReturn(true);
+    when(currentUser.getPassword()).thenReturn("encoded-old-password");
+    when(passwordEncoder.matches(oldPassword, "encoded-old-password")).thenReturn(true);
 
     // Act
     UpdatePasswordResponse response = authService.updatePassword(updatePasswordRequest);
@@ -239,17 +241,22 @@ class AuthServiceTest {
     assertThat(response.getMessage()).isEqualTo("Password updated");
 
     verify(userService).getCurrentUser();
-    verify(userService).updatePassword(any(UUID.class), eq("password"));
+    verify(userService).updatePassword(any(UUID.class), eq(newPassword));
   }
 
   @Test
   void updatePassword_WhenPasswordInvalid_ShouldThrowException() {
     // Arrange
-    UpdatePasswordRequest updatePasswordRequest = new UpdatePasswordRequest("password");
+    String oldPassword = "wrongPassword";
+    String newPassword = "newPassword456";
+    UpdatePasswordRequest updatePasswordRequest = new UpdatePasswordRequest(oldPassword,
+        newPassword);
     stud.ntnu.krisefikser.user.entity.User currentUser = mock(
         stud.ntnu.krisefikser.user.entity.User.class);
+
     when(userService.getCurrentUser()).thenReturn(currentUser);
-    when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
+    when(currentUser.getPassword()).thenReturn("encoded-password");
+    when(passwordEncoder.matches(oldPassword, "encoded-password")).thenReturn(false);
 
     // Act & Assert
     assertThatThrownBy(() -> authService.updatePassword(updatePasswordRequest))

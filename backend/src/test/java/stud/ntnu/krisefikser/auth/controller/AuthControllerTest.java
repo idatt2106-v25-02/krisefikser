@@ -160,7 +160,7 @@ class AuthControllerTest {
   @WithMockUser
   void updatePassword_WhenPasswordIsValid_ShouldReturnSuccessResponse() throws Exception {
     // Arrange
-    UpdatePasswordRequest request = new UpdatePasswordRequest("ValidPassword123!");
+    UpdatePasswordRequest request = new UpdatePasswordRequest("OldPassword123!", "NewPassword123!");
     UpdatePasswordResponse response = UpdatePasswordResponse.builder()
         .message("Password updated")
         .success(true)
@@ -180,7 +180,8 @@ class AuthControllerTest {
   @WithMockUser
   void updatePassword_WhenPasswordIsInvalid_ShouldReturnUnauthorized() throws Exception {
     // Arrange
-    UpdatePasswordRequest request = new UpdatePasswordRequest("InvalidPassword");
+    UpdatePasswordRequest request = new UpdatePasswordRequest("WrongPassword123!",
+        "NewPassword123!");
     when(authService.updatePassword(any(UpdatePasswordRequest.class)))
         .thenThrow(new InvalidCredentialsException("Invalid password"));
 

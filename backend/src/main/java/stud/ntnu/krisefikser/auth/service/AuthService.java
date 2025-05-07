@@ -191,7 +191,7 @@ public class AuthService {
   public UpdatePasswordResponse updatePassword(UpdatePasswordRequest updatePasswordRequest) {
     User user = userService.getCurrentUser();
 
-    if (!passwordEncoder.matches(updatePasswordRequest.getPassword(), user.getPassword())) {
+    if (!passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword())) {
       throw new InvalidCredentialsException("Invalid password");
     }
 
