@@ -29,9 +29,9 @@ const { data: currentUser, isLoading: isLoadingUser } = useMe({
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
     </div>
 
-    <div v-else-if="currentUser" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div v-else-if="currentUser" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Main profile information -->
-      <div class="md:col-span-2">
+      <div class="lg:col-span-2">
         <PersonalInfo />
 
         <!-- User preferences section -->
@@ -41,7 +41,7 @@ const { data: currentUser, isLoading: isLoadingUser } = useMe({
       </div>
 
       <!-- Sidebar information -->
-      <div class="md:col-span-1">
+      <div class="lg:col-span-1">
         <!-- User households -->
         <Households />
 

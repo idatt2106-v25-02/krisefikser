@@ -7,6 +7,24 @@ import { User, Mail } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import { toast } from 'vue-sonner'
 
+// Declare the global turnstile object
+declare const turnstile: {
+  render: (container: string | HTMLElement, options: {
+    sitekey: string
+    callback?: (token: string) => void
+    'error-callback'?: () => void
+    'expired-callback'?: () => void
+    theme?: 'light' | 'dark' | 'auto'
+    size?: 'normal' | 'compact'
+    tabindex?: number
+    'response-field'?: boolean
+    'response-field-name'?: string
+  }) => string
+  reset: (widgetId?: string) => void
+  getResponse: (widgetId?: string) => string
+  remove: (widgetId?: string) => void
+}
+
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'

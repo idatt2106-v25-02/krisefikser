@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import QuizComponent from '@/components/quiz/QuizComponent.vue'
 
 // Mock accessibility store
-vi.mock('@/stores/accessibilityStore', () => ({
+vi.mock('@/stores/tts/accessibilityStore', () => ({
   useAccessibilityStore: vi.fn(() => ({
     ttsEnabled: true,
     speechRate: 1,
