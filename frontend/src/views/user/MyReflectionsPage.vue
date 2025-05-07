@@ -12,7 +12,7 @@ import { useGetEventById, useGetAllEvents } from '@/api/generated/event/event';
 import type { ReflectionResponse, EventResponse } from '@/api/generated/model';
 import { ReflectionResponseVisibility, EventResponseStatus } from '@/api/generated/model';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, Eye, Edit2, Trash2, PlusCircle, Search, X } from 'lucide-vue-next';
+import {BookOpen, Eye, Trash2, PlusCircle, Search, X } from 'lucide-vue-next';
 import ReflectionForm from '@/components/reflections/ReflectionForm.vue';
 import {
   Dialog,
@@ -20,8 +20,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogClose
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 
@@ -117,21 +115,14 @@ const viewReflection = (reflection: ReflectionResponse) => {
   router.push(`/refleksjon/${reflection.id}`);
 };
 
-const editReflection = (reflection: ReflectionResponse) => {
-  router.push(`/refleksjon/${reflection.id}?action=edit`);
-};
+
 
 const confirmDeleteReflection = async (id: string) => {
   if (window.confirm('Er du sikker på at du vil slette denne refleksjonen? Handlingen kan ikke angres.')) {
-    try {
-      await deleteReflectionMutation.mutateAsync({ id });
-    } catch (err) {/* Error handling in mutation onError */}
+    await deleteReflectionMutation.mutateAsync({ id });
   }
-};
+}
 
-const goBack = () => {
-  router.back();
-};
 
 // --- New Reflection Flow ---
 const isEventSelectDialogOpen = ref(false);

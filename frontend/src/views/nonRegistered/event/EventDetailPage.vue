@@ -9,7 +9,7 @@ import type { ReflectionResponse } from '@/api/generated/model';
 import { EventResponseStatus, ReflectionResponseVisibility } from '@/api/generated/model';
 import ReflectionForm from '@/components/reflections/ReflectionForm.vue';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookText, Plus } from 'lucide-vue-next';
+import { BookText, Plus } from 'lucide-vue-next';
 import {
   Dialog,
   DialogContent,
