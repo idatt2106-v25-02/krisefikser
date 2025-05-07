@@ -108,11 +108,7 @@ const confirmDeleteReflection = async (id: string) => {
     return;
   }
   if (window.confirm('Er du sikker på at du vil slette denne refleksjonen? Handlingen kan ikke angres.')) {
-    try {
-      await deleteReflectionMutation.mutateAsync({ id });
-    } catch (err) {
-      // Error handling is in mutation's onError
-    }
+     await deleteReflectionMutation.mutateAsync({ id });
   }
 };
 

@@ -1,16 +1,16 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
-import { useGetAllEvents } from '@/api/generated/event/event.ts'; // Path to your Orval-generated event functions
-import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts'; // Import scenario hook
-import type { EventResponse, ScenarioResponse } from '@/api/generated/model'; // Path to your Orval-generated EventResponse type and ScenarioResponse
-import { EventResponseStatus } from '@/api/generated/model'; // Path to your Orval-generated EventStatus enum
-import { Button } from '@/components/ui/button'; // Import Button
-import { BookText } from 'lucide-vue-next'; // Import BookText icon
-import { useRouter } from 'vue-router'; // Import and use router
+import { useGetAllEvents } from '@/api/generated/event/event.ts';
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts';
+import type { EventResponse, ScenarioResponse } from '@/api/generated/model';
+import { EventResponseStatus } from '@/api/generated/model';
+import { Button as BaseButton} from '@/components/ui/button';
+import { BookText } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'KriserPage',
-  components: { Button, BookText },
+  components: {BaseButton, BookText },
   setup() {
     const { data: events, isLoading: isLoadingEvents, error: eventsError } = useGetAllEvents<EventResponse[]>();
     const { data: scenarios, isLoading: isLoadingScenarios, error: scenariosError } = useGetAllScenarios<ScenarioResponse[]>(); // Fetch scenarios
@@ -141,10 +141,10 @@ export default defineComponent({
             </p>
           </div>
           <div class="mt-4 md:mt-0">
-            <Button variant="outline" @click="navigateToPublicReflections">
+            <BaseButton variant="outline" @click="navigateToPublicReflections">
               <BookText class="h-4 w-4 mr-2" />
               Offentlige Refleksjoner
-            </Button>
+            </BaseButton>
           </div>
         </div>
       </div>
