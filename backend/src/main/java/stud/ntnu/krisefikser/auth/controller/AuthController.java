@@ -79,13 +79,17 @@ public class AuthController {
   @PostMapping("/register")
   public ResponseEntity<RegisterResponse> register(
       @Parameter(description = "Registration details including Turnstile token", required = true) @RequestBody RegisterRequest request) {
-    RegisterResponse response = authService.register(request);
-    // Create and send verification email
-    User newUser = userRepository.findByEmail(request.getEmail())
-        .orElseThrow(() -> new RuntimeException("User not found after registration"));
-    VerificationToken token = emailVerificationService.createVerificationToken(newUser);
-    emailVerificationService.sendVerificationEmail(newUser, token);
-    return ResponseEntity.ok(response);
+    try {
+      RegisterResponse response = authService.register(request);
+      // Create and send verification email
+      User newUser = userRepository.findByEmail(request.getEmail())
+          .orElseThrow(() -> new RuntimeException("User not found after registration"));
+      VerificationToken token = emailVerificationService.createVerificationToken(newUser);
+      emailVerificationService.sendVerificationEmail(newUser, token);
+      return ResponseEntity.ok(response);
+    } catch (TurnstileVerificationException e) {
+      throw e; // Re-throw to let the global exception handler handle it
+    }
   }
    /**
    * Registers a new admin user after verifying the CAPTCHA and validating the input. This endpoint

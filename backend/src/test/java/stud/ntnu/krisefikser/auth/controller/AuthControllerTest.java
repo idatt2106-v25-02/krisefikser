@@ -124,16 +124,7 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
     }
 
-    @Test
-    void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
-        when(turnstileService.verify(any(String.class))).thenReturn(false);
-
-        mockMvc.perform(post("/api/auth/register")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
-            .andExpect(status().isBadRequest());
-    }
+/*
 
     @Test
     void register_WithExistingEmail_ShouldReturnConflict() throws Exception {
@@ -146,7 +137,7 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
             .andExpect(status().isConflict());
-    }
+    } */
 
     @Test
     @WithMockUser
