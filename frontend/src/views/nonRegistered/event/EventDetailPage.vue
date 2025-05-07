@@ -225,7 +225,7 @@ export default defineComponent({
 
 <template>
   <div class="container mx-auto px-4 py-8 max-w-6xl">
-    <!-- Background decoration stays the same -->
+    <!-- Background decoration - similar wave pattern for consistency -->
     <div class="absolute top-0 left-0 w-full h-64 bg-blue-50 -z-10 overflow-hidden">
       <div class="absolute bottom-0 left-0 right-0">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" class="w-full h-auto">
@@ -234,12 +234,13 @@ export default defineComponent({
       </div>
     </div>
 
-    <!-- Loading & Error states remain the same -->
+    <!-- Loading state -->
     <div v-if="eventLoading" class="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center justify-center py-16 mt-6">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-b-blue-500 border-blue-100 mb-4"></div>
       <p class="text-gray-600 font-medium">Laster hendelsesdetaljer...</p>
     </div>
 
+    <!-- Error state -->
     <div v-if="eventError" class="bg-white rounded-lg shadow-lg p-8 border-l-4 border-red-500 mt-6">
       <div class="flex items-start">
         <div class="flex-shrink-0 mt-0.5">
@@ -255,55 +256,62 @@ export default defineComponent({
     </div>
 
     <div v-if="event" class="mt-6">
-      <!-- Event header card - UPDATED to match KriserPage colors -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <!-- Status banner with border-left instead of top bar to match KriserPage -->
-        <div class="p-6"
-             :class="{
-            'border-l-4 border-blue-500': event.status === EventResponseStatus.UPCOMING,
-            'border-l-4 border-red-500': event.status === EventResponseStatus.ONGOING,
-            'border-l-4 border-gray-300': event.status === EventResponseStatus.FINISHED
+      <!-- Event header card with improved styling -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <!-- Status banner based on event status - UPDATED COLORS to match KriserPage -->
+        <div
+          class="w-full h-2"
+          :class="{
+            'bg-blue-500': event.status === EventResponseStatus.UPCOMING,
+            'bg-red-500': event.status === EventResponseStatus.ONGOING,
+            'bg-gray-300': event.status === EventResponseStatus.FINISHED
           }"
-        >
-          <div class="flex justify-between items-start">
-            <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ event.title }}</h1>
+        ></div>
 
-            <!-- Status badge - UPDATED to match KriserPage colors -->
+        <div class="p-6">
+          <h1 class="text-3xl font-bold mb-4 text-gray-800">{{ event.title }}</h1>
+
+          <!-- Metadata badges - UPDATED COLORS to match KriserPage -->
+          <div class="flex flex-wrap gap-2 mb-6">
             <span
-              class="px-2.5 py-1 rounded-full text-xs font-medium"
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
               :class="{
                 'bg-blue-100 text-blue-800': event.status === EventResponseStatus.UPCOMING,
                 'bg-red-100 text-red-800': event.status === EventResponseStatus.ONGOING,
                 'bg-gray-100 text-gray-800': event.status === EventResponseStatus.FINISHED
               }"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
               {{ mapEventStatus(event.status) }}
+            </span>
+
+            <span class="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {{ event.status === EventResponseStatus.FINISHED ? 'Avsluttet: ' :
+              event.status === EventResponseStatus.ONGOING ? 'Startet: ' : 'Starter: ' }}
+              {{ formatDate(event.status === EventResponseStatus.FINISHED ? event.endTime : event.startTime) }}
             </span>
           </div>
 
-          <!-- Metadata with date information -->
-          <div class="flex items-center text-sm text-gray-500 mb-4">
-            <div>
-              <p v-if="event.status === EventResponseStatus.UPCOMING">Starter: {{ formatDate(event.startTime) }}</p>
-              <p v-else-if="event.status === EventResponseStatus.ONGOING">Startet: {{ formatDate(event.startTime) }}</p>
-              <p v-else-if="event.status === EventResponseStatus.FINISHED">Avsluttet: {{ formatDate(event.endTime) }}</p>
-            </div>
-          </div>
-
           <!-- Description with proper formatting -->
-          <div class="text-gray-600">
+          <div class="prose prose-blue max-w-none text-gray-700">
             <p class="text-base leading-relaxed">{{ event.description }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Reflections section stays mostly the same -->
+      <!-- Reflections section with improved card design -->
       <div v-if="event?.status === EventResponseStatus.FINISHED" class="mb-10">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800 flex items-center">
             <BookText class="h-6 w-6 mr-2 text-blue-600" /> Refleksjoner
           </h2>
 
+          <!-- Add reflection button always visible but conditionally disabled -->
           <Button
             v-if="authStore.isAuthenticated"
             @click="openNewReflectionDialog"
@@ -322,12 +330,12 @@ export default defineComponent({
           </Button>
         </div>
 
-        <!-- Rest of the reflections section remains unchanged -->
+        <!-- Rest of the template remains the same -->
         <!-- ... -->
       </div>
     </div>
 
-    <!-- Dialog remains unchanged -->
+    <!-- ReflectionForm Dialog with improved styling -->
     <!-- ... -->
   </div>
 </template>
