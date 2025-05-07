@@ -81,6 +81,22 @@ public class UserService {
   }
 
   /**
+   * Updates the password of an existing user.
+   *
+   * @param userId      the UUID of the user to update
+   * @param newPassword the new password
+   * @return the updated User entity
+   * @throws UserNotFoundException if the user with the given ID does not exist
+   */
+  public User updatePassword(UUID userId, String newPassword) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
+
+    user.setPassword(passwordEncoder.encode(newPassword));
+    return userRepository.save(user);
+  }
+
+  /**
    * Updates an existing user's information.
    *
    * @param userId the UUID of the user to update
