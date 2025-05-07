@@ -36,7 +36,7 @@ import NewsView from '@/views/nonRegistered/news/NewsView.vue'
 import ArticleView from '@/views/nonRegistered/news/ArticleView.vue'
 import AboutUsView from '@/views/nonRegistered/static/AboutUsView.vue'
 import ForgotPasswordView from '@/views/auth/password/ForgotPasswordView.vue'
-
+import VerifyPasswordReset from '@/views/VerifyPasswordReset.vue'
 // Crisis Information views
 import BeforeCrisisView from '@/views/nonRegistered/info/BeforeCrisisView.vue'
 import DuringCrisisView from '@/views/nonRegistered/info/DuringCrisisView.vue'
@@ -81,6 +81,12 @@ const router = createRouter({
       path: '/glemt-passord',
       name: 'glemt-passord',
       component: ForgotPasswordView,
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/verifiser-passord-tilbakestilling',
+      name: 'verify-password-reset',
+      component: VerifyPasswordReset,
       meta: { requiresGuest: true }
     },
     {

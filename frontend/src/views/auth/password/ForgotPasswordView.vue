@@ -4,6 +4,7 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { Mail, ArrowRight, CheckCircle } from 'lucide-vue-next'
+import axios from 'axios'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -25,15 +26,21 @@ const isSubmitted = ref(false)
 const isLoading = ref(false)
 const userEmail = ref('')
 
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
 
-  // Simuler API-kall
-  setTimeout(() => {
+  try {
+    await axios.post('http://localhost:8080/api/auth/request-password-reset', {
+      email: values.email
+    })
+
     userEmail.value = values.email
     isSubmitted.value = true
+  } catch (error) {
+    console.error('Failed to request password reset:', error)
+  } finally {
     isLoading.value = false
-  }, 1500)
+  }
 })
 </script>
 
