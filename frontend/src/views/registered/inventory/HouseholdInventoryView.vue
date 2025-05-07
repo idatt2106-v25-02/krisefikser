@@ -94,8 +94,17 @@ const router = useRouter()
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
 
-// --- Fetching Actual Data ---
-const householdId = ref('1');
+// Get active household
+const { data: household } = useGetActiveHousehold({
+  query: {
+    enabled: authStore.isAuthenticated,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  },
+})
+
+// Define householdId as computed that depends on the active household
+const householdId = computed(() => household.value?.id ?? '')
 
 // 1. Fetch Inventory Summary
 const {
@@ -130,18 +139,6 @@ const {
     }
   }
 );
-
-// 4. Fetch Household Members and Guests
-const { data: household} = useGetActiveHousehold({
-  query: {
-    enabled: authStore.isAuthenticated,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  },
-})
-
-// --- End Fetching Actual Data ---
-
 
 // Create a computed property to format data for the HouseholdEmergencySupplies component
 const formattedInventory = computed<FormattedInventory>(() => {
@@ -365,10 +362,8 @@ const membersAndGuests = computed(() => {
 // The old formattedInventory computed that used apiResponse.value is replaced by the one above.
 // --- End mock data removal ---
 
-function navigateToHousehold(): void {
-  if (household.value?.id) {
-    router.push(`/husstand/${household.value.id}`);
-  }
+function navigateToHousehold() {
+  router.push('/husstand')
 }
 
 function openAddItemDialog(categoryId: string, categoryName: string): void {

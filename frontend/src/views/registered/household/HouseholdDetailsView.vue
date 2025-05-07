@@ -37,10 +37,13 @@ import {
   Map as MapIcon,
   Edit,
   Info,
+  RefreshCw,
+  CheckCircle,
 } from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 import {
+  useGetAllUserHouseholds,
   useGetActiveHousehold,
   useLeaveHousehold,
   useDeleteHousehold,
@@ -49,8 +52,15 @@ import {
   useRemoveGuestFromHousehold,
   useUpdateActiveHousehold,
   getGetActiveHouseholdQueryKey,
+  useSetActiveHousehold,
 } from '@/api/generated/household/household.ts'
-import { useCreateInvite, useGetPendingInvitesForUser, useAcceptInvite, useDeclineInvite, useGetPendingInvitesForHousehold } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
+import {
+  useCreateInvite,
+  useGetPendingInvitesForUser,
+  useAcceptInvite,
+  useDeclineInvite,
+  useGetPendingInvitesForHousehold,
+} from '@/api/generated/household-invite-controller/household-invite-controller.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import type {
   HouseholdResponse,
@@ -100,7 +110,6 @@ type HouseholdFormValues = {
   description?: string
 }
 
-
 // Extend ExtendedHouseholdResponse without redefining guests
 interface ExtendedHouseholdResponse extends HouseholdResponse {
   meetingPlaces?: MeetingPlace[]
@@ -134,14 +143,14 @@ const householdFormSchema = toTypedSchema(
   z.object({
     name: z.string().min(1, 'Navn på husstanden er påkrevd'),
     address: z.string().min(1, 'Adresse er påkrevd'),
-    postalCode: z.string().refine(val => /^\d{4}$/.test(val), {
-      message: "Postnummer må bestå av nøyaktig 4 siffer.",
+    postalCode: z.string().refine((val) => /^\d{4}$/.test(val), {
+      message: 'Postnummer må bestå av nøyaktig 4 siffer.',
     }),
     city: z
       .string()
       .min(1, 'By/sted er påkrevd')
       .max(50, 'By/sted kan ikke være lenger enn 50 tegn')
-      .refine(val => /^[a-zA-ZæøåÆØÅ -]+$/.test(val), {
+      .refine((val) => /^[a-zA-ZæøåÆØÅ -]+$/.test(val), {
         message: 'By/sted kan kun inneholde bokstaver, bindestrek og mellomrom.',
       }),
   }),
@@ -151,6 +160,19 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { toast } = useToast()
 const queryClient = useQueryClient()
+
+// Get households data
+const {
+  data: allHouseholds,
+  isLoading: isLoadingAllHouseholds,
+  refetch: refetchAllHouseholds,
+} = useGetAllUserHouseholds({
+  query: {
+    enabled: authStore.isAuthenticated,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  },
+})
 
 // Get household data
 const {
@@ -166,9 +188,7 @@ const {
 })
 
 // Fetch Inventory Summary specifically for the preview
-const {
-  data: inventorySummary,
-} = useGetInventorySummary({
+const { data: inventorySummary } = useGetInventorySummary({
   query: {
     enabled: computed(() => authStore.isAuthenticated && !!household.value?.id),
   },
@@ -176,45 +196,62 @@ const {
 
 // Computed property to format inventory data for the preview, similar to HouseholdInventoryView
 const inventoryPreviewData = computed<Inventory>(() => {
-  const DAYS_GOAL = 7;
+  const DAYS_GOAL = 7
 
   if (!inventorySummary.value) {
     // Fallback if summary isn't loaded - might use household.inventory as a rough estimate or just zeros
     // For consistency, if summary is crucial, show loading or default to all zeros until summary loads.
     return {
-      food: { current: household.value?.inventory?.food?.current || 0, target: household.value?.inventory?.food?.target || 0, unit: 'kcal' },
-      water: { current: household.value?.inventory?.water?.current || 0, target: household.value?.inventory?.water?.target || 0, unit: 'L' },
-      other: { current: household.value?.inventory?.other?.current || 0, target: household.value?.inventory?.other?.target || 0 },
+      food: {
+        current: household.value?.inventory?.food?.current || 0,
+        target: household.value?.inventory?.food?.target || 0,
+        unit: 'kcal',
+      },
+      water: {
+        current: household.value?.inventory?.water?.current || 0,
+        target: household.value?.inventory?.water?.target || 0,
+        unit: 'L',
+      },
+      other: {
+        current: household.value?.inventory?.other?.current || 0,
+        target: household.value?.inventory?.other?.target || 0,
+      },
       preparedDays: 0, // Default until summary loads and calculates
       targetDays: DAYS_GOAL,
-    };
+    }
   }
 
-  const summary = inventorySummary.value;
+  const summary = inventorySummary.value
 
-  const dailyKcalNeeded = summary.kcalGoal > 0 ? summary.kcalGoal / DAYS_GOAL : 0;
-  const effectiveFoodDays = (summary.kcalGoal === 0 && summary.kcal > 0)
-    ? DAYS_GOAL
-    : (dailyKcalNeeded > 0 ? (summary.kcal / dailyKcalNeeded) : 0);
+  const dailyKcalNeeded = summary.kcalGoal > 0 ? summary.kcalGoal / DAYS_GOAL : 0
+  const effectiveFoodDays =
+    summary.kcalGoal === 0 && summary.kcal > 0
+      ? DAYS_GOAL
+      : dailyKcalNeeded > 0
+        ? summary.kcal / dailyKcalNeeded
+        : 0
 
-  const dailyWaterNeeded = summary.waterLitersGoal > 0 ? summary.waterLitersGoal / DAYS_GOAL : 0;
-  const effectiveWaterDays = (summary.waterLitersGoal === 0 && summary.waterLiters > 0)
-    ? DAYS_GOAL
-    : (dailyWaterNeeded > 0 ? (summary.waterLiters / dailyWaterNeeded) : 0);
+  const dailyWaterNeeded = summary.waterLitersGoal > 0 ? summary.waterLitersGoal / DAYS_GOAL : 0
+  const effectiveWaterDays =
+    summary.waterLitersGoal === 0 && summary.waterLiters > 0
+      ? DAYS_GOAL
+      : dailyWaterNeeded > 0
+        ? summary.waterLiters / dailyWaterNeeded
+        : 0
 
-  let derivedPreparedDays;
+  let derivedPreparedDays
   if (summary.kcalGoal === 0 && summary.waterLitersGoal === 0) {
-    derivedPreparedDays = (summary.kcal > 0 || summary.waterLiters > 0) ? DAYS_GOAL : 0;
+    derivedPreparedDays = summary.kcal > 0 || summary.waterLiters > 0 ? DAYS_GOAL : 0
   } else if (summary.kcalGoal === 0) {
-    derivedPreparedDays = (summary.kcal > 0) ? Math.floor(effectiveWaterDays) : 0;
+    derivedPreparedDays = summary.kcal > 0 ? Math.floor(effectiveWaterDays) : 0
   } else if (summary.waterLitersGoal === 0) {
-    derivedPreparedDays = (summary.waterLiters > 0) ? Math.floor(effectiveFoodDays) : 0;
+    derivedPreparedDays = summary.waterLiters > 0 ? Math.floor(effectiveFoodDays) : 0
   } else {
-    derivedPreparedDays = Math.floor(Math.min(effectiveFoodDays, effectiveWaterDays));
+    derivedPreparedDays = Math.floor(Math.min(effectiveFoodDays, effectiveWaterDays))
   }
 
-  let finalPreparedDays = Math.min(derivedPreparedDays, DAYS_GOAL);
-  if (finalPreparedDays < 0) finalPreparedDays = 0;
+  let finalPreparedDays = Math.min(derivedPreparedDays, DAYS_GOAL)
+  if (finalPreparedDays < 0) finalPreparedDays = 0
 
   return {
     food: {
@@ -233,12 +270,15 @@ const inventoryPreviewData = computed<Inventory>(() => {
     },
     preparedDays: finalPreparedDays,
     targetDays: DAYS_GOAL,
-  };
-});
+  }
+})
 
 watchEffect(() => {
-  console.log('[HouseholdDetailsView] household data changed (from watchEffect):', JSON.parse(JSON.stringify(household.value)));
-});
+  console.log(
+    '[HouseholdDetailsView] household data changed (from watchEffect):',
+    JSON.parse(JSON.stringify(household.value)),
+  )
+})
 
 // Mutations
 const { mutate: leaveHousehold } = useLeaveHousehold({
@@ -257,12 +297,11 @@ const { mutate: deleteHousehold } = useDeleteHousehold({
   },
 })
 
-
 const { mutate: _addMember } = useJoinHousehold({
   mutation: {
     onSuccess: () => {
       refetchHousehold()
-      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() })
       isAddMemberDialogOpen.value = false
     },
   },
@@ -272,7 +311,7 @@ const { mutate: removeMember } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       refetchHousehold()
-      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() })
     },
   },
 })
@@ -289,7 +328,7 @@ const { mutate: createInvite } = useCreateInvite({
       refetchHouseholdInvites()
     },
     onError: (error) => {
-      const err = error as Error;
+      const err = error as Error
       toast({
         title: 'Feil',
         description: err.message || 'Kunne ikke sende invitasjon',
@@ -302,28 +341,28 @@ const { mutate: createInvite } = useCreateInvite({
 const { mutate: addGuest, isPending: isAddingGuest } = useAddGuestToHousehold({
   mutation: {
     onSuccess: (response) => {
-      console.log('Add Guest onSuccess:', response);
+      console.log('Add Guest onSuccess:', response)
       toast({
         title: 'Gjest lagt til',
         description: 'Gjesten har blitt lagt til i husstanden.',
       })
       refetchHousehold()
-      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() })
       isAddMemberDialogOpen.value = false
       resetForm()
     },
     onError: (error: unknown) => {
-      console.error('Add Guest onError:', error);
+      console.error('Add Guest onError:', error)
       const errorMessage =
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (error as Error)?.message ||
-        'Kunne ikke legge til gjest.';
+        'Kunne ikke legge til gjest.'
 
       toast({
         title: 'Feil ved tillegging av gjest',
         description: errorMessage,
         variant: 'destructive',
-      });
+      })
     },
   },
 })
@@ -336,27 +375,27 @@ const { mutate: removeGuest, isPending: isRemovingGuest } = useRemoveGuestFromHo
         description: 'Gjesten er fjernet fra husstanden.',
       })
       refetchHousehold()
-      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() })
     },
     onError: (error: unknown) => {
       const errorMessage =
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (error as Error)?.message ||
-        'Kunne ikke fjerne gjest.';
+        'Kunne ikke fjerne gjest.'
       toast({
         title: 'Feil ved fjerning av gjest',
         description: errorMessage,
         variant: 'destructive',
-      });
+      })
     },
   },
 })
-
 
 // State for dialogs
 const isAddMemberDialogOpen = ref(false)
 const isEditHouseholdDialogOpen = ref(false)
 const isMeetingMapDialogOpen = ref(false)
+const isChangeHouseholdDialogOpen = ref(false)
 const memberMode = ref<'invite' | 'add'>('invite')
 const mapRef = ref<InstanceType<typeof HouseholdMeetingMap> | null>(null)
 const selectedMeetingPlace = ref<MeetingPlace | null>(null)
@@ -393,28 +432,28 @@ const { resetForm } = useForm<MemberFormValues>({
 const { mutateAsync: updateActiveHousehold } = useUpdateActiveHousehold({
   mutation: {
     onSuccess: (updatedHouseholdData) => {
-      console.log('useUpdateActiveHousehold onSuccess. Response:', updatedHouseholdData);
-      queryClient.setQueryData(getGetActiveHouseholdQueryKey(), updatedHouseholdData);
-      isEditHouseholdDialogOpen.value = false;
+      console.log('useUpdateActiveHousehold onSuccess. Response:', updatedHouseholdData)
+      queryClient.setQueryData(getGetActiveHouseholdQueryKey(), updatedHouseholdData)
+      isEditHouseholdDialogOpen.value = false
       toast({
         title: 'Husstand oppdatert',
         description: 'Husstandsinformasjonen ble oppdatert.',
-      });
+      })
     },
     onError: (error) => {
-      console.error('useUpdateActiveHousehold onError. Error:', error);
+      console.error('useUpdateActiveHousehold onError. Error:', error)
       toast({
         title: 'Feil',
         description: (error as unknown as Error)?.message || 'Kunne ikke oppdatere husstand.',
         variant: 'destructive',
-      });
+      })
     },
   },
-});
+})
 
 function onHouseholdSubmit(formData: Record<string, unknown>) {
   // Cast the received formData to HouseholdFormValues
-  const values = formData as HouseholdFormValues;
+  const values = formData as HouseholdFormValues
 
   const householdData: CreateHouseholdRequest = {
     name: values.name,
@@ -423,8 +462,8 @@ function onHouseholdSubmit(formData: Record<string, unknown>) {
     city: values.city,
     latitude: household.value?.latitude ?? 0,
     longitude: household.value?.longitude ?? 0,
-  };
-  updateActiveHousehold({ data: householdData });
+  }
+  updateActiveHousehold({ data: householdData })
 }
 
 function onRemoveMember(userId?: string) {
@@ -432,12 +471,13 @@ function onRemoveMember(userId?: string) {
   if (!household.value) return
   removeMember({
     data: {
-      householdId: household.value.id ?? '',    },
+      householdId: household.value.id ?? '',
+    },
   })
 }
 
-function navigateToEditHouseholdInfo() {
-  router.push(`/husstand/${household.value?.id}/beredskapslager`)
+function navigateToInventory() {
+  router.push('/husstand/beredskapslager')
 }
 
 function openEditHouseholdDialog() {
@@ -449,7 +489,8 @@ function handleLeaveHousehold() {
   if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
     leaveHousehold({
       data: {
-        householdId: household.value.id ?? '',      },
+        householdId: household.value.id ?? '',
+      },
     })
   }
 }
@@ -484,50 +525,62 @@ function goToHouseholdLocation() {
   isMeetingMapDialogOpen.value = true
   setTimeout(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const map = mapRef.value as any;
+    const map = mapRef.value as any
     if (map && typeof map.centerOnHousehold === 'function') {
-      map.centerOnHousehold();
+      map.centerOnHousehold()
     }
   }, 300)
 }
 
 const handleFormSubmit = (values: MemberFormValues) => {
-  console.log('handleFormSubmit called with mode:', memberMode.value, 'and values:', values);
+  console.log('handleFormSubmit called with mode:', memberMode.value, 'and values:', values)
 
   if (!household.value?.id) {
-    console.error('Household ID is missing');
-    toast({ title: 'Feil', description: 'Husstand ID mangler.', variant: 'destructive' });
-    return;
+    console.error('Household ID is missing')
+    toast({ title: 'Feil', description: 'Husstand ID mangler.', variant: 'destructive' })
+    return
   }
 
   if (memberMode.value === 'invite') {
-    console.log('Attempting to send invite for email:', values.email);
+    console.log('Attempting to send invite for email:', values.email)
     if (!values.email) {
-      toast({ title: 'Feil', description: 'E-post er påkrevd for invitasjon.', variant: 'destructive' });
-      return;
+      toast({
+        title: 'Feil',
+        description: 'E-post er påkrevd for invitasjon.',
+        variant: 'destructive',
+      })
+      return
     }
     createInvite({
       data: {
         householdId: household.value.id,
         invitedEmail: values.email,
-      }
+      },
     })
   } else {
-    if (!values.name || values.consumptionFactor === undefined || values.consumptionFactor === null) {
-      toast({ title: 'Feil', description: 'Navn og forbruksfaktor er påkrevd for å legge til gjest.', variant: 'destructive' });
-      return;
+    if (
+      !values.name ||
+      values.consumptionFactor === undefined ||
+      values.consumptionFactor === null
+    ) {
+      toast({
+        title: 'Feil',
+        description: 'Navn og forbruksfaktor er påkrevd for å legge til gjest.',
+        variant: 'destructive',
+      })
+      return
     }
     console.log('Attempting to add guest with data:', {
       name: values.name,
       icon: 'default_guest_icon.png',
       consumptionMultiplier: values.consumptionFactor,
-    });
+    })
     addGuest({
       data: {
         name: values.name,
         icon: 'default_guest_icon.png',
         consumptionMultiplier: values.consumptionFactor,
-      }
+      },
     })
   }
 }
@@ -552,18 +605,19 @@ const { mutate: declineInvite } = useDeclineInvite({
 
 // Fetch pending invites for this household
 const householdId = computed(() => household.value?.id ?? '')
-const { data: householdPendingInvites, refetch: refetchHouseholdInvites } = useGetPendingInvitesForHousehold(householdId, {
-  query: {
-    enabled: computed(() => !!householdId.value),
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  },
-})
+const { data: householdPendingInvites, refetch: refetchHouseholdInvites } =
+  useGetPendingInvitesForHousehold(householdId, {
+    query: {
+      enabled: computed(() => !!householdId.value),
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+    },
+  })
 
 function handleRemoveGuest(guestId?: string) {
-  if (!guestId) return;
+  if (!guestId) return
   if (confirm('Er du sikker på at du vil fjerne denne gjesten?')) {
-    removeGuest({ guestId });
+    removeGuest({ guestId })
   }
 }
 
@@ -575,16 +629,42 @@ const filteredPeople = computed(() => {
   if (memberGuestTab.value === 'alle') {
     // Combine members and guests
     return [
-      ...household.value.members.map(m => ({ type: 'member', data: m })),
-      ...household.value.guests.map(g => ({ type: 'guest', data: g }))
+      ...household.value.members.map((m) => ({ type: 'member', data: m })),
+      ...household.value.guests.map((g) => ({ type: 'guest', data: g })),
     ]
   } else if (memberGuestTab.value === 'medlemmer') {
-    return household.value.members.map(m => ({ type: 'member', data: m }))
+    return household.value.members.map((m) => ({ type: 'member', data: m }))
   } else if (memberGuestTab.value === 'gjester') {
-    return household.value.guests.map(g => ({ type: 'guest', data: g }))
+    return household.value.guests.map((g) => ({ type: 'guest', data: g }))
   }
   return []
 })
+
+// Mutation to set the active household
+const { mutate: setActiveHousehold, isPending: isSettingActiveHousehold } = useSetActiveHousehold({
+  mutation: {
+    onSuccess: () => {
+      refetchHousehold()
+      refetchAllHouseholds()
+      toast({
+        title: 'Husstand oppdatert',
+        description: 'Aktiv husstand er endret',
+      })
+      isChangeHouseholdDialogOpen.value = false
+    },
+    onError: (error) => {
+      toast({
+        title: 'Feil',
+        description: error?.message || 'Kunne ikke sette aktiv husstand',
+        variant: 'destructive',
+      })
+    },
+  },
+})
+
+function handleChangeActiveHousehold(householdId: string) {
+  setActiveHousehold({ data: { householdId } })
+}
 </script>
 
 <template>
@@ -593,14 +673,30 @@ const filteredPeople = computed(() => {
       <!-- Pending Invites Section -->
       <div v-if="pendingInvites && pendingInvites.length" class="mb-6">
         <h2 class="text-xl font-semibold mb-2">Ventende invitasjoner</h2>
-        <div v-for="invite in pendingInvites" :key="invite.id" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-2 flex items-center justify-between">
+        <div
+          v-for="invite in pendingInvites"
+          :key="invite.id"
+          class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-2 flex items-center justify-between"
+        >
           <div>
             <div><b>Husstand:</b> {{ invite.household?.name ?? 'Ukjent' }}</div>
-            <div><b>Invitert av:</b> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}</div>
+            <div>
+              <b>Invitert av:</b> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}
+            </div>
           </div>
           <div class="flex gap-2">
-            <button class="bg-green-500 text-white px-3 py-1 rounded" @click="acceptInvite({ inviteId: invite.id ?? '' })">Godta</button>
-            <button class="bg-red-500 text-white px-3 py-1 rounded" @click="declineInvite({ inviteId: invite.id ?? '' })">Avslå</button>
+            <button
+              class="bg-green-500 text-white px-3 py-1 rounded"
+              @click="acceptInvite({ inviteId: invite.id ?? '' })"
+            >
+              Godta
+            </button>
+            <button
+              class="bg-red-500 text-white px-3 py-1 rounded"
+              @click="declineInvite({ inviteId: invite.id ?? '' })"
+            >
+              Avslå
+            </button>
           </div>
         </div>
       </div>
@@ -622,7 +718,9 @@ const filteredPeople = computed(() => {
                     @click="goToHouseholdLocation"
                     title="Vis på kart"
                   >
-                    <MapPin class="h-4 w-4 mr-1 flex-shrink-0 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                    <MapPin
+                      class="h-4 w-4 mr-1 flex-shrink-0 text-gray-400 group-hover:text-blue-600 transition-colors"
+                    />
                     <span
                       class="transition-colors group-hover:text-blue-600 group-hover:underline text-gray-600"
                     >
@@ -633,6 +731,16 @@ const filteredPeople = computed(() => {
               </div>
             </div>
             <div class="mt-4 md:mt-0 space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                @click="isChangeHouseholdDialogOpen = true"
+                class="flex items-center gap-1"
+                :disabled="!allHouseholds || allHouseholds.length <= 1"
+              >
+                <RefreshCw class="h-4 w-4" />
+                Bytt husstand
+              </Button>
               <Button variant="outline" size="sm" @click="openEditHouseholdDialog">
                 <Edit class="h-4 w-4 mr-1" />
                 Endre informasjon
@@ -660,14 +768,35 @@ const filteredPeople = computed(() => {
               </div>
               <!-- Filter Tabs -->
               <div class="flex gap-2 mb-4">
-                <Button :variant="memberGuestTab === 'alle' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'alle'">Alle</Button>
-                <Button :variant="memberGuestTab === 'medlemmer' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'medlemmer'">Medlemmer</Button>
-                <Button :variant="memberGuestTab === 'gjester' ? 'default' : 'outline'" size="sm" @click="memberGuestTab = 'gjester'">Gjester</Button>
+                <Button
+                  :variant="memberGuestTab === 'alle' ? 'default' : 'outline'"
+                  size="sm"
+                  @click="memberGuestTab = 'alle'"
+                  >Alle</Button
+                >
+                <Button
+                  :variant="memberGuestTab === 'medlemmer' ? 'default' : 'outline'"
+                  size="sm"
+                  @click="memberGuestTab = 'medlemmer'"
+                  >Medlemmer</Button
+                >
+                <Button
+                  :variant="memberGuestTab === 'gjester' ? 'default' : 'outline'"
+                  size="sm"
+                  @click="memberGuestTab = 'gjester'"
+                  >Gjester</Button
+                >
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2">
+              <div
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2"
+              >
                 <div
                   v-for="person in filteredPeople"
-                  :key="person.type === 'member' ? (person.data as HouseholdMemberResponse).user?.id : (person.data as GuestResponse).id"
+                  :key="
+                    person.type === 'member'
+                      ? (person.data as HouseholdMemberResponse).user?.id
+                      : (person.data as GuestResponse).id
+                  "
                   class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
                 >
                   <div class="p-4">
@@ -677,22 +806,41 @@ const filteredPeople = computed(() => {
                           v-if="person.type === 'member'"
                           class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3 flex-shrink-0"
                         >
-                          <span class="text-md font-medium">{{ (person.data as HouseholdMemberResponse).user?.firstName?.[0] ?? '?' }}</span>
+                          <span class="text-md font-medium">{{
+                            (person.data as HouseholdMemberResponse).user?.firstName?.[0] ?? '?'
+                          }}</span>
                         </div>
                         <div
                           v-else
                           class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 mr-3 flex-shrink-0"
                         >
-                          <span class="text-md font-medium">{{ (person.data as GuestResponse).name?.[0]?.toUpperCase() ?? 'G' }}</span>
+                          <span class="text-md font-medium">{{
+                            (person.data as GuestResponse).name?.[0]?.toUpperCase() ?? 'G'
+                          }}</span>
                         </div>
                         <h3 class="text-md font-bold text-gray-900">
-                          {{ person.type === 'member' ? ((person.data as HouseholdMemberResponse).user?.firstName + ' ' + (person.data as HouseholdMemberResponse).user?.lastName) : (person.data as GuestResponse).name }}
+                          {{
+                            person.type === 'member'
+                              ? (person.data as HouseholdMemberResponse).user?.firstName +
+                                ' ' +
+                                (person.data as HouseholdMemberResponse).user?.lastName
+                              : (person.data as GuestResponse).name
+                          }}
                         </h3>
-                        <span class="ml-2 text-xs" :class="person.type === 'member' ? 'text-gray-400' : 'text-green-500'">
+                        <span
+                          class="ml-2 text-xs"
+                          :class="person.type === 'member' ? 'text-gray-400' : 'text-green-500'"
+                        >
                           {{ person.type === 'member' ? 'Medlem' : 'Gjest' }}
                         </span>
                       </div>
-                      <DropdownMenu v-if="person.type === 'member' && (person.data as HouseholdMemberResponse).user?.id !== authStore.currentUser?.id">
+                      <DropdownMenu
+                        v-if="
+                          person.type === 'member' &&
+                          (person.data as HouseholdMemberResponse).user?.id !==
+                            authStore.currentUser?.id
+                        "
+                      >
                         <DropdownMenuTrigger as-child>
                           <Button variant="ghost" size="icon" class="h-8 w-8">
                             <span class="sr-only">Medlemsalternativer</span>
@@ -716,7 +864,9 @@ const filteredPeople = computed(() => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            @click="onRemoveMember((person.data as HouseholdMemberResponse).user?.id)"
+                            @click="
+                              onRemoveMember((person.data as HouseholdMemberResponse).user?.id)
+                            "
                             class="text-red-600"
                           >
                             <UserMinus class="h-4 w-4 mr-2" />
@@ -728,8 +878,21 @@ const filteredPeople = computed(() => {
                         <DropdownMenuTrigger as-child>
                           <Button variant="ghost" size="icon" class="h-8 w-8">
                             <span class="sr-only">Gjestalternativer</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
-                              <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="text-gray-400"
+                            >
+                              <circle cx="12" cy="12" r="1" />
+                              <circle cx="12" cy="5" r="1" />
+                              <circle cx="12" cy="19" r="1" />
                             </svg>
                           </Button>
                         </DropdownMenuTrigger>
@@ -766,7 +929,7 @@ const filteredPeople = computed(() => {
                 <h2 class="text-xl font-semibold text-gray-800">Beredskapslager</h2>
                 <!-- Group for Info and Se Detaljer buttons -->
                 <div class="flex items-center space-x-2">
-                  <button 
+                  <button
                     @click="isPreparednessInfoDialogOpen = true"
                     class="text-blue-600 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
                     title="Vis informasjon om beredskapsberegning"
@@ -776,7 +939,7 @@ const filteredPeople = computed(() => {
                   <Button
                     variant="outline"
                     size="sm"
-                    @click="navigateToEditHouseholdInfo"
+                    @click="navigateToInventory"
                     class="flex items-center gap-1"
                   >
                     <span>Se detaljer</span>
@@ -787,7 +950,6 @@ const filteredPeople = computed(() => {
               <HouseholdEmergencySupplies
                 :inventory="inventoryPreviewData"
                 :inventory-items="household.inventoryItems || []"
-                :household-id="household.id || ''"
                 :show-details-button="false"
                 @open-info-dialog="isPreparednessInfoDialogOpen = true"
               />
@@ -866,10 +1028,13 @@ const filteredPeople = computed(() => {
 
             <!-- Invited (pending and declined) section as its own component -->
             <InvitedPendingList
-              :invites="(householdPendingInvites || []).filter(i => i.status === 'PENDING') as any"
-              :declined-invites="(householdPendingInvites || []).filter(i => i.status === 'DECLINED') as any"
+              :invites="
+                (householdPendingInvites || []).filter((i) => i.status === 'PENDING') as any
+              "
+              :declined-invites="
+                (householdPendingInvites || []).filter((i) => i.status === 'DECLINED') as any
+              "
             />
-
           </div>
         </div>
 
@@ -982,7 +1147,11 @@ const filteredPeople = computed(() => {
                       <FormMessage>{{ errorMessage }}</FormMessage>
                     </FormItem>
                   </FormField>
-                  <FormField v-if="memberMode === 'invite'" v-slot="{ field, errorMessage }" name="email">
+                  <FormField
+                    v-if="memberMode === 'invite'"
+                    v-slot="{ field, errorMessage }"
+                    name="email"
+                  >
                     <FormItem>
                       <FormLabel>E-post</FormLabel>
                       <FormControl>
@@ -991,7 +1160,11 @@ const filteredPeople = computed(() => {
                       <FormMessage>{{ errorMessage }}</FormMessage>
                     </FormItem>
                   </FormField>
-                  <FormField v-if="memberMode === 'add'" v-slot="{ field, errorMessage }" name="consumptionFactor">
+                  <FormField
+                    v-if="memberMode === 'add'"
+                    v-slot="{ field, errorMessage }"
+                    name="consumptionFactor"
+                  >
                     <FormItem>
                       <FormLabel>Forbruksfaktor</FormLabel>
                       <FormControl>
@@ -1056,11 +1229,66 @@ const filteredPeople = computed(() => {
         </Dialog>
 
         <!-- Preparedness Info Dialog for HouseholdDetailsView -->
-        <PreparednessInfoDialog 
-          :is-open="isPreparednessInfoDialogOpen" 
-          @close="isPreparednessInfoDialogOpen = false" 
+        <PreparednessInfoDialog
+          :is-open="isPreparednessInfoDialogOpen"
+          @close="isPreparednessInfoDialogOpen = false"
         />
 
+        <!-- Change Household Dialog -->
+        <Dialog v-model:open="isChangeHouseholdDialogOpen">
+          <DialogContent class="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Bytt aktiv husstand</DialogTitle>
+              <DialogDescription>
+                Velg hvilken husstand du vil gjøre til din aktive husstand.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div class="mb-6 max-h-80 overflow-y-auto">
+              <div v-if="isLoadingAllHouseholds" class="flex justify-center py-4">
+                <div
+                  class="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"
+                ></div>
+              </div>
+              <div
+                v-else-if="!allHouseholds || allHouseholds.length === 0"
+                class="text-center text-gray-500 py-4"
+              >
+                Ingen husstander tilgjengelig
+              </div>
+              <div
+                v-else
+                v-for="h in allHouseholds"
+                :key="h.id"
+                class="border border-gray-200 rounded-lg p-3 mb-2 hover:bg-gray-50 transition"
+                :class="{ 'bg-blue-50 border-blue-300': h.id === household?.id }"
+              >
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium">{{ h.name }}</div>
+                    <div class="text-sm text-gray-500">{{ h.address }}</div>
+                  </div>
+                  <button
+                    v-if="h.id !== household?.id"
+                    @click="handleChangeActiveHousehold(h.id)"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                    :disabled="isSettingActiveHousehold"
+                  >
+                    Velg
+                  </button>
+                  <div v-else class="px-3 py-1 text-sm text-blue-600 font-medium flex items-center">
+                    <CheckCircle class="h-4 w-4 mr-1" />
+                    Aktiv
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" @click="isChangeHouseholdDialogOpen = false"> Lukk </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div v-else class="text-center py-12">

@@ -23,7 +23,7 @@ interface Inventory {
 interface Props {
   inventory: Inventory
   inventoryItems?: InventoryItem[]
-  householdId: string
+  householdId?: string
   showDetailsButton?: boolean
 }
 
@@ -35,7 +35,7 @@ const emit = defineEmits<{
 }>()
 
 function navigateToInventory() {
-  router.push(`/husstand/${props.householdId}/beredskapslager`)
+  router.push('/husstand/beredskapslager')
 }
 </script>
 
@@ -66,10 +66,10 @@ function navigateToInventory() {
       </div>
 
       <!-- Days prepared -->
-      <div 
+      <div
         class="mb-4 bg-blue-50 p-4 rounded-lg border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors duration-150"
-        @click="emit('open-info-dialog')" 
-        role="button" 
+        @click="emit('open-info-dialog')"
+        role="button"
         tabindex="0"
         aria-label="Vis informasjon om beredskapsberegning"
       >

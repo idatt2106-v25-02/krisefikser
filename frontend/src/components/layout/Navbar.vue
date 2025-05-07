@@ -60,7 +60,7 @@ export default {
       },
       {
         label: 'Beredskapslager',
-        to: '/husstand/:id/beredskapslager',
+        to: '/husstand/beredskapslager',
         icon: Package,
         show: authStore.isAuthenticated,
       },
