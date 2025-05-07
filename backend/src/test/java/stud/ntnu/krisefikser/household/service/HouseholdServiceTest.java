@@ -49,7 +49,7 @@ class HouseholdServiceTest {
 
   @Mock
   private ChecklistItemService checklistItemService;
-  
+
   @Mock
   private GuestRepository guestRepository;
 
@@ -113,11 +113,12 @@ class HouseholdServiceTest {
     mockMembersList = Collections.singletonList(testMember);
 
     userResponse = new UserResponse(userId, "test@example.com", Collections.emptyList(),
-        "Test", "User", false, false, false);
+        "Test", "User", false, false, false, null, null);
 
     memberResponse = new HouseholdMemberResponse(userResponse);
-    
-    // Set up mock for GuestRepository using lenient() to avoid UnnecessaryStubbingException
+
+    // Set up mock for GuestRepository using lenient() to avoid
+    // UnnecessaryStubbingException
     lenient().when(guestRepository.findByHousehold(any(Household.class))).thenReturn(Collections.emptyList());
   }
 

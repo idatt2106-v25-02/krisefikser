@@ -57,7 +57,6 @@ public class HouseholdMember {
    */
   public HouseholdMemberResponse toDtoWithLocation() {
     return new HouseholdMemberResponse(
-        user.toDtoWithLocation(),
-        status);
+        user.toDtoWithLocation());
   }
 }
