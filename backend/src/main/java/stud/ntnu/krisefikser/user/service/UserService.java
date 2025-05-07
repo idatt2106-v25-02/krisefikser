@@ -17,9 +17,13 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
-import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
+import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
+/**
+ * Service class for managing users. This class provides methods to create, update, delete, and
+ * retrieve users.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -28,37 +32,61 @@ public class UserService {
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
 
-  public User getCurrentUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String email = authentication.getName();
-
-    return userRepository.findByEmail(email).orElseThrow(
-        () -> new UserDoesNotExistException("User with email " + email + " does not exist"));
+  /**
+   * Creates a new user in the system.
+   *
+   * @param data the user data
+   * @return the created User entity
+   * @throws EmailAlreadyExistsException if the email is already in use by another user
+   */
+  public User createUser(CreateUser data) {
+    return createUser(data, RoleType.USER);
   }
 
-  public User createUser(CreateUser data) {
+  /**
+   * Creates a new user in the system.
+   *
+   * @param data     the user data
+   * @param roleType the role type to assign to the user
+   * @return the created User entity
+   * @throws EmailAlreadyExistsException if the email is already in use by another user
+   */
+  public User createUser(CreateUser data,
+      RoleType roleType) {
     if (userRepository.existsByEmail(data.getEmail())) {
       throw new EmailAlreadyExistsException(
           "User with email " + data.getEmail() + " already exists");
     }
 
-    Role userRole = roleRepository.findByName(RoleType.USER)
+    Role userRole = roleRepository.findByName(roleType)
         .orElseThrow(RoleNotFoundException::new);
 
     Set<Role> roles = new HashSet<>();
     roles.add(userRole);
 
-    User user = User.builder()
-        .email(data.getEmail())
-        .password(passwordEncoder.encode(data.getPassword()))
-        .firstName(data.getFirstName())
-        .lastName(data.getLastName())
-        .notifications(data.isNotifications())
-        .emailUpdates(data.isEmailUpdates())
-        .locationSharing(data.isLocationSharing())
-        .roles(roles)
-        .build();
+    User user =
+        User.builder().email(data.getEmail()).password(passwordEncoder.encode(data.getPassword()))
+            .firstName(data.getFirstName()).lastName(data.getLastName())
+            .notifications(data.isNotifications()).emailUpdates(data.isEmailUpdates())
+            .locationSharing(data.isLocationSharing()).roles(roles).passwordRetries(0)
+            .lockedUntil(null).build();
 
+    return userRepository.save(user);
+  }
+
+  /**
+   * Updates the password of an existing user.
+   *
+   * @param userId      the UUID of the user to update
+   * @param newPassword the new password
+   * @return the updated User entity
+   * @throws UserNotFoundException if the user with the given ID does not exist
+   */
+  public User updatePassword(UUID userId, String newPassword) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
+
+    user.setPassword(passwordEncoder.encode(newPassword));
     return userRepository.save(user);
   }
 
@@ -68,15 +96,12 @@ public class UserService {
    * @param userId the UUID of the user to update
    * @param data   the updated user data
    * @return the updated User entity
-   * @throws UserDoesNotExistException   if the user with the given ID does not
-   *                                     exist
-   * @throws EmailAlreadyExistsException if the new email is already in use by
-   *                                     another user
+   * @throws UserNotFoundException       if the user with the given ID does not exist
+   * @throws EmailAlreadyExistsException if the new email is already in use by another user
    */
   public User updateUser(UUID userId, CreateUser data) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(
-            () -> new UserDoesNotExistException("User with id " + userId + " does not exist"));
+    User user =
+        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
     // Check if email is being changed and if it already exists
     if (!user.getEmail().equals(data.getEmail()) && userRepository.existsByEmail(data.getEmail())) {
@@ -111,12 +136,11 @@ public class UserService {
    * Deletes a user from the system.
    *
    * @param userId the UUID of the user to delete
-   * @throws UserDoesNotExistException if the user with the given ID does not
-   *                                   exist
+   * @throws UserNotFoundException if the user with the given ID does not exist
    */
   public void deleteUser(UUID userId) {
     if (!userRepository.existsById(userId)) {
-      throw new UserDoesNotExistException("User with id " + userId + " does not exist");
+      throw new UserNotFoundException(userId);
     }
     userRepository.deleteById(userId);
   }
@@ -131,29 +155,74 @@ public class UserService {
   }
 
   /**
+   * Retrieves all admins in the system.
+   *
+   * @return a list of all User entities
+   */
+  public List<User> getAllAdmins() {
+    return userRepository.findByRolesName(RoleType.ADMIN);
+  }
+
+  /**
    * Checks if the current user is either an admin or the user being accessed.
    *
    * @param userId the UUID of the user being accessed
    * @return true if the current user is an admin or the user being accessed,
-   *         false otherwise
+   * false otherwise
    */
   public boolean isAdminOrSelf(UUID userId) {
     User currentUser = getCurrentUser();
-    return currentUser.getId().equals(userId) ||
-        currentUser.getRoles().stream()
-            .anyMatch(
-                role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
+    return currentUser.getId().equals(userId)
+        || currentUser.getRoles().stream()
+        .anyMatch(
+            role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
   }
 
+  /**
+   * Retrieves the currently authenticated user.
+   *
+   * @return the User entity of the currently authenticated user
+   * @throws UserNotFoundException if the user is not found in the database
+   */
+  public User getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String email = authentication.getName();
+
+    return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+  }
+
+  /**
+   * Updates the active household of the currently authenticated user.
+   *
+   * @param household the new active household to set
+   */
   public void updateActiveHousehold(Household household) {
     User currentUser = getCurrentUser();
     currentUser.setActiveHousehold(household);
     userRepository.save(currentUser);
   }
 
+  /**
+   * Retrieves a user by their ID.
+   *
+   * @param id the UUID of the user to retrieve
+   * @return the User entity with the specified ID
+   * @throws UserNotFoundException if the user with the given ID does not exist
+   */
   public User getUserById(UUID id) {
-    return userRepository.findById(id)
-        .orElseThrow(() -> new UserDoesNotExistException("User with ID " + id + " does not exist"));
+    return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+  }
+
+  /**
+   * Retrieves a user by their mail.
+   *
+   * @param email the mail of the user to retrieve
+   * @return the User entity with the specified mail
+   * @throws UserNotFoundException if the user with the given ID does not exist
+   */
+  public User getUserByEmail(String email) {
+    return userRepository.findByEmail(email).orElseThrow(
+        () -> new UserNotFoundException("User with email " + email + " does not exist"));
   }
 
   /**

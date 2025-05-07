@@ -1,13 +1,24 @@
 package stud.ntnu.krisefikser.map.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import stud.ntnu.krisefikser.map.dto.EventResponse;
 
-import java.time.LocalDateTime;
-
+/**
+ * Entity class representing an event in the system. This class is used to store information about
+ * events, including their title, description, location, level, start and end times, and status.
+ */
 @Entity
 @Data
 @Builder
@@ -15,35 +26,57 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "events")
 public class Event {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Column(nullable = false)
-    private String title;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+  @Column(nullable = false)
+  private String title;
 
-    @Column(nullable = false)
-    private Double radius;
+  @Column(columnDefinition = "TEXT")
+  private String description;
 
-    @Column(nullable = false)
-    private Double latitude;
+  @Column(nullable = false)
+  private Double radius;
 
-    @Column(nullable = false)
-    private Double longitude;
+  @Column(nullable = false)
+  private Double latitude;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EventLevel level;
+  @Column(nullable = false)
+  private Double longitude;
 
-    @Column(nullable = false)
-    private LocalDateTime startTime;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private EventLevel level;
 
-    private LocalDateTime endTime;
+  @Column(nullable = false)
+  private ZonedDateTime startTime;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EventStatus status;
+  private ZonedDateTime endTime;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private EventStatus status;
+
+  /**
+   * Converts the Event entity to an EventResponse DTO. This method is used to transfer event data
+   * to the client.
+   *
+   * @return EventResponse DTO containing event data
+   */
+  public EventResponse toResponse() {
+    return EventResponse.builder()
+        .id(this.id)
+        .title(this.title)
+        .description(this.description)
+        .radius(this.radius)
+        .latitude(this.latitude)
+        .longitude(this.longitude)
+        .level(this.level)
+        .startTime(this.startTime)
+        .endTime(this.endTime)
+        .status(this.status)
+        .build();
+  }
 }

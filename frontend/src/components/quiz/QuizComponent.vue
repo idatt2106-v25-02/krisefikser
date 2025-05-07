@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import type { PropType } from 'vue';
 import { CheckCircle, XCircle, Info, ChevronLeft, Trophy, Award, ThumbsUp } from 'lucide-vue-next';
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts';
 
 // Define interfaces for type safety
 interface Question {
@@ -88,8 +89,10 @@ const resultFeedback = computed(() => {
   }
 });
 
+const store = useAccessibilityStore();
+
 // Speech synthesis setup
-const speechRate = ref(1.0);
+const speechRate = ref(store.speechRate);
 const synth = window.speechSynthesis;
 
 // Keyboard event handler for speech rate
@@ -113,6 +116,8 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
 // Speech function
 const speakText = (text: string) => {
+  if (!store.ttsEnabled) return;
+
   if (synth.speaking) {
     synth.cancel();
   }
@@ -514,3 +519,4 @@ const readQuestionAndOptions = () => {
     </div>
   </div>
 </template>
+

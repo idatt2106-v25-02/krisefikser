@@ -19,9 +19,8 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -30,14 +29,19 @@ import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
+/**
+ * Entity class representing a user in the system. This class is used to store information about
+ * users, including their email, roles, password, and preferences.
+ *
+ * @since 1.0
+ */
 @Entity
-@Getter
-@Setter
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
-@ToString(exclude = { "activeHousehold" })
+@ToString(exclude = {"activeHousehold"})
 public class User {
 
   @Id
@@ -48,7 +52,8 @@ public class User {
   private String email;
 
   @ManyToMany(fetch = FetchType.EAGER)
-  @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+  @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
   @Column(nullable = false)
@@ -78,6 +83,12 @@ public class User {
 
   @UpdateTimestamp
   private LocalDateTime updatedAt;
+
+  @Column(nullable = false)
+  private int passwordRetries = 0;
+
+  @Column
+  private LocalDateTime lockedUntil;
 
   @ManyToOne(cascade = CascadeType.MERGE)
   @JoinColumn(name = "active_household_id")

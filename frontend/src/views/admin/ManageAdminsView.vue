@@ -1,7 +1,8 @@
 <!-- AdminSection.vue -->
 <script setup lang="ts">
 import AdminLayout from '@/components/admin/AdminLayout.vue';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   Mail,
   Trash2,
@@ -37,39 +38,28 @@ import {
 } from '@/components/ui/alert';
 
 // Import custom components
-import EditHouseholdDialog from '@/components/admin/EditHouseholdDialog.vue';
-import AddMemberDialog from '@/components/admin/AddMemberDialog.vue';
-import HouseholdList from '@/components/admin/HouseholdList.vue';
-import UserSelect from '@/components/admin/UserSelect.vue';
+import HouseholdList from '@/components/admin/users/HouseholdList.vue';
+import UserSelect from '@/components/admin/users/UserSelect.vue';
 
 // Import API hooks
 import { useGetAllUsers, useDeleteUser, useUpdateUser } from '@/api/generated/user/user';
 import {
-  useGetAllHouseholdsAdmin,
-  useDeleteHousehold,
-  useUpdateHousehold,
-  useRemoveMemberFromHousehold,
-  useAddMemberToHousehold
+  useGetAllHouseholdsAdmin
 } from '@/api/generated/household/household';
 import type { UserResponse, CreateUser } from '@/api/generated/model';
-import type { HouseholdResponse, CreateHouseholdRequest } from '@/api/generated/model';
+import type { HouseholdResponse } from '@/api/generated/model';
 
-const props = defineProps({
-  isSuperAdmin: {
-    type: Boolean,
-    default: false
-  }
-});
+// Import auth store
+// new comment to force pipeline to run
+import { useAuthStore } from '@/stores/auth/useAuthStore';
 
-const emit = defineEmits(['navigate']);
+const router = useRouter();
+const authStore = useAuthStore();
 
 // State for dialogs
 const showInviteDialog = ref(false);
 const showSuccessMessage = ref(false);
-const showEditHouseholdDialog = ref(false);
-const showAddMemberDialog = ref(false);
 const selectedUserId = ref('');
-const selectedHousehold = ref<HouseholdResponse | null>(null);
 
 // Fetch users using TanStack Query
 const { data: usersData, isLoading: isLoadingUsers, refetch: refetchUsers } = useGetAllUsers<UserResponse[]>();
@@ -93,43 +83,31 @@ const { mutate: updateUserMutation } = useUpdateUser({
 });
 
 // Fetch households using TanStack Query
-const { data: householdsData, isLoading: isLoadingHouseholds, refetch: refetchHouseholds } = useGetAllHouseholdsAdmin<HouseholdResponse[]>();
-
-// Delete household mutation
-const { mutate: deleteHouseholdMutation } = useDeleteHousehold({
-  mutation: {
-    onSuccess: () => {
-      refetchHouseholds();
-    }
+const {
+  data: householdsData,
+  isLoading: isLoadingHouseholds,
+  error: householdsError
+} = useGetAllHouseholdsAdmin<HouseholdResponse[]>({
+  query: {
+    enabled: computed(() => {
+      console.log('Current user roles:', authStore.currentUser?.roles);
+      console.log('Is Admin:', authStore.isAdmin);
+      console.log('Is Super Admin:', authStore.isSuperAdmin);
+      return authStore.isAdmin;
+    }),
+    retry: false
   }
 });
 
-// Update household mutation
-const { mutate: updateHouseholdMutation } = useUpdateHousehold({
-  mutation: {
-    onSuccess: () => {
-      refetchHouseholds();
-    }
+// Watch for changes in households data and errors
+watch([householdsData, householdsError], ([newData, error]) => {
+  if (error) {
+    console.error('Error fetching households:', error);
   }
-});
-
-// Remove member mutation
-const { mutate: removeMemberMutation } = useRemoveMemberFromHousehold({
-  mutation: {
-    onSuccess: () => {
-      refetchHouseholds();
-    }
+  if (newData) {
+    console.log('Households data updated:', newData);
   }
-});
-
-// Add member mutation
-const { mutate: addMemberMutation } = useAddMemberToHousehold({
-  mutation: {
-    onSuccess: () => {
-      refetchHouseholds();
-    }
-  }
-});
+}, { immediate: true });
 
 // View options
 const viewMode = ref('all'); // 'all', 'admins', 'users', 'households'
@@ -152,11 +130,40 @@ const filteredUsers = computed(() => {
 
   // Apply role filter
   if (viewMode.value === 'admins') {
-    result = result.filter(user => user.roles?.includes('ADMIN'));
+    result = result.filter(user => user.roles?.includes('ADMIN') || user.roles?.includes('SUPER_ADMIN'));
   } else if (viewMode.value === 'users') {
-    result = result.filter(user => !user.roles?.includes('ADMIN'));
+    result = result.filter(user => !user.roles?.includes('ADMIN') && !user.roles?.includes('SUPER_ADMIN'));
   }
 
+  return result;
+});
+
+// Filter households
+const filteredHouseholds = computed(() => {
+  if (!householdsData.value) {
+    console.log('No households data available');
+    return [];
+  }
+  let result = [...householdsData.value];
+  console.log('Filtering households:', result);
+
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter(household => {
+      // Search in household name
+      if (household.name?.toLowerCase().includes(query)) return true;
+
+      // Search in member names and emails
+      return household.members?.some(member =>
+        (member.user.firstName?.toLowerCase().includes(query) || false) ||
+        (member.user.lastName?.toLowerCase().includes(query) || false) ||
+        (member.user.email?.toLowerCase().includes(query) || false)
+      );
+    });
+  }
+
+  console.log('Filtered households:', result);
   return result;
 });
 
@@ -175,7 +182,7 @@ const deleteItem = (id: string) => {
 const canDeleteUser = (userRoles?: string[]) => {
   if (!userRoles) return false;
   // Super Admins can delete Admins and Users, but not other Super Admins
-  if (props.isSuperAdmin) {
+  if (authStore.isSuperAdmin) {
     return !userRoles.includes('SUPER_ADMIN');
   }
   // Regular Admins can only delete Users
@@ -192,7 +199,7 @@ const canInviteUser = (userRoles?: string[]) => {
 };
 
 const sendPasswordResetLink = () => {
-  emit('navigate', '/admin/reset-passord-link');
+  router.push('/admin/reset-passord-link');
 };
 
 // Open admin invite dialog for specific user
@@ -242,34 +249,6 @@ const sendAdminInvite = () => {
 const closeDialogs = () => {
   showInviteDialog.value = false;
   selectedUserId.value = '';
-};
-
-// Handle household actions
-const handleEditHousehold = (household: HouseholdResponse) => {
-  selectedHousehold.value = household;
-  showEditHouseholdDialog.value = true;
-};
-
-const handleAddMember = (household: HouseholdResponse) => {
-  selectedHousehold.value = household;
-  showAddMemberDialog.value = true;
-};
-
-const handleDeleteHousehold = (id: string) => {
-  deleteHouseholdMutation({ id });
-};
-
-const handleRemoveMember = (data: { householdId: string; userId: string }) => {
-  if (!data.userId) return;
-  removeMemberMutation(data);
-};
-
-const handleUpdateHousehold = (data: { id: string; data: CreateHouseholdRequest }) => {
-  updateHouseholdMutation(data);
-};
-
-const handleAddMemberToHousehold = (data: { householdId: string; userId: string }) => {
-  addMemberMutation(data);
 };
 
 const getRoleClass = (roles?: string[]) => {
@@ -330,7 +309,7 @@ const getRoleDisplay = (roles?: string[]) => {
         <CheckCircle class="h-4 w-4" />
         <AlertTitle>Invitasjon sendt!</AlertTitle>
         <AlertDescription>
-          {{ selectedUser.firstName }} {{ selectedUser.lastName }} har blitt invitert til å bli admin.
+          {{ selectedUser?.firstName }} {{ selectedUser?.lastName }} har blitt invitert til å bli admin.
         </AlertDescription>
       </Alert>
 
@@ -338,7 +317,7 @@ const getRoleDisplay = (roles?: string[]) => {
         <h2 class="text-2xl font-bold text-gray-800">Brukere og admins</h2>
 
         <!-- Only Super Admin can invite new admins -->
-        <div v-if="!isSuperAdmin" class="text-sm text-gray-500 italic flex items-center">
+        <div v-if="!authStore.isSuperAdmin" class="text-sm text-gray-500 italic flex items-center">
           <ShieldCheck class="h-4 w-4 mr-1 text-gray-400" />
           Kun Super Admin kan administrere brukere
         </div>
@@ -347,7 +326,7 @@ const getRoleDisplay = (roles?: string[]) => {
           <Button
             variant="default"
             class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
-            @click="emit('navigate', '/admin/invite')"
+            @click="router.push('/admin/invite')"
           >
             <UserPlus class="h-4 w-4 mr-1" />
             Inviter ny admin
@@ -364,7 +343,7 @@ const getRoleDisplay = (roles?: string[]) => {
       </div>
 
       <!-- Super Admin privileges notice -->
-      <div v-if="isSuperAdmin" class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+      <div v-if="authStore.isSuperAdmin" class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
         <div class="flex">
           <ShieldCheck class="h-5 w-5 text-blue-500 mr-2" />
           <div>
@@ -430,55 +409,66 @@ const getRoleDisplay = (roles?: string[]) => {
         </div>
 
         <!-- User list view (default) -->
-        <div v-else-if="viewMode !== 'households'">
-          <table class="w-full">
-            <thead class="bg-gray-50 text-xs text-gray-700 uppercase">
-            <tr>
-              <th class="px-4 py-3 text-left">Navn</th>
-              <th class="px-4 py-3 text-left">E-post</th>
-              <th class="px-4 py-3 text-left">Rolle</th>
-              <th class="px-4 py-3 text-center">Handlinger</th>
-            </tr>
-            </thead>
-            <tbody class="divide-y">
-            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
-              <td class="px-4 py-3 font-medium text-gray-800">{{ user.firstName }} {{ user.lastName }}</td>
-              <td class="px-4 py-3 text-gray-700">{{ user.email }}</td>
-              <td class="px-4 py-3">
-                <span :class="`px-2 py-1 rounded-full text-xs font-medium ${getRoleClass(user.roles)}`">
-                  {{ getRoleDisplay(user.roles) }}
-                </span>
-              </td>
-              <td class="px-4 py-3">
-                <div class="flex justify-center space-x-2">
-                  <!-- Mail icon - only for regular users if Super Admin -->
-                  <Button
-                    v-if="isSuperAdmin && canInviteUser(user.roles)"
-                    variant="ghost"
-                    size="icon"
-                    class="text-blue-600 hover:text-blue-800 p-1 h-auto"
-                    @click="openInviteDialog(user.id || '')"
-                    title="Inviter til Admin"
-                  >
-                    <Mail class="h-4 w-4" />
-                  </Button>
-
-                  <!-- Delete button with permission check -->
-                  <Button
-                    v-if="canDeleteUser(user.roles)"
-                    variant="ghost"
-                    size="icon"
-                    class="text-red-600 hover:text-red-800 p-1 h-auto"
-                    @click="deleteItem(user.id || '')"
-                    title="Slett bruker"
-                  >
-                    <Trash2 class="h-4 w-4" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-            </tbody>
-          </table>
+        <div v-else-if="viewMode !== 'households'" class="relative">
+          <div class="overflow-x-auto">
+            <div class="min-w-full inline-block align-middle">
+              <div class="overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
+                      <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-post</th>
+                      <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rolle</th>
+                      <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Handlinger</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50 transition-colors">
+                      <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ user.firstName }} {{ user.lastName }}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {{ user.email }}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        <span :class="`px-2 py-1 rounded-full text-xs font-medium ${getRoleClass(user.roles)}`">
+                          {{ getRoleDisplay(user.roles) }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-3 whitespace-nowrap text-sm text-center">
+                        <div class="flex justify-center space-x-2 min-w-[56px]">
+                          <!-- Mail icon - only for regular users if Super Admin -->
+                          <span v-if="authStore.isSuperAdmin && canInviteUser(user.roles)">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              class="text-blue-600 hover:text-blue-800 p-1 h-auto"
+                              @click="openInviteDialog(user.id || '')"
+                              title="Inviter til Admin"
+                            >
+                              <Mail class="h-4 w-4" />
+                            </Button>
+                          </span>
+                          <span v-else class="inline-block w-8"></span>
+                          <!-- Delete button with permission check -->
+                          <Button
+                            v-if="canDeleteUser(user.roles)"
+                            variant="ghost"
+                            size="icon"
+                            class="text-red-600 hover:text-red-800 p-1 h-auto"
+                            @click="deleteItem(user.id || '')"
+                            title="Slett bruker"
+                          >
+                            <Trash2 class="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Household view -->
@@ -487,34 +477,56 @@ const getRoleDisplay = (roles?: string[]) => {
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
             <p class="mt-2 text-gray-500">Laster husstander...</p>
           </div>
+          <div v-else-if="householdsError" class="p-8 text-center">
+            <p class="text-red-500">Kunne ikke laste husstander</p>
+            <p class="text-sm text-gray-400 mt-2">Sjekk at du har admin-tilgang</p>
+            <p class="text-xs text-gray-400 mt-1">Debug: {{ householdsError }}</p>
+          </div>
+          <div v-else-if="!filteredHouseholds.length" class="p-8 text-center">
+            <p class="text-gray-500">Ingen husstander funnet</p>
+            <p class="text-sm text-gray-400 mt-2">Debug info: {{ householdsData ? 'Data exists' : 'No data' }}</p>
+            <p class="text-xs text-gray-400 mt-1">User roles: {{ authStore.currentUser?.roles?.join(', ') }}</p>
+          </div>
           <HouseholdList
             v-else
-            :households="householdsData || []"
-            @edit="handleEditHousehold"
-            @addMember="handleAddMember"
-            @delete="handleDeleteHousehold"
-            @removeMember="handleRemoveMember"
+            :households="filteredHouseholds"
           />
         </div>
       </div>
-
-      <!-- Edit Household Dialog -->
-      <EditHouseholdDialog
-        v-if="selectedHousehold"
-        :household="selectedHousehold"
-        :open="showEditHouseholdDialog"
-        @update:open="val => showEditHouseholdDialog = val"
-        @save="handleUpdateHousehold"
-      />
-
-      <!-- Add Member Dialog -->
-      <AddMemberDialog
-        v-if="selectedHousehold"
-        :household="selectedHousehold"
-        :open="showAddMemberDialog"
-        @update:open="val => showAddMemberDialog = val"
-        @add="handleAddMemberToHousehold"
-      />
     </div>
   </AdminLayout>
 </template>
+
+<style scoped>
+.overflow-x-auto {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E0 #EDF2F7;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #EDF2F7;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #CBD5E0;
+  border-radius: 4px;
+  border: 2px solid #EDF2F7;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #A0AEC0;
+}
+
+@media (max-width: 640px) {
+  .overflow-x-auto {
+    max-height: calc(100vh - 250px);
+  }
+}
+</style>

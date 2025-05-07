@@ -7,58 +7,115 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.auth.dto.CompletePasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
+import stud.ntnu.krisefikser.auth.dto.PasswordResetResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RefreshResponse;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
-import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
+import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
+import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
+import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
 import stud.ntnu.krisefikser.auth.service.AuthService;
-import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
+/**
+ * REST controller for managing authentication-related operations. Provides endpoints for user
+ * registration, login, token refresh, and retrieving user details.
+ */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "Authentication management APIs")
 @Validated
 public class AuthController {
-    private final AuthService authService;
-    private final TurnstileService turnstileService;
 
-    @Operation(
-        summary = "Register a new user", description = "Creates a new user account after CAPTCHA verification and input validation"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully registered user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RegisterResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA verification failed", content = @Content(mediaType = "application/json")),
-        @ApiResponse(responseCode = "500", description = "Unexpected server error", content = @Content(mediaType = "application/json"))
-    })
-    @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(
-            @Parameter(description = "Registration details including Turnstile token", required = true)
-            @RequestBody RegisterRequest request) {
-        boolean isHuman = turnstileService.verify(request.getTurnstileToken());
-        if (!isHuman) {
-            throw new TurnstileVerificationException(); // Will trigger 400 with message if @RestControllerAdvice is used
-        }
-        RegisterResponse response = authService.register(request);
-        return ResponseEntity.ok(response);
-    }
+  private final AuthService authService;
 
+  /**
+   * Registers a new user after verifying the CAPTCHA and validating the input.
+   *
+   * @param request The registration details including Turnstile token.
+   * @return ResponseEntity containing the registration response.
+   */
+  @Operation(summary = "Register a new user",
+      description = "Creates a new user account after CAPTCHA "
+          + "verification and input validation")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully registered user",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RegisterResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA "
+          + "verification failed", content = @Content(mediaType = "application/json")),
+      @ApiResponse(responseCode = "500", description = "Unexpected server error",
+          content = @Content(mediaType = "application/json"))
+  })
+  @PostMapping("/register")
+  public ResponseEntity<RegisterResponse> register(
+      @Parameter(description = "Registration details including Turnstile token", required = true)
+      @RequestBody RegisterRequest request) {
+    RegisterResponse response = authService.register(request);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Registers a new admin user after verifying the CAPTCHA and validating the input. This endpoint
+   * is restricted to users with administrative privileges.
+   *
+   * @param request The registration details including Turnstile token.
+   * @return ResponseEntity containing the registration response.
+   */
+  @Operation(summary = "Register a new admin user",
+      description = "Creates a new admin user account after CAPTCHA "
+          + "verification and input validation")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully registered admin user",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RegisterResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA "
+          + "verification failed", content = @Content(mediaType = "application/json")),
+      @ApiResponse(responseCode = "403",
+          description = "Insufficient permissions to create admin account",
+          content = @Content(mediaType = "application/json")),
+      @ApiResponse(responseCode = "500", description = "Unexpected server error",
+          content = @Content(mediaType = "application/json"))
+  })
+  @PostMapping("/register/admin")
+  public ResponseEntity<RegisterResponse> registerAdmin(
+      @Parameter(description = "Registration details including Turnstile token", required = true)
+      @RequestBody RegisterRequest request) {
+    RegisterResponse response = authService.registerAdmin(request);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Authenticates a user and returns access tokens.
+   *
+   * @param request The login credentials.
+   * @return ResponseEntity containing the access tokens.
+   */
   @Operation(summary = "Login user", description = "Authenticates a user and returns access tokens")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully authenticated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class))),
-      @ApiResponse(responseCode = "401", description = "Invalid credentials")
+      @ApiResponse(responseCode = "200", description = "Successfully authenticated",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = LoginResponse.class))),
+      @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+      @ApiResponse(responseCode = "423", description = "Account is locked")
   })
   @PostMapping("/login")
   public ResponseEntity<LoginResponse> login(
@@ -67,9 +124,18 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Refresh token", description = "Generates new access token using refresh token")
+  /**
+   * Refreshes the access token using the provided refresh token.
+   *
+   * @param refreshToken The refresh token used to obtain a new access token.
+   * @return ResponseEntity containing the new access token.
+   */
+  @Operation(summary = "Refresh token", description = "Generates new access token using refresh "
+      + "token")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully refreshed token", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RefreshResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully refreshed token",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RefreshResponse.class))),
       @ApiResponse(responseCode = "401", description = "Invalid refresh token")
   })
   @PostMapping("/refresh")
@@ -79,14 +145,106 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Get current user", description = "Retrieves the currently authenticated user's details")
+  /**
+   * Retrieves the currently authenticated user's details.
+   *
+   * @return ResponseEntity containing the user's details.
+   */
+  @Operation(summary = "Get current user", description = "Retrieves the currently authenticated "
+      + "user's details")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved user details", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved user details",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = UserResponse.class))),
       @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
   @GetMapping("/me")
   public ResponseEntity<UserResponse> me() {
     UserResponse response = authService.me();
     return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Updates the password of the currently authenticated user.
+   *
+   * @param updatePasswordRequest The request containing the new password
+   * @return ResponseEntity containing the status of the password update operation
+   */
+  @Operation(summary = "Update password", description = "Updates the password of the currently "
+      + "authenticated user")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Password successfully updated", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          UpdatePasswordResponse.class))),
+      @ApiResponse(responseCode = "401", description = "Invalid current password or not "
+          + "authenticated")
+  })
+  @PostMapping("/update-password")
+  public ResponseEntity<UpdatePasswordResponse> updatePassword(
+      @RequestBody UpdatePasswordRequest updatePasswordRequest
+  ) {
+    UpdatePasswordResponse response = authService.updatePassword(updatePasswordRequest);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Requests a password reset by generating a reset token and sending it to the user's email.
+   *
+   * @param request The request containing the user's email
+   * @return ResponseEntity containing the status of the reset request operation
+   */
+  @Operation(summary = "Request password reset", description = "Generates a password reset token "
+      + "and sends it to the user's email")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Password reset request successful",
+          content =
+          @Content(mediaType = "application/json", schema = @Schema(implementation =
+              PasswordResetResponse.class))),
+      @ApiResponse(responseCode = "404", description = "User not found"),
+      @ApiResponse(responseCode = "500", description = "Error sending email")
+  })
+  @PostMapping("/request-password-reset")
+  public ResponseEntity<PasswordResetResponse> requestPasswordReset(
+      @RequestBody RequestPasswordResetRequest request
+  ) {
+    PasswordResetResponse response = authService.requestPasswordReset(request);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Completes the password reset process by validating the token and setting a new password.
+   *
+   * @param request The request containing the email, token, and new password
+   * @return ResponseEntity containing the status of the password reset operation
+   */
+  @Operation(summary = "Complete password reset", description = "Verifies the reset token and "
+      + "updates the user's password")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Password successfully reset", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          PasswordResetResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Missing required fields"),
+      @ApiResponse(responseCode = "401", description = "Invalid or expired token")
+  })
+  @PostMapping("/complete-password-reset")
+  public ResponseEntity<PasswordResetResponse> completePasswordReset(
+      @RequestBody CompletePasswordResetRequest request
+  ) {
+    PasswordResetResponse response = authService.completePasswordReset(request);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Exception handler for LockedException to return a 423 (Locked) status code
+   *
+   * @param ex The LockedException that was thrown
+   * @return ResponseEntity with error details and 423 status code
+   */
+  @ExceptionHandler(LockedException.class)
+  public ResponseEntity<Map<String, String>> handleLockedException(LockedException ex) {
+    Map<String, String> response = new HashMap<>();
+    response.put("message", ex.getMessage());
+    response.put("error", "Account Locked");
+    return new ResponseEntity<>(response, HttpStatus.LOCKED); // HTTP 423
   }
 }

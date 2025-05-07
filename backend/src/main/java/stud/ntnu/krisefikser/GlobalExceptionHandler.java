@@ -7,8 +7,10 @@ import io.jsonwebtoken.security.SignatureException;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
+import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
@@ -26,7 +29,7 @@ import stud.ntnu.krisefikser.common.ProblemDetailUtils;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
 import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
-import stud.ntnu.krisefikser.user.exception.UserDoesNotExistException;
+import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 
 /**
  * Global exception handler for the Krisefikser application.
@@ -123,9 +126,29 @@ public class GlobalExceptionHandler {
         exception.getMessage(), "auth");
   }
 
+  /**
+   * Handles exceptions thrown when Turnstile verification fails.
+   *
+   * @param exception the Turnstile verification exception
+   * @return a problem detail with BAD_REQUEST status and the exception message
+   */
   @ExceptionHandler(TurnstileVerificationException.class)
-  public ProblemDetail handleTurnstileVerificationException(TurnstileVerificationException exception) {
+  public ProblemDetail handleTurnstileVerificationException(
+      TurnstileVerificationException exception) {
     return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+  }
+
+  /**
+   * Handles exceptions thrown when invalid credentials are provided during authentication.
+   *
+   * @param exception the invalid credentials exception
+   * @return a problem detail with UNAUTHORIZED status and the exception message
+   */
+  @ExceptionHandler(InvalidCredentialsException.class)
+  public ProblemDetail handleInvalidCredentialsException(
+      InvalidCredentialsException exception) {
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        exception.getMessage(), "auth");
   }
 
   // ===== User related exceptions =====
@@ -151,8 +174,8 @@ public class GlobalExceptionHandler {
    * @param exception the user does not exist exception
    * @return a problem detail with NOT_FOUND status and the exception message
    */
-  @ExceptionHandler(UserDoesNotExistException.class)
-  public ProblemDetail handleUserDoesNotExistException(UserDoesNotExistException exception) {
+  @ExceptionHandler(UserNotFoundException.class)
+  public ProblemDetail handleUserDoesNotExistException(UserNotFoundException exception) {
     log.warn("User does not exist: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.NOT_FOUND,
         exception.getMessage(), "user");
@@ -241,7 +264,8 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles authentication exceptions thrown by Spring Security when no valid authentication is present.
+   * Handles authentication exceptions thrown by Spring Security when no valid authentication is
+   * present.
    *
    * @param exception the authentication exception
    * @return a problem detail with UNAUTHORIZED status and an authentication required message
@@ -312,8 +336,7 @@ public class GlobalExceptionHandler {
    * Handles exceptions thrown when a required request parameter is missing.
    *
    * @param exception the missing servlet request parameter exception
-   * @return a problem detail with BAD_REQUEST status and a message identifying the missing
-   * parameter
+   * @return a problem detail with BAD_REQUEST status and a message identifying missing parameter.
    */
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ProblemDetail handleMissingParameterException(
@@ -366,6 +389,33 @@ public class GlobalExceptionHandler {
     log.error("Unauthorized access: {}", exception.getMessage());
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
         exception.getMessage(), "user");
+  }
+
+  /**
+   * Handles exceptions thrown when an invalid property reference is made, such as referencing
+   * a non-existent property in a query or request.
+   *
+   * @param exception the property reference exception
+   * @return a problem detail with BAD_REQUEST status and the exception message
+   */
+  @ExceptionHandler(PropertyReferenceException.class)
+  public ProblemDetail handlePropertyReferenceException(PropertyReferenceException exception) {
+    log.error("Property reference exception: {}", exception.getMessage());
+    return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+  }
+
+  /**
+   * Handles exceptions thrown when the HTTP message is not readable.
+   * This typically occurs due to issues such as malformed JSON in the request body.
+   *
+   * @param exception the HttpMessageNotReadableException that occurred
+   * @return a problem detail with BAD_REQUEST status and the exception message
+   */
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ProblemDetail handleHttpMessageNotReadableException(
+      HttpMessageNotReadableException exception) {
+    log.error("HttpMessageNotReadableException: {}", exception.getMessage());
+    return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
   }
 
   // ===== General exceptions =====
