@@ -964,16 +964,28 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                             <!-- Checklist categories: show checkbox -->
                             <label
                               :for="`checkbox-${item.id}`"
-                              class="flex items-center cursor-pointer flex-grow"
+                              class="flex items-center cursor-pointer flex-grow group transition-all duration-200"
                             >
-                              <input
-                                :id="`checkbox-${item.id}`"
-                                type="checkbox"
-                                :checked="item.checked"
-                                @change="toggleChecklistItem.mutateAsync({ id: item.id })"
-                                class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3 accent-blue-600"
-                              />
-                              <span class="text-base text-gray-800">{{ item.name }}</span>
+                              <div class="relative flex items-center">
+                                <input
+                                  :id="`checkbox-${item.id}`"
+                                  type="checkbox"
+                                  :checked="item.checked"
+                                  @change="toggleChecklistItem.mutateAsync({ id: item.id })"
+                                  class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3 accent-blue-600"
+                                />
+                              </div>
+                              <span
+                                class="text-base text-gray-800 group-hover:text-blue-700 transition-colors duration-200"
+                              >
+                                {{ item.name }}
+                              </span>
+                              <span
+                                v-if="item.checked"
+                                class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800 transition-all duration-200"
+                              >
+                                Fullført
+                              </span>
                             </label>
                           </template>
                         </div>
