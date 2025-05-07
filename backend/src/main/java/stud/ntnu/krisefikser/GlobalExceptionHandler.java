@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import stud.ntnu.krisefikser.article.exception.ArticleNotFoundException;
+import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
@@ -133,6 +134,19 @@ public class GlobalExceptionHandler {
   public ProblemDetail handleTurnstileVerificationException(
       TurnstileVerificationException exception) {
     return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+  }
+
+  /**
+   * Handles exceptions thrown when invalid credentials are provided during authentication.
+   *
+   * @param exception the invalid credentials exception
+   * @return a problem detail with UNAUTHORIZED status and the exception message
+   */
+  @ExceptionHandler(InvalidCredentialsException.class)
+  public ProblemDetail handleInvalidCredentialsException(
+      InvalidCredentialsException exception) {
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        exception.getMessage(), "auth");
   }
 
   // ===== User related exceptions =====
