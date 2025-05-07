@@ -55,16 +55,16 @@ public class TestSecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**")
-            .permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
-            .permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/map-points", "/api/map-points/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
-            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh",
-                "/api/auth/request-password-reset", "/api/auth/complete-password-reset")
-            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh",
-                "/api/auth/request-password-reset", "/api/auth/complete-password-reset")
-            .permitAll()
+            .requestMatchers(
+                "/api/auth/login",
+                "/api/auth/register",
+                "/api/auth/refresh",
+                "/api/auth/request-password-reset",
+                "/api/auth/complete-password-reset"
+            ).permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyRequest().authenticated())
         .authenticationProvider(authenticationProvider)
