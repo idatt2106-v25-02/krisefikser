@@ -1,7 +1,7 @@
 <!-- AdminSection.vue -->
 <script setup lang="ts">
 import AdminLayout from '@/components/admin/AdminLayout.vue';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   Mail,
@@ -46,14 +46,10 @@ import UserSelect from '@/components/admin/users/UserSelect.vue';
 // Import API hooks
 import { useGetAllUsers, useDeleteUser, useUpdateUser } from '@/api/generated/user/user';
 import {
-  useGetAllHouseholdsAdmin,
-  useDeleteHousehold,
-  useUpdateHousehold,
-  useRemoveMemberFromHousehold,
-  useAddMemberToHousehold
+  useGetAllHouseholdsAdmin
 } from '@/api/generated/household/household';
 import type { UserResponse, CreateUser } from '@/api/generated/model';
-import type { HouseholdResponse, CreateHouseholdRequest } from '@/api/generated/model';
+import type { HouseholdResponse } from '@/api/generated/model';
 
 // Import auth store
 // new comment to force pipeline to run
@@ -65,10 +61,7 @@ const authStore = useAuthStore();
 // State for dialogs
 const showInviteDialog = ref(false);
 const showSuccessMessage = ref(false);
-const showEditHouseholdDialog = ref(false);
-const showAddMemberDialog = ref(false);
 const selectedUserId = ref('');
-const selectedHousehold = ref<HouseholdResponse | null>(null);
 
 // Fetch users using TanStack Query
 const { data: usersData, isLoading: isLoadingUsers, refetch: refetchUsers } = useGetAllUsers<UserResponse[]>();
@@ -92,43 +85,32 @@ const { mutate: updateUserMutation } = useUpdateUser({
 });
 
 // Fetch households using TanStack Query
-const { data: householdsData, isLoading: isLoadingHouseholds, refetch: refetchHouseholds } = useGetAllHouseholdsAdmin<HouseholdResponse[]>();
-
-// Delete household mutation
-const { mutate: deleteHouseholdMutation } = useDeleteHousehold({
-  mutation: {
-    onSuccess: () => {
-      refetchHouseholds();
-    }
+const { 
+  data: householdsData, 
+  isLoading: isLoadingHouseholds, 
+  refetch: refetchHouseholds,
+  error: householdsError 
+} = useGetAllHouseholdsAdmin<HouseholdResponse[]>({
+  query: {
+    enabled: computed(() => {
+      console.log('Current user roles:', authStore.currentUser?.roles);
+      console.log('Is Admin:', authStore.isAdmin);
+      console.log('Is Super Admin:', authStore.isSuperAdmin);
+      return authStore.isAdmin;
+    }),
+    retry: false
   }
 });
 
-// Update household mutation
-const { mutate: updateHouseholdMutation } = useUpdateHousehold({
-  mutation: {
-    onSuccess: () => {
-      refetchHouseholds();
-    }
+// Watch for changes in households data and errors
+watch([householdsData, householdsError], ([newData, error]) => {
+  if (error) {
+    console.error('Error fetching households:', error);
   }
-});
-
-// Remove member mutation
-const { mutate: removeMemberMutation } = useRemoveMemberFromHousehold({
-  mutation: {
-    onSuccess: () => {
-      refetchHouseholds();
-    }
+  if (newData) {
+    console.log('Households data updated:', newData);
   }
-});
-
-// Add member mutation
-const { mutate: addMemberMutation } = useAddMemberToHousehold({
-  mutation: {
-    onSuccess: () => {
-      refetchHouseholds();
-    }
-  }
-});
+}, { immediate: true });
 
 // View options
 const viewMode = ref('all'); // 'all', 'admins', 'users', 'households'
@@ -151,11 +133,40 @@ const filteredUsers = computed(() => {
 
   // Apply role filter
   if (viewMode.value === 'admins') {
-    result = result.filter(user => user.roles?.includes('ADMIN'));
+    result = result.filter(user => user.roles?.includes('ADMIN') || user.roles?.includes('SUPER_ADMIN'));
   } else if (viewMode.value === 'users') {
-    result = result.filter(user => !user.roles?.includes('ADMIN'));
+    result = result.filter(user => !user.roles?.includes('ADMIN') && !user.roles?.includes('SUPER_ADMIN'));
   }
 
+  return result;
+});
+
+// Filter households
+const filteredHouseholds = computed(() => {
+  if (!householdsData.value) {
+    console.log('No households data available');
+    return [];
+  }
+  let result = [...householdsData.value];
+  console.log('Filtering households:', result);
+
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter(household => {
+      // Search in household name
+      if (household.name?.toLowerCase().includes(query)) return true;
+      
+      // Search in member names and emails
+      return household.members?.some(member => 
+        (member.user.firstName?.toLowerCase().includes(query) || false) ||
+        (member.user.lastName?.toLowerCase().includes(query) || false) ||
+        (member.user.email?.toLowerCase().includes(query) || false)
+      );
+    });
+  }
+
+  console.log('Filtered households:', result);
   return result;
 });
 
@@ -241,34 +252,6 @@ const sendAdminInvite = () => {
 const closeDialogs = () => {
   showInviteDialog.value = false;
   selectedUserId.value = '';
-};
-
-// Handle household actions
-const handleEditHousehold = (household: HouseholdResponse) => {
-  selectedHousehold.value = household;
-  showEditHouseholdDialog.value = true;
-};
-
-const handleAddMember = (household: HouseholdResponse) => {
-  selectedHousehold.value = household;
-  showAddMemberDialog.value = true;
-};
-
-const handleDeleteHousehold = (id: string) => {
-  deleteHouseholdMutation({ id });
-};
-
-const handleRemoveMember = (data: { householdId: string; userId: string }) => {
-  if (!data.userId) return;
-  removeMemberMutation(data);
-};
-
-const handleUpdateHousehold = (data: { id: string; data: CreateHouseholdRequest }) => {
-  updateHouseholdMutation(data);
-};
-
-const handleAddMemberToHousehold = (data: { householdId: string; userId: string }) => {
-  addMemberMutation(data);
 };
 
 const getRoleClass = (roles?: string[]) => {
@@ -486,34 +469,22 @@ const getRoleDisplay = (roles?: string[]) => {
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
             <p class="mt-2 text-gray-500">Laster husstander...</p>
           </div>
+          <div v-else-if="householdsError" class="p-8 text-center">
+            <p class="text-red-500">Kunne ikke laste husstander</p>
+            <p class="text-sm text-gray-400 mt-2">Sjekk at du har admin-tilgang</p>
+            <p class="text-xs text-gray-400 mt-1">Debug: {{ householdsError }}</p>
+          </div>
+          <div v-else-if="!filteredHouseholds.length" class="p-8 text-center">
+            <p class="text-gray-500">Ingen husstander funnet</p>
+            <p class="text-sm text-gray-400 mt-2">Debug info: {{ householdsData ? 'Data exists' : 'No data' }}</p>
+            <p class="text-xs text-gray-400 mt-1">User roles: {{ authStore.currentUser?.roles?.join(', ') }}</p>
+          </div>
           <HouseholdList
             v-else
-            :households="householdsData || []"
-            @edit="handleEditHousehold"
-            @addMember="handleAddMember"
-            @delete="handleDeleteHousehold"
-            @removeMember="handleRemoveMember"
+            :households="filteredHouseholds"
           />
         </div>
       </div>
-
-      <!-- Edit Household Dialog -->
-      <EditHouseholdDialog
-        v-if="selectedHousehold"
-        :household="selectedHousehold"
-        :open="showEditHouseholdDialog"
-        @update:open="val => showEditHouseholdDialog = val"
-        @save="handleUpdateHousehold"
-      />
-
-      <!-- Add Member Dialog -->
-      <AddMemberDialog
-        v-if="selectedHousehold"
-        :household="selectedHousehold"
-        :open="showAddMemberDialog"
-        @update:open="val => showAddMemberDialog = val"
-        @add="handleAddMemberToHousehold"
-      />
     </div>
   </AdminLayout>
 </template>
