@@ -78,7 +78,7 @@ public class ScenarioController {
          * @see ScenarioResponse
          */
         @PostMapping
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
         @Operation(summary = "Create a new scenario")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "201", description = "Scenario created successfully"),
@@ -109,7 +109,7 @@ public class ScenarioController {
          * @see ScenarioResponse
          */
         @PutMapping("/{id}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
         @Operation(summary = "Update an existing scenario")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Scenario updated successfully"),
@@ -138,7 +138,7 @@ public class ScenarioController {
          * @throws EntityNotFoundException if no scenario with the specified ID exists
          */
         @DeleteMapping("/{id}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
         @Operation(summary = "Delete a scenario")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "204", description = "Scenario deleted successfully"),
