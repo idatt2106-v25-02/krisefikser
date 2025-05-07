@@ -1,13 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import NonRegisteredHomeView from '@/views/nonRegistered/HomeView.vue'
-import NonRegisteredHomeView from '@/views/nonRegistered/HomeView.vue'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 
 // Auth views
 import LoginView from '@/views/auth/login/LoginView.vue'
 import ResetPasswordView from '@/views/auth/password/ResetPasswordView.vue'
-import LoginView from '@/views/auth/login/LoginView.vue'
-import ResetPasswordView from '@/views/auth/password/ResetPasswordView.vue'
+import VerifyEmailView from "@/views/auth/VerifyEmailView.vue"
 
 // Error views
 import NotFoundView from '@/views/errors/NotFoundView.vue'
@@ -18,8 +16,6 @@ import AdminMapView from '@/views/admin/map/AdminMapView.vue'
 import AdminResetPasswordLink from '@/views/admin/resetPassword/AdminResetPasswordLink.vue'
 import AdminRegisterView from '@/views/admin/register/AdminRegisterView.vue'
 import AdminScenariosView from '@/views/admin/scenario/ScenariosView.vue'
-
-import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
 import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
 
 // Registered User views
@@ -40,12 +36,8 @@ import NewsView from '@/views/nonRegistered/news/NewsView.vue'
 import ArticleView from '@/views/nonRegistered/news/ArticleView.vue'
 import AboutUsView from '@/views/nonRegistered/static/AboutUsView.vue'
 import ForgotPasswordView from '@/views/auth/password/ForgotPasswordView.vue'
-import VerifyEmailView from "@/views/auth/VerifyEmailView.vue";
 
 // Crisis Information views
-import BeforeCrisisView from '@/views/nonRegistered/info/BeforeCrisisView.vue'
-import DuringCrisisView from '@/views/nonRegistered/info/DuringCrisisView.vue'
-import AfterCrisisView from '@/views/nonRegistered/info/AfterCrisisView.vue'
 import BeforeCrisisView from '@/views/nonRegistered/info/BeforeCrisisView.vue'
 import DuringCrisisView from '@/views/nonRegistered/info/DuringCrisisView.vue'
 import AfterCrisisView from '@/views/nonRegistered/info/AfterCrisisView.vue'
@@ -82,22 +74,19 @@ const router = createRouter({
       path: '/logg-inn',
       name: 'login',
       component: LoginView,
-      meta: { requiresGuest: true },
-      meta: { requiresGuest: true },
+      meta: { requiresGuest: true }
     },
     {
       path: '/glemt-passord',
       name: 'glemt-passord',
       component: ForgotPasswordView,
-      meta: { requiresGuest: true },
-      meta: { requiresGuest: true },
+      meta: { requiresGuest: true }
     },
     {
       path: '/reset-passord',
       name: 'reset-password',
       component: ResetPasswordView,
-      meta: { requiresGuest: true },
-      meta: { requiresGuest: true },
+      meta: { requiresGuest: true }
     },
 
     // Admin routes
@@ -105,63 +94,51 @@ const router = createRouter({
       path: '/admin',
       name: 'admin-dashboard',
       component: AdminDashboardView,
-      meta: { requiresAuth: true, requiresAdmin: true },
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/registrer',
       name: 'admin-register',
       component: AdminRegisterView,
-      meta: { requiresAuth: true, requiresAdmin: true },
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/kart',
       name: 'admin-map',
       component: AdminMapView,
-      meta: { requiresAuth: true, requiresAdmin: true },
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/reset-passord-link',
       name: 'admin-reset-passord-link',
-      name: 'admin-reset-passord-link',
       component: AdminResetPasswordLink,
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/scenarios',
       name: 'admin-scenarios',
       component: AdminScenariosView,
-      meta: { requiresAuth: true, requiresAdmin: true },
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/brukere',
       name: 'admin-users',
       component: ManageAdminsView,
-      meta: { requiresAuth: true, requiresSuperAdmin: true },
+      meta: { requiresAuth: true, requiresSuperAdmin: true }
     },
     {
       path: '/verify',
       name: 'verify',
-      component: TokenVerifier,
+      component: VerifyEmailView,
       meta: { requiresGuest: true }
     },
-    {
-      path: '/verify',
-      name: 'verify',
-      component: TokenVerifier,
-      meta: { requiresGuest: true }
-    },
-
 
     // Registered User routes
     {
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true }
     },
     {
       path: '/mine-refleksjoner',
@@ -180,138 +157,107 @@ const router = createRouter({
       path: '/husstand',
       name: 'household',
       component: HouseholdDetailsView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true }
     },
-
     {
       path: '/husstand/refleksjoner',
       name: 'HouseholdReflections',
       component: HouseholdReflectionsPage,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true }
     },
     {
       path: '/husstand/beredskapslager',
       name: 'household-emergency-stock',
       component: HouseholdInventoryView,
-      meta: { requiresAuth: true },
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true }
     },
-
+    {
+      path: '/husstand/opprett',
+      name: 'new-household',
+      component: NewHouseholdView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/refleksjoner/offentlige',
+      name: 'public-reflections',
+      component: PublicReflectionsPage,
+      meta: { requiresAuth: false }
+    },
     {
       path: '/adresse',
       name: 'home-address',
-      component: HomeAddressView,
+      component: HomeAddressView
     },
     // Non-Registered User routes
     {
       path: '/bli-med-eller-opprett-husstand',
       name: 'join-create-household',
-      component: JoinOrCreateHouseholdView,
+      component: JoinOrCreateHouseholdView
     },
     {
       path: '/kart',
       name: 'map',
-      component: MapView,
+      component: MapView
     },
     {
       path: '/registrer',
       name: 'register',
-      component: RegisterView,
-    },
-    {
-      path: '/bekreft-e-post',
-      name: 'verify-email',
-      component: VerifyEmailView,
+      component: RegisterView
     },
     {
       path: '/personvern',
       name: 'privacy-policy',
-      component: PrivacyPolicyView,
+      component: PrivacyPolicyView
     },
     {
       path: '/nyheter',
       name: 'news',
-      component: NewsView,
+      component: NewsView
     },
     {
       path: '/artikkel/:id',
       name: 'article',
-      component: ArticleView,
+      component: ArticleView
     },
     {
       path: '/om-oss',
       name: 'about-us',
-      component: AboutUsView,
+      component: AboutUsView
     },
 
     // Crisis Information routes
     {
       path: '/info/for-krisen',
       name: 'before-crisis',
-      component: BeforeCrisisView,
+      component: BeforeCrisisView
     },
-    {
-      path: '/husstand/opprett',
-      name: 'new-household',
-      component: NewHouseholdView,
-    },
-
     {
       path: '/info/under-krisen',
       name: 'during-crisis',
-      component: DuringCrisisView,
+      component: DuringCrisisView
     },
     {
       path: '/info/etter-krisen',
       name: 'after-crisis',
-      component: AfterCrisisView,
+      component: AfterCrisisView
     },
-
     {
-      path: '/scenarioer',
+      path: '/scenarios',
       name: 'scenarios-list',
-      component: ScenariosListView,
+      component: ScenariosListView
     },
     {
       path: '/scenario/:id',
       name: 'scenario-detail',
       component: ScenarioDetailView,
+      props: true
     },
-
-    {
-      path: '/refleksjoner/offentlige',
-      name: 'PublicReflections',
-      component: PublicReflectionsPage,
-      meta: { requiresAuth: false },
-    },
-
-    // Error routes - must be last
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: NotFoundView,
-    },
-  ],
-
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
+      component: NotFoundView
     }
-
-    if (to.hash) {
-      return {
-        el: to.hash,
-        top: 80,
-        behavior: 'smooth',
-      }
-    }
-
-    return {
-      top: 0,
-      left: 0,
-      behavior: 'smooth',
-    }
-  },
+  ]
 })
 
 // Navigation guards

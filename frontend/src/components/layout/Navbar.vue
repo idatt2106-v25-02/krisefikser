@@ -20,10 +20,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu'
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 
 export default {
   name: 'AppNavbar',
@@ -101,24 +97,15 @@ export default {
       this.isMenuOpen = false
     },
   },
-  watch: {
-    // Close the mobile menu when the route changes
-    $route() {
-      this.isMenuOpen = false
-    },
-  },
 }
 </script>
 
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
     <div class="container mx-auto px-4 py-4">
-    <div class="container mx-auto px-4 py-4">
       <div class="flex justify-between items-center">
         <div class="flex items-center">
           <router-link to="/" class="flex items-center">
-            <img src="/favicon.ico" alt="Krisefikser.app" class="h-5 w-auto mr-2" />
-            <span class="text-lg font-bold text-blue-700">Krisefikser.app</span>
             <img src="/favicon.ico" alt="Krisefikser.app" class="h-5 w-auto mr-2" />
             <span class="text-lg font-bold text-blue-700">Krisefikser.app</span>
           </router-link>
@@ -133,16 +120,7 @@ export default {
               'flex items-center transition text-sm',
               isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
             ]"
-            v-for="item in filteredNavItems"
-            :key="item.label"
-            :to="item.to"
-            :class="[
-              'flex items-center transition text-sm',
-              isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
-            ]"
           >
-            <component :is="item.icon" class="h-4 w-4 mr-1" />
-            <span>{{ item.label }}</span>
             <component :is="item.icon" class="h-4 w-4 mr-1" />
             <span>{{ item.label }}</span>
           </router-link>
@@ -248,7 +226,6 @@ export default {
                       ? 'text-blue-700 border-blue-300 bg-blue-50/70'
                       : 'text-gray-700 border-gray-200 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50',
                   ]"
-                  aria-label="Min profil"
                 >
                   <UserIcon class="h-4 w-4 flex-shrink-0" />
                   <span class="font-medium text-sm">
@@ -259,7 +236,9 @@ export default {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <router-link to="/dashboard">
-                  <DropdownMenuItem :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }">
+                  <DropdownMenuItem
+                    :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }"
+                  >
                     <UserIcon class="h-5 w-5 mr-2" />
                     <span>Min Profil</span>
                   </DropdownMenuItem>
