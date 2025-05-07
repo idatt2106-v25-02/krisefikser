@@ -6,7 +6,7 @@ import AppFooter from '@/components/layout/Footer.vue'
 import AccessibilityMenu from '@/components/textToSpeech/AccessibilityMenu.vue'
 import ReadPageButton from '@/components/textToSpeech/ReadPageButton.vue'
 import router from '@/router'
-import { useAccessibilityStore } from '@/stores/accessibilityStore'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
 import { Toaster } from '@/components/ui/sonner'
 
 // Get accessibility store and set up reactive state
