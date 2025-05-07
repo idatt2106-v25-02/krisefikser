@@ -14,8 +14,8 @@
     </div>
 
     <div v-if="publicReflections && publicReflections.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div 
-        v-for="reflection in publicReflections" 
+      <div
+        v-for="reflection in publicReflections"
         :key="reflection.id"
         class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col relative border transition-all duration-300 hover:shadow-lg min-h-[200px]"
       >
@@ -28,13 +28,13 @@
         <div class="p-4 relative z-10 flex-grow flex flex-col">
           <h3 class="text-lg font-semibold mb-1">{{ reflection.title }}</h3>
           <p class="text-xs text-gray-500 mb-2">
-            Forfatter: {{ reflection.authorName }} | 
-            Synlighet: {{ mapReflectionVisibility(reflection.visibility) }} | 
+            Forfatter: {{ reflection.authorName }} |
+            Synlighet: {{ mapReflectionVisibility(reflection.visibility) }} |
             Oppdatert: {{ formatDate(reflection.updatedAt) }}
           </p>
-          
+
           <div v-if="reflection.eventId && eventTitles[reflection.eventId]" class="mb-2 text-sm text-gray-700">
-            Knyttet til hendelse: 
+            Knyttet til hendelse:
             <router-link :to="`/kriser/${reflection.eventId}`" class="text-blue-600 hover:underline">
               {{ eventTitles[reflection.eventId] }}
             </router-link>
@@ -44,7 +44,7 @@
           </div>
 
           <p v-if="reflection.content" class="text-sm text-gray-600 flex-grow mb-3 line-clamp-3" v-html="stripHtml(reflection.content)"></p>
-          
+
           <div class="mt-auto pt-3 border-t flex justify-end space-x-2">
             <Button size="sm" variant="outline" @click="viewReflection(reflection.id!)">Vis</Button>
             <Button v-if="canManageReflection(reflection)" size="sm" variant="outline" @click="editReflection(reflection.id!)">Rediger</Button>
@@ -65,13 +65,13 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQueryClient } from '@tanstack/vue-query';
-import { useAuthStore } from '@/stores/auth/useAuthStore';
-import { 
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import {
   useGetPublicReflections, // Using the hook for public reflections
   useDeleteReflection,
   getGetPublicReflectionsQueryKey // Query key for public reflections
-} from '@/api/generated/reflection/reflection';
-import { useGetEventById } from '@/api/generated/event/event';
+} from '@/api/generated/reflection/reflection.ts';
+import { useGetEventById } from '@/api/generated/event/event.ts';
 import type { ReflectionResponse } from '@/api/generated/model';
 import { ReflectionResponseVisibility } from '@/api/generated/model';
 import { Button } from '@/components/ui/button';
@@ -82,11 +82,11 @@ const queryClient = useQueryClient();
 const authStore = useAuthStore(); // To check for admin/author for edit/delete
 
 // Fetch public reflections
-const { data: publicReflections, isLoading, error } = useGetPublicReflections<ReflectionResponse[]>({ 
+const { data: publicReflections, isLoading, error } = useGetPublicReflections<ReflectionResponse[]>({
   query: {
     // Public reflections don't strictly need auth, but keeping enabled pattern for consistency
     // Or set to true if the endpoint is always available
-    enabled: true, 
+    enabled: true,
     refetchOnWindowFocus: true,
   }
 });
@@ -94,7 +94,7 @@ const { data: publicReflections, isLoading, error } = useGetPublicReflections<Re
 const deleteReflectionMutation = useDeleteReflection({
   mutation: {
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getGetPublicReflectionsQueryKey() }); 
+      queryClient.invalidateQueries({ queryKey: getGetPublicReflectionsQueryKey() });
     },
     onError: (err: Error | unknown) => {
       console.error("Feil ved sletting av refleksjon:", err);
@@ -117,7 +117,7 @@ const formatDate = (dateTimeString?: string) => {
     });
   } catch (e) {
     console.warn("Invalid date format:", dateTimeString);
-    return dateTimeString; 
+    return dateTimeString;
   }
 };
 
@@ -148,7 +148,7 @@ const viewReflection = (id: string) => {
 
 const editReflection = (id: string) => {
   // Navigation to edit should still work, ReflectionDetailView will handle auth for form
-  router.push(`/refleksjon/${id}?action=edit`); 
+  router.push(`/refleksjon/${id}?action=edit`);
 };
 
 const confirmDeleteReflection = async (id: string) => {
@@ -173,7 +173,7 @@ const goBackToKriser = () => {
 const eventTitles = ref<Record<string, string>>({});
 const eventIdsToFetch = computed(() => {
   const ids = new Set<number>();
-  (publicReflections.value || []).forEach((reflection: ReflectionResponse) => { 
+  (publicReflections.value || []).forEach((reflection: ReflectionResponse) => {
     if (reflection.eventId) {
       ids.add(reflection.eventId);
     }
@@ -186,7 +186,7 @@ watch(eventIdsToFetch, (newIds) => {
     if (!eventTitles.value[id]) {
       const eventIdRef = ref(id);
       const { data: eventData, error: eventError } = useGetEventById(eventIdRef, {
-         query: { 
+         query: {
            enabled: computed(() => !!eventIdRef.value),
          }
       });
@@ -226,4 +226,4 @@ watch(eventIdsToFetch, (newIds) => {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
-</style> 
+</style>

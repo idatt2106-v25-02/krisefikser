@@ -16,10 +16,10 @@
         <div v-if="reflectionsError">Kunne ikke laste refleksjoner: {{ reflectionsErrorMessage }}</div>
 
         <div v-if="reflections && reflections.length > 0" class="grid md:grid-cols-2 gap-6">
-          <div 
-            v-for="reflection in reflections" 
-            :key="reflection.id" 
-            :id="`reflection-${reflection.id}`" 
+          <div
+            v-for="reflection in reflections"
+            :key="reflection.id"
+            :id="`reflection-${reflection.id}`"
             class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col relative border transition-all duration-300 min-h-[150px]"
           >
             <div class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-blue-50/70">
@@ -31,8 +31,8 @@
             <div class="p-4 relative z-10 flex-grow flex flex-col">
               <h3 class="text-lg font-semibold mb-1">{{ reflection.title }}</h3>
               <p class="text-xs text-gray-500 mb-2">
-                Forfatter: {{ reflection.authorName }} | 
-                Synlighet: {{ mapReflectionVisibility(reflection.visibility) }} | 
+                Forfatter: {{ reflection.authorName }} |
+                Synlighet: {{ mapReflectionVisibility(reflection.visibility) }} |
                 Dato: {{ formatDate(reflection.createdAt) }}
               </p>
               <div v-html="reflection.content" class="prose prose-sm max-w-none text-sm flex-grow mb-3 line-clamp-4"></div>
@@ -47,9 +47,9 @@
           Ingen refleksjoner for denne hendelsen ennå.
         </p>
 
-        <button 
-          v-if="authStore.isAuthenticated" 
-          @click="openNewReflectionDialog" 
+        <button
+          v-if="authStore.isAuthenticated"
+          @click="openNewReflectionDialog"
           class="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center">
           <Plus class="h-4 w-4 mr-1" /> Legg til Refleksjon
         </button>
@@ -63,12 +63,12 @@
           <DialogTitle>{{ formTitle }}</DialogTitle>
           <DialogDescription>{{ formDescription }}</DialogDescription>
         </DialogHeader>
-        <ReflectionForm 
-          v-if="isFormOpen" 
-          :key="editingReflection ? editingReflection.id : 'new'" 
+        <ReflectionForm
+          v-if="isFormOpen"
+          :key="editingReflection ? editingReflection.id : 'new'"
           :event-id="eventId"
           :initial-data="editingReflection || undefined"
-          @reflection-created="handleReflectionSubmitted" 
+          @reflection-created="handleReflectionSubmitted"
           @reflection-updated="handleReflectionSubmitted"
           @cancel="cancelEdit"
           class="pt-4"
@@ -83,9 +83,9 @@
 import { defineComponent, ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useQueryClient } from '@tanstack/vue-query';
-import { useAuthStore } from '@/stores/auth/useAuthStore';
-import { useGetEventById } from '@/api/generated/event/event'; // Adjust path as needed
-import { useGetReflectionsByEventId, useDeleteReflection, getGetReflectionsByEventIdQueryKey } from '@/api/generated/reflection/reflection'; // Adjust path as needed
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import { useGetEventById } from '@/api/generated/event/event.ts'; // Adjust path as needed
+import { useGetReflectionsByEventId, useDeleteReflection, getGetReflectionsByEventIdQueryKey } from '@/api/generated/reflection/reflection.ts'; // Adjust path as needed
 import type { EventResponse, ReflectionResponse } from '@/api/generated/model'; // Adjust path as needed
 import { EventResponseStatus, ReflectionResponseVisibility } from '@/api/generated/model'; // Import enums
 import ReflectionForm from '@/components/reflections/ReflectionForm.vue'; // <-- Import ReflectionForm
@@ -235,7 +235,7 @@ export default defineComponent({
 
     const handleReflectionSubmitted = () => {
       cancelEdit();
-      // Query invalidation is handled by ReflectionForm, 
+      // Query invalidation is handled by ReflectionForm,
       // but we could add extra checks or notifications here if needed.
     };
 
@@ -243,7 +243,7 @@ export default defineComponent({
       if (!reflectionId) return;
       const reflectionToDelete = reflections.value?.find(r => r.id === reflectionId);
       if (!reflectionToDelete || !canManageReflection(reflectionToDelete)) return;
-      
+
       if (window.confirm('Er du sikker på at du vil slette denne refleksjonen?')) {
         try {
           await deleteReflectionMutation.mutateAsync({ id: reflectionId });

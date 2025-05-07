@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
-import { useGetAllEvents } from '@/api/generated/event/event'; // Path to your Orval-generated event functions
-import { useGetAllScenarios } from '@/api/generated/scenario/scenario'; // Import scenario hook
+import { useGetAllEvents } from '@/api/generated/event/event.ts'; // Path to your Orval-generated event functions
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts'; // Import scenario hook
 import type { EventResponse, ScenarioResponse } from '@/api/generated/model'; // Path to your Orval-generated EventResponse type and ScenarioResponse
 import { EventResponseStatus } from '@/api/generated/model'; // Path to your Orval-generated EventStatus enum
 import { Button } from '@/components/ui/button'; // Import Button
@@ -430,9 +430,9 @@ export default defineComponent({
               </div>
               <!-- Display scenarios -->
               <div v-else-if="scenarios && scenarios.length > 0">
-                <router-link 
-                  v-for="scenario in scenarios.slice(0, 3)" 
-                  :key="scenario.id" 
+                <router-link
+                  v-for="scenario in scenarios.slice(0, 3)"
+                  :key="scenario.id"
                   :to="{ name: 'scenario-detail', params: { id: scenario.id } }"
                   class="block p-4 hover:bg-gray-50 transition-colors"
                 >

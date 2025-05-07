@@ -41,13 +41,13 @@
             </div>
         </div>
         <p class="text-sm text-gray-500 mb-6">
-            Forfatter: {{ reflection.authorName }} | 
-            Synlighet: {{ mapReflectionVisibility(reflection.visibility) }} | 
+            Forfatter: {{ reflection.authorName }} |
+            Synlighet: {{ mapReflectionVisibility(reflection.visibility) }} |
             Sist endret: {{ formatDate(reflection.updatedAt) }}
             <!-- Link to Event - Now displays title -->
-            <span v-if="reflection.eventId"> | 
-              <router-link 
-                :to="{ name: 'event-detail', params: { id: reflection.eventId } }" 
+            <span v-if="reflection.eventId"> |
+              <router-link
+                :to="{ name: 'event-detail', params: { id: reflection.eventId } }"
                 class="text-blue-600 hover:underline"
                 :title="`Gå til hendelse #${reflection.eventId}`"
               >
@@ -75,10 +75,10 @@
             Gjør endringer i refleksjonen din her.
           </DialogDescription>
         </DialogHeader>
-        <ReflectionForm 
-          v-if="isEditing && reflectionToEdit" 
-          :key="reflectionToEdit.id" 
-          :event-id="reflectionToEdit.eventId!" 
+        <ReflectionForm
+          v-if="isEditing && reflectionToEdit"
+          :key="reflectionToEdit.id"
+          :event-id="reflectionToEdit.eventId!"
           :initial-data="reflectionToEdit"
           @reflection-updated="handleReflectionUpdated"
           @cancel="cancelEdit"
@@ -99,11 +99,11 @@ import {
   useDeleteReflection,
   getGetReflectionsByEventIdQueryKey,
   getGetCurrentUserReflectionsQueryKey
-} from '@/api/generated/reflection/reflection';
-import { useGetEventById } from '@/api/generated/event/event';
+} from '@/api/generated/reflection/reflection.ts';
+import { useGetEventById } from '@/api/generated/event/event.ts';
 import type { ReflectionResponse, EventResponse } from '@/api/generated/model';
 import { ReflectionResponseVisibility } from '@/api/generated/model';
-import { useAuthStore } from '@/stores/auth/useAuthStore';
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
 import { ArrowLeft, BookText } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import ReflectionForm from '@/components/reflections/ReflectionForm.vue';
@@ -117,16 +117,16 @@ import {
 
 export default defineComponent({
   name: 'ReflectionDetailView',
-  components: { 
-    ArrowLeft, 
-    BookText, 
-    Button, 
-    ReflectionForm, 
-    Dialog, 
-    DialogContent, 
-    DialogDescription, 
-    DialogHeader, 
-    DialogTitle 
+  components: {
+    ArrowLeft,
+    BookText,
+    Button,
+    ReflectionForm,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle
   },
   setup() {
     const route = useRoute();
@@ -138,11 +138,11 @@ export default defineComponent({
     const isEditing = ref(false);
     const reflectionToEdit = ref<ReflectionResponse | null>(null);
 
-    const { 
-      data: reflection, 
-      isLoading, 
-      error, 
-      refetch 
+    const {
+      data: reflection,
+      isLoading,
+      error,
+      refetch
     } = useGetReflectionById(reflectionId);
 
     // Create a separate ref for the associated Event ID
@@ -158,10 +158,10 @@ export default defineComponent({
     }, { immediate: true });
 
     // Fetch associated event details using the associatedEventId ref
-    const { 
+    const {
       data: associatedEvent,
       isLoading: isEventLoading,
-      error: eventError 
+      error: eventError
     } = useGetEventById(
       associatedEventId, // Pass the ref<number | undefined>
       {
@@ -208,14 +208,14 @@ export default defineComponent({
            console.warn("Could not parse date string:", dateTimeString);
            return 'Ugyldig dato'; // Return specific error message
          }
-         return date.toLocaleDateString('nb-NO', { 
+         return date.toLocaleDateString('nb-NO', {
             year: 'numeric', month: 'long', day: 'numeric',
             hour: '2-digit', minute: '2-digit'
          });
-       } catch (e) { 
+       } catch (e) {
          console.error("Error formatting date:", dateTimeString, e);
          // Fallback for other unexpected errors during formatting
-         return dateTimeString; 
+         return dateTimeString;
        }
     };
 
@@ -240,7 +240,7 @@ export default defineComponent({
 
     const handleReflectionUpdated = () => {
       cancelEdit();
-      refetch(); 
+      refetch();
       if (reflection.value?.eventId) {
         queryClient.invalidateQueries({ queryKey: getGetReflectionsByEventIdQueryKey(reflection.value.eventId) });
       }
@@ -318,4 +318,4 @@ export default defineComponent({
 .icon-wrapper {
   animation: pulse-gentle 3s infinite ease-in-out;
 }
-</style> 
+</style>
