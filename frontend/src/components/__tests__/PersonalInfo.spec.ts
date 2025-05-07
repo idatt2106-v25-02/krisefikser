@@ -21,8 +21,10 @@ vi.mock('@/stores/useAuthStore', () => ({
   })),
 }))
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mockFn<T extends (...args: any[]) => any>(fn: T) {
   return fn as unknown as T & {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockReturnValue: (val: any) => void
     mockImplementation: (implementation: T) => void
   }

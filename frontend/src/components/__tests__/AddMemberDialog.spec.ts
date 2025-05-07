@@ -95,6 +95,7 @@ describe('AddMemberDialog', () => {
       open: true,
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vm = wrapper.vm as any
 
     vm.selectedUserId = 'user123'
