@@ -9,7 +9,7 @@
 export type UpdateEventRequestStatus =
   (typeof UpdateEventRequestStatus)[keyof typeof UpdateEventRequestStatus]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const UpdateEventRequestStatus = {
   UPCOMING: 'UPCOMING',
   ONGOING: 'ONGOING',
