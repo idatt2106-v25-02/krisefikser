@@ -1,11 +1,12 @@
 package stud.ntnu.krisefikser.auth.service;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
@@ -14,19 +15,20 @@ import stud.ntnu.krisefikser.auth.dto.RefreshResponse;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
 import stud.ntnu.krisefikser.auth.entity.RefreshToken;
+import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
+import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
-import stud.ntnu.krisefikser.user.service.UserService;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
-import java.time.LocalDateTime;
+import stud.ntnu.krisefikser.user.service.UserService;
 
 /**
- * Service class for handling authentication-related operations such as user
- * registration, login,
+ * Service class for handling authentication-related operations such as user registration, login,
  * token generation, and token refresh.
  */
 @Service
@@ -40,14 +42,24 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
   private final UserRepository userRepository;
+  private final TurnstileService turnstileService;
+  private final RoleRepository roleRepository;
 
   /**
-   * Registers a new user and generates access and refresh tokens.
+   * Registers a new admin user and generates access and refresh tokens.
    *
-   * @param registerRequest The registration request containing user details.
+   * @param request The registration request containing admin user details.
    * @return A response containing the access and refresh tokens.
    */
-  public RegisterResponse register(RegisterRequest registerRequest) {
+  public RegisterResponse registerAdmin(RegisterRequest request) {
+    // Validate email has permission to register as admin
+    // TODO: Implement email validation logic
+    return registerWithRole(request, RoleType.ADMIN);
+  }
+
+  private RegisterResponse registerWithRole(RegisterRequest registerRequest, RoleType roleType) {
+    validateTurnstileToken(registerRequest.getTurnstileToken());
+
     User user = userService.createUser(new CreateUser(
         registerRequest.getEmail(),
         registerRequest.getPassword(),
@@ -55,7 +67,7 @@ public class AuthService {
         registerRequest.getLastName(),
         true,
         true,
-        true));
+        true), roleType);
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(registerRequest.getEmail());
 
@@ -69,6 +81,23 @@ public class AuthService {
         refreshToken);
   }
 
+  private void validateTurnstileToken(String turnstileToken) throws TurnstileVerificationException {
+    boolean isHuman = turnstileService.verify(turnstileToken);
+    if (!isHuman) {
+      throw new TurnstileVerificationException();
+    }
+  }
+
+  /**
+   * Registers a new user and generates access and refresh tokens.
+   *
+   * @param registerRequest The registration request containing user details.
+   * @return A response containing the access and refresh tokens.
+   */
+  public RegisterResponse register(RegisterRequest registerRequest) {
+    return registerWithRole(registerRequest, RoleType.USER);
+  }
+
   /**
    * Authenticates a user and generates access and refresh tokens.
    *
@@ -79,8 +108,10 @@ public class AuthService {
     User user = userService.getUserByEmail(loginRequest.getEmail());
 
     // Check if account is locked
-    if (user != null && user.getLockedUntil() != null && LocalDateTime.now().isBefore(user.getLockedUntil())) {
-      log.warn("Account locked attempt for user: {}. Locked until: {}", user.getEmail(), user.getLockedUntil());
+    if (user != null && user.getLockedUntil() != null && LocalDateTime.now()
+        .isBefore(user.getLockedUntil())) {
+      log.warn("Account locked attempt for user: {}. Locked until: {}", user.getEmail(),
+          user.getLockedUntil());
       throw new LockedException("Account is locked until " + user.getLockedUntil());
     }
 
@@ -131,7 +162,7 @@ public class AuthService {
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
     RefreshToken existingToken = refreshTokenRepository.findByToken(
         refreshRequest.getRefreshToken()).orElseThrow(
-            RefreshTokenDoesNotExistException::new);
+        RefreshTokenDoesNotExistException::new);
 
     String email = tokenService.extractEmail(existingToken.getToken());
     if (email == null) {
