@@ -1,3 +1,5 @@
+/* eslint-disable vitest/no-commented-out-tests */
+
 // import { createComponentWrapper } from '@/components/__tests__/test-utils'
 // import { describe, it, expect, vi, beforeEach } from 'vitest'
 // import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'

@@ -1,3 +1,5 @@
+/* eslint-disable vitest/no-commented-out-tests */
+
 // import { createComponentWrapper } from '@/components/__tests__/test-utils'
 // import { describe, it, expect } from 'vitest'
 // import MapLegend from '@/components/map/MapLegend.vue'
