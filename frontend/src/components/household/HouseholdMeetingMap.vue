@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import type { PropType } from 'vue' // Use type-only import for PropType
 import MapComponent from '@/components/map/MapComponent.vue'
-import UserLocationLayer from '@/components/map/UserLocationLayer.vue'
+import UserLocationLayer from '@/components/map/location/UserLocationLayer.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
 import L from 'leaflet'
 

@@ -440,8 +440,16 @@ public class DataSeeder implements CommandLineRunner {
         .firstName("Admin")
         .lastName("User")
         .build();
-
     users.add(adminUser);
+
+    // Add brotherman testern
+    User brotherman = User.builder()
+        .email("brotherman@testern.no")
+        .password(passwordEncoder.encode("password"))
+        .firstName("Brotherman")
+        .lastName("Testern")
+        .build();
+    users.add(brotherman);
 
     userRepo.saveAll(users);
     System.out.println("Seeded " + users.size() + " users");

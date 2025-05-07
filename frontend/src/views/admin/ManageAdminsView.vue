@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import AdminLayout from '@/components/admin/AdminLayout.vue';
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   Mail,
   Trash2,
@@ -37,10 +38,10 @@ import {
 } from '@/components/ui/alert';
 
 // Import custom components
-import EditHouseholdDialog from '@/components/admin/EditHouseholdDialog.vue';
-import AddMemberDialog from '@/components/admin/AddMemberDialog.vue';
-import HouseholdList from '@/components/admin/HouseholdList.vue';
-import UserSelect from '@/components/admin/UserSelect.vue';
+import EditHouseholdDialog from '@/components/household/EditHouseholdDialog.vue';
+import AddMemberDialog from '@/components/admin/users/AddMemberDialog.vue';
+import HouseholdList from '@/components/admin/users/HouseholdList.vue';
+import UserSelect from '@/components/admin/users/UserSelect.vue';
 
 // Import API hooks
 import { useGetAllUsers, useDeleteUser, useUpdateUser } from '@/api/generated/user/user';
@@ -54,14 +55,12 @@ import {
 import type { UserResponse, CreateUser } from '@/api/generated/model';
 import type { HouseholdResponse, CreateHouseholdRequest } from '@/api/generated/model';
 
-const props = defineProps({
-  isSuperAdmin: {
-    type: Boolean,
-    default: false
-  }
-});
+// Import auth store
+// new comment to force pipeline to run
+import { useAuthStore } from '@/stores/auth/useAuthStore';
 
-const emit = defineEmits(['navigate']);
+const router = useRouter();
+const authStore = useAuthStore();
 
 // State for dialogs
 const showInviteDialog = ref(false);
@@ -175,7 +174,7 @@ const deleteItem = (id: string) => {
 const canDeleteUser = (userRoles?: string[]) => {
   if (!userRoles) return false;
   // Super Admins can delete Admins and Users, but not other Super Admins
-  if (props.isSuperAdmin) {
+  if (authStore.isSuperAdmin) {
     return !userRoles.includes('SUPER_ADMIN');
   }
   // Regular Admins can only delete Users
@@ -192,7 +191,7 @@ const canInviteUser = (userRoles?: string[]) => {
 };
 
 const sendPasswordResetLink = () => {
-  emit('navigate', '/admin/reset-passord-link');
+  router.push('/admin/reset-passord-link');
 };
 
 // Open admin invite dialog for specific user
@@ -330,7 +329,7 @@ const getRoleDisplay = (roles?: string[]) => {
         <CheckCircle class="h-4 w-4" />
         <AlertTitle>Invitasjon sendt!</AlertTitle>
         <AlertDescription>
-          {{ selectedUser.firstName }} {{ selectedUser.lastName }} har blitt invitert til å bli admin.
+          {{ selectedUser?.firstName }} {{ selectedUser?.lastName }} har blitt invitert til å bli admin.
         </AlertDescription>
       </Alert>
 
@@ -338,7 +337,7 @@ const getRoleDisplay = (roles?: string[]) => {
         <h2 class="text-2xl font-bold text-gray-800">Brukere og admins</h2>
 
         <!-- Only Super Admin can invite new admins -->
-        <div v-if="!isSuperAdmin" class="text-sm text-gray-500 italic flex items-center">
+        <div v-if="!authStore.isSuperAdmin" class="text-sm text-gray-500 italic flex items-center">
           <ShieldCheck class="h-4 w-4 mr-1 text-gray-400" />
           Kun Super Admin kan administrere brukere
         </div>
@@ -347,7 +346,7 @@ const getRoleDisplay = (roles?: string[]) => {
           <Button
             variant="default"
             class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
-            @click="emit('navigate', '/admin/invite')"
+            @click="router.push('/admin/invite')"
           >
             <UserPlus class="h-4 w-4 mr-1" />
             Inviter ny admin
@@ -364,7 +363,7 @@ const getRoleDisplay = (roles?: string[]) => {
       </div>
 
       <!-- Super Admin privileges notice -->
-      <div v-if="isSuperAdmin" class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+      <div v-if="authStore.isSuperAdmin" class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
         <div class="flex">
           <ShieldCheck class="h-5 w-5 text-blue-500 mr-2" />
           <div>
@@ -453,7 +452,7 @@ const getRoleDisplay = (roles?: string[]) => {
                 <div class="flex justify-center space-x-2">
                   <!-- Mail icon - only for regular users if Super Admin -->
                   <Button
-                    v-if="isSuperAdmin && canInviteUser(user.roles)"
+                    v-if="authStore.isSuperAdmin && canInviteUser(user.roles)"
                     variant="ghost"
                     size="icon"
                     class="text-blue-600 hover:text-blue-800 p-1 h-auto"
