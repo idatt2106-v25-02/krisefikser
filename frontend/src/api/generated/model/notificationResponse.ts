@@ -16,6 +16,6 @@ export interface NotificationResponse {
   createdAt?: string
   itemId?: string
   eventId?: number
-  userId?: string
+  inviteId?: string
   householdId?: string
 }
