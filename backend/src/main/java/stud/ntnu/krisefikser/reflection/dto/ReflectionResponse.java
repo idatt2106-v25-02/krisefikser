@@ -68,6 +68,11 @@ public class ReflectionResponse {
     private String householdName;
 
     /**
+     * ID of the event associated with the reflection (if any).
+     */
+    private Long eventId;
+
+    /**
      * Date and time when the reflection was created.
      */
     private LocalDateTime createdAt;
