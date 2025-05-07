@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -18,12 +19,18 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import stud.ntnu.krisefikser.auth.dto.CompletePasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
+import stud.ntnu.krisefikser.auth.dto.PasswordResetResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RefreshResponse;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
+import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
+import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
+import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
+import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
@@ -146,6 +153,127 @@ class AuthControllerTest {
   void me_WhenNotAuthenticated_ShouldReturnUnauthorized() throws Exception {
     // Act & Assert
     mockMvc.perform(get("/api/auth/me"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser
+  void updatePassword_WhenPasswordIsValid_ShouldReturnSuccessResponse() throws Exception {
+    // Arrange
+    UpdatePasswordRequest request = new UpdatePasswordRequest("ValidPassword123!");
+    UpdatePasswordResponse response = UpdatePasswordResponse.builder()
+        .message("Password updated")
+        .success(true)
+        .build();
+    when(authService.updatePassword(any(UpdatePasswordRequest.class))).thenReturn(response);
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/update-password")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("Password updated"))
+        .andExpect(jsonPath("$.success").value(true));
+  }
+
+  @Test
+  @WithMockUser
+  void updatePassword_WhenPasswordIsInvalid_ShouldReturnUnauthorized() throws Exception {
+    // Arrange
+    UpdatePasswordRequest request = new UpdatePasswordRequest("InvalidPassword");
+    when(authService.updatePassword(any(UpdatePasswordRequest.class)))
+        .thenThrow(new InvalidCredentialsException("Invalid password"));
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/update-password")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void requestPasswordReset_ShouldReturnSuccessResponse() throws Exception {
+    // Arrange
+    RequestPasswordResetRequest request = new RequestPasswordResetRequest("user@example.com");
+    PasswordResetResponse response = PasswordResetResponse.builder()
+        .message("Reset password request sent to user@example.com")
+        .success(true)
+        .build();
+    when(authService.requestPasswordReset(any(RequestPasswordResetRequest.class))).thenReturn(
+        response);
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/request-password-reset")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("Reset password request sent to user@example.com"))
+        .andExpect(jsonPath("$.success").value(true));
+  }
+
+  @Test
+  void completePasswordReset_WithValidToken_ShouldReturnSuccessResponse() throws Exception {
+    // Arrange
+    CompletePasswordResetRequest request = new CompletePasswordResetRequest(
+        "user@example.com", "valid-token", "NewPassword123!");
+    PasswordResetResponse response = PasswordResetResponse.builder()
+        .message("Password updated")
+        .success(true)
+        .build();
+    when(authService.completePasswordReset(any(CompletePasswordResetRequest.class))).thenReturn(
+        response);
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/complete-password-reset")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("Password updated"))
+        .andExpect(jsonPath("$.success").value(true));
+  }
+
+  @Test
+  void completePasswordReset_WithInvalidToken_ShouldReturnUnauthorized() throws Exception {
+    // Arrange
+    CompletePasswordResetRequest request = new CompletePasswordResetRequest(
+        "user@example.com", "invalid-token", "NewPassword123!");
+    when(authService.completePasswordReset(any(CompletePasswordResetRequest.class)))
+        .thenThrow(new InvalidCredentialsException("Invalid token"));
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/complete-password-reset")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void completePasswordReset_WithMissingFields_ShouldReturnUnauthorized() throws Exception {
+    // Arrange
+    CompletePasswordResetRequest request = new CompletePasswordResetRequest(
+        null, "some-token", "NewPassword123!");
+    when(authService.completePasswordReset(any(CompletePasswordResetRequest.class)))
+        .thenThrow(new InvalidCredentialsException("Email is required"));
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/complete-password-reset")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void completePasswordReset_WithExpiredToken_ShouldReturnUnauthorized() throws Exception {
+    // Arrange
+    CompletePasswordResetRequest request = new CompletePasswordResetRequest(
+        "user@example.com", "expired-token", "NewPassword123!");
+    when(authService.completePasswordReset(any(CompletePasswordResetRequest.class)))
+        .thenThrow(new InvalidCredentialsException("Expired token"));
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/complete-password-reset")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isUnauthorized());
   }
 }
