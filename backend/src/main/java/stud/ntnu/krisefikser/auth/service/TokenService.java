@@ -2,7 +2,6 @@ package stud.ntnu.krisefikser.auth.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.lang.Collections;
 import io.jsonwebtoken.security.Keys;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,6 +48,16 @@ public class TokenService {
     return new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
   }
 
+  private Date getResetPasswordTokenExpiration() {
+    return new Date(System.currentTimeMillis() + jwtProperties.getResetPasswordTokenExpiration());
+  }
+
+  /**
+   * Generates an access token for the given user details.
+   *
+   * @param userDetails the user details to include in the token
+   * @return the generated access token
+   */
   public String generateAccessToken(UserDetails userDetails) {
     Date expirationDate = getAccessTokenExpiration();
     Map<String, Object> claims = new HashMap<>();
@@ -56,11 +65,34 @@ public class TokenService {
     return generate(userDetails, expirationDate, claims);
   }
 
+  /**
+   * Generates a refresh token for the given user details.
+   *
+   * @param userDetails the user details to include in the token
+   * @return the generated refresh token
+   */
   public String generateRefreshToken(UserDetails userDetails) {
     Date expirationDate = getRefreshTokenExpiration();
     Map<String, Object> claims = new HashMap<>();
     claims.put(TOKEN_TYPE_CLAIM, REFRESH_TOKEN);
     return generate(userDetails, expirationDate, claims);
+  }
+
+  /**
+   * Generates a reset password token for the given email.
+   *
+   * @param email the email to include in the token
+   * @return the generated reset password token
+   */
+  public String generateResetPasswordToken(String email) {
+    Date now = new Date(System.currentTimeMillis());
+    Date expiration = getResetPasswordTokenExpiration();
+    return Jwts.builder()
+        .subject(email)
+        .issuedAt(now)
+        .expiration(expiration)
+        .signWith(secretKey)
+        .compact();
   }
 
   /**
@@ -95,6 +127,12 @@ public class TokenService {
     return username != null && username.equals(userDetails.getUsername()) && !isExpired(token);
   }
 
+  /**
+   * Validates a given access token.
+   *
+   * @param token the JWT token
+   * @return true if the token is a valid access token, false otherwise
+   */
   public boolean isAccessToken(String token) {
     try {
       String tokenType = extractTokenType(token);
@@ -104,6 +142,12 @@ public class TokenService {
     }
   }
 
+  /**
+   * Validates a given refresh token.
+   *
+   * @param token the JWT token
+   * @return true if the token is a valid refresh token, false otherwise
+   */
   public boolean isRefreshToken(String token) {
     try {
       String tokenType = extractTokenType(token);
@@ -113,6 +157,12 @@ public class TokenService {
     }
   }
 
+  /**
+   * Extracts the token type from the token.
+   *
+   * @param token the JWT token
+   * @return the token type extracted from the token
+   */
   public String extractTokenType(String token) {
     try {
       return getAllClaims(token).get(TOKEN_TYPE_CLAIM, String.class);
@@ -138,10 +188,10 @@ public class TokenService {
   }
 
   /**
-   * Extracts the roles from the token.
+   * Checks if the token is expired.
    *
    * @param token the JWT token
-   * @return a set of roles extracted from the token
+   * @return true if the token is expired, false otherwise
    */
   public boolean isExpired(String token) {
     try {
@@ -151,6 +201,12 @@ public class TokenService {
     }
   }
 
+  /**
+   * Extracts all claims from the token.
+   *
+   * @param token the JWT token
+   * @return the claims extracted from the token
+   */
   private Claims getAllClaims(String token) {
     return Jwts.parser()
         .verifyWith(secretKey)

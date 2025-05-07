@@ -1,32 +1,44 @@
 package stud.ntnu.krisefikser.auth.service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.authentication.LockedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import stud.ntnu.krisefikser.auth.config.JwtProperties;
+import stud.ntnu.krisefikser.auth.dto.CompletePasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
+import stud.ntnu.krisefikser.auth.dto.PasswordResetResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RefreshResponse;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
+import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
+import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
+import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
+import stud.ntnu.krisefikser.auth.entity.PasswordResetToken;
 import stud.ntnu.krisefikser.auth.entity.RefreshToken;
+import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
+import stud.ntnu.krisefikser.auth.repository.PasswordResetTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.email.service.EmailService;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
-import stud.ntnu.krisefikser.user.service.UserService;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
-import java.time.LocalDateTime;
+import stud.ntnu.krisefikser.user.service.UserService;
 
 /**
- * Service class for handling authentication-related operations such as user
- * registration, login,
+ * Service class for handling authentication-related operations such as user registration, login,
  * token generation, and token refresh.
  */
 @Service
@@ -40,6 +52,10 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final PasswordResetTokenRepository passwordResetTokenRepository;
+  private final JwtProperties jwtProperties;
+  private final EmailService emailService;
 
   /**
    * Registers a new user and generates access and refresh tokens.
@@ -79,8 +95,10 @@ public class AuthService {
     User user = userService.getUserByEmail(loginRequest.getEmail());
 
     // Check if account is locked
-    if (user != null && user.getLockedUntil() != null && LocalDateTime.now().isBefore(user.getLockedUntil())) {
-      log.warn("Account locked attempt for user: {}. Locked until: {}", user.getEmail(), user.getLockedUntil());
+    if (user != null && user.getLockedUntil() != null && LocalDateTime.now()
+        .isBefore(user.getLockedUntil())) {
+      log.warn("Account locked attempt for user: {}. Locked until: {}", user.getEmail(),
+          user.getLockedUntil());
       throw new LockedException("Account is locked until " + user.getLockedUntil());
     }
 
@@ -131,7 +149,7 @@ public class AuthService {
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
     RefreshToken existingToken = refreshTokenRepository.findByToken(
         refreshRequest.getRefreshToken()).orElseThrow(
-            RefreshTokenDoesNotExistException::new);
+        RefreshTokenDoesNotExistException::new);
 
     String email = tokenService.extractEmail(existingToken.getToken());
     if (email == null) {
@@ -162,5 +180,103 @@ public class AuthService {
    */
   public UserResponse me() {
     return userService.getCurrentUser().toDto();
+  }
+
+  /**
+   * Updates the password of the currently authenticated user.
+   *
+   * @param updatePasswordRequest The request containing the new password.
+   * @return UpdatePasswordResponse containing the status of the update.
+   */
+  public UpdatePasswordResponse updatePassword(UpdatePasswordRequest updatePasswordRequest) {
+    User user = userService.getCurrentUser();
+
+    if (!passwordEncoder.matches(updatePasswordRequest.getPassword(), user.getPassword())) {
+      throw new InvalidCredentialsException("Invalid password");
+    }
+
+    userService.updatePassword(user.getId(), updatePasswordRequest.getPassword());
+
+    return UpdatePasswordResponse.builder()
+        .message("Password updated")
+        .success(true)
+        .build();
+  }
+
+  /**
+   * Requests a password reset by generating a reset token and sending it to the user's email.
+   *
+   * @param request The request containing the user's email.
+   * @return A response indicating the success of the operation.
+   */
+  public PasswordResetResponse requestPasswordReset(
+      RequestPasswordResetRequest request) {
+    User user = userService.getUserByEmail(request.getEmail());
+
+    List<PasswordResetToken> existingTokens = passwordResetTokenRepository.findByUser(user);
+
+    if (!existingTokens.isEmpty()) {
+      passwordResetTokenRepository.deleteAll(existingTokens);
+    }
+
+    String token = tokenService.generateResetPasswordToken(user.getEmail());
+
+    PasswordResetToken passwordResetToken = PasswordResetToken.builder().token(token).user(user)
+        .expiryDate(
+            Instant.now().plusMillis(jwtProperties.getResetPasswordTokenExpiration()))
+        .build();
+
+    passwordResetTokenRepository.save(passwordResetToken);
+
+    // TODO: Send email with reset password link
+//    emailService.sendEmail();
+
+    return PasswordResetResponse.builder()
+        .message("Reset password request sent to " + user.getEmail())
+        .success(true)
+        .build();
+  }
+
+  /**
+   * Completes the password reset process by validating the token and updating the user's password.
+   *
+   * @param request The request containing the token and new password.
+   * @return A response indicating the success of the operation.
+   */
+  public PasswordResetResponse completePasswordReset(CompletePasswordResetRequest request) {
+    if (request.getEmail() == null) {
+      throw new InvalidCredentialsException("Email is required");
+    }
+
+    if (request.getToken() == null) {
+      throw new InvalidCredentialsException("Token is required");
+    }
+
+    if (request.getNewPassword() == null) {
+      throw new InvalidCredentialsException("New password is required");
+    }
+
+    PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(
+            request.getToken())
+        .orElseThrow(() -> new InvalidCredentialsException("Invalid token"));
+
+    User user = userService.getUserByEmail(request.getEmail());
+
+    if (!passwordResetToken.getUser().getId().equals(user.getId())) {
+      throw new InvalidCredentialsException("Invalid token");
+    }
+
+    if (passwordResetToken.isExpired()) {
+      passwordResetTokenRepository.delete(passwordResetToken);
+      throw new InvalidCredentialsException("Expired token");
+    }
+
+    userService.updatePassword(user.getId(), request.getNewPassword());
+    passwordResetTokenRepository.delete(passwordResetToken);
+
+    return PasswordResetResponse.builder()
+        .message("Password updated")
+        .success(true)
+        .build();
   }
 }
