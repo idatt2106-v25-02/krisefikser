@@ -1,7 +1,7 @@
 <!-- DashboardSection.vue -->
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Map, AlertTriangle, BookOpen, Trophy, Mail, ArrowRight } from 'lucide-vue-next'
+import { Map, AlertTriangle, BookOpen, Mail, ArrowRight } from 'lucide-vue-next'
 
 // Import shadcn Button component
 import { Button } from '@/components/ui/button';
@@ -39,15 +39,7 @@ const stats = [
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     borderColor: 'border-blue-200',
-  },
-  {
-    title: 'Gamification aktiviteter',
-    value: 3,
-    icon: Trophy,
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-100',
-    borderColor: 'border-blue-200',
-  },
+  }
 ]
 
 // Fetch events using TanStack Query

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Map, BookOpen, Trophy, Users, Home } from 'lucide-vue-next'
+import { Map, BookOpen, Users, Home } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 
 const router = useRouter()
-
 
 const navigateToMap = () => {
   router.push('/admin/kart')
@@ -14,13 +13,8 @@ const navigateToDashboard = () => {
   router.push('/admin')
 }
 
-
 const navigateToScenarios = () => {
   router.push('/admin/scenarios')
-}
-
-const navigateToGamification = () => {
-  router.push('/admin/gamification')
 }
 
 const navigateToAdmins = () => {
@@ -64,8 +58,6 @@ const navigateToAdmins = () => {
           <span class="ml-2">Kart administrasjon</span>
         </Button>
 
-
-
         <Button
           @click="navigateToScenarios"
           variant="ghost"
@@ -78,20 +70,6 @@ const navigateToAdmins = () => {
         >
           <BookOpen class="h-5 w-5" />
           <span class="ml-2">Scenarioer</span>
-        </Button>
-
-        <Button
-          @click="navigateToGamification"
-          variant="ghost"
-          :class="[
-            'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
-            router.currentRoute.value.path === '/admin/gamification'
-              ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
-              : 'text-gray-700',
-          ]"
-        >
-          <Trophy class="h-5 w-5" />
-          <span class="ml-2">Gamification</span>
         </Button>
 
         <Button
@@ -112,7 +90,6 @@ const navigateToAdmins = () => {
 
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
-
       <!-- Page Content -->
       <div class="p-6">
         <slot></slot>

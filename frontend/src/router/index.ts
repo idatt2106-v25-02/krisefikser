@@ -15,7 +15,6 @@ import AdminMapView from '@/views/admin/map/AdminMapView.vue'
 import AdminResetPasswordLink from '@/views/admin/resetPassword/AdminResetPasswordLink.vue'
 import AdminRegisterView from '@/views/admin/register/AdminRegisterView.vue'
 import AdminScenariosView from '@/views/admin/scenario/ScenariosView.vue'
-import AdminGamificationView from '@/views/admin/gamification/GamificationView.vue'
 
 import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
 
@@ -119,12 +118,6 @@ const router = createRouter({
       path: '/admin/scenarios',
       name: 'admin-scenarios',
       component: AdminScenariosView,
-      meta: { requiresAuth: true, requiresAdmin: true },
-    },
-    {
-      path: '/admin/gamification',
-      name: 'admin-gamification',
-      component: AdminGamificationView,
       meta: { requiresAuth: true, requiresAdmin: true },
     },
 
