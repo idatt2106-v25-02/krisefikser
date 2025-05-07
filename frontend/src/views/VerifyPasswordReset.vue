@@ -9,7 +9,6 @@ import axios from 'axios'
 
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 // Schema for the reset password form with password requirements
