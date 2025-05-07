@@ -1,24 +1,24 @@
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
-  Bell,
-  Calendar,
   AlertTriangle,
-  Check as CheckIcon,
+  Bell,
   BellOff as BellOffIcon,
+  Calendar,
+  Check as CheckIcon,
   Info,
   Link as LinkIcon,
 } from 'lucide-vue-next'
 import {
   useGetNotifications,
   useGetUnreadCount,
-  useReadNotification,
   useReadAll,
+  useReadNotification,
 } from '@/api/generated/notification/notification'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { NotificationResponse } from '@/api/generated/model'
 import type { ErrorType } from '@/api/axios'
-import { useNotificationStore } from '@/stores/notificationStore';
+import { useNotificationStore } from '@/stores/notificationStore'
 
 const activeFilter = ref('all')
 
@@ -27,57 +27,58 @@ const currentPage = ref(0)
 
 // Vue Query Client
 const queryClient = useQueryClient()
-const notificationStore = useNotificationStore();
+const notificationStore = useNotificationStore()
 
 const formatDate = (dateInput: string | number[] | undefined): string => {
   if (!dateInput) {
-    return '-';
+    return '-'
   }
 
-  let notificationDate: Date;
+  let notificationDate: Date
 
   if (typeof dateInput === 'string') {
-    notificationDate = new Date(dateInput);
+    notificationDate = new Date(dateInput)
   } else if (Array.isArray(dateInput) && dateInput.length >= 6) {
     // Jackson LocalDateTime array: [year, month(1-12), day, hour, minute, second, nanoseconds]
     // JavaScript Date constructor: month is 0-indexed (0=Jan, 1=Feb, ...)
     notificationDate = new Date(
-      dateInput[0],    // year
+      dateInput[0], // year
       dateInput[1] - 1, // month (adjusting for 0-indexed month)
-      dateInput[2],    // day
-      dateInput[3],    // hour
-      dateInput[4],    // minute
-      dateInput[5],    // second
-      dateInput[6] ? Math.floor(dateInput[6] / 1000000) : 0 // nanoseconds to milliseconds
-    );
+      dateInput[2], // day
+      dateInput[3], // hour
+      dateInput[4], // minute
+      dateInput[5], // second
+      dateInput[6] ? Math.floor(dateInput[6] / 1000000) : 0, // nanoseconds to milliseconds
+    )
   } else {
-    console.error('formatDate: Received unparseable date format:', dateInput);
-    return 'Invalid date format'; // Handle cases that are neither string nor expected array
+    console.error('formatDate: Received unparseable date format:', dateInput)
+    return 'Invalid date format' // Handle cases that are neither string nor expected array
   }
 
   if (isNaN(notificationDate.getTime())) {
-    console.error('formatDate: Failed to parse date from input:', dateInput);
-    return 'Invalid date';
+    console.error('formatDate: Failed to parse date from input:', dateInput)
+    return 'Invalid date'
   }
 
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000);
+  const now = new Date()
+  const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000)
 
-  if (diffInSeconds < 0) return 'In the future';
-  if (diffInSeconds < 5) return 'Nå nettopp';
-  if (diffInSeconds < 60) return `${diffInSeconds} sek siden`;
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min siden`;
+  if (diffInSeconds < 0) return 'In the future'
+  if (diffInSeconds < 5) return 'Nå nettopp'
+  if (diffInSeconds < 60) return `${diffInSeconds} sek siden`
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min siden`
 
-  const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
+  const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24))
 
-  if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
-  if (diffInDays === 1) return 'I går';
+  if (diffInDays === 0)
+    return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`
+  if (diffInDays === 1) return 'I går'
   if (diffInDays < 7) {
-    const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-    return days[notificationDate.getDay()];
+    const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
+    return days[notificationDate.getDay()]
   }
-  return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
-};
+  return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`
+}
 
 // Fetch Unread Count
 const { data: unreadCountData } = useGetUnreadCount({
@@ -94,7 +95,6 @@ const notificationParams = computed(() => ({
     sort: ['createdAt,desc'],
   },
 }))
-
 
 const {
   data: notificationsData,
@@ -162,10 +162,7 @@ const handleNotificationClick = (notification: NotificationResponse) => {
   }
 
   console.log('Notification clicked:', notification)
-  // Routing logic - prefer URL if available
-  if (notification.url) {
-    window.open(notification.url, '_blank')
-  }
+  //TODO: Add routing logic
   // Add back specific routing if needed and if backend provides necessary IDs
   // else if (notification.type === 'CRISIS' && notification.referenceId) {
   //    router.push(...)
@@ -179,48 +176,52 @@ const markAsRead = (notificationId: string) => {
     return
   }
   // 1. Optimistic update for Pinia store (for unread count, potentially navbar items)
-  notificationStore.markNotificationAsRead(notificationId);
+  notificationStore.markNotificationAsRead(notificationId)
 
   // 2. Optimistic update for Vue Query cache (for NotificationView.vue list)
-  const queryKey = ['/api/notifications', notificationParams.value];
+  const queryKey = ['/api/notifications', notificationParams.value]
   // Assuming the cached data structure matches { content?: NotificationResponse[] } along with other pagination fields
-  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(queryKey);
+  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(
+    queryKey,
+  )
 
   if (previousNotificationsData && previousNotificationsData.content) {
     const updatedContent = previousNotificationsData.content.map((notif: NotificationResponse) =>
-      notif.id === notificationId ? { ...notif, read: true } : notif
-    );
+      notif.id === notificationId ? { ...notif, read: true } : notif,
+    )
     queryClient.setQueryData<{ content?: NotificationResponse[] }>(queryKey, {
       ...previousNotificationsData,
       content: updatedContent,
-    });
+    })
   }
 
   // 3. Actual mutation to backend
-  mutateReadNotification({ id: notificationId });
+  mutateReadNotification({ id: notificationId })
 }
 
 // Call local mutation function
 const markAllAsRead = () => {
   // 1. Optimistic update for Pinia store
-  notificationStore.markAllNotificationsAsRead();
+  notificationStore.markAllNotificationsAsRead()
 
   // 2. Optimistic update for Vue Query cache
-  const queryKey = ['/api/notifications', notificationParams.value];
-  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(queryKey);
+  const queryKey = ['/api/notifications', notificationParams.value]
+  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(
+    queryKey,
+  )
 
   if (previousNotificationsData && previousNotificationsData.content) {
-    const updatedContent = previousNotificationsData.content.map((notif: NotificationResponse) =>
-      ({ ...notif, read: true }) // Mark all as read
-    );
+    const updatedContent = previousNotificationsData.content.map(
+      (notif: NotificationResponse) => ({ ...notif, read: true }), // Mark all as read
+    )
     queryClient.setQueryData<{ content?: NotificationResponse[] }>(queryKey, {
       ...previousNotificationsData,
       content: updatedContent,
-    });
+    })
   }
 
   // 3. Actual mutation to backend
-  mutateReadAll();
+  mutateReadAll()
 }
 
 // Reset to first page when filter changes
@@ -237,57 +238,57 @@ watch(activeFilter, () => {
       <!-- Notification filters -->
       <div class="flex flex-wrap gap-2 mb-6">
         <button
-          @click="activeFilter = 'all'"
-          class="px-4 py-2 rounded-md text-sm"
           :class="
             activeFilter === 'all'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           "
+          class="px-4 py-2 rounded-md text-sm"
+          @click="activeFilter = 'all'"
         >
           Alle varsler
         </button>
         <button
-          @click="activeFilter = 'unread'"
-          class="px-4 py-2 rounded-md text-sm"
           :class="
             activeFilter === 'unread'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           "
+          class="px-4 py-2 rounded-md text-sm"
+          @click="activeFilter = 'unread'"
         >
           Uleste ({{ unreadCountData || 0 }})
         </button>
         <button
-          @click="activeFilter = 'crisis'"
-          class="px-4 py-2 rounded-md text-sm"
           :class="
             activeFilter === 'crisis'
               ? 'bg-red-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           "
+          class="px-4 py-2 rounded-md text-sm"
+          @click="activeFilter = 'crisis'"
         >
           Krisevarsler
         </button>
         <button
-          @click="activeFilter = 'expiry'"
-          class="px-4 py-2 rounded-md text-sm"
           :class="
             activeFilter === 'expiry'
               ? 'bg-yellow-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           "
+          class="px-4 py-2 rounded-md text-sm"
+          @click="activeFilter = 'expiry'"
         >
           Beredskapslager
         </button>
         <button
-          @click="activeFilter = 'update'"
-          class="px-4 py-2 rounded-md text-sm"
           :class="
             activeFilter === 'update'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           "
+          class="px-4 py-2 rounded-md text-sm"
+          @click="activeFilter = 'update'"
         >
           Oppdateringer
         </button>
@@ -296,9 +297,9 @@ watch(activeFilter, () => {
       <!-- Mark all as read button -->
       <div v-if="notifications && hasUnread" class="mb-4 flex justify-end">
         <button
-          @click="markAllAsRead"
           :disabled="isMarkingAllAsRead"
           class="text-sm text-blue-600 hover:text-blue-800 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="markAllAsRead"
         >
           <CheckIcon class="h-4 w-4 mr-1" />
           {{ isMarkingAllAsRead ? 'Markerer...' : 'Marker alle som lest' }}
@@ -320,8 +321,8 @@ watch(activeFilter, () => {
       >
         <p>Kunne ikke laste varsler: {{ notificationsError }}</p>
         <button
-          @click="() => refetchNotifications()"
           class="mt-2 text-sm text-red-700 hover:text-red-900 underline"
+          @click="() => refetchNotifications()"
         >
           Prøv igjen
         </button>
@@ -348,19 +349,19 @@ watch(activeFilter, () => {
         <div
           v-for="notification in filteredNotifications"
           :key="notification.id"
-          class="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition"
           :class="{ 'border-l-4 border-l-blue-500': !notification.read }"
+          class="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition"
         >
           <div class="p-4 cursor-pointer" @click="handleNotificationClick(notification)">
             <div class="flex items-start gap-3">
               <!-- Icon based on notification type -->
               <div
-                class="rounded-full p-3 flex-shrink-0"
                 :class="{
                   'bg-yellow-100 text-yellow-600': (notification.type as string) === 'EXPIRY',
                   'bg-red-100 text-red-600': (notification.type as string) === 'CRISIS',
                   'bg-blue-100 text-blue-600': (notification.type as string) === 'UPDATE',
                 }"
+                class="rounded-full p-3 flex-shrink-0"
               >
                 <AlertTriangle v-if="(notification.type as string) === 'CRISIS'" class="h-5 w-5" />
                 <Calendar v-else-if="(notification.type as string) === 'EXPIRY'" class="h-5 w-5" />
@@ -384,11 +385,9 @@ watch(activeFilter, () => {
                 <!-- Action button logic remains, potentially using notification.url or needing backend changes -->
                 <div class="mt-3">
                   <a
-                    v-if="notification.url"
-                    :href="notification.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                    rel="noopener noreferrer"
+                    target="_blank"
                     @click.stop
                   >
                     <LinkIcon class="h-3 w-3 mr-1" />
@@ -413,9 +412,9 @@ watch(activeFilter, () => {
           <div class="px-4 py-2 bg-gray-50 border-t flex justify-end">
             <button
               v-if="!notification.read && notification.id"
-              @click.stop="markAsRead(notification.id)"
               :disabled="isMarkingAsRead"
               class="text-xs text-blue-600 hover:text-blue-800 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+              @click.stop="markAsRead(notification.id)"
             >
               <CheckIcon class="h-3 w-3 mr-1" />
               {{ isMarkingAsRead ? 'Markerer...' : 'Marker som lest' }}
@@ -429,17 +428,17 @@ watch(activeFilter, () => {
         <!-- Pagination Controls -->
         <div v-if="totalPages > 1" class="flex justify-center items-center space-x-2 mt-6">
           <button
-            @click="currentPage--"
             :disabled="currentPage === 0"
             class="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            @click="currentPage--"
           >
             Forrige
           </button>
           <span>Side {{ currentPage + 1 }} av {{ totalPages }}</span>
           <button
-            @click="currentPage++"
             :disabled="currentPage >= totalPages - 1"
             class="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            @click="currentPage++"
           >
             Neste
           </button>
