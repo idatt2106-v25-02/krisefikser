@@ -57,7 +57,7 @@ import type { HouseholdResponse, CreateHouseholdRequest } from '@/api/generated/
 
 // Import auth store
 // new comment to force pipeline to run
-import { useAuthStore } from '@/stores/useAuthStore';
+import { useAuthStore } from '@/stores/auth/useAuthStore';
 
 const router = useRouter();
 const authStore = useAuthStore();
