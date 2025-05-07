@@ -1,7 +1,8 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
 import { useGetAllEvents } from '@/api/generated/event/event'; // Path to your Orval-generated event functions
-import type { EventResponse } from '@/api/generated/model'; // Path to your Orval-generated EventResponse type
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario'; // Import scenario hook
+import type { EventResponse, ScenarioResponse } from '@/api/generated/model'; // Path to your Orval-generated EventResponse type and ScenarioResponse
 import { EventResponseStatus } from '@/api/generated/model'; // Path to your Orval-generated EventStatus enum
 import { Button } from '@/components/ui/button'; // Import Button
 import { BookText } from 'lucide-vue-next'; // Import BookText icon
@@ -11,7 +12,8 @@ export default defineComponent({
   name: 'KriserPage',
   components: { Button, BookText },
   setup() {
-    const { data: events, isLoading, error } = useGetAllEvents<EventResponse[]>();
+    const { data: events, isLoading: isLoadingEvents, error: eventsError } = useGetAllEvents<EventResponse[]>();
+    const { data: scenarios, isLoading: isLoadingScenarios, error: scenariosError } = useGetAllScenarios<ScenarioResponse[]>(); // Fetch scenarios
     const activeTab = ref('all');
     const router = useRouter();
 
@@ -35,11 +37,18 @@ export default defineComponent({
       }
     };
 
-    const errorMessage = computed(() => {
-      if (error.value instanceof Error) {
-        return error.value.message;
+    const eventsErrorMessage = computed(() => {
+      if (eventsError.value instanceof Error) {
+        return eventsError.value.message;
       }
-      return 'En ukjent feil oppstod.';
+      return 'En ukjent feil oppstod ved lasting av hendelser.';
+    });
+
+    const scenariosErrorMessage = computed(() => {
+      if (scenariosError.value instanceof Error) {
+        return scenariosError.value.message;
+      }
+      return 'En ukjent feil oppstod ved lasting av scenarioer.';
     });
 
     const allEvents = computed(() => {
@@ -89,10 +98,21 @@ export default defineComponent({
       }
     };
 
+    // Utility to strip HTML for preview
+    const stripHtml = (html?: string) => {
+      if (!html) return '';
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      return doc.body.textContent || "";
+    };
+
     return {
-      isLoading,
-      error,
-      errorMessage,
+      isLoadingEvents,
+      eventsError,
+      eventsErrorMessage,
+      scenarios,
+      isLoadingScenarios,
+      scenariosError,
+      scenariosErrorMessage,
       activeTab,
       allEvents,
       upcomingEvents,
@@ -102,6 +122,7 @@ export default defineComponent({
       formatDate,
       mapEventStatus,
       navigateToPublicReflections, // Expose to template
+      stripHtml,
     };
   },
 });
@@ -129,7 +150,7 @@ export default defineComponent({
       </div>
 
       <!-- Loading state -->
-      <div v-if="isLoading" class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex justify-center">
+      <div v-if="isLoadingEvents" class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex justify-center">
         <div class="flex flex-col items-center">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
           <p class="text-gray-600">Laster inn kriser...</p>
@@ -137,7 +158,7 @@ export default defineComponent({
       </div>
 
       <!-- Error state -->
-      <div v-else-if="error" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div v-else-if="eventsError" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
           <div class="flex">
             <div class="flex-shrink-0">
@@ -147,7 +168,7 @@ export default defineComponent({
             </div>
             <div class="ml-3">
               <p class="text-sm text-red-700">
-                Kunne ikke laste kriser: {{ errorMessage }}
+                Kunne ikke laste kriser: {{ eventsErrorMessage }}
               </p>
             </div>
           </div>
@@ -253,7 +274,7 @@ export default defineComponent({
                         {{ mapEventStatus(event.status) }}
                       </span>
                     </div>
-                    <p v-if="event.description" class="text-gray-600 mb-3">{{ event.description }}</p>
+                    <p v-if="event.description" class="text-gray-600 mb-3">{{ stripHtml(event.description) }}</p>
                     <div class="flex justify-between items-center mt-4 text-sm text-gray-500">
                       <div>
                         <p v-if="event.status === 'UPCOMING'">Starter: {{ formatDate(event.startTime) }}</p>
@@ -399,20 +420,32 @@ export default defineComponent({
               </router-link>
             </div>
             <div class="divide-y divide-gray-100">
-              <router-link to="/scenario/1" class="block p-4 hover:bg-gray-50">
-                <h3 class="font-medium text-gray-800 mb-1">Langvarig strømbrudd</h3>
-                <p class="text-sm text-gray-600 line-clamp-2">Hvordan forberede seg og håndtere situasjonen når strømmen forsvinner over lengre tid.</p>
-              </router-link>
-
-              <router-link to="/scenario/2" class="block p-4 hover:bg-gray-50">
-                <h3 class="font-medium text-gray-800 mb-1">Flom og oversvømmelse</h3>
-                <p class="text-sm text-gray-600 line-clamp-2">Forberedelser og håndtering før, under og etter flom eller oversvømmelse i ditt område.</p>
-              </router-link>
-
-              <router-link to="/scenario/3" class="block p-4 hover:bg-gray-50">
-                <h3 class="font-medium text-gray-800 mb-1">Ekstremvær: Storm og orkan</h3>
-                <p class="text-sm text-gray-600 line-clamp-2">Råd om hvordan du forbereder deg og beskytter deg og din eiendom ved varsler om ekstremvær.</p>
-              </router-link>
+              <!-- Loading state for scenarios -->
+              <div v-if="isLoadingScenarios" class="p-4 text-center text-gray-500">
+                Laster scenarioer...
+              </div>
+              <!-- Error state for scenarios -->
+              <div v-else-if="scenariosError" class="p-4 text-center text-red-500">
+                <p>Kunne ikke laste scenarioer: {{ scenariosErrorMessage }}</p>
+              </div>
+              <!-- Display scenarios -->
+              <div v-else-if="scenarios && scenarios.length > 0">
+                <router-link 
+                  v-for="scenario in scenarios.slice(0, 3)" 
+                  :key="scenario.id" 
+                  :to="{ name: 'scenario-detail', params: { id: scenario.id } }"
+                  class="block p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <h3 class="font-medium text-gray-800 mb-1">{{ scenario.title }}</h3>
+                  <p class="text-sm text-gray-600 line-clamp-2" v-if="scenario.content">{{ stripHtml(scenario.content) }}</p>
+                </router-link>
+                <div v-if="scenarios.length === 0 && !isLoadingScenarios && !scenariosError" class="p-4 text-center text-gray-500">
+                  Ingen scenarioer funnet.
+                </div>
+              </div>
+               <div v-else class="p-4 text-center text-gray-500">
+                Ingen scenarioer tilgjengelig for øyeblikket.
+              </div>
             </div>
           </div>
         </div>

@@ -37,6 +37,7 @@ import {
   Map as MapIcon,
   Edit,
   Info,
+  BookText,
 } from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
@@ -440,6 +441,11 @@ function navigateToEditHouseholdInfo() {
   router.push(`/husstand/${household.value?.id}/beredskapslager`)
 }
 
+function navigateToHouseholdReflections() {
+  // The page /husstand/refleksjoner will display reflections for the active household
+  router.push('/husstand/refleksjoner');
+}
+
 function openEditHouseholdDialog() {
   isEditHouseholdDialogOpen.value = true
 }
@@ -636,6 +642,10 @@ const filteredPeople = computed(() => {
               <Button variant="outline" size="sm" @click="openEditHouseholdDialog">
                 <Edit class="h-4 w-4 mr-1" />
                 Endre informasjon
+              </Button>
+              <Button variant="outline" size="sm" @click="navigateToHouseholdReflections">
+                <BookText class="h-4 w-4 mr-1" />
+                Husstandens refleksjoner
               </Button>
             </div>
           </div>
