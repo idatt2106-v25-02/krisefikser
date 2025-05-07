@@ -35,11 +35,15 @@ const toggleExpand = (id: string) => {
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
         <template v-for="household in groupedHouseholds" :key="household.id">
-          <tr class="hover:bg-gray-50 transition-colors">
+          <tr
+            class="hover:bg-blue-50 transition-colors cursor-pointer"
+            @click="toggleExpand(household.id)"
+            :aria-expanded="expanded[household.id] ? 'true' : 'false'"
+            tabindex="0"
+            @keydown.enter.space="toggleExpand(household.id)"
+          >
             <td class="px-4 py-2 align-top">
-              <button @click="toggleExpand(household.id)" class="focus:outline-none">
-                <component :is="expanded[household.id] ? ChevronDown : ChevronRight" class="h-4 w-4 text-blue-500" />
-              </button>
+              <component :is="expanded[household.id] ? ChevronDown : ChevronRight" class="h-4 w-4 text-blue-500" />
             </td>
             <td class="px-4 py-2 font-semibold text-gray-800 align-top">{{ household.name }}</td>
             <td class="px-4 py-2 text-gray-600 align-top">{{ household.address }}</td>

@@ -17,8 +17,8 @@ const navigateToScenarios = () => {
   router.push('/admin/scenarios')
 }
 
-const navigateToAdmins = () => {
-  router.push('/super-admin/behandle-administratorer')
+const navigateToUsers = () => {
+  router.push('/admin/brukere')
 }
 </script>
 
@@ -73,11 +73,11 @@ const navigateToAdmins = () => {
         </Button>
 
         <Button
-          @click="navigateToAdmins"
+          @click="navigateToUsers"
           variant="ghost"
           :class="[
             'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
-            router.currentRoute.value.path === '/super-admin/behandle-administratorer'
+            router.currentRoute.value.path === '/admin/brukere'
               ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
               : 'text-gray-700',
           ]"

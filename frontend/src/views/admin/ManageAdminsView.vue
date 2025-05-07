@@ -419,7 +419,7 @@ const getRoleDisplay = (roles?: string[]) => {
                       <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
                       <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-post</th>
                       <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rolle</th>
-                      <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Handlinger</th>
+                      <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Handlinger</th>
                     </tr>
                   </thead>
                   <tbody class="bg-white divide-y divide-gray-200">
@@ -435,20 +435,21 @@ const getRoleDisplay = (roles?: string[]) => {
                           {{ getRoleDisplay(user.roles) }}
                         </span>
                       </td>
-                      <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
-                        <div class="flex justify-center space-x-2">
+                      <td class="px-6 py-3 whitespace-nowrap text-sm text-center">
+                        <div class="flex justify-center space-x-2 min-w-[56px]">
                           <!-- Mail icon - only for regular users if Super Admin -->
-                          <Button
-                            v-if="authStore.isSuperAdmin && canInviteUser(user.roles)"
-                            variant="ghost"
-                            size="icon"
-                            class="text-blue-600 hover:text-blue-800 p-1 h-auto"
-                            @click="openInviteDialog(user.id || '')"
-                            title="Inviter til Admin"
-                          >
-                            <Mail class="h-4 w-4" />
-                          </Button>
-
+                          <span v-if="authStore.isSuperAdmin && canInviteUser(user.roles)">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              class="text-blue-600 hover:text-blue-800 p-1 h-auto"
+                              @click="openInviteDialog(user.id || '')"
+                              title="Inviter til Admin"
+                            >
+                              <Mail class="h-4 w-4" />
+                            </Button>
+                          </span>
+                          <span v-else class="inline-block w-8"></span>
                           <!-- Delete button with permission check -->
                           <Button
                             v-if="canDeleteUser(user.roles)"

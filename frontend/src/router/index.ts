@@ -120,12 +120,11 @@ const router = createRouter({
       component: AdminScenariosView,
       meta: { requiresAuth: true, requiresAdmin: true },
     },
-
     {
-      path: '/super-admin/behandle-administratorer',
-      name: 'manage-admins',
+      path: '/admin/brukere',
+      name: 'admin-users',
       component: ManageAdminsView,
-      meta: { requiresAuth: true, requiresSuperAdmin: true },
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
 
     // Registered User routes
