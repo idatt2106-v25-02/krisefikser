@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
   import { ref, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import axios from 'axios'
@@ -33,11 +33,11 @@
       await axios.post(`http://localhost:8080/api/auth/verify-email?token=${token.value}`)
 
       verificationSuccess.value = true
-    } catch (err) {
+    } catch (err: unknown) {
       error.value = true
-      if (err.response && err.response.data && err.response.data.message) {
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
         errorMessage.value = err.response.data.message;
-      } else if (err.message && err.message.includes('Network Error')) {
+      } else if (err instanceof Error && err.message.includes('Network Error')) {
         errorMessage.value = 'Nettverksfeil. Kunne ikke koble til serveren. Prøv igjen senere.';
       } else {
         errorMessage.value = 'Token er ugyldig, utløpt, eller noe gikk galt. Prøv igjen eller be om en ny bekreftelseslenke.'

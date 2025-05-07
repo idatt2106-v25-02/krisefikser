@@ -6,8 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  unsorted?: boolean
-  sorted?: boolean
-  empty?: boolean
+export type VerifyEmailParams = {
+  token: string
 }

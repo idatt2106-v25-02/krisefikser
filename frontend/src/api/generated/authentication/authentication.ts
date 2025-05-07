@@ -29,6 +29,7 @@ import type {
   RegisterRequest,
   RegisterResponse,
   UserResponse,
+  VerifyEmailParams,
 } from '.././model'
 
 import { customInstance } from '../../axios'
@@ -36,6 +37,92 @@ import type { ErrorType, BodyType } from '../../axios'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
+/**
+ * Verifies user's email address using a token
+ * @summary Verify email address
+ */
+export const verifyEmail = (
+  params: MaybeRef<VerifyEmailParams>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  params = unref(params)
+
+  return customInstance<string>(
+    {
+      url: `http://localhost:8080/api/auth/verify-email`,
+      method: 'POST',
+      params: unref(params),
+      signal,
+    },
+    options,
+  )
+}
+
+export const getVerifyEmailMutationOptions = <
+  TError = ErrorType<string>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyEmail>>,
+    TError,
+    { params: VerifyEmailParams },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verifyEmail>>,
+  TError,
+  { params: VerifyEmailParams },
+  TContext
+> => {
+  const mutationKey = ['verifyEmail']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verifyEmail>>,
+    { params: VerifyEmailParams }
+  > = (props) => {
+    const { params } = props ?? {}
+
+    return verifyEmail(params, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type VerifyEmailMutationResult = NonNullable<Awaited<ReturnType<typeof verifyEmail>>>
+
+export type VerifyEmailMutationError = ErrorType<string>
+
+/**
+ * @summary Verify email address
+ */
+export const useVerifyEmail = <TError = ErrorType<string>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof verifyEmail>>,
+      TError,
+      { params: VerifyEmailParams },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof verifyEmail>>,
+  TError,
+  { params: VerifyEmailParams },
+  TContext
+> => {
+  const mutationOptions = getVerifyEmailMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
 /**
  * Creates a new user account after CAPTCHA verification and input validation
  * @summary Register a new user
