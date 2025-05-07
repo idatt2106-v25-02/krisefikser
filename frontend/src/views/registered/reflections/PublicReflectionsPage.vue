@@ -1,135 +1,5 @@
-<template>
-  <div class="bg-gray-50 min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Page Header with background -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <router-link
-          to="/kriser"
-          class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
-        >
-          ← Tilbake til kriser
-        </router-link>
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900 mb-1">Offentlige Refleksjoner</h1>
-          <p class="text-gray-600 max-w-3xl">
-            Her finner du alle refleksjoner som er delt offentlig av brukere i systemet.
-          </p>
-        </div>
-      </div>
-
-      <!-- Loading state with improved animation -->
-      <div v-if="isLoading" class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex justify-center">
-        <div class="flex flex-col items-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-          <p class="text-gray-600">Laster refleksjoner...</p>
-        </div>
-      </div>
-
-      <!-- Error state with better visual cues -->
-      <div v-else-if="error" class="bg-white rounded-lg shadow-lg p-6">
-        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm text-red-700">
-                Kunne ikke laste refleksjoner: {{ errorMessage }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reflection cards -->
-      <div v-else-if="publicReflections && publicReflections.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="reflection in publicReflections"
-          :key="reflection.id"
-          class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col relative border border-gray-200 transition-all duration-300 hover:shadow-lg min-h-[220px]"
-        >
-          <!-- Colored top bar based on visibility -->
-          <div class="h-1 w-full bg-indigo-500"></div>
-
-          <!-- Decorative corner -->
-          <div class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-indigo-50/70">
-            <div class="absolute top-2.5 right-2.5">
-              <Globe class="h-6 w-6 text-indigo-600" /> <!-- Globe icon for public -->
-            </div>
-          </div>
-
-          <div class="p-4 relative z-10 flex-grow flex flex-col">
-            <h3 class="text-lg font-semibold mb-1 pr-10">{{ reflection.title }}</h3>
-            <div class="flex flex-wrap gap-1.5 mb-3 text-xs">
-              <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">
-                {{ reflection.authorName }}
-              </span>
-              <span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-medium">
-                {{ mapReflectionVisibility(reflection.visibility) }}
-              </span>
-              <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 font-medium">
-                {{ formatDate(reflection.updatedAt) }}
-              </span>
-            </div>
-
-            <div v-if="reflection.eventId && eventTitles[reflection.eventId]" class="mb-2">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs">
-                <router-link :to="`/kriser/${reflection.eventId}`" class="hover:underline">
-                  {{ eventTitles[reflection.eventId] }}
-                </router-link>
-              </span>
-            </div>
-            <div v-else-if="reflection.eventId" class="mb-2 text-sm text-gray-500 italic">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs">
-                Laster hendelsesnavn...
-              </span>
-            </div>
-
-            <p v-if="reflection.content" class="text-sm text-gray-600 flex-grow mb-3 line-clamp-3" v-html="stripHtml(reflection.content)"></p>
-
-            <div class="mt-auto pt-3 border-t flex justify-end space-x-2">
-              <Button size="sm" variant="outline" @click="viewReflection(reflection.id!)" class="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                Se detaljer
-              </Button>
-              <Button
-                v-if="canManageReflection(reflection)"
-                size="sm"
-                variant="destructive"
-                @click="confirmDeleteReflection(reflection.id!)"
-                class="flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Slett
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else-if="!isLoading && !error" class="bg-white rounded-lg shadow-md p-8 text-center">
-        <Globe class="mx-auto h-12 w-12 text-gray-400" />
-        <h3 class="mt-2 text-xl font-medium text-gray-900">Ingen offentlige refleksjoner</h3>
-        <p class="mt-1 text-base text-gray-500">Det er ingen offentlige refleksjoner tilgjengelig for øyeblikket.</p>
-        <Button class="mt-6" @click="navigateToMyReflections">
-          <BookOpen class="h-4 w-4 mr-2" />
-          Mine refleksjoner
-        </Button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed,  watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQueryClient } from '@tanstack/vue-query';
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
@@ -142,7 +12,7 @@ import { useGetEventById } from '@/api/generated/event/event.ts';
 import type { ReflectionResponse } from '@/api/generated/model';
 import { ReflectionResponseVisibility } from '@/api/generated/model';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, Globe } from 'lucide-vue-next'; // Added Globe icon
+import {  BookOpen, Globe } from 'lucide-vue-next'; // Added Globe icon
 
 const router = useRouter();
 const queryClient = useQueryClient();
@@ -294,6 +164,138 @@ watch(eventIdsToFetch, (newIds) => {
 // No onMounted auth check needed as this page is public
 
 </script>
+
+<template>
+  <div class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Page Header with background -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <router-link
+          to="/kriser"
+          class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        >
+          ← Tilbake til kriser
+        </router-link>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-1">Offentlige Refleksjoner</h1>
+          <p class="text-gray-600 max-w-3xl">
+            Her finner du alle refleksjoner som er delt offentlig av brukere i systemet.
+          </p>
+        </div>
+      </div>
+
+      <!-- Loading state with improved animation -->
+      <div v-if="isLoading" class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex justify-center">
+        <div class="flex flex-col items-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+          <p class="text-gray-600">Laster refleksjoner...</p>
+        </div>
+      </div>
+
+      <!-- Error state with better visual cues -->
+      <div v-else-if="error" class="bg-white rounded-lg shadow-lg p-6">
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-red-700">
+                Kunne ikke laste refleksjoner: {{ errorMessage }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reflection cards -->
+      <div v-else-if="publicReflections && publicReflections.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="reflection in publicReflections"
+          :key="reflection.id"
+          class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col relative border border-gray-200 transition-all duration-300 hover:shadow-lg min-h-[220px]"
+        >
+          <!-- Colored top bar based on visibility -->
+          <div class="h-1 w-full bg-indigo-500"></div>
+
+          <!-- Decorative corner -->
+          <div class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-indigo-50/70">
+            <div class="absolute top-2.5 right-2.5">
+              <Globe class="h-6 w-6 text-indigo-600" /> <!-- Globe icon for public -->
+            </div>
+          </div>
+
+          <div class="p-4 relative z-10 flex-grow flex flex-col">
+            <h3 class="text-lg font-semibold mb-1 pr-10">{{ reflection.title }}</h3>
+            <div class="flex flex-wrap gap-1.5 mb-3 text-xs">
+              <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">
+                {{ reflection.authorName }}
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-medium">
+                {{ mapReflectionVisibility(reflection.visibility) }}
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 font-medium">
+                {{ formatDate(reflection.updatedAt) }}
+              </span>
+            </div>
+
+            <div v-if="reflection.eventId && eventTitles[reflection.eventId]" class="mb-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs">
+                <router-link :to="`/kriser/${reflection.eventId}`" class="hover:underline">
+                  {{ eventTitles[reflection.eventId] }}
+                </router-link>
+              </span>
+            </div>
+            <div v-else-if="reflection.eventId" class="mb-2 text-sm text-gray-500 italic">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs">
+                Laster hendelsesnavn...
+              </span>
+            </div>
+
+            <p v-if="reflection.content" class="text-sm text-gray-600 flex-grow mb-3 line-clamp-3" v-html="stripHtml(reflection.content)"></p>
+
+            <div class="mt-auto pt-3 border-t flex justify-end space-x-2">
+              <Button size="sm" variant="outline" @click="viewReflection(reflection.id!)" class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Se detaljer
+              </Button>
+              <Button
+                v-if="canManageReflection(reflection)"
+                size="sm"
+                variant="destructive"
+                @click="confirmDeleteReflection(reflection.id!)"
+                class="flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Slett
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else-if="!isLoading && !error" class="bg-white rounded-lg shadow-md p-8 text-center">
+        <Globe class="mx-auto h-12 w-12 text-gray-400" />
+        <h3 class="mt-2 text-xl font-medium text-gray-900">Ingen offentlige refleksjoner</h3>
+        <p class="mt-1 text-base text-gray-500">Det er ingen offentlige refleksjoner tilgjengelig for øyeblikket.</p>
+        <Button class="mt-6" @click="navigateToMyReflections">
+          <BookOpen class="h-4 w-4 mr-2" />
+          Mine refleksjoner
+        </Button>
+      </div>
+    </div>
+  </div>
+</template>
+
+
 
 <style scoped>
 .line-clamp-3 {
