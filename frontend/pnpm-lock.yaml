@@ -58,7 +58,10 @@ importers:
         version: 3.0.2(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
       posthog-js:
         specifier: ^1.239.0
-        version: 1.239.1
+        version: 1.240.0
+      qs:
+        specifier: ^6.14.0
+        version: 6.14.0
       reka-ui:
         specifier: ^2.2.0
         version: 2.2.0(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
@@ -122,7 +125,10 @@ importers:
         version: 21.1.7
       '@types/node':
         specifier: ^22.14.1
-        version: 22.14.1
+        version: 22.15.14
+      '@types/qs':
+        specifier: ^6.9.18
+        version: 6.9.18
       '@types/sockjs-client':
         specifier: ^1.5.4
         version: 1.5.4
@@ -1120,8 +1126,11 @@ packages:
   '@types/leaflet@1.9.17':
     resolution: {integrity: sha512-IJ4K6t7I3Fh5qXbQ1uwL3CFVbCi6haW9+53oLWgdKlLP7EaS21byWFJxxqOx9y8I0AP0actXSJLVMbyvxhkUTA==}
 
-  '@types/node@22.14.1':
-    resolution: {integrity: sha512-u0HuPQwe/dHrItgHHpmw3N2fYCR6x4ivMNbPHRkBVP4CvN+kiRrKHWk3i8tXiO/joPwXLMYvF9TTF0eqgHIuOw==}
+  '@types/node@22.15.14':
+    resolution: {integrity: sha512-BL1eyu/XWsFGTtDWOYULQEs4KR0qdtYfCxYAUYRoB7JP7h9ETYLgQTww6kH8Sj2C0pFGgrpM0XKv6/kbIzYJ1g==}
+
+  '@types/qs@6.9.18':
+    resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
 
   '@types/sinonjs__fake-timers@8.1.1':
     resolution: {integrity: sha512-0kSuKjAS0TrGLJ0M/+8MaFkGsQhZpB6pxOmvS3K8FYI72K//YmdfoW9X2qPsAKh1mkwxGD5zib9s1FIFed6E8g==}
@@ -5357,6 +5366,8 @@ snapshots:
   '@types/node@22.14.1':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/qs@6.9.18': {}
 
   '@types/sinonjs__fake-timers@8.1.1': {}
 

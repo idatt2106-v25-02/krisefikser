@@ -83,6 +83,12 @@ public class Reflection {
     private Household household;
 
     /**
+     * The ID of the event this reflection is associated with. Optional.
+     */
+    @Column(name = "event_id")
+    private Long eventId;
+
+    /**
      * Date and time when the reflection was created.
      */
     @CreationTimestamp

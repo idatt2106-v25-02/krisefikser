@@ -8,12 +8,18 @@ import {
   LogIn,
   User as UserIcon,
   LogOut,
+  ListChecks,
+  BookText,
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { computed } from 'vue'
@@ -34,6 +40,8 @@ export default {
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
+    ListChecks,
+    BookText,
   },
   setup() {
     const authStore = useAuthStore()
@@ -50,6 +58,12 @@ export default {
         label: 'Kart',
         to: '/kart',
         icon: MapIcon,
+        show: true,
+      },
+      {
+        label: 'Kriser',
+        to: '/kriser',
+        icon: ListChecks,
         show: true,
       },
       {
@@ -87,15 +101,24 @@ export default {
       this.isMenuOpen = false
     },
   },
+  watch: {
+    // Close the mobile menu when the route changes
+    $route() {
+      this.isMenuOpen = false
+    },
+  },
 }
 </script>
 
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
     <div class="container mx-auto px-4 py-4">
+    <div class="container mx-auto px-4 py-4">
       <div class="flex justify-between items-center">
         <div class="flex items-center">
           <router-link to="/" class="flex items-center">
+            <img src="/favicon.ico" alt="Krisefikser.app" class="h-5 w-auto mr-2" />
+            <span class="text-lg font-bold text-blue-700">Krisefikser.app</span>
             <img src="/favicon.ico" alt="Krisefikser.app" class="h-5 w-auto mr-2" />
             <span class="text-lg font-bold text-blue-700">Krisefikser.app</span>
           </router-link>
@@ -110,7 +133,16 @@ export default {
               'flex items-center transition text-sm',
               isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
             ]"
+            v-for="item in filteredNavItems"
+            :key="item.label"
+            :to="item.to"
+            :class="[
+              'flex items-center transition text-sm',
+              isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
+            ]"
           >
+            <component :is="item.icon" class="h-4 w-4 mr-1" />
+            <span>{{ item.label }}</span>
             <component :is="item.icon" class="h-4 w-4 mr-1" />
             <span>{{ item.label }}</span>
           </router-link>
@@ -150,6 +182,14 @@ export default {
                     >
                       <UserIcon class="h-5 w-5 mr-2" />
                       <span>Min Profil</span>
+                    </DropdownMenuItem>
+                  </router-link>
+                  <router-link v-if="authStore.isAuthenticated" to="/mine-refleksjoner">
+                    <DropdownMenuItem
+                      :class="{ 'bg-blue-50 text-blue-600': isActive('/mine-refleksjoner') }"
+                    >
+                      <BookText class="h-5 w-5 mr-2" />
+                      <span>Mine Refleksjoner</span>
                     </DropdownMenuItem>
                   </router-link>
                   <DropdownMenuItem @select="authStore.logout" variant="destructive">
@@ -222,6 +262,14 @@ export default {
                   <DropdownMenuItem :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }">
                     <UserIcon class="h-5 w-5 mr-2" />
                     <span>Min Profil</span>
+                  </DropdownMenuItem>
+                </router-link>
+                <router-link v-if="authStore.isAuthenticated" to="/mine-refleksjoner">
+                  <DropdownMenuItem
+                    :class="{ 'bg-blue-50 text-blue-600': isActive('/mine-refleksjoner') }"
+                  >
+                    <BookText class="h-5 w-5 mr-2" />
+                    <span>Mine Refleksjoner</span>
                   </DropdownMenuItem>
                 </router-link>
                 <DropdownMenuItem @select="authStore.logout" variant="destructive">

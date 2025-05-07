@@ -1,21 +1,14 @@
 <!-- HouseholdList.vue -->
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, UserCog, UserPlus, Trash2 } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
+import { ChevronDown, ChevronRight, User } from 'lucide-vue-next';
 import type { HouseholdResponse, UserResponse } from '@/api/generated/model';
 
 const props = defineProps<{
   households: HouseholdResponse[];
 }>();
 
-const emit = defineEmits<{
-  (e: 'edit', household: HouseholdResponse): void;
-  (e: 'addMember', household: HouseholdResponse): void;
-  (e: 'delete', id: string): void;
-  (e: 'removeMember', data: { householdId: string; userId: string }): void;
-}>();
+const expanded = ref<Record<string, boolean>>({});
 
 const groupedHouseholds = computed(() => {
   return props.households.map(household => ({
@@ -24,51 +17,64 @@ const groupedHouseholds = computed(() => {
     users: household.members?.map(member => member.user).filter((user): user is UserResponse => user !== undefined) || []
   }));
 });
+
+const toggleExpand = (id: string) => {
+  expanded.value[id] = !expanded.value[id];
+};
 </script>
 
 <template>
-  <div class="space-y-4 py-4 bg-transparent">
-    <Card v-for="household in groupedHouseholds" :key="household.id">
-      <CardHeader class="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle class="text-lg">{{ household.name }}</CardTitle>
-          <p class="text-muted-foreground text-sm">{{ household.address }}</p>
-        </div>
-        <div class="flex gap-2">
-          <Button variant="outline" size="sm" @click="emit('edit', household)">
-            <UserCog class="h-4 w-4 mr-2" />
-            Rediger
-          </Button>
-          <Button variant="outline" size="sm" @click="emit('addMember', household)">
-            <UserPlus class="h-4 w-4 mr-2" />
-            Legg til medlem
-          </Button>
-          <Button variant="destructive" size="sm" @click="emit('delete', household.id)">
-            <Trash2 class="h-4 w-4 mr-2" />
-            Slett
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div class="space-y-3">
-          <h4 class="font-medium text-sm">Medlemmer</h4>
-          <div v-for="member in household.members" :key="member.user?.id" class="flex items-center justify-between p-2 bg-muted/50 rounded-md">
-            <div class="flex items-center gap-2">
-              <User class="h-4 w-4 text-muted-foreground" />
-              <span>{{ member.user?.firstName }} {{ member.user?.lastName }}</span>
-              <span class="text-muted-foreground text-sm">({{ member.user?.email }})</span>
-            </div>
-            <Button
-              v-if="member.user?.id !== household.owner?.id"
-              variant="ghost"
-              size="sm"
-              @click="emit('removeMember', { householdId: household.id, userId: member.user?.id || '' })"
-            >
-              <Trash2 class="h-4 w-4 text-destructive" />
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10"></th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Husstand</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Adresse</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <template v-for="household in groupedHouseholds" :key="household.id">
+          <tr
+            class="hover:bg-blue-50 transition-colors cursor-pointer"
+            @click="toggleExpand(household.id)"
+            :aria-expanded="expanded[household.id] ? 'true' : 'false'"
+            tabindex="0"
+            @keydown.enter.space="toggleExpand(household.id)"
+          >
+            <td class="px-4 py-2 align-top">
+              <component :is="expanded[household.id] ? ChevronDown : ChevronRight" class="h-4 w-4 text-blue-500" />
+            </td>
+            <td class="px-4 py-2 font-semibold text-gray-800 align-top">{{ household.name }}</td>
+            <td class="px-4 py-2 text-gray-600 align-top">{{ household.address }}</td>
+          </tr>
+          <tr v-if="expanded[household.id]">
+            <td></td>
+            <td colspan="2" class="px-3 pb-2 pt-0">
+              <div class="bg-blue-50 rounded-md p-2">
+                <div class="font-bold text-sm text-blue-800 mb-1">Medlemmer</div>
+                <div v-if="household.members.length === 0" class="text-xs text-gray-400 italic">Ingen medlemmer</div>
+                <div v-for="member in household.members" :key="member.user?.id" class="flex items-center gap-2 py-1 px-2 mb-1 bg-white border-l-4 border-blue-300 shadow-sm rounded-md hover:bg-blue-100 transition-colors">
+                  <div class="bg-blue-100 p-1 rounded-full">
+                    <User class="h-3 w-3 text-blue-600" />
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-gray-800">{{ member.user?.firstName }} {{ member.user?.lastName }}</span>
+                    <span class="text-xs text-blue-700">{{ member.user?.email }}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
   </div>
 </template>
+
+<style scoped>
+/* Custom blue-25 background (not in Tailwind by default) */
+.bg-blue-25 {
+  background-color: #f7fbff;
+}
+</style>

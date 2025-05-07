@@ -92,6 +92,36 @@ VerificationToken token = emailVerificationService.createVerificationToken(newUs
 emailVerificationService.sendVerificationEmail(newUser, token);
     return ResponseEntity.ok(response);
   }
+   /**
+   * Registers a new admin user after verifying the CAPTCHA and validating the input. This endpoint
+   * is restricted to users with administrative privileges.
+   *
+   * @param request The registration details including Turnstile token.
+   * @return ResponseEntity containing the registration response.
+   */
+  @Operation(summary = "Register a new admin user",
+      description = "Creates a new admin user account after CAPTCHA "
+          + "verification and input validation")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully registered admin user",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RegisterResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA "
+          + "verification failed", content = @Content(mediaType = "application/json")),
+      @ApiResponse(responseCode = "403",
+          description = "Insufficient permissions to create admin account",
+          content = @Content(mediaType = "application/json")),
+      @ApiResponse(responseCode = "500", description = "Unexpected server error",
+          content = @Content(mediaType = "application/json"))
+  })
+  @PostMapping("/register/admin")
+  public ResponseEntity<RegisterResponse> registerAdmin(
+      @Parameter(description = "Registration details including Turnstile token", required = true)
+      @RequestBody RegisterRequest request) {
+    RegisterResponse response = authService.registerAdmin(request);
+    return ResponseEntity.ok(response);
+  }
+
 
   /**
    * Verifies a user's email address using a token.
@@ -114,6 +144,7 @@ emailVerificationService.sendVerificationEmail(newUser, token);
           .body("Invalid or expired verification token.");
     }
   }
+  
 
   /**
    * Authenticates a user and returns access tokens.

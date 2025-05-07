@@ -62,6 +62,8 @@ public class TestSecurityConfig {
             .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
             .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh",
                 "/api/auth/request-password-reset", "/api/auth/complete-password-reset")
+            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh",
+                "/api/auth/request-password-reset", "/api/auth/complete-password-reset")
             .permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyRequest().authenticated())

@@ -152,6 +152,10 @@ public class HouseholdService {
     householdMemberService.removeMember(household, currentUser);
   }
 
+  public List<User> getHouseholdOwners() {
+    return householdRepo.findAll().stream().map(Household::getOwner).toList();
+  }
+
   private boolean isOwner(User user, Household household) {
     return household.getOwner().getId().equals(user.getId());
   }

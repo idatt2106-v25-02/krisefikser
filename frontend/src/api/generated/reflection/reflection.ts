@@ -827,6 +827,87 @@ export function useGetHouseholdReflections<
 }
 
 /**
+ * @summary Get reflections by event ID
+ */
+export const getReflectionsByEventId = (
+  eventId: MaybeRef<number>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  eventId = unref(eventId)
+
+  return customInstance<ReflectionResponse[]>(
+    { url: `http://localhost:8080/api/reflections/event/${eventId}`, method: 'GET', signal },
+    options,
+  )
+}
+
+export const getGetReflectionsByEventIdQueryKey = (eventId: MaybeRef<number>) => {
+  return ['http:', 'localhost:8080', 'api', 'reflections', 'event', eventId] as const
+}
+
+export const getGetReflectionsByEventIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getReflectionsByEventId>>,
+  TError = ErrorType<ReflectionResponse[]>,
+>(
+  eventId: MaybeRef<number>,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getReflectionsByEventId>>, TError, TData>
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getGetReflectionsByEventIdQueryKey(eventId)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getReflectionsByEventId>>> = ({
+    signal,
+  }) => getReflectionsByEventId(eventId, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: computed(() => !!unref(eventId)),
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getReflectionsByEventId>>, TError, TData>
+}
+
+export type GetReflectionsByEventIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getReflectionsByEventId>>
+>
+export type GetReflectionsByEventIdQueryError = ErrorType<ReflectionResponse[]>
+
+/**
+ * @summary Get reflections by event ID
+ */
+
+export function useGetReflectionsByEventId<
+  TData = Awaited<ReturnType<typeof getReflectionsByEventId>>,
+  TError = ErrorType<ReflectionResponse[]>,
+>(
+  eventId: MaybeRef<number>,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getReflectionsByEventId>>, TError, TData>
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetReflectionsByEventIdQueryOptions(eventId, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
+/**
  * @summary Get all reflections (Admin only)
  */
 export const getAllReflections = (

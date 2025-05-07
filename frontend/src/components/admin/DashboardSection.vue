@@ -1,7 +1,7 @@
 <!-- DashboardSection.vue -->
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Map, AlertTriangle, BookOpen, Trophy, Mail, ArrowRight } from 'lucide-vue-next'
+import { Map, AlertTriangle, BookOpen, Mail, ArrowRight } from 'lucide-vue-next'
 
 // Import shadcn Button component
 import { Button } from '@/components/ui/button';
@@ -39,15 +39,7 @@ const stats = [
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     borderColor: 'border-blue-200',
-  },
-  {
-    title: 'Gamification aktiviteter',
-    value: 3,
-    icon: Trophy,
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-100',
-    borderColor: 'border-blue-200',
-  },
+  }
 ]
 
 // Fetch events using TanStack Query
@@ -119,6 +111,20 @@ const formatLocation = (event: Event) => {
 }
 
 const authStore = useAuthStore()
+
+// Function to get the appropriate link for each card
+const getCardLink = (title: string) => {
+  switch (title) {
+    case 'Aktive hendelser':
+      return '/admin/kart'
+    case 'Kart-elementer':
+      return '/admin/kart'
+    case 'Scenarioer':
+      return '/admin/scenarios'
+    default:
+      return '/admin'
+  }
+}
 </script>
 
 <template>
@@ -126,11 +132,12 @@ const authStore = useAuthStore()
     <h2 class="text-2xl font-bold text-gray-800 mb-6">Dashboard oversikt</h2>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <Link
         v-for="(stat, index) in updatedStats"
         :key="index"
-        class="bg-white rounded-lg shadow p-6 transition-all hover:shadow-md"
+        :to="getCardLink(stat.title)"
+        class="bg-white rounded-lg shadow p-6 transition-all hover:shadow-md cursor-pointer transform hover:-translate-y-1"
         :class="{
           'border-t-4': true,
           [stat.borderColor]: stat.title === 'Aktive hendelser',
@@ -146,7 +153,7 @@ const authStore = useAuthStore()
             <p class="text-2xl font-bold text-gray-800">{{ stat.value }}</p>
           </div>
         </div>
-      </div>
+      </Link>
     </div>
 
     <!-- Recent Events -->

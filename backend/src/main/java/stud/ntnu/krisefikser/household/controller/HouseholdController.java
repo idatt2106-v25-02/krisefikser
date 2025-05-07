@@ -265,7 +265,7 @@ public class HouseholdController {
       @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
   })
   @GetMapping("/admin/all")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   public ResponseEntity<List<HouseholdResponse>> getAllHouseholdsAdmin() {
     return ResponseEntity.ok(householdService.getAllHouseholds());
   }
@@ -287,7 +287,7 @@ public class HouseholdController {
       @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
   })
   @PostMapping("/admin/{householdId}/members/{userId}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   public ResponseEntity<HouseholdResponse> addMemberToHousehold(
       @Parameter(description = "Household ID") @PathVariable UUID householdId,
       @Parameter(description = "User ID") @PathVariable UUID userId) {
@@ -311,7 +311,7 @@ public class HouseholdController {
       @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
   })
   @DeleteMapping("/admin/{householdId}/members/{userId}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   public ResponseEntity<HouseholdResponse> removeMemberFromHousehold(
       @Parameter(description = "Household ID") @PathVariable UUID householdId,
       @Parameter(description = "User ID") @PathVariable UUID userId) {
@@ -335,7 +335,7 @@ public class HouseholdController {
       @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
   })
   @PostMapping("/admin/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   public ResponseEntity<HouseholdResponse> updateHousehold(
       @Parameter(description = "Household ID") @PathVariable UUID id,
       @Parameter(description = "Updated household data") @RequestBody
@@ -358,7 +358,7 @@ public class HouseholdController {
       @ApiResponse(responseCode = "403", description = "Access denied - admin role required")
   })
   @DeleteMapping("/admin/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   public void deleteHouseholdAdmin(
       @Parameter(description = "Household ID") @PathVariable UUID id) {
     householdService.deleteHouseholdAdmin(id);

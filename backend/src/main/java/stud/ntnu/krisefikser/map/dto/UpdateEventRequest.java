@@ -17,7 +17,6 @@ import stud.ntnu.krisefikser.map.entity.EventStatus;
 @AllArgsConstructor
 @Builder
 public class UpdateEventRequest {
-
   private String title;
   private String description;
   private Double radius;

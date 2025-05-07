@@ -16,6 +16,7 @@ export interface ReflectionResponse {
   visibility?: ReflectionResponseVisibility
   householdId?: string
   householdName?: string
+  eventId?: number
   createdAt?: string
   updatedAt?: string
 }

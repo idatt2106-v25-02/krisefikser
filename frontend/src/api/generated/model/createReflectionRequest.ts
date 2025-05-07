@@ -15,4 +15,5 @@ export interface CreateReflectionRequest {
   content: string
   visibility: CreateReflectionRequestVisibility
   householdId?: string
+  eventId?: number
 }

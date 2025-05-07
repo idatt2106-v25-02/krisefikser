@@ -55,6 +55,7 @@ public class ReflectionService {
                 .content(request.getContent())
                 .author(currentUser)
                 .visibility(request.getVisibility())
+                .eventId(request.getEventId())
                 .build();
 
         // Set household if visibility is HOUSEHOLD
@@ -121,6 +122,7 @@ public class ReflectionService {
         reflection.setTitle(request.getTitle());
         reflection.setContent(request.getContent());
         reflection.setVisibility(request.getVisibility());
+        reflection.setEventId(request.getEventId());
 
         // Update household if visibility is HOUSEHOLD
         if (request.getVisibility() == VisibilityType.HOUSEHOLD) {
@@ -224,6 +226,22 @@ public class ReflectionService {
     }
 
     /**
+     * Retrieves reflections for a specific event, accessible to the current user.
+     *
+     * @param eventId the ID of the event
+     * @return a list of accessible reflections for the given event
+     */
+    public List<ReflectionResponse> getReflectionsByEventId(Long eventId) {
+        User currentUser = userService.getCurrentUser();
+        List<Reflection> reflectionsForEvent = reflectionRepository.findByEventId(eventId); // Assumes this method will be added to repository
+
+        return reflectionsForEvent.stream()
+                .filter(reflection -> hasAccessToReflection(reflection, currentUser))
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Admin method to retrieve all reflections in the system.
      *
      * @return a list of all reflections
@@ -316,22 +334,19 @@ public class ReflectionService {
      * @return the response DTO
      */
     private ReflectionResponse toResponse(Reflection reflection) {
-        ReflectionResponse.ReflectionResponseBuilder builder = ReflectionResponse.builder()
+        return ReflectionResponse.builder()
                 .id(reflection.getId())
                 .title(reflection.getTitle())
                 .content(reflection.getContent())
                 .authorId(reflection.getAuthor().getId())
                 .authorName(getAuthorName(reflection.getAuthor()))
                 .visibility(reflection.getVisibility())
+                .householdId(reflection.getHousehold() != null ? reflection.getHousehold().getId() : null)
+                .householdName(reflection.getHousehold() != null ? reflection.getHousehold().getName() : null)
+                .eventId(reflection.getEventId())
                 .createdAt(reflection.getCreatedAt())
-                .updatedAt(reflection.getUpdatedAt());
-
-        if (reflection.getHousehold() != null) {
-            builder.householdId(reflection.getHousehold().getId())
-                    .householdName(reflection.getHousehold().getName());
-        }
-
-        return builder.build();
+                .updatedAt(reflection.getUpdatedAt())
+                .build();
     }
 
     /**
