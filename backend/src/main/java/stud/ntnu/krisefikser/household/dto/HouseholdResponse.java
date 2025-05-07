@@ -32,6 +32,10 @@ public class HouseholdResponse {
   @NotNull
   private String address;
   @NotNull
+  private String postalCode;
+  @NotNull
+  private String city;
+  @NotNull
   private UserResponse owner;
   @NotNull
   private List<HouseholdMemberResponse> members;
