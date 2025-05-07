@@ -1,230 +1,196 @@
-<script lang="ts">
-import { defineComponent, ref, computed, watch, nextTick } from 'vue';
+<script setup lang="ts">
+import { ref, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useQueryClient } from '@tanstack/vue-query';
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
-import { useGetEventById } from '@/api/generated/event/event.ts'; // Adjust path as needed
-import { useGetReflectionsByEventId, useDeleteReflection, getGetReflectionsByEventIdQueryKey } from '@/api/generated/reflection/reflection.ts'; // Adjust path as needed
-import type { ReflectionResponse } from '@/api/generated/model'; // Adjust path as needed
-import { EventResponseStatus, ReflectionResponseVisibility } from '@/api/generated/model'; // Import enums
-import ReflectionForm from '@/components/reflections/ReflectionForm.vue'; // <-- Import ReflectionForm
-import { Button } from '@/components/ui/button'; // Import Button
-import { ArrowLeft, BookText, Plus } from 'lucide-vue-next'; // Import icons
+import { useGetEventById } from '@/api/generated/event/event.ts';
+import { useGetReflectionsByEventId, useDeleteReflection, getGetReflectionsByEventIdQueryKey } from '@/api/generated/reflection/reflection.ts';
+import type { ReflectionResponse } from '@/api/generated/model';
+import { EventResponseStatus, ReflectionResponseVisibility } from '@/api/generated/model';
+import ReflectionForm from '@/components/reflections/ReflectionForm.vue';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, BookText, Plus } from 'lucide-vue-next';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'; // Import Dialog components
+} from '@/components/ui/dialog';
 
-export default defineComponent({
-  name: 'EventDetailPage',
-  components: { ReflectionForm, Button, ArrowLeft, BookText, Plus, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle },
-  setup() {
-    const route = useRoute();
-    const queryClient = useQueryClient();
-    const authStore = useAuthStore();
-    const eventId = computed(() => Number(route.params.id));
+const route = useRoute();
+const queryClient = useQueryClient();
+const authStore = useAuthStore();
+const eventId = computed(() => Number(route.params.id));
 
-    const isEditing = ref(false); // To control the dialog visibility
-    const editingReflection = ref<ReflectionResponse | null>(null); // Holds data for editing
+const isEditing = ref(false);
+const editingReflection = ref<ReflectionResponse | null>(null);
+const showCreateReflectionForm = ref(false);
 
-    // Compute form title and description based on mode
-    const formTitle = computed(() => editingReflection.value ? 'Rediger Refleksjon' : 'Skriv en ny refleksjon');
-    const formDescription = computed(() => editingReflection.value ? 'Gjør endringer i refleksjonen din her.' : 'Del dine tanker og erfaringer knyttet til denne hendelsen.');
-    const isFormOpen = computed(() => isEditing.value || showCreateReflectionForm.value); // Combined flag for dialog
-    const showCreateReflectionForm = ref(false); // Specific flag for creating new
+// Compute form title and description based on mode
+const formTitle = computed(() => editingReflection.value ? 'Rediger Refleksjon' : 'Skriv en ny refleksjon');
+const formDescription = computed(() => editingReflection.value ? 'Gjør endringer i refleksjonen din her.' : 'Del dine tanker og erfaringer knyttet til denne hendelsen.');
+const isFormOpen = computed(() => showCreateReflectionForm.value || isEditing.value);
 
-    // Fetch Event Details
-    const {
-      data: event,
-      isLoading: eventLoading,
-      error: eventError,
-    } = useGetEventById(eventId);
+// Fetch Event Details
+const {
+  data: event,
+  isLoading: eventLoading,
+  error: eventError,
+} = useGetEventById(eventId);
 
-    const mapEventStatus = (status?: EventResponseStatus): string => {
-      if (!status) return 'Ukjent';
-      switch (status) {
-        case EventResponseStatus.UPCOMING: return 'Kommende';
-        case EventResponseStatus.ONGOING: return 'Pågående';
-        case EventResponseStatus.FINISHED: return 'Avsluttet';
-        default:
-          const exhaustiveCheck: never = status;
-          console.warn(`Ukjent hendelsesstatus: ${exhaustiveCheck}`);
-          return 'Ukjent status';
-      }
-    };
+const mapEventStatus = (status?: EventResponseStatus): string => {
+  if (!status) return 'Ukjent';
+  switch (status) {
+    case EventResponseStatus.UPCOMING: return 'Kommende';
+    case EventResponseStatus.ONGOING: return 'Pågående';
+    case EventResponseStatus.FINISHED: return 'Avsluttet';
+    default:
+      const exhaustiveCheck: never = status;
+      console.warn(`Ukjent hendelsesstatus: ${exhaustiveCheck}`);
+      return 'Ukjent status';
+  }
+};
 
-    const mapReflectionVisibility = (visibility?: ReflectionResponseVisibility): string => {
-      if (!visibility) return 'Ukjent';
-      switch (visibility) {
-        case ReflectionResponseVisibility.PUBLIC: return 'Offentlig';
-        case ReflectionResponseVisibility.HOUSEHOLD: return 'Husstand';
-        case ReflectionResponseVisibility.PRIVATE: return 'Privat';
-        default:
-          const exhaustiveCheck: never = visibility;
-          console.warn(`Ukjent refleksjonsynlighet: ${exhaustiveCheck}`);
-          return 'Ukjent synlighet';
-      }
-    };
+const mapReflectionVisibility = (visibility?: ReflectionResponseVisibility): string => {
+  if (!visibility) return 'Ukjent';
+  switch (visibility) {
+    case ReflectionResponseVisibility.PUBLIC: return 'Offentlig';
+    case ReflectionResponseVisibility.HOUSEHOLD: return 'Husstand';
+    case ReflectionResponseVisibility.PRIVATE: return 'Privat';
+    default:
+      const exhaustiveCheck: never = visibility;
+      console.warn(`Ukjent refleksjonsynlighet: ${exhaustiveCheck}`);
+      return 'Ukjent synlighet';
+  }
+};
 
-    const eventErrorMessage = computed(() => {
-      if (eventError.value instanceof Error) return eventError.value.message;
-      return eventError.value ? 'En ukjent feil oppstod ved lasting av hendelse.' : '';
-    });
-
-    // Fetch Reflections for the Event
-    const {
-      data: reflections,
-      isLoading: reflectionsLoading,
-      error: reflectionsError,
-      refetch: refetchReflections
-    } = useGetReflectionsByEventId(eventId, { query: { enabled: computed(() => !!eventId.value && eventId.value > 0) }});
-
-    const deleteReflectionMutation = useDeleteReflection();
-
-    const reflectionsErrorMessage = computed(() => {
-      if (reflectionsError.value instanceof Error) return reflectionsError.value.message;
-      return reflectionsError.value ? 'En ukjent feil oppstod ved lasting av refleksjoner.' : '';
-    });
-
-    const formatDate = (dateTimeString?: string) => {
-      if (!dateTimeString) return 'Ukjent dato';
-      try {
-        return new Date(dateTimeString).toLocaleDateString('nb-NO', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      } catch (e) {
-        return dateTimeString;
-      }
-    };
-
-    const canManageReflection = (reflection: ReflectionResponse) => {
-      if (!authStore.currentUser) return false;
-      return authStore.isAdmin || authStore.currentUser.id === reflection.authorId;
-    };
-
-    const scrollToReflection = (reflectionId: string) => {
-      // Ensure DOM is updated before trying to scroll
-      nextTick(() => {
-        const element = document.getElementById(`reflection-${reflectionId}`);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          // Optional: Add a temporary highlight effect
-          element.classList.add('ring-2', 'ring-blue-500', 'transition-all', 'duration-1000');
-          setTimeout(() => {
-            element.classList.remove('ring-2', 'ring-blue-500', 'transition-all', 'duration-1000');
-          }, 2000);
-        }
-      });
-    };
-
-    // Handles opening and closing the dialog
-    const openNewReflectionDialog = () => {
-      editingReflection.value = null; // Ensure not in edit mode
-      showCreateReflectionForm.value = true;
-      isEditing.value = false; // Also ensure this is false
-    };
-
-    const openEditDialog = (reflection: ReflectionResponse) => {
-      if (canManageReflection(reflection)) {
-        editingReflection.value = { ...reflection };
-        showCreateReflectionForm.value = false;
-        isEditing.value = true; // Open dialog in edit mode
-      }
-    };
-
-    const cancelEdit = () => {
-      isEditing.value = false;
-      showCreateReflectionForm.value = false;
-      editingReflection.value = null;
-    };
-
-    // Handles closing via dialog overlay click or escape key
-    const cancelEditIfNotOpen = (openState: boolean) => {
-      if (!openState) {
-        cancelEdit();
-      }
-    };
-
-    const handleReflectionSubmitted = () => {
-      cancelEdit();
-      // Query invalidation is handled by ReflectionForm,
-      // but we could add extra checks or notifications here if needed.
-    };
-
-    const confirmDeleteReflection = async (reflectionId: string) => {
-      if (!reflectionId) return;
-      const reflectionToDelete = reflections.value?.find(r => r.id === reflectionId);
-      if (!reflectionToDelete || !canManageReflection(reflectionToDelete)) return;
-
-      if (window.confirm('Er du sikker på at du vil slette denne refleksjonen?')) {
-        try {
-          await deleteReflectionMutation.mutateAsync({ id: reflectionId });
-          queryClient.invalidateQueries({ queryKey: getGetReflectionsByEventIdQueryKey(eventId.value) });
-        } catch (err) {
-          console.error("Feil ved sletting:", err);
-          alert("Kunne ikke slette: " + (err instanceof Error ? err.message : 'Ukjent feil'));
-        }
-      }
-    };
-
-    // Watch for route query changes to handle navigation focus/edit
-    watch(() => route.query, (newQuery) => {
-      const targetReflectionId = newQuery.reflectionId as string;
-      const targetAction = newQuery.action as string;
-
-      if (targetReflectionId && reflections.value) {
-        const reflectionToFocus = reflections.value.find(r => r.id === targetReflectionId);
-        if (reflectionToFocus) {
-          scrollToReflection(targetReflectionId);
-          if (targetAction === 'edit' && canManageReflection(reflectionToFocus)) {
-            openEditDialog(reflectionToFocus);
-          }
-        }
-      }
-    }, { immediate: true, deep: true }); // Use deep if query object structure matters
-
-    return {
-      event,
-      eventLoading,
-      eventError,
-      eventErrorMessage,
-      reflections,
-      reflectionsLoading,
-      reflectionsError,
-      reflectionsErrorMessage,
-      formatDate,
-      showCreateReflectionForm,
-      editingReflection,
-      canManageReflection,
-      confirmDeleteReflection,
-      openNewReflectionDialog,
-      openEditDialog,
-      cancelEdit,
-      cancelEditIfNotOpen,
-      handleReflectionSubmitted,
-      eventId,
-      mapEventStatus,
-      mapReflectionVisibility,
-      isFormOpen,
-      formTitle,
-      formDescription,
-      authStore,
-      EventResponseStatus,
-    };
-  },
+const eventErrorMessage = computed(() => {
+  if (eventError.value instanceof Error) return eventError.value.message;
+  return eventError.value ? 'En ukjent feil oppstod ved lasting av hendelse.' : '';
 });
+
+// Fetch Reflections for the Event
+const {
+  data: reflections,
+  isLoading: reflectionsLoading,
+  error: reflectionsError,
+  refetch: refetchReflections
+} = useGetReflectionsByEventId(eventId, {
+  query: {
+    enabled: computed(() => !!eventId.value && eventId.value > 0)
+  }
+});
+
+const deleteReflectionMutation = useDeleteReflection();
+
+const reflectionsErrorMessage = computed(() => {
+  if (reflectionsError.value instanceof Error) return reflectionsError.value.message;
+  return reflectionsError.value ? 'En ukjent feil oppstod ved lasting av refleksjoner.' : '';
+});
+
+const formatDate = (dateTimeString?: string) => {
+  if (!dateTimeString) return 'Ukjent dato';
+  try {
+    return new Date(dateTimeString).toLocaleDateString('nb-NO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch (e) {
+    return dateTimeString;
+  }
+};
+
+const canManageReflection = (reflection: ReflectionResponse) => {
+  if (!authStore.currentUser) return false;
+  return authStore.isAdmin || authStore.currentUser.id === reflection.authorId;
+};
+
+const scrollToReflection = (reflectionId: string) => {
+  nextTick(() => {
+    const element = document.getElementById(`reflection-${reflectionId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('ring-2', 'ring-blue-500', 'transition-all', 'duration-1000');
+      setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-blue-500', 'transition-all', 'duration-1000');
+      }, 2000);
+    }
+  });
+};
+
+// Handles opening and closing the dialog
+const openNewReflectionDialog = () => {
+  editingReflection.value = null;
+  showCreateReflectionForm.value = true;
+  isEditing.value = false;
+};
+
+const openEditDialog = (reflection: ReflectionResponse) => {
+  if (canManageReflection(reflection)) {
+    editingReflection.value = { ...reflection };
+    showCreateReflectionForm.value = false;
+    isEditing.value = true;
+  }
+};
+
+const cancelEdit = () => {
+  isEditing.value = false;
+  showCreateReflectionForm.value = false;
+  editingReflection.value = null;
+};
+
+// Handles closing via dialog overlay click or escape key
+const cancelEditIfNotOpen = (openState: boolean) => {
+  if (!openState) {
+    cancelEdit();
+  }
+};
+
+const handleReflectionSubmitted = () => {
+  cancelEdit();
+  refetchReflections();
+};
+
+const confirmDeleteReflection = async (reflectionId: string | undefined) => {
+  if (!reflectionId) return;
+  const reflectionToDelete = reflections.value?.find(r => r.id === reflectionId);
+  if (!reflectionToDelete || !canManageReflection(reflectionToDelete)) return;
+
+  if (window.confirm('Er du sikker på at du vil slette denne refleksjonen?')) {
+    try {
+      await deleteReflectionMutation.mutateAsync({ id: reflectionId });
+      queryClient.invalidateQueries({ queryKey: getGetReflectionsByEventIdQueryKey(eventId.value) });
+    } catch (err) {
+      console.error("Feil ved sletting:", err);
+      alert("Kunne ikke slette: " + (err instanceof Error ? err.message : 'Ukjent feil'));
+    }
+  }
+};
+
+// Watch for route query changes to handle navigation focus/edit
+watch(() => route.query, (newQuery) => {
+  const targetReflectionId = newQuery.reflectionId as string;
+  const targetAction = newQuery.action as string;
+
+  if (targetReflectionId && reflections.value) {
+    const reflectionToFocus = reflections.value.find(r => r.id === targetReflectionId);
+    if (reflectionToFocus) {
+      scrollToReflection(targetReflectionId);
+      if (targetAction === 'edit' && canManageReflection(reflectionToFocus)) {
+        openEditDialog(reflectionToFocus);
+      }
+    }
+  }
+}, { immediate: true, deep: true });
 </script>
 
 <template>
   <div class="container mx-auto px-4 py-8 max-w-6xl">
-    <!-- Background decoration - similar wave pattern for consistency -->
+    <!-- Background decoration -->
     <div class="absolute top-0 left-0 w-full h-64 bg-blue-50 -z-10 overflow-hidden">
       <div class="absolute bottom-0 left-0 right-0">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" class="w-full h-auto">
@@ -255,9 +221,9 @@ export default defineComponent({
     </div>
 
     <div v-if="event" class="mt-6">
-      <!-- Event header card with improved styling -->
+      <!-- Event header card -->
       <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <!-- Status banner based on event status - UPDATED COLORS to match KriserPage -->
+        <!-- Status banner -->
         <div
           class="w-full h-2"
           :class="{
@@ -270,7 +236,7 @@ export default defineComponent({
         <div class="p-6">
           <h1 class="text-3xl font-bold mb-4 text-gray-800">{{ event.title }}</h1>
 
-          <!-- Metadata badges - UPDATED COLORS to match KriserPage -->
+          <!-- Metadata badges -->
           <div class="flex flex-wrap gap-2 mb-6">
             <span
               class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
@@ -296,16 +262,120 @@ export default defineComponent({
             </span>
           </div>
 
-          <!-- Description with proper formatting -->
+          <!-- Description -->
           <div class="prose prose-blue max-w-none text-gray-700">
             <p class="text-base leading-relaxed">{{ event.description }}</p>
           </div>
         </div>
       </div>
 
+      <!-- Reflections Section -->
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+            <BookText class="h-6 w-6 mr-2 text-blue-500" />
+            Refleksjoner
+          </h2>
+          <Button
+            v-if="event.status === EventResponseStatus.FINISHED"
+            @click="openNewReflectionDialog"
+            class="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <Plus class="h-4 w-4 mr-2" />
+            Legg til Refleksjon
+          </Button>
+        </div>
+
+        <!-- Loading state for reflections -->
+        <div v-if="reflectionsLoading" class="flex justify-center items-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-b-blue-500 border-blue-100"></div>
+        </div>
+
+        <!-- Error state for reflections -->
+        <div v-else-if="reflectionsError" class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-red-700">{{ reflectionsErrorMessage }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- No reflections message -->
+        <div v-else-if="!reflections?.length" class="text-center py-8 text-gray-500">
+          <p>Ingen refleksjoner er skrevet for denne hendelsen ennå.</p>
+          <p v-if="event.status === EventResponseStatus.FINISHED" class="mt-2">
+            Klikk på "Legg til Refleksjon" for å dele dine tanker.
+          </p>
+        </div>
+
+        <!-- Reflections list -->
+        <div v-else class="space-y-4">
+          <div
+            v-for="reflection in reflections"
+            :key="reflection.id"
+            :id="`reflection-${reflection.id}`"
+            class="border rounded-lg p-4 hover:shadow-md transition-shadow"
+          >
+            <div class="flex justify-between items-start mb-2">
+              <div class="flex items-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      :class="{
+                    'bg-green-100 text-green-800': reflection.visibility === ReflectionResponseVisibility.PUBLIC,
+                    'bg-blue-100 text-blue-800': reflection.visibility === ReflectionResponseVisibility.HOUSEHOLD,
+                    'bg-gray-100 text-gray-800': reflection.visibility === ReflectionResponseVisibility.PRIVATE
+                  }"
+                >
+                  {{ mapReflectionVisibility(reflection.visibility) }}
+                </span>
+                <span class="ml-2 text-sm text-gray-500">
+                  {{ formatDate(reflection.createdAt) }}
+                </span>
+              </div>
+              <div v-if="canManageReflection(reflection)" class="flex space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  @click="openEditDialog(reflection)"
+                  class="text-blue-600 hover:text-blue-800"
+                >
+                  Rediger
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  @click="confirmDeleteReflection(reflection.id)"
+                  class="text-red-600 hover:text-red-800"
+                >
+                  Slett
+                </Button>
+              </div>
+            </div>
+            <p class="text-gray-700 whitespace-pre-wrap">{{ reflection.content }}</p>
+          </div>
+        </div>
       </div>
+
+      <!-- ReflectionForm Dialog -->
+      <Dialog v-model:open="isFormOpen" @update:open="cancelEditIfNotOpen">
+        <DialogContent class="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{{ formTitle }}</DialogTitle>
+            <DialogDescription>{{ formDescription }}</DialogDescription>
+          </DialogHeader>
+          <ReflectionForm
+            v-if="isFormOpen"
+            :event-id="eventId"
+            :initial-data="editingReflection"
+            @submitted="handleReflectionSubmitted"
+            @cancel="cancelEdit"
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
   </div>
 </template>
-
-
-
