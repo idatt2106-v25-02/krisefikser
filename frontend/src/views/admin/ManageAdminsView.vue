@@ -409,55 +409,65 @@ const getRoleDisplay = (roles?: string[]) => {
         </div>
 
         <!-- User list view (default) -->
-        <div v-else-if="viewMode !== 'households'">
-          <table class="w-full">
-            <thead class="bg-gray-50 text-xs text-gray-700 uppercase">
-            <tr>
-              <th class="px-4 py-3 text-left">Navn</th>
-              <th class="px-4 py-3 text-left">E-post</th>
-              <th class="px-4 py-3 text-left">Rolle</th>
-              <th class="px-4 py-3 text-center">Handlinger</th>
-            </tr>
-            </thead>
-            <tbody class="divide-y">
-            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
-              <td class="px-4 py-3 font-medium text-gray-800">{{ user.firstName }} {{ user.lastName }}</td>
-              <td class="px-4 py-3 text-gray-700">{{ user.email }}</td>
-              <td class="px-4 py-3">
-                <span :class="`px-2 py-1 rounded-full text-xs font-medium ${getRoleClass(user.roles)}`">
-                  {{ getRoleDisplay(user.roles) }}
-                </span>
-              </td>
-              <td class="px-4 py-3">
-                <div class="flex justify-center space-x-2">
-                  <!-- Mail icon - only for regular users if Super Admin -->
-                  <Button
-                    v-if="authStore.isSuperAdmin && canInviteUser(user.roles)"
-                    variant="ghost"
-                    size="icon"
-                    class="text-blue-600 hover:text-blue-800 p-1 h-auto"
-                    @click="openInviteDialog(user.id || '')"
-                    title="Inviter til Admin"
-                  >
-                    <Mail class="h-4 w-4" />
-                  </Button>
+        <div v-else-if="viewMode !== 'households'" class="relative">
+          <div class="overflow-x-auto">
+            <div class="min-w-full inline-block align-middle">
+              <div class="overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
+                      <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-post</th>
+                      <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rolle</th>
+                      <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Handlinger</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50 transition-colors">
+                      <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ user.firstName }} {{ user.lastName }}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {{ user.email }}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        <span :class="`px-2 py-1 rounded-full text-xs font-medium ${getRoleClass(user.roles)}`">
+                          {{ getRoleDisplay(user.roles) }}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
+                        <div class="flex justify-center space-x-2">
+                          <!-- Mail icon - only for regular users if Super Admin -->
+                          <Button
+                            v-if="authStore.isSuperAdmin && canInviteUser(user.roles)"
+                            variant="ghost"
+                            size="icon"
+                            class="text-blue-600 hover:text-blue-800 p-1 h-auto"
+                            @click="openInviteDialog(user.id || '')"
+                            title="Inviter til Admin"
+                          >
+                            <Mail class="h-4 w-4" />
+                          </Button>
 
-                  <!-- Delete button with permission check -->
-                  <Button
-                    v-if="canDeleteUser(user.roles)"
-                    variant="ghost"
-                    size="icon"
-                    class="text-red-600 hover:text-red-800 p-1 h-auto"
-                    @click="deleteItem(user.id || '')"
-                    title="Slett bruker"
-                  >
-                    <Trash2 class="h-4 w-4" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-            </tbody>
-          </table>
+                          <!-- Delete button with permission check -->
+                          <Button
+                            v-if="canDeleteUser(user.roles)"
+                            variant="ghost"
+                            size="icon"
+                            class="text-red-600 hover:text-red-800 p-1 h-auto"
+                            @click="deleteItem(user.id || '')"
+                            title="Slett bruker"
+                          >
+                            <Trash2 class="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Household view -->
@@ -485,3 +495,37 @@ const getRoleDisplay = (roles?: string[]) => {
     </div>
   </AdminLayout>
 </template>
+
+<style scoped>
+.overflow-x-auto {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E0 #EDF2F7;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #EDF2F7;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #CBD5E0;
+  border-radius: 4px;
+  border: 2px solid #EDF2F7;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #A0AEC0;
+}
+
+@media (max-width: 640px) {
+  .overflow-x-auto {
+    max-height: calc(100vh - 250px);
+  }
+}
+</style>
