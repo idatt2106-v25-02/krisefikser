@@ -22,8 +22,7 @@ import stud.ntnu.krisefikser.config.FrontendConfig;
  * Security configuration class for the application.
  *
  * <p>This class configures the security settings, including CORS, authentication, and
- * authorization
- * rules.
+ * authorization rules.
  */
 @Configuration
 @EnableWebSecurity
@@ -63,7 +62,8 @@ public class SecurityConfiguration {
             .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
             .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
-            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh")
+            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh",
+                "/api/auth/request-password-reset", "/api/auth/complete-password-reset")
             .permitAll()
             .requestMatchers(HttpMethod.POST, "/api/email/**", "/api/auth/verify-email").permitAll()
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
