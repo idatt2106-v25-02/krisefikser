@@ -243,7 +243,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative w-full h-screen">
+  <div class="relative w-full h-screen overflow-hidden">
     <MapComponent ref="mapRef" @map-created="onMapCreated" />
 
     <div
@@ -284,14 +284,6 @@ onUnmounted(() => {
         @meeting-point-clicked="handleMeetingPointClick"
       />
     </template>
-
-    <div class="absolute top-4 right-4 flex flex-col gap-2">
-      <Button v-if="activeHousehold?.id" @click="toggleMeetingPointCreation" variant="default">
-        {{
-          isAddingMeetingPoint ? 'Klikk på kartet for å legge til møtepunkt' : 'Legg til møtepunkt'
-        }}
-      </Button>
-    </div>
 
     <MapLegend
       :user-location-available="userLocationAvailable"
@@ -340,3 +332,12 @@ onUnmounted(() => {
     </Dialog>
   </div>
 </template>
+
+<style scoped>
+/* Prevent scrolling on the map page */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+</style>

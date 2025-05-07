@@ -43,7 +43,7 @@ function toggleLegend() {
   <div class="absolute top-5 right-5 z-10 flex flex-col gap-2.5">
     <Button
       variant="outlineBlue"
-      class="self-end mb-1"
+      class="self-end mb-1 min-w-[180px] w-full md:w-auto"
       @click="toggleLegend"
       aria-label="Toggle tegnforklaring"
     >
@@ -123,10 +123,21 @@ function toggleLegend() {
         </div>
       </div>
     </transition>
-    <Button v-if="userLocationAvailable" variant="secondary" @click="toggleUserLocation">
+    <Button
+      v-if="userLocationAvailable"
+      variant="secondary"
+      class="min-w-[180px] w-full md:w-auto"
+      @click="toggleUserLocation"
+    >
       {{ showUserLocation ? 'Skjul min posisjon' : 'Vis min posisjon' }}
     </Button>
-    <Button v-if="hasActiveHousehold" variant="default" @click="toggleMeetingPointCreation">
+    <Button
+      v-if="hasActiveHousehold"
+      variant="default"
+      :disabled="isAddingMeetingPoint"
+      class="min-w-[180px] w-full md:w-auto"
+      @click="toggleMeetingPointCreation"
+    >
       {{ isAddingMeetingPoint ? 'Klikk på kartet' : 'Legg til møtepunkt' }}
     </Button>
     <div
