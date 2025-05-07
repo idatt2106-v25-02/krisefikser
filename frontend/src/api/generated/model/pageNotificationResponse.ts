@@ -13,9 +13,9 @@ export interface PageNotificationResponse {
   totalElements?: number
   totalPages?: number
   pageable?: PageableObject
-  numberOfElements?: number
   first?: boolean
   last?: boolean
+  numberOfElements?: number
   size?: number
   content?: NotificationResponse[]
   number?: number
