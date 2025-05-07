@@ -358,11 +358,9 @@ class AuthServiceTest {
   @Test
   void completePasswordReset_WithValidToken_ShouldUpdatePasswordAndDeleteToken() {
     // Arrange
-    String email = "test@example.com";
     String token = "valid-token";
     String newPassword = "NewPassword123!";
-    CompletePasswordResetRequest request = new CompletePasswordResetRequest(email, token,
-        newPassword);
+    CompletePasswordResetRequest request = new CompletePasswordResetRequest(token, newPassword);
 
     stud.ntnu.krisefikser.user.entity.User user = mock(
         stud.ntnu.krisefikser.user.entity.User.class);
@@ -370,9 +368,8 @@ class AuthServiceTest {
 
     when(passwordResetTokenRepository.findByToken(token)).thenReturn(
         Optional.of(passwordResetToken));
-    when(userService.getUserByEmail(email)).thenReturn(user);
-    when(user.getId()).thenReturn(UUID.randomUUID());
     when(passwordResetToken.getUser()).thenReturn(user);
+    when(user.getId()).thenReturn(UUID.randomUUID());
     when(passwordResetToken.isExpired()).thenReturn(false);
 
     // Act
@@ -388,24 +385,10 @@ class AuthServiceTest {
   }
 
   @Test
-  void completePasswordReset_WithMissingEmail_ShouldThrowException() {
-    // Arrange
-    CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        null, "token", "NewPassword123!");
-
-    // Act & Assert
-    assertThatThrownBy(() -> authService.completePasswordReset(request))
-        .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Email is required");
-
-    verify(passwordResetTokenRepository, never()).findByToken(anyString());
-  }
-
-  @Test
   void completePasswordReset_WithMissingToken_ShouldThrowException() {
     // Arrange
     CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        "test@example.com", null, "NewPassword123!");
+        null, "NewPassword123!");
 
     // Act & Assert
     assertThatThrownBy(() -> authService.completePasswordReset(request))
@@ -419,7 +402,7 @@ class AuthServiceTest {
   void completePasswordReset_WithMissingPassword_ShouldThrowException() {
     // Arrange
     CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        "test@example.com", "token", null);
+        "token", null);
 
     // Act & Assert
     assertThatThrownBy(() -> authService.completePasswordReset(request))
@@ -432,10 +415,9 @@ class AuthServiceTest {
   @Test
   void completePasswordReset_WithInvalidToken_ShouldThrowException() {
     // Arrange
-    String email = "test@example.com";
     String token = "invalid-token";
     CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        email, token, "NewPassword123!");
+        token, "NewPassword123!");
 
     when(passwordResetTokenRepository.findByToken(token)).thenReturn(Optional.empty());
 
@@ -449,42 +431,11 @@ class AuthServiceTest {
   }
 
   @Test
-  void completePasswordReset_WithMismatchedUser_ShouldThrowException() {
-    // Arrange
-    String email = "test@example.com";
-    String token = "valid-token";
-    CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        email, token, "NewPassword123!");
-
-    stud.ntnu.krisefikser.user.entity.User requestUser = mock(
-        stud.ntnu.krisefikser.user.entity.User.class);
-    stud.ntnu.krisefikser.user.entity.User tokenUser = mock(
-        stud.ntnu.krisefikser.user.entity.User.class);
-    PasswordResetToken passwordResetToken = mock(PasswordResetToken.class);
-
-    when(passwordResetTokenRepository.findByToken(token)).thenReturn(
-        Optional.of(passwordResetToken));
-    when(userService.getUserByEmail(email)).thenReturn(requestUser);
-    when(passwordResetToken.getUser()).thenReturn(tokenUser);
-    when(requestUser.getId()).thenReturn(UUID.randomUUID());
-    when(tokenUser.getId()).thenReturn(UUID.randomUUID()); // Different IDs
-
-    // Act & Assert
-    assertThatThrownBy(() -> authService.completePasswordReset(request))
-        .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Invalid token");
-
-    verify(passwordResetTokenRepository).findByToken(token);
-    verify(userService, never()).updatePassword(any(UUID.class), anyString());
-  }
-
-  @Test
   void completePasswordReset_WithExpiredToken_ShouldThrowException() {
     // Arrange
-    String email = "test@example.com";
     String token = "expired-token";
     CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        email, token, "NewPassword123!");
+        token, "NewPassword123!");
 
     stud.ntnu.krisefikser.user.entity.User user = mock(
         stud.ntnu.krisefikser.user.entity.User.class);
@@ -492,9 +443,8 @@ class AuthServiceTest {
 
     when(passwordResetTokenRepository.findByToken(token)).thenReturn(
         Optional.of(passwordResetToken));
-    when(userService.getUserByEmail(email)).thenReturn(user);
-    when(user.getId()).thenReturn(UUID.randomUUID());
     when(passwordResetToken.getUser()).thenReturn(user);
+    when(user.getId()).thenReturn(UUID.randomUUID());
     when(passwordResetToken.isExpired()).thenReturn(true);
 
     // Act & Assert
