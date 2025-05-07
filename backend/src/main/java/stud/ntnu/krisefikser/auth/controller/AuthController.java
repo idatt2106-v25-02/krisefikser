@@ -141,6 +141,12 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Updates the password of the currently authenticated user.
+   *
+   * @param updatePasswordRequest The request containing the new password
+   * @return ResponseEntity containing the status of the password update operation
+   */
   @PostMapping("/update-password")
   public ResponseEntity<UpdatePasswordResponse> updatePassword(
       @RequestBody UpdatePasswordRequest updatePasswordRequest
@@ -149,6 +155,12 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Requests a password reset by generating a reset token and sending it to the user's email.
+   *
+   * @param request The request containing the user's email
+   * @return ResponseEntity containing the status of the reset request operation
+   */
   @PostMapping("/request-password-reset")
   public ResponseEntity<PasswordResetResponse> requestPasswordReset(
       @RequestBody RequestPasswordResetRequest request
@@ -157,6 +169,12 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Completes the password reset process by validating the token and setting a new password.
+   *
+   * @param request The request containing the email, token, and new password
+   * @return ResponseEntity containing the status of the password reset operation
+   */
   @PostMapping("/complete-password-reset")
   public ResponseEntity<PasswordResetResponse> completePasswordReset(
       @RequestBody CompletePasswordResetRequest request
