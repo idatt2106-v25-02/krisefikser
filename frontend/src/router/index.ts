@@ -48,6 +48,7 @@ import KriserPage from '@/views/nonRegistered/event/KriserPage.vue';
 import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue';
 import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue';
 import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue';
+import VerifyToken from '@/views/VerifyToken.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -129,7 +130,7 @@ const router = createRouter({
     {
       path: '/verify',
       name: 'verify',
-      component: VerifyEmailView,
+      component: VerifyToken,
       meta: { requiresGuest: true }
     },
 
@@ -203,6 +204,11 @@ const router = createRouter({
       path: '/registrer',
       name: 'register',
       component: RegisterView
+    },
+    {
+      path: '/bekreft-e-post',
+      name: 'verify-email',
+      component: VerifyEmailView
     },
     {
       path: '/personvern',
