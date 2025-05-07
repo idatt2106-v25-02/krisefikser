@@ -71,7 +71,6 @@ class NotificationServiceTest {
         .title("Test Notification")
         .message("This is a test notification")
         .type(NotificationType.INFO)
-        .url("http://example.com/test")
         .isRead(false)
         .createdAt(LocalDateTime.now())
         .build();
@@ -81,7 +80,6 @@ class NotificationServiceTest {
         .title("Test Notification")
         .message("This is a test notification")
         .type(NotificationType.INFO)
-        .url("http://example.com/test")
         .read(false)
         .createdAt(testNotification.getCreatedAt())
         .build();
@@ -127,8 +125,8 @@ class NotificationServiceTest {
     // Assert
     assertThat(result).isNotNull();
     assertThat(result.getContent()).hasSize(1);
-    assertThat(result.getContent().get(0).getId()).isEqualTo(testNotificationId);
-    assertThat(result.getContent().get(0).getTitle()).isEqualTo(testNotification.getTitle());
+    assertThat(result.getContent().getFirst().getId()).isEqualTo(testNotificationId);
+    assertThat(result.getContent().getFirst().getTitle()).isEqualTo(testNotification.getTitle());
 
     verify(userService).getCurrentUser();
     verify(notificationRepository).findByUser(testUser, pageable);
@@ -148,8 +146,8 @@ class NotificationServiceTest {
     // Assert
     assertThat(result).isNotNull();
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).getId()).isEqualTo(testNotificationId);
-    assertThat(result.get(0).getTitle()).isEqualTo(testNotification.getTitle());
+    assertThat(result.getFirst().getId()).isEqualTo(testNotificationId);
+    assertThat(result.getFirst().getTitle()).isEqualTo(testNotification.getTitle());
 
     verify(userService).getCurrentUser();
     verify(notificationRepository).findByUser(testUser);

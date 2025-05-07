@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -386,6 +387,20 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(PropertyReferenceException.class)
   public ProblemDetail handlePropertyReferenceException(PropertyReferenceException exception) {
     log.error("Property reference exception: {}", exception.getMessage());
+    return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+  }
+
+  /**
+   * Handles exceptions thrown when the HTTP message is not readable.
+   * This typically occurs due to issues such as malformed JSON in the request body.
+   *
+   * @param exception the HttpMessageNotReadableException that occurred
+   * @return a problem detail with BAD_REQUEST status and the exception message
+   */
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ProblemDetail handleHttpMessageNotReadableException(
+      HttpMessageNotReadableException exception) {
+    log.error("HttpMessageNotReadableException: {}", exception.getMessage());
     return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
   }
 

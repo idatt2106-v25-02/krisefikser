@@ -1,9 +1,9 @@
-package stud.ntnu.krisefikser.scheduler;
+package stud.ntnu.krisefikser.item.service;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,19 +34,18 @@ import stud.ntnu.krisefikser.user.entity.User;
 @Slf4j
 public class ExpirationNotificationService {
 
+  private static final DateTimeFormatter NORWEGIAN_DATE_FORMATTER =
+      DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault());
   private final FoodItemRepository foodItemRepository;
   private final HouseholdMemberService householdMemberService;
   private final NotificationService notificationService;
 
-  private static final DateTimeFormatter NORWEGIAN_DATE_FORMATTER =
-      DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault());
-
   /**
    * Periodically checks for food items nearing their expiration date and sends notifications.
    *
-   * <p>This method is scheduled. It queries for {@link FoodItem} entities that will expire 
-   * within the next 7 days. For each expiring item, it retrieves the members of the associated 
-   * household. If a household member has notifications enabled ({@link User#isNotifications()}), 
+   * <p>This method is scheduled. It queries for {@link FoodItem} entities that will expire
+   * within the next 7 days. For each expiring item, it retrieves the members of the associated
+   * household. If a household member has notifications enabled ({@link User#isNotifications()}),
    * a notification of type {@link NotificationType#EXPIRY_REMINDER} is created and sent via the
    * {@link NotificationService}.</p>
    *
@@ -60,7 +59,7 @@ public class ExpirationNotificationService {
     Instant sevenDaysFromNow = now.plus(7, ChronoUnit.DAYS);
 
     List<FoodItem> expiringItems =
-            foodItemRepository.findAllByExpirationDateBetween(now, sevenDaysFromNow);
+        foodItemRepository.findAllByExpirationDateBetween(now, sevenDaysFromNow);
 
     if (expiringItems.isEmpty()) {
       log.info("No food items expiring within the next 7 days.");
@@ -75,12 +74,13 @@ public class ExpirationNotificationService {
         continue;
       }
 
-      List<HouseholdMember> members = householdMemberService.getMembers(item.getHousehold().getId());
+      List<HouseholdMember> members =
+          householdMemberService.getMembers(item.getHousehold().getId());
       if (members.isEmpty()) {
         log.warn(
-                "Household with ID {} for item '{}' has no members. Skipping.",
-                item.getHousehold().getId(),
-                item.getName());
+            "Household with ID {} for item '{}' has no members. Skipping.",
+            item.getHousehold().getId(),
+            item.getName());
         continue;
       }
 
@@ -92,37 +92,37 @@ public class ExpirationNotificationService {
             String userFriendlyExpirationDate = NORWEGIAN_DATE_FORMATTER.format(expiryInstant);
 
             Notification notification =
-                    Notification.builder()
-                            .user(user)
-                            .type(NotificationType.EXPIRY_REMINDER)
-                            .title("Vare utløper snart!")
-                            .message(
-                                    String.format(
-                                            "%s utløper den %s.",
-                                            item.getName(),
-                                            userFriendlyExpirationDate
-                                    ))
-                            .isRead(false)
-                            .itemId(item.getId())
-                            .build();
+                Notification.builder()
+                    .user(user)
+                    .type(NotificationType.EXPIRY_REMINDER)
+                    .title("Vare utløper snart!")
+                    .message(
+                        String.format(
+                            "%s utløper den %s.",
+                            item.getName(),
+                            userFriendlyExpirationDate
+                        ))
+                    .isRead(false)
+                    .item(item)
+                    .build();
             notificationService.createNotification(notification);
             log.info(
-                    "Sent expiry notification for item '{}' to user '{}'",
-                    item.getName(),
-                    user.getEmail());
+                "Sent expiry notification for item '{}' to user '{}'",
+                item.getName(),
+                user.getEmail());
           } catch (Exception e) {
             log.error(
-                    "Failed to send expiry notification for item '{}' to user '{}': {}",
-                    item.getName(),
-                    user.getEmail(),
-                    e.getMessage(),
-                    e);
+                "Failed to send expiry notification for item '{}' to user '{}': {}",
+                item.getName(),
+                user.getEmail(),
+                e.getMessage(),
+                e);
           }
         } else {
           log.info(
-                  "User '{}' has notifications disabled. Skipping expiry alert for item '{}'.",
-                  user.getEmail(),
-                  item.getName());
+              "User '{}' has notifications disabled. Skipping expiry alert for item '{}'.",
+              user.getEmail(),
+              item.getName());
         }
       }
     }

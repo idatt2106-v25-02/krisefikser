@@ -40,11 +40,6 @@ public class NotificationResponse {
   private NotificationType type;
 
   /**
-   * Optional URL associated with the notification for further actions.
-   */
-  private String url;
-
-  /**
    * Indicates whether the recipient has read the notification.
    */
   private Boolean read;
@@ -53,4 +48,31 @@ public class NotificationResponse {
    * The timestamp when the notification was created.
    */
   private LocalDateTime createdAt;
+
+  /**
+   * Represents the unique identifier of an item associated with the notification.
+   * This field links the notification to a specific item in the system,
+   * providing context for notifications related to items or their statuses.
+   */
+  private UUID itemId;
+
+  /**
+   * The unique identifier of the event associated with this notification.
+   * This field references the event that triggered or is related to the notification.
+   */
+  private Long eventId;
+
+  /**
+   * Represents the unique identifier of the user associated with the notification.
+   * This identifier is used to link the notification to a specific user in the context
+   * of the application's notification system.
+   */
+  private UUID inviteId;
+
+  /**
+   * Represents the unique identifier for a household associated with the notification.
+   * This field links the notification to a specific household, providing context
+   * for notifications related to household activities or member interactions.
+   */
+  private UUID householdId;
 }

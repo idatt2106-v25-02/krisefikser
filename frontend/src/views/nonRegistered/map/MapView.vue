@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import ShelterLayer from '@/components/map/layer/ShelterLayer.vue'
 import EventLayer from '@/components/map/layer/EventLayer.vue'
@@ -11,7 +11,6 @@ import MapLegend from '@/components/map/MapLegend.vue'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type.ts'
 import { useGetAllEvents } from '@/api/generated/event/event.ts'
-import { webSocket } from '@/main.ts'
 import { useGetActiveHousehold } from '@/api/generated/household/household.ts'
 import type {
   MapPointResponse as MapPoint,
@@ -55,7 +54,6 @@ const isAddingMeetingPoint = ref(false)
 const isLoading = ref(true)
 const shelters = ref<Shelter[]>([])
 const events = ref<Event[]>([])
-const topics = ['/topic/events', '/topic/events/new', '/topic/events/delete']
 
 // Fetch map data from API
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
@@ -76,27 +74,6 @@ const householdId = computed(() => activeHousehold.value?.id ?? '')
 // Location error dialog state
 const showLocationError = ref(false)
 const locationError = ref('')
-
-webSocket.subscribe<Event>('/topic/events/new', (message: Event) => {
-  events.value.push(message)
-})
-webSocket.subscribe<number>('/topic/events/delete', (message: number) => {
-  events.value = events.value.filter((event: Event) => event.id !== message)
-})
-webSocket.subscribe<Event>('/topic/events', (message: Event) => {
-  events.value = events.value.map((event: Event) => {
-    if (event.id === message.id) {
-      return message
-    }
-    return event
-  })
-})
-
-function disconnectWebSocket() {
-  topics.forEach((topic) => {
-    webSocket.unsubscribe(topic)
-  })
-}
 
 // Process map data
 function processMapData() {
@@ -236,10 +213,6 @@ onMounted(() => {
     showUserLocation.value = false
   }
 })
-
-onUnmounted(() => {
-  disconnectWebSocket()
-})
 </script>
 
 <template>
@@ -323,8 +296,8 @@ onUnmounted(() => {
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{{
-            selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass'
-          }}</DialogTitle>
+              selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass'
+            }}</DialogTitle>
         </DialogHeader>
         <MeetingPointForm
           :household-id="householdId"

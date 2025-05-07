@@ -9,7 +9,6 @@ import {
 
 // Define props
 const props = defineProps<{
-   
   map: L.Map | null
   events: EventResponse[]
 }>()
