@@ -40,12 +40,25 @@ public class UserService {
    * @throws EmailAlreadyExistsException if the email is already in use by another user
    */
   public User createUser(CreateUser data) {
+    return createUser(data, RoleType.USER);
+  }
+
+  /**
+   * Creates a new user in the system.
+   *
+   * @param data     the user data
+   * @param roleType the role type to assign to the user
+   * @return the created User entity
+   * @throws EmailAlreadyExistsException if the email is already in use by another user
+   */
+  public User createUser(CreateUser data,
+      RoleType roleType) {
     if (userRepository.existsByEmail(data.getEmail())) {
       throw new EmailAlreadyExistsException(
           "User with email " + data.getEmail() + " already exists");
     }
 
-    Role userRole = roleRepository.findByName(RoleType.USER)
+    Role userRole = roleRepository.findByName(roleType)
         .orElseThrow(RoleNotFoundException::new);
 
     Set<Role> roles = new HashSet<>();
