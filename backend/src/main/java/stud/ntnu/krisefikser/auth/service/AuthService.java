@@ -53,7 +53,7 @@ public class AuthService {
    */
   public RegisterResponse registerAdmin(RegisterRequest request) {
     // Validate email has permission to register as admin
-    // TODO: Implement email validation logic
+    // TODO: Implement email validation logic, if fails, throw org.springframework.security.access.AccessDeniedException
     return registerWithRole(request, RoleType.ADMIN);
   }
 
