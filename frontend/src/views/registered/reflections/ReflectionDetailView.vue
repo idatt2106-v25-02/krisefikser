@@ -9,84 +9,139 @@
       </div>
     </div>
 
-    <button class="mb-6 text-blue-600 hover:underline font-medium flex items-center" @click="goBack">
-      <ArrowLeft class="h-5 w-5 mr-1" /> Tilbake til Mine Refleksjoner
-    </button>
-
-    <div v-if="isLoading" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-      <p class="text-gray-600">Laster refleksjon...</p>
+    <div class="flex items-center mb-6">
+      <button class="text-blue-600 hover:text-blue-800 transition-colors font-medium flex items-center group" @click="goBack">
+        <ArrowLeft class="h-5 w-5 mr-2 group-hover:translate-x-[-3px] transition-transform" />
+        <span>Tilbake til Mine Refleksjoner</span>
+      </button>
     </div>
 
-    <div v-else-if="error" class="text-center py-8">
-       <p class="text-red-500">Kunne ikke laste refleksjon: {{ errorMessage }}</p>
+    <!-- Loading state with improved animation -->
+    <div v-if="isLoading" class="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center justify-center py-16">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-b-blue-500 border-blue-100 mb-4"></div>
+      <p class="text-gray-600 font-medium">Laster refleksjon...</p>
     </div>
 
+    <!-- Error state with better visual cues -->
+    <div v-else-if="error" class="bg-white rounded-lg shadow-lg p-8 border-l-4 border-red-500">
+      <div class="flex items-start">
+        <div class="flex-shrink-0 mt-0.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-lg font-medium text-red-800">Kunne ikke laste refleksjon</h3>
+          <p class="mt-2 text-red-700">{{ errorMessage }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content with enhanced styling -->
     <div v-else-if="reflection" class="bg-white rounded-lg shadow-lg p-8 relative">
       <!-- Decorative element -->
       <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/70 rounded-bl-full -mt-2 -mr-2 overflow-hidden z-0 icon-corner">
         <div class="absolute top-5 right-5 icon-wrapper">
-          <BookText class="h-10 w-10 text-blue-500 icon" /> <!-- Icon for reflection -->
+          <BookText class="h-10 w-10 text-blue-500 icon" />
         </div>
       </div>
 
-      <!-- Reflection content -->
+      <!-- Reflection content with improved layout -->
       <div class="relative z-10">
-        <div class="flex justify-between items-start mb-4">
-          <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 border-b pb-4 flex-grow mr-4">{{ reflection.title }}</h1>
-           <!-- Edit/Delete Buttons -->
-           <div v-if="canManageReflection(reflection)" class="flex space-x-3 flex-shrink-0 mt-1">
-              <Button size="sm" variant="outline" @click="openEditForm">Rediger</Button>
-              <Button size="sm" variant="destructive" @click="confirmDelete">Slett</Button>
-            </div>
-        </div>
-        <p class="text-sm text-gray-500 mb-6">
-            Forfatter: {{ reflection.authorName }} |
-            Synlighet: {{ mapReflectionVisibility(reflection.visibility) }} |
-            Sist endret: {{ formatDate(reflection.updatedAt) }}
-            <!-- Link to Event - Now displays title -->
-            <span v-if="reflection.eventId"> |
-              <router-link
-                :to="{ name: 'event-detail', params: { id: reflection.eventId } }"
-                class="text-blue-600 hover:underline"
-                :title="`Gå til hendelse #${reflection.eventId}`"
-              >
-                <span v-if="isEventLoading">Laster hendelse...</span>
-                <span v-else-if="associatedEvent?.title">{{ associatedEvent.title }}</span>
-                <span v-else>Hendelse #{{ reflection.eventId }}</span> <!-- Fallback -->
-              </router-link>
-            </span>
-        </p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 pb-4 border-b border-gray-200 w-full mb-4">
+          {{ reflection.title }}
+        </h1>
 
-        <div class="text-gray-700 leading-relaxed reflection-content prose max-w-none" v-html="reflection.content"></div>
+        <!-- Metadata with badges for better visual hierarchy -->
+        <div class="flex flex-wrap gap-2 mb-6 text-sm text-gray-500">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            {{ reflection.authorName }}
+          </span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-green-100 text-green-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            {{ mapReflectionVisibility(reflection.visibility) }}
+          </span>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{ formatDate(reflection.updatedAt) }}
+          </span>
+
+          <!-- Link to Event with badge styling -->
+          <router-link
+            v-if="reflection.eventId"
+            :to="{ name: 'event-detail', params: { id: reflection.eventId } }"
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span v-if="isEventLoading">Laster hendelse...</span>
+            <span v-else-if="associatedEvent?.title">{{ associatedEvent.title }}</span>
+            <span v-else>Hendelse #{{ reflection.eventId }}</span>
+          </router-link>
+        </div>
+
+        <!-- Main content with better text styling -->
+        <div class="text-gray-700 leading-relaxed reflection-content prose prose-blue max-w-none mt-8" v-html="reflection.content"></div>
+
+        <!-- Edit/Delete Buttons moved to the bottom -->
+        <div v-if="canManageReflection(reflection)" class="flex justify-end space-x-3 mt-8 pt-4 border-t">
+          <Button size="sm" variant="outline" class="flex items-center gap-1.5" @click="openEditForm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span>Rediger</span>
+          </Button>
+          <Button size="sm" variant="destructive" class="flex items-center gap-1.5" @click="confirmDelete">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>Slett</span>
+          </Button>
+        </div>
       </div>
     </div>
 
-    <div v-else class="text-center py-8">
-      <p class="text-gray-600">Refleksjon ikke funnet.</p>
+    <!-- Empty state -->
+    <div v-else class="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center justify-center py-16">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <p class="text-gray-600 text-center text-lg">Refleksjon ikke funnet.</p>
+      <p class="text-gray-500 text-center mt-2">Den kan ha blitt slettet eller flyttet.</p>
+      <Button class="mt-4" @click="goBack">Tilbake til oversikten</Button>
     </div>
 
-    <!-- Edit Modal/Form -->
+    <!-- Edit Modal/Form with improved styling -->
     <Dialog :open="isEditing" @update:open="cancelEditIfNotOpen">
-      <DialogContent class="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Rediger Refleksjon</DialogTitle>
+      <DialogContent class="sm:max-w-[600px] p-0 overflow-hidden">
+        <DialogHeader class="p-6 pb-2">
+          <DialogTitle class="text-xl">Rediger Refleksjon</DialogTitle>
           <DialogDescription>
             Gjør endringer i refleksjonen din her.
           </DialogDescription>
         </DialogHeader>
-        <ReflectionForm
-          v-if="isEditing && reflectionToEdit"
-          :key="reflectionToEdit.id"
-          :event-id="reflectionToEdit.eventId!"
-          :initial-data="reflectionToEdit"
-          @reflection-updated="handleReflectionUpdated"
-          @cancel="cancelEdit"
-          class="pt-4"
-        />
+        <div class="p-6 pt-0">
+          <ReflectionForm
+            v-if="isEditing && reflectionToEdit"
+            :key="reflectionToEdit.id"
+            :event-id="reflectionToEdit.eventId!"
+            :initial-data="reflectionToEdit"
+            @reflection-updated="handleReflectionUpdated"
+            @cancel="cancelEdit"
+            class="pt-4"
+          />
+        </div>
       </DialogContent>
     </Dialog>
-
   </div>
 </template>
 
@@ -288,7 +343,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Scoped styles similar to ScenarioDetailView */
 .reflection-content {
   line-height: 1.6;
 }
