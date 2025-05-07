@@ -79,17 +79,12 @@ public class AuthController {
   @PostMapping("/register")
   public ResponseEntity<RegisterResponse> register(
       @Parameter(description = "Registration details including Turnstile token", required = true) @RequestBody RegisterRequest request) {
-    boolean isHuman = turnstileService.verify(request.getTurnstileToken());
-    if (!isHuman) {
-      throw new TurnstileVerificationException(); // Will trigger 400 with message if
-      // @RestControllerAdvice is used
-    }
     RegisterResponse response = authService.register(request);
     // Create and send verification email
     User newUser = userRepository.findByEmail(request.getEmail())
-    .orElseThrow(() -> new RuntimeException("User not found after registration"));
-VerificationToken token = emailVerificationService.createVerificationToken(newUser);
-emailVerificationService.sendVerificationEmail(newUser, token);
+        .orElseThrow(() -> new RuntimeException("User not found after registration"));
+    VerificationToken token = emailVerificationService.createVerificationToken(newUser);
+    emailVerificationService.sendVerificationEmail(newUser, token);
     return ResponseEntity.ok(response);
   }
    /**
