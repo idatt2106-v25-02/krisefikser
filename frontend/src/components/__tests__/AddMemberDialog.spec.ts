@@ -1,6 +1,6 @@
 import { createComponentWrapper } from '@/components/__tests__/test-utils'
 import { describe, it, expect, vi } from 'vitest'
-import AddMemberDialog from '@/components/admin/AddMemberDialog.vue'
+import AddMemberDialog from '@/components/admin/users/AddMemberDialog.vue'
 
 vi.mock('@/components/admin/UserSelect.vue', () => ({
   default: {

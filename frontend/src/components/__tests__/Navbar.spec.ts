@@ -1,7 +1,7 @@
 import { createComponentWrapper } from '@/components/__tests__/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import Navbar from '@/components/layout/Navbar.vue'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({
