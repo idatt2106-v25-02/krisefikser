@@ -729,18 +729,25 @@ function handleChangeActiveHousehold(householdId: string) {
                 </div>
               </div>
             </div>
-            <div class="mt-4 md:mt-0 space-x-2 flex-col items-center justify-items-end gap-2">
+            <div
+              class="mt-4 md:mt-0 flex-col items-center justify-items-start md:justify-items-end space-y-2"
+            >
               <Button
                 variant="outline"
                 size="sm"
                 @click="isChangeHouseholdDialogOpen = true"
-                class="flex items-center gap-1"
+                class="flex items-center w-full"
                 :disabled="!allHouseholds || allHouseholds.length <= 1"
               >
                 <RefreshCw class="h-4 w-4" />
                 Bytt husstand
               </Button>
-              <Button variant="outline" size="sm" @click="openEditHouseholdDialog">
+              <Button
+                variant="outline"
+                class="flex w-full"
+                size="sm"
+                @click="openEditHouseholdDialog"
+              >
                 <Edit class="h-4 w-4" />
                 Endre informasjon
               </Button>
