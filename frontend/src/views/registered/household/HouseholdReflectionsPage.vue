@@ -144,7 +144,7 @@ import { useGetEventById } from '@/api/generated/event/event';
 import type { ReflectionResponse } from '@/api/generated/model';
 import { ReflectionResponseVisibility } from '@/api/generated/model';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, Users } from 'lucide-vue-next';
+import { BookOpen, Users } from 'lucide-vue-next';
 
 const router = useRouter();
 const queryClient = useQueryClient();
@@ -233,17 +233,10 @@ const viewReflection = (id: string) => {
 
 const confirmDeleteReflection = async (id: string) => {
   if (window.confirm('Er du sikker på at du vil slette denne refleksjonen? Handlingen kan ikke angres.')) {
-    try {
       await deleteReflectionMutation.mutateAsync({ id });
-    } catch (err) {
-      // Error handling is in mutation's onError
-    }
   }
 };
 
-const goBackToHousehold = () => {
-  router.push('/husstand');
-};
 
 const navigateToMyReflections = () => {
   router.push('/mine-refleksjoner');

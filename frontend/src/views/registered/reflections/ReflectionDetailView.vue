@@ -1,3 +1,199 @@
+<script lang="ts">
+import { defineComponent, computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useQueryClient } from '@tanstack/vue-query';
+import {
+  useGetReflectionById,
+  useDeleteReflection,
+  getGetReflectionsByEventIdQueryKey,
+  getGetCurrentUserReflectionsQueryKey
+} from '@/api/generated/reflection/reflection.ts';
+import { useGetEventById } from '@/api/generated/event/event.ts';
+import type { ReflectionResponse } from '@/api/generated/model';
+import { ReflectionResponseVisibility } from '@/api/generated/model';
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import { ArrowLeft, BookText } from 'lucide-vue-next';
+import { Button as BaseButton } from '@/components/ui/button';
+import ReflectionForm from '@/components/reflections/ReflectionForm.vue';
+import {
+  Dialog as BaseDialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+export default defineComponent({
+  name: 'ReflectionDetailView',
+  components: {
+    ArrowLeft,
+    BookText,
+    BaseButton,
+    ReflectionForm,
+    BaseDialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle
+  },
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const queryClient = useQueryClient();
+    const authStore = useAuthStore();
+    const reflectionId = computed(() => route.params.id as string);
+
+    const isEditing = ref(false);
+    const reflectionToEdit = ref<ReflectionResponse | null>(null);
+
+    const {
+      data: reflection,
+      isLoading,
+      error,
+      refetch
+    } = useGetReflectionById(reflectionId);
+
+    // Create a separate ref for the associated Event ID
+    const associatedEventId = ref<number | undefined>(undefined);
+
+    // Watch the reflection data to update the associatedEventId ref
+    watch(reflection, (newReflection) => {
+      if (newReflection?.eventId !== undefined) {
+        associatedEventId.value = newReflection.eventId;
+      } else {
+        associatedEventId.value = undefined;
+      }
+    }, { immediate: true });
+
+    const {
+      data: associatedEvent,
+      isLoading: isEventLoading,
+      error: eventError
+    } = useGetEventById(
+      computed(() => associatedEventId.value as number),
+      {
+        query: {
+          // Enable only when associatedEventId has a number value
+          enabled: computed(() => typeof associatedEventId.value === 'number')
+        }
+      }
+    );
+
+    const deleteReflectionMutation = useDeleteReflection();
+
+    const errorMessage = computed(() => {
+      if (error.value instanceof Error) return error.value.message;
+      if (eventError.value instanceof Error) return eventError.value.message;
+      return error.value ? 'En ukjent feil oppstod.' : '';
+    });
+
+    const goBack = () => {
+      router.push({ name: 'my-reflections' });
+    };
+
+    const canManageReflection = (reflectionData: ReflectionResponse | null | undefined) => {
+      if (!reflectionData || !authStore.currentUser) return false;
+      return authStore.isAdmin || authStore.currentUser.id === reflectionData.authorId;
+    };
+
+    const mapReflectionVisibility = (visibility?: ReflectionResponseVisibility): string => {
+      if (!visibility) return 'Ukjent';
+      switch (visibility) {
+        case ReflectionResponseVisibility.PUBLIC: return 'Offentlig';
+        case ReflectionResponseVisibility.HOUSEHOLD: return 'Husstand';
+        case ReflectionResponseVisibility.PRIVATE: return 'Privat';
+        default: return 'Ukjent synlighet';
+      }
+    };
+
+    const formatDate = (dateTimeString?: string | null): string => {
+      if (!dateTimeString) return 'Ukjent dato';
+      try {
+        const date = new Date(dateTimeString);
+        // Check if the date object is valid
+        if (isNaN(date.getTime())) {
+          console.warn("Could not parse date string:", dateTimeString);
+          return 'Ugyldig dato'; // Return specific error message
+        }
+        return date.toLocaleDateString('nb-NO', {
+          year: 'numeric', month: 'long', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+      } catch (e) {
+        console.error("Error formatting date:", dateTimeString, e);
+        // Fallback for other unexpected errors during formatting
+        return dateTimeString;
+      }
+    };
+
+    const openEditForm = () => {
+      if (reflection.value && canManageReflection(reflection.value)) {
+        reflectionToEdit.value = { ...reflection.value }; // Clone for editing
+        isEditing.value = true;
+      }
+    };
+
+    const cancelEdit = () => {
+      isEditing.value = false;
+      reflectionToEdit.value = null;
+    };
+
+    // Handle external closing of the dialog (e.g., clicking outside)
+    const cancelEditIfNotOpen = (openState: boolean) => {
+      if (!openState) {
+        cancelEdit();
+      }
+    };
+
+    const handleReflectionUpdated = () => {
+      cancelEdit();
+      refetch();
+      if (reflection.value?.eventId) {
+        queryClient.invalidateQueries({ queryKey: getGetReflectionsByEventIdQueryKey(reflection.value.eventId) });
+      }
+      queryClient.invalidateQueries({ queryKey: getGetCurrentUserReflectionsQueryKey() });
+    };
+
+    const confirmDelete = async () => {
+      if (!reflection.value || !reflection.value.id || !canManageReflection(reflection.value)) return;
+      if (window.confirm('Er du sikker på at du vil slette denne refleksjonen?')) {
+        try {
+          await deleteReflectionMutation.mutateAsync({ id: reflection.value.id });
+          if (reflection.value?.eventId) {
+            queryClient.invalidateQueries({ queryKey: getGetReflectionsByEventIdQueryKey(reflection.value.eventId) });
+          }
+          queryClient.invalidateQueries({ queryKey: getGetCurrentUserReflectionsQueryKey() });
+          goBack();
+        } catch (err) {
+          console.error("Feil ved sletting:", err);
+          alert("Kunne ikke slette: " + (err instanceof Error ? err.message : 'Ukjent feil'));
+        }
+      }
+    };
+
+    return {
+      reflection,
+      isLoading,
+      error,
+      errorMessage,
+      goBack,
+      canManageReflection,
+      mapReflectionVisibility,
+      formatDate,
+      isEditing,
+      reflectionToEdit,
+      openEditForm,
+      cancelEdit,
+      handleReflectionUpdated,
+      confirmDelete,
+      cancelEditIfNotOpen,
+      associatedEvent,
+      isEventLoading,
+    };
+  },
+});
+</script>
+
 <template>
   <div class="container mx-auto px-4 py-12 max-w-4xl">
     <!-- Background decoration - wave pattern -->
@@ -10,10 +206,10 @@
     </div>
 
     <div class="flex items-center mb-6">
-      <button class="text-blue-600 hover:text-blue-800 transition-colors font-medium flex items-center group" @click="goBack">
+      <BaseButton class="text-blue-600 hover:text-blue-800 transition-colors font-medium flex items-center group" @click="goBack">
         <ArrowLeft class="h-5 w-5 mr-2 group-hover:translate-x-[-3px] transition-transform" />
         <span>Tilbake til Mine Refleksjoner</span>
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Loading state with improved animation -->
@@ -94,18 +290,18 @@
 
         <!-- Edit/Delete Buttons moved to the bottom -->
         <div v-if="canManageReflection(reflection)" class="flex justify-end space-x-3 mt-8 pt-4 border-t">
-          <Button size="sm" variant="outline" class="flex items-center gap-1.5" @click="openEditForm">
+          <BaseButton size="sm" variant="outline" class="flex items-center gap-1.5" @click="openEditForm">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             <span>Rediger</span>
-          </Button>
-          <Button size="sm" variant="destructive" class="flex items-center gap-1.5" @click="confirmDelete">
+          </BaseButton>
+          <BaseButton size="sm" variant="destructive" class="flex items-center gap-1.5" @click="confirmDelete">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             <span>Slett</span>
-          </Button>
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -117,11 +313,11 @@
       </svg>
       <p class="text-gray-600 text-center text-lg">Refleksjon ikke funnet.</p>
       <p class="text-gray-500 text-center mt-2">Den kan ha blitt slettet eller flyttet.</p>
-      <Button class="mt-4" @click="goBack">Tilbake til oversikten</Button>
+      <BaseButton class="mt-4" @click="goBack">Tilbake til oversikten</BaseButton>
     </div>
 
     <!-- Edit Modal/Form with improved styling -->
-    <Dialog :open="isEditing" @update:open="cancelEditIfNotOpen">
+    <BaseDialog :open="isEditing" @update:open="cancelEditIfNotOpen">
       <DialogContent class="sm:max-w-[600px] p-0 overflow-hidden">
         <DialogHeader class="p-6 pb-2">
           <DialogTitle class="text-xl">Rediger Refleksjon</DialogTitle>
@@ -141,206 +337,9 @@
           />
         </div>
       </DialogContent>
-    </Dialog>
+    </BaseDialog>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent, computed, ref, watch, nextTick } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useQueryClient } from '@tanstack/vue-query';
-import {
-  useGetReflectionById,
-  useDeleteReflection,
-  getGetReflectionsByEventIdQueryKey,
-  getGetCurrentUserReflectionsQueryKey
-} from '@/api/generated/reflection/reflection.ts';
-import { useGetEventById } from '@/api/generated/event/event.ts';
-import type { ReflectionResponse, EventResponse } from '@/api/generated/model';
-import { ReflectionResponseVisibility } from '@/api/generated/model';
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
-import { ArrowLeft, BookText } from 'lucide-vue-next';
-import { Button } from '@/components/ui/button';
-import ReflectionForm from '@/components/reflections/ReflectionForm.vue';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-
-export default defineComponent({
-  name: 'ReflectionDetailView',
-  components: {
-    ArrowLeft,
-    BookText,
-    Button,
-    ReflectionForm,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle
-  },
-  setup() {
-    const route = useRoute();
-    const router = useRouter();
-    const queryClient = useQueryClient();
-    const authStore = useAuthStore();
-    const reflectionId = computed(() => route.params.id as string);
-
-    const isEditing = ref(false);
-    const reflectionToEdit = ref<ReflectionResponse | null>(null);
-
-    const {
-      data: reflection,
-      isLoading,
-      error,
-      refetch
-    } = useGetReflectionById(reflectionId);
-
-    // Create a separate ref for the associated Event ID
-    const associatedEventId = ref<number | undefined>(undefined);
-
-    // Watch the reflection data to update the associatedEventId ref
-    watch(reflection, (newReflection) => {
-      if (newReflection?.eventId !== undefined) {
-        associatedEventId.value = newReflection.eventId;
-      } else {
-        associatedEventId.value = undefined;
-      }
-    }, { immediate: true });
-
-    // Fetch associated event details using the associatedEventId ref
-    const {
-      data: associatedEvent,
-      isLoading: isEventLoading,
-      error: eventError
-    } = useGetEventById(
-      associatedEventId, // Pass the ref<number | undefined>
-      {
-        query: {
-          // Enable only when associatedEventId has a number value
-          enabled: computed(() => typeof associatedEventId.value === 'number')
-        }
-      }
-    );
-
-    const deleteReflectionMutation = useDeleteReflection();
-
-    const errorMessage = computed(() => {
-      if (error.value instanceof Error) return error.value.message;
-      if (eventError.value instanceof Error) return eventError.value.message;
-      return error.value ? 'En ukjent feil oppstod.' : '';
-    });
-
-    const goBack = () => {
-      router.push({ name: 'my-reflections' });
-    };
-
-    const canManageReflection = (reflectionData: ReflectionResponse | null | undefined) => {
-      if (!reflectionData || !authStore.currentUser) return false;
-      return authStore.isAdmin || authStore.currentUser.id === reflectionData.authorId;
-    };
-
-    const mapReflectionVisibility = (visibility?: ReflectionResponseVisibility): string => {
-      if (!visibility) return 'Ukjent';
-      switch (visibility) {
-        case ReflectionResponseVisibility.PUBLIC: return 'Offentlig';
-        case ReflectionResponseVisibility.HOUSEHOLD: return 'Husstand';
-        case ReflectionResponseVisibility.PRIVATE: return 'Privat';
-        default: return 'Ukjent synlighet';
-      }
-    };
-
-    const formatDate = (dateTimeString?: string | null): string => {
-       if (!dateTimeString) return 'Ukjent dato';
-       try {
-         const date = new Date(dateTimeString);
-         // Check if the date object is valid
-         if (isNaN(date.getTime())) {
-           console.warn("Could not parse date string:", dateTimeString);
-           return 'Ugyldig dato'; // Return specific error message
-         }
-         return date.toLocaleDateString('nb-NO', {
-            year: 'numeric', month: 'long', day: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-         });
-       } catch (e) {
-         console.error("Error formatting date:", dateTimeString, e);
-         // Fallback for other unexpected errors during formatting
-         return dateTimeString;
-       }
-    };
-
-    const openEditForm = () => {
-      if (reflection.value && canManageReflection(reflection.value)) {
-        reflectionToEdit.value = { ...reflection.value }; // Clone for editing
-        isEditing.value = true;
-      }
-    };
-
-    const cancelEdit = () => {
-      isEditing.value = false;
-      reflectionToEdit.value = null;
-    };
-
-    // Handle external closing of the dialog (e.g., clicking outside)
-    const cancelEditIfNotOpen = (openState: boolean) => {
-      if (!openState) {
-        cancelEdit();
-      }
-    };
-
-    const handleReflectionUpdated = () => {
-      cancelEdit();
-      refetch();
-      if (reflection.value?.eventId) {
-        queryClient.invalidateQueries({ queryKey: getGetReflectionsByEventIdQueryKey(reflection.value.eventId) });
-      }
-      queryClient.invalidateQueries({ queryKey: getGetCurrentUserReflectionsQueryKey() });
-    };
-
-    const confirmDelete = async () => {
-      if (!reflection.value || !reflection.value.id || !canManageReflection(reflection.value)) return;
-      if (window.confirm('Er du sikker på at du vil slette denne refleksjonen?')) {
-        try {
-          await deleteReflectionMutation.mutateAsync({ id: reflection.value.id });
-           if (reflection.value?.eventId) {
-             queryClient.invalidateQueries({ queryKey: getGetReflectionsByEventIdQueryKey(reflection.value.eventId) });
-           }
-           queryClient.invalidateQueries({ queryKey: getGetCurrentUserReflectionsQueryKey() });
-          goBack();
-        } catch (err) {
-           console.error("Feil ved sletting:", err);
-           alert("Kunne ikke slette: " + (err instanceof Error ? err.message : 'Ukjent feil'));
-        }
-      }
-    };
-
-    return {
-      reflection,
-      isLoading,
-      error,
-      errorMessage,
-      goBack,
-      canManageReflection,
-      mapReflectionVisibility,
-      formatDate,
-      isEditing,
-      reflectionToEdit,
-      openEditForm,
-      cancelEdit,
-      handleReflectionUpdated,
-      confirmDelete,
-      cancelEditIfNotOpen,
-      associatedEvent,
-      isEventLoading,
-    };
-  },
-});
-</script>
 
 <style scoped>
 .reflection-content {
