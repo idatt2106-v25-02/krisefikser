@@ -103,17 +103,26 @@ export default {
 
           <!-- Show user profile when authenticated -->
           <div v-else class="flex items-center space-x-2">
-            <router-link
-              to="/dashboard"
-              class="flex items-center text-gray-700 hover:text-blue-600 transition"
-            >
-              <span
-                >{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span
-              >
-              <UserIcon class="h-5 w-5 ml-2" aria-label="Min profil" />
-            </router-link>
             <DropdownMenu>
+              <DropdownMenuTrigger>
+                <button
+                  class="flex items-center text-gray-700 hover:text-blue-600 transition"
+                  aria-label="Min profil"
+                >
+                  <span
+                    >{{ authStore.currentUser?.firstName }}
+                    {{ authStore.currentUser?.lastName }}</span
+                  >
+                  <UserIcon class="h-5 w-5 ml-2" />
+                </button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <router-link to="/dashboard">
+                  <DropdownMenuItem>
+                    <UserIcon class="h-5 w-5 mr-2" />
+                    <span>Min Profil</span>
+                  </DropdownMenuItem>
+                </router-link>
                 <DropdownMenuItem @select="authStore.logout" variant="destructive">
                   <LogOut class="h-4 w-4 mr-2" />
                   <span>Logg ut</span>
@@ -185,16 +194,17 @@ export default {
 
         <!-- Show user profile when authenticated -->
         <div v-else class="flex items-center justify-between px-3 py-2 mt-2 rounded text-gray-700">
-          <router-link to="/dashboard" class="flex items-center text-gray-700 hover:text-blue-600">
-            <UserIcon class="h-5 w-5 mr-1" />
-            <span
-              >{{ authStore.currentUser?.firstName }} {{ authStore.currentUser?.lastName }}</span
-            >
-          </router-link>
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <button class="text-gray-700 hover:text-blue-600">
-                <UserIcon class="h-5 w-5" />
+              <button
+                class="flex items-center text-gray-700 hover:text-blue-600"
+                aria-label="Min profil"
+              >
+                <UserIcon class="h-5 w-5 mr-1" />
+                <span
+                  >{{ authStore.currentUser?.firstName }}
+                  {{ authStore.currentUser?.lastName }}</span
+                >
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
