@@ -13,9 +13,9 @@ interface InventoryItem {
 }
 
 interface Inventory {
-  food: { current: number, target: number, unit: string }
-  water: { current: number, target: number, unit: string }
-  other: { current: number, target: number }
+  food: { current: number; target: number; unit: string }
+  water: { current: number; target: number; unit: string }
+  other: { current: number; target: number }
   preparedDays: number
   targetDays: number
 }
@@ -27,7 +27,7 @@ interface Props {
   showDetailsButton?: boolean
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const router = useRouter()
 
 const emit = defineEmits<{
@@ -41,7 +41,6 @@ function navigateToInventory() {
 
 <template>
   <div class="mb-12">
-
     <!-- Summary boxes -->
     <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-center sm:text-left">
@@ -79,9 +78,10 @@ function navigateToInventory() {
             <span
               :class="[
                 'text-3xl font-bold',
-                inventory.preparedDays <= 3 ? 'text-red-600' : 'text-blue-700'
+                inventory.preparedDays <= 3 ? 'text-red-600' : 'text-blue-700',
               ]"
-            >{{ inventory.preparedDays }}</span>
+              >{{ inventory.preparedDays }}</span
+            >
             <span class="text-lg text-blue-600 ml-1">/{{ inventory.targetDays }}</span>
           </div>
         </div>
@@ -92,7 +92,8 @@ function navigateToInventory() {
           ></div>
         </div>
         <div class="text-sm text-blue-700">
-          Norske myndigheter anbefaler at du har nok forsyninger tilregnet {{ inventory.targetDays }} dager.
+          Norske myndigheter anbefaler at du har nok forsyninger tilregnet
+          {{ inventory.targetDays }} dager.
         </div>
       </div>
 
