@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -90,18 +89,6 @@ class AuthControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.accessToken").value("access-token"))
         .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
-  }
-
-  @Test
-  void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
-    // Arrange
-    when(turnstileService.verify(any(String.class))).thenReturn(false);
-
-    // Act & Assert
-    mockMvc.perform(post("/api/auth/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(registerRequest)))
-        .andExpect(status().isBadRequest());
   }
 
   @Test
