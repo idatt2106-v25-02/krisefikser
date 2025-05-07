@@ -5,6 +5,7 @@ import java.util.Date;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,8 +43,8 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 import stud.ntnu.krisefikser.auth.exception.EmailNotVerifiedException;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
-import stud.ntnu.krisefikser.user.repository.UserRepository;
 import stud.ntnu.krisefikser.user.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Service class for handling authentication-related operations such as user registration, login,
@@ -66,6 +67,9 @@ public class AuthService {
   private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final JwtProperties jwtProperties;
   private final EmailService emailService;
+
+  @Value("${frontend.url}")
+  private String frontendUrl;
 
   /**
    * Registers a new admin user and generates access and refresh tokens.
@@ -289,13 +293,31 @@ if (!user.isEmailVerified()) {
 
     passwordResetTokenRepository.save(passwordResetToken);
 
-    // TODO: Send email with reset password link
-//    emailService.sendEmail();
+    // Send password reset email
+    String resetLink = frontendUrl + "/verifiser-passord-tilbakestilling?token=" + token;
+    String htmlContent = createPasswordResetEmailHtml(user.getFirstName(), resetLink);
+    
+    emailService.sendEmail(
+        user.getEmail(),
+        "Reset your password",
+        htmlContent
+    );
 
     return PasswordResetResponse.builder()
         .message("Reset password request sent to " + user.getEmail())
         .success(true)
         .build();
+  }
+
+  private String createPasswordResetEmailHtml(String firstName, String resetLink) {
+    return "<html><body>" +
+           "<h2>Reset Your Password</h2>" +
+           "<p>Hello " + firstName + ",</p>" +
+           "<p>We received a request to reset your password. Click the link below to reset it:</p>" +
+           "<p><a href='" + resetLink + "'>Reset Password</a></p>" +
+           "<p>This link will expire in " + (jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60)) + " hours.</p>" +
+           "<p>If you did not request a password reset, you can safely ignore this email.</p>" +
+           "</body></html>";
   }
 
   /**
@@ -305,10 +327,6 @@ if (!user.isEmailVerified()) {
    * @return A response indicating the success of the operation.
    */
   public PasswordResetResponse completePasswordReset(CompletePasswordResetRequest request) {
-    if (request.getEmail() == null) {
-      throw new InvalidCredentialsException("Email is required");
-    }
-
     if (request.getToken() == null) {
       throw new InvalidCredentialsException("Token is required");
     }
@@ -321,17 +339,12 @@ if (!user.isEmailVerified()) {
             request.getToken())
         .orElseThrow(() -> new InvalidCredentialsException("Invalid token"));
 
-    User user = userService.getUserByEmail(request.getEmail());
-
-    if (!passwordResetToken.getUser().getId().equals(user.getId())) {
-      throw new InvalidCredentialsException("Invalid token");
-    }
-
     if (passwordResetToken.isExpired()) {
       passwordResetTokenRepository.delete(passwordResetToken);
       throw new InvalidCredentialsException("Expired token");
     }
 
+    User user = passwordResetToken.getUser();
     userService.updatePassword(user.getId(), request.getNewPassword());
     passwordResetTokenRepository.delete(passwordResetToken);
 
