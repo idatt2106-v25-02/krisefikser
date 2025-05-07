@@ -147,6 +147,15 @@ public class AuthController {
    * @param updatePasswordRequest The request containing the new password
    * @return ResponseEntity containing the status of the password update operation
    */
+  @Operation(summary = "Update password", description = "Updates the password of the currently "
+      + "authenticated user")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Password successfully updated", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          UpdatePasswordResponse.class))),
+      @ApiResponse(responseCode = "401", description = "Invalid current password or not "
+          + "authenticated")
+  })
   @PostMapping("/update-password")
   public ResponseEntity<UpdatePasswordResponse> updatePassword(
       @RequestBody UpdatePasswordRequest updatePasswordRequest
@@ -161,6 +170,16 @@ public class AuthController {
    * @param request The request containing the user's email
    * @return ResponseEntity containing the status of the reset request operation
    */
+  @Operation(summary = "Request password reset", description = "Generates a password reset token "
+      + "and sends it to the user's email")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Password reset request successful",
+          content =
+          @Content(mediaType = "application/json", schema = @Schema(implementation =
+              PasswordResetResponse.class))),
+      @ApiResponse(responseCode = "404", description = "User not found"),
+      @ApiResponse(responseCode = "500", description = "Error sending email")
+  })
   @PostMapping("/request-password-reset")
   public ResponseEntity<PasswordResetResponse> requestPasswordReset(
       @RequestBody RequestPasswordResetRequest request
@@ -175,6 +194,15 @@ public class AuthController {
    * @param request The request containing the email, token, and new password
    * @return ResponseEntity containing the status of the password reset operation
    */
+  @Operation(summary = "Complete password reset", description = "Verifies the reset token and "
+      + "updates the user's password")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Password successfully reset", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          PasswordResetResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Missing required fields"),
+      @ApiResponse(responseCode = "401", description = "Invalid or expired token")
+  })
   @PostMapping("/complete-password-reset")
   public ResponseEntity<PasswordResetResponse> completePasswordReset(
       @RequestBody CompletePasswordResetRequest request
