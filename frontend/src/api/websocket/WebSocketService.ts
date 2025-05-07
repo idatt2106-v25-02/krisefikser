@@ -9,7 +9,7 @@ export class WebSocketService {
 
   constructor(
     serverUrl: string = import.meta.env.VITE_WS_URL as string,
-    debug: boolean = false
+    debug: boolean = true
   ) {
     this.client = new Client({
       brokerURL: serverUrl,

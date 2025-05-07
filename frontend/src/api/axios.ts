@@ -201,9 +201,38 @@ export const customInstance = async <T>(
 ): Promise<T> => {
   const { handleError = true } = options || {}
 
+  // Handle the pageable flattening for notifications API
+  if (config.params && config.params.pageable) {
+    config.params = {
+      ...config.params.pageable
+    }
+  }
+  // Create a custom paramsSerializer to handle arrays without brackets
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const paramsSerializer = (params: any) => {
+    const parts: string[] = []
+
+    Object.keys(params).forEach(key => {
+      const value = params[key]
+      if (Array.isArray(value)) {
+        // Handle arrays without brackets
+        value.forEach(item => {
+          parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(item)}`)
+        })
+      } else if (value !== null && value !== undefined) {
+        parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      }
+    })
+
+    return parts.join('&')
+  }
+
   try {
     // Use your AXIOS_INSTANCE with the config object
-    const { data } = await AXIOS_INSTANCE(config)
+    const { data } = await AXIOS_INSTANCE({
+      ...config,
+      paramsSerializer,
+    })
     return data
   } catch (error) {
     if (handleError) {

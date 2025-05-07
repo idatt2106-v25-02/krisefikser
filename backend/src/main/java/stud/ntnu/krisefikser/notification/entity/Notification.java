@@ -17,6 +17,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import stud.ntnu.krisefikser.household.entity.Household;
+import stud.ntnu.krisefikser.household.entity.HouseholdInvite;
+import stud.ntnu.krisefikser.item.entity.FoodItem;
+import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.notification.dto.NotificationResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 
@@ -34,72 +38,78 @@ import stud.ntnu.krisefikser.user.entity.User;
 @AllArgsConstructor
 @Table(name = "notifications")
 public class Notification {
-  /**
-   * Unique identifier for the notification.
-   */
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  /**
-   * The user who owns this notification.
-   */
   @ManyToOne(optional = false)
   @JoinColumn(name = "user_id")
   private User user;
 
-  /**
-   * The type of notification (e.g., EVENT, INVITE).
-   */
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private NotificationType type;
 
-  /**
-   * The title of the notification.
-   */
   @Column(nullable = false)
   private String title;
 
-  /**
-   * The content message of the notification.
-   */
   @Column(nullable = false)
   private String message;
 
-  /**
-   * Optional URL associated with the notification for further actions.
-   */
-  private String url;
-
-  /**
-   * Indicates whether the notification has been read by the user.
-   * Defaults to false when created.
-   */
-  @Column(nullable = false)
-  private Boolean read = false;
-
-  /**
-   * Timestamp of when the notification was created.
-   * Automatically set by Hibernate when the entity is persisted.
-   */
+  @Column(name = "is_read", nullable = false)
+  @Builder.Default
+  private Boolean isRead = false;
   @CreationTimestamp
   private LocalDateTime createdAt;
 
+  @ManyToOne
+  @JoinColumn(name = "item_id")
+  private FoodItem item;
+
+  @ManyToOne
+  @JoinColumn(name = "event_id")
+  private Event event;
+
+  @ManyToOne
+  @JoinColumn(name = "household_invite_id")
+  private HouseholdInvite invite;
+
+  @ManyToOne
+  @JoinColumn(name = "household_id")
+  private Household household;
+
+  /**
+   * Copy constructor that creates a duplicate of the original notification
+   * but allows setting a different user.
+   *
+   * @param original the notification to copy
+   * @param user     the user to set for the new notification (can be null)
+   */
+  public Notification(Notification original, User user) {
+    this.type = original.getType();
+    this.title = original.getTitle();
+    this.message = original.getMessage();
+    this.isRead = original.getIsRead();
+    this.createdAt =
+        original.getCreatedAt() != null ? original.getCreatedAt() : LocalDateTime.now();
+    this.item = original.getItem();
+    this.event = original.getEvent();
+    this.invite = original.getInvite();
+    this.household = original.getHousehold();
+    this.user = user;
+  }
+
   /**
    * Converts the Notification entity to a NotificationResponse DTO.
+   * Safely handles null references to related entities.
    *
    * @return a NotificationResponse containing all relevant notification data
    */
   public NotificationResponse toResponse() {
-    return NotificationResponse.builder()
-        .id(id)
-        .title(title)
-        .message(message)
-        .type(type)
-        .url(url)
-        .read(read)
-        .createdAt(createdAt)
-        .build();
+    return NotificationResponse.builder().id(id).title(title).message(message).type(type)
+        .read(this.isRead).createdAt(createdAt).itemId(item != null ? item.getId() : null)
+        .eventId(event != null ? event.getId() : null)
+        .inviteId(invite != null ? invite.getId() : null)
+        .householdId(household != null ? household.getId() : null).build();
   }
 }

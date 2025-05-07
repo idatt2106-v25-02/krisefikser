@@ -64,18 +64,12 @@ public class UserService {
     Set<Role> roles = new HashSet<>();
     roles.add(userRole);
 
-    User user = User.builder()
-        .email(data.getEmail())
-        .password(passwordEncoder.encode(data.getPassword()))
-        .firstName(data.getFirstName())
-        .lastName(data.getLastName())
-        .notifications(data.isNotifications())
-        .emailUpdates(data.isEmailUpdates())
-        .locationSharing(data.isLocationSharing())
-        .roles(roles)
-        .passwordRetries(0)
-        .lockedUntil(null)
-        .build();
+    User user =
+        User.builder().email(data.getEmail()).password(passwordEncoder.encode(data.getPassword()))
+            .firstName(data.getFirstName()).lastName(data.getLastName())
+            .notifications(data.isNotifications()).emailUpdates(data.isEmailUpdates())
+            .locationSharing(data.isLocationSharing()).roles(roles).passwordRetries(0)
+            .lockedUntil(null).build();
 
     return userRepository.save(user);
   }
@@ -106,9 +100,8 @@ public class UserService {
    * @throws EmailAlreadyExistsException if the new email is already in use by another user
    */
   public User updateUser(UUID userId, CreateUser data) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(
-            () -> new UserNotFoundException(userId));
+    User user =
+        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
     // Check if email is being changed and if it already exists
     if (!user.getEmail().equals(data.getEmail()) && userRepository.existsByEmail(data.getEmail())) {
@@ -154,10 +147,20 @@ public class UserService {
   }
 
   /**
+   * Retrieves all admins in the system.
+   *
+   * @return a list of all User entities
+   */
+  public List<User> getAllAdmins() {
+    return userRepository.findByRolesName(RoleType.ADMIN);
+  }
+
+  /**
    * Checks if the current user is either an admin or the user being accessed.
    *
    * @param userId the UUID of the user being accessed
-   * @return true if the current user is an admin or the user being accessed, false otherwise
+   * @return true if the current user is an admin or the user being accessed,
+   * false otherwise
    */
   public boolean isAdminOrSelf(UUID userId) {
     User currentUser = getCurrentUser();
@@ -177,8 +180,7 @@ public class UserService {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String email = authentication.getName();
 
-    return userRepository.findByEmail(email).orElseThrow(
-        () -> new UserNotFoundException(email));
+    return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
   }
 
   /**
@@ -200,13 +202,18 @@ public class UserService {
    * @throws UserNotFoundException if the user with the given ID does not exist
    */
   public User getUserById(UUID id) {
-    return userRepository.findById(id)
-        .orElseThrow(() -> new UserNotFoundException(id));
+    return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
   }
 
+  /**
+   * Retrieves a user by their mail.
+   *
+   * @param email the mail of the user to retrieve
+   * @return the User entity with the specified mail
+   * @throws UserNotFoundException if the user with the given ID does not exist
+   */
   public User getUserByEmail(String email) {
-    return userRepository.findByEmail(email)
-        .orElseThrow(
-            () -> new UserNotFoundException("User with email " + email + " does not exist"));
+    return userRepository.findByEmail(email).orElseThrow(
+        () -> new UserNotFoundException("User with email " + email + " does not exist"));
   }
 }

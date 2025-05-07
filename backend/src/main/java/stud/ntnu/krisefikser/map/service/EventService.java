@@ -4,11 +4,15 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.map.dto.EventRequest;
 import stud.ntnu.krisefikser.map.dto.EventResponse;
 import stud.ntnu.krisefikser.map.dto.UpdateEventRequest;
 import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.map.repository.EventRepository;
+import stud.ntnu.krisefikser.notification.entity.Notification;
+import stud.ntnu.krisefikser.notification.entity.NotificationType;
+import stud.ntnu.krisefikser.notification.service.NotificationService;
 
 /**
  * Service class that handles business logic related to Event entities. Provides CRUD operations for
@@ -39,6 +43,8 @@ public class EventService {
    * through constructor by Lombok's {@code @RequiredArgsConstructor}.
    */
   private final EventWebSocketService eventWebSocketService;
+
+  private final NotificationService notificationService;
 
   /**
    * Retrieves all events from the database.
@@ -73,6 +79,7 @@ public class EventService {
    * @param eventRequest The event entity to be created
    * @return The created event with assigned ID
    */
+  @Transactional
   public EventResponse createEvent(EventRequest eventRequest) {
     Event event = Event.builder()
         .title(eventRequest.getTitle())
@@ -86,6 +93,14 @@ public class EventService {
         .status(eventRequest.getStatus())
         .build();
 
+    eventWebSocketService.notifyEventCreation(event.toResponse());
+    notificationService.createNotificationsForAll(
+        Notification.builder()
+            .type(NotificationType.EVENT)
+            .title("Ny krise: " + event.getTitle())
+            .message(event.getDescription())
+            .event(event)
+            .build());
     return eventRepository.save(event).toResponse();
   }
 
@@ -101,6 +116,7 @@ public class EventService {
    * @return The updated event entity
    * @throws EntityNotFoundException If no event with the specified ID exists
    */
+  @Transactional
   public EventResponse updateEvent(Long id, UpdateEventRequest eventRequest) {
     Event existingEvent = eventRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Event not found with id: " + id));
@@ -140,7 +156,14 @@ public class EventService {
     if (eventRequest.getStatus() != null) {
       existingEvent.setStatus(eventRequest.getStatus());
     }
-
+    eventWebSocketService.notifyEventUpdate(existingEvent.toResponse());
+    notificationService.createNotificationsForAll(
+        Notification.builder()
+            .type(NotificationType.EVENT)
+            .title("Oppdatering for krise: " + existingEvent.getTitle())
+            .message(existingEvent.getDescription())
+            .event(existingEvent)
+            .build());
     return eventRepository.save(existingEvent).toResponse();
   }
 
@@ -154,11 +177,11 @@ public class EventService {
    * @param id The ID of the event to delete
    * @throws EntityNotFoundException If no event with the specified ID exists
    */
+  @Transactional
   public void deleteEvent(Long id) {
     if (!eventRepository.existsById(id)) {
       throw new EntityNotFoundException("Event not found with id: " + id);
     }
-
     eventWebSocketService.notifyEventDeletion(id);
     eventRepository.deleteById(id);
   }
