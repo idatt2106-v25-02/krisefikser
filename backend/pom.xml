@@ -44,6 +44,9 @@
             -javaagent:"${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar"
             -Xshare:off
           </argLine>
+          <systemPropertyVariables>
+            <spring.profiles.active>test</spring.profiles.active>
+          </systemPropertyVariables>
         </configuration>
         <groupId>org.apache.maven.plugins</groupId>
       </plugin>

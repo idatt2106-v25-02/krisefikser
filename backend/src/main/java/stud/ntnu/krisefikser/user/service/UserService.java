@@ -22,6 +22,7 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 /**
  * Service class for managing users. This class provides methods to create, update, delete, and
+ * Service class for managing users. This class provides methods to create, update, delete, and
  * retrieve users.
  */
 @Service

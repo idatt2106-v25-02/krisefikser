@@ -34,6 +34,7 @@ import type {
   UpdatePasswordRequest,
   UpdatePasswordResponse,
   UserResponse,
+  VerifyEmailParams,
 } from '.././model'
 
 import { customInstance } from '../../axios'
@@ -41,6 +42,92 @@ import type { ErrorType, BodyType } from '../../axios'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
+/**
+ * Verifies user's email address using a token
+ * @summary Verify email address
+ */
+export const verifyEmail = (
+  params: MaybeRef<VerifyEmailParams>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  params = unref(params)
+
+  return customInstance<string>(
+    {
+      url: `http://localhost:8080/api/auth/verify-email`,
+      method: 'POST',
+      params: unref(params),
+      signal,
+    },
+    options,
+  )
+}
+
+export const getVerifyEmailMutationOptions = <
+  TError = ErrorType<string>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyEmail>>,
+    TError,
+    { params: VerifyEmailParams },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verifyEmail>>,
+  TError,
+  { params: VerifyEmailParams },
+  TContext
+> => {
+  const mutationKey = ['verifyEmail']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verifyEmail>>,
+    { params: VerifyEmailParams }
+  > = (props) => {
+    const { params } = props ?? {}
+
+    return verifyEmail(params, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type VerifyEmailMutationResult = NonNullable<Awaited<ReturnType<typeof verifyEmail>>>
+
+export type VerifyEmailMutationError = ErrorType<string>
+
+/**
+ * @summary Verify email address
+ */
+export const useVerifyEmail = <TError = ErrorType<string>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof verifyEmail>>,
+      TError,
+      { params: VerifyEmailParams },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof verifyEmail>>,
+  TError,
+  { params: VerifyEmailParams },
+  TContext
+> => {
+  const mutationOptions = getVerifyEmailMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
 /**
  * Updates the password of the currently authenticated user
  * @summary Update password
@@ -304,6 +391,93 @@ export const useRegister = <TError = ErrorType<unknown>, TContext = unknown>(
   TContext
 > => {
   const mutationOptions = getRegisterMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Creates a new admin user account after CAPTCHA verification and input validation
+ * @summary Register a new admin user
+ */
+export const registerAdmin = (
+  registerRequest: MaybeRef<RegisterRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  registerRequest = unref(registerRequest)
+
+  return customInstance<RegisterResponse>(
+    {
+      url: `http://localhost:8080/api/auth/register/admin`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: registerRequest,
+      signal,
+    },
+    options,
+  )
+}
+
+export const getRegisterAdminMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof registerAdmin>>,
+    TError,
+    { data: BodyType<RegisterRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof registerAdmin>>,
+  TError,
+  { data: BodyType<RegisterRequest> },
+  TContext
+> => {
+  const mutationKey = ['registerAdmin']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof registerAdmin>>,
+    { data: BodyType<RegisterRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return registerAdmin(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type RegisterAdminMutationResult = NonNullable<Awaited<ReturnType<typeof registerAdmin>>>
+export type RegisterAdminMutationBody = BodyType<RegisterRequest>
+export type RegisterAdminMutationError = ErrorType<unknown>
+
+/**
+ * @summary Register a new admin user
+ */
+export const useRegisterAdmin = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof registerAdmin>>,
+      TError,
+      { data: BodyType<RegisterRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof registerAdmin>>,
+  TError,
+  { data: BodyType<RegisterRequest> },
+  TContext
+> => {
+  const mutationOptions = getRegisterAdminMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

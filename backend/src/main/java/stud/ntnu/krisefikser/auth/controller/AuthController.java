@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import stud.ntnu.krisefikser.auth.dto.CompletePasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
@@ -31,8 +32,16 @@ import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
 import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
+import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
+import stud.ntnu.krisefikser.auth.service.TurnstileService;
+import stud.ntnu.krisefikser.email.entity.VerificationToken;
+import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
+import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.repository.UserRepository;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * REST controller for managing authentication-related operations. Provides endpoints for user
@@ -44,8 +53,10 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 @Tag(name = "Authentication", description = "Authentication management APIs")
 @Validated
 public class AuthController {
-
-  private final AuthService authService;
+    private final UserRepository userRepository;
+    private final EmailVerificationService emailVerificationService;
+    private final AuthService authService;
+    private final TurnstileService turnstileService;
 
   /**
    * Registers a new user after verifying the CAPTCHA and validating the input.
@@ -53,27 +64,34 @@ public class AuthController {
    * @param request The registration details including Turnstile token.
    * @return ResponseEntity containing the registration response.
    */
-  @Operation(summary = "Register a new user",
-      description = "Creates a new user account after CAPTCHA "
+  @Operation(summary = "Register a new user", description =
+      "Creates a new user account after CAPTCHA "
           + "verification and input validation")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully registered user",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = RegisterResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully registered user", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          RegisterResponse.class))),
       @ApiResponse(responseCode = "400", description = "Invalid registration data or CAPTCHA "
           + "verification failed", content = @Content(mediaType = "application/json")),
-      @ApiResponse(responseCode = "500", description = "Unexpected server error",
-          content = @Content(mediaType = "application/json"))
+      @ApiResponse(responseCode = "500", description = "Unexpected server error", content =
+      @Content(mediaType = "application/json"))
   })
   @PostMapping("/register")
   public ResponseEntity<RegisterResponse> register(
-      @Parameter(description = "Registration details including Turnstile token", required = true)
-      @RequestBody RegisterRequest request) {
-    RegisterResponse response = authService.register(request);
-    return ResponseEntity.ok(response);
+      @Parameter(description = "Registration details including Turnstile token", required = true) @RequestBody RegisterRequest request) {
+    try {
+      RegisterResponse response = authService.register(request);
+      // Create and send verification email
+      User newUser = userRepository.findByEmail(request.getEmail())
+          .orElseThrow(() -> new RuntimeException("User not found after registration"));
+      VerificationToken token = emailVerificationService.createVerificationToken(newUser);
+      emailVerificationService.sendVerificationEmail(newUser, token);
+      return ResponseEntity.ok(response);
+    } catch (TurnstileVerificationException e) {
+      throw e; // Re-throw to let the global exception handler handle it
+    }
   }
-
-  /**
+   /**
    * Registers a new admin user after verifying the CAPTCHA and validating the input. This endpoint
    * is restricted to users with administrative privileges.
    *
@@ -103,6 +121,30 @@ public class AuthController {
     return ResponseEntity.ok(response);
   }
 
+
+  /**
+   * Verifies a user's email address using a token.
+   *
+   * @param token The verification token.
+   * @return ResponseEntity containing the status of the verification operation.
+   */
+  @PostMapping("/verify-email")
+  @Operation(summary = "Verify email address", description = "Verifies user's email address using a token")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Email verified successfully"),
+      @ApiResponse(responseCode = "400", description = "Invalid or expired verification token")
+  })
+  public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+    boolean verified = authService.verifyEmail(token);
+    if (verified) {
+      return ResponseEntity.ok("Email verified successfully.");
+    } else {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body("Invalid or expired verification token.");
+    }
+  }
+  
+
   /**
    * Authenticates a user and returns access tokens.
    *
@@ -111,9 +153,9 @@ public class AuthController {
    */
   @Operation(summary = "Login user", description = "Authenticates a user and returns access tokens")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully authenticated",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = LoginResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully authenticated", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          LoginResponse.class))),
       @ApiResponse(responseCode = "401", description = "Invalid credentials"),
       @ApiResponse(responseCode = "423", description = "Account is locked")
   })
@@ -133,9 +175,9 @@ public class AuthController {
   @Operation(summary = "Refresh token", description = "Generates new access token using refresh "
       + "token")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully refreshed token",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = RefreshResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully refreshed token", content =
+      @Content(mediaType = "application/json", schema = @Schema(implementation =
+          RefreshResponse.class))),
       @ApiResponse(responseCode = "401", description = "Invalid refresh token")
   })
   @PostMapping("/refresh")
@@ -154,8 +196,8 @@ public class AuthController {
       + "user's details")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully retrieved user details",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = UserResponse.class))),
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
+              UserResponse.class))),
       @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
   @GetMapping("/me")

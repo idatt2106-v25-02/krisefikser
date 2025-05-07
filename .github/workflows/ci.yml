@@ -9,6 +9,7 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4.2.2
 
@@ -32,6 +33,8 @@ jobs:
           commit-message: "refactor: format Java code with google-java-format"
 
       - name: Verify with maven and generate coverage report
+        env:
+          TEST_TURNSTILE_SECRET_KEY: ${{ secrets.TEST_TURNSTILE_SECRET_KEY }}
         run: |
           cd backend
           touch .env

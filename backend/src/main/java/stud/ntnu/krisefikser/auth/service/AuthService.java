@@ -1,5 +1,7 @@
 package stud.ntnu.krisefikser.auth.service;
 
+import jakarta.transaction.Transactional;
+import java.util.Date;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,9 +34,13 @@ import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.repository.PasswordResetTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.email.service.EmailService;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.repository.UserRepository;
+import stud.ntnu.krisefikser.auth.exception.EmailNotVerifiedException;
+import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 import stud.ntnu.krisefikser.user.service.UserService;
@@ -53,11 +59,13 @@ public class AuthService {
   private final TokenService tokenService;
   private final AuthenticationManager authenticationManager;
   private final RefreshTokenRepository refreshTokenRepository;
+  private final EmailVerificationService emailVerificationService;
   private final UserRepository userRepository;
   private final TurnstileService turnstileService;
   private final PasswordEncoder passwordEncoder;
   private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final JwtProperties jwtProperties;
+  private final EmailService emailService;
 
   /**
    * Registers a new admin user and generates access and refresh tokens.
@@ -124,6 +132,10 @@ public class AuthService {
       log.warn("Login attempt for non-existing user: {}", loginRequest.getEmail());
       throw new UserNotFoundException("User not found");
     }
+
+if (!user.isEmailVerified()) {
+  throw new EmailNotVerifiedException("Email address not verified. Please verify your email before logging in.");
+}
 
     // Check if account is locked
     if (user.getLockedUntil() != null && LocalDateTime.now()
@@ -208,6 +220,18 @@ public class AuthService {
     return new RefreshResponse(
         accessToken,
         refreshToken);
+  }
+
+  @Transactional
+  public boolean verifyEmail(String token) {
+    boolean verified = emailVerificationService.verifyToken(token);
+    if (verified) {
+      // Any additional action after verification
+      log.info("Email verified successfully with token: {}", token);
+    } else {
+      log.warn("Failed verification attempt with token: {}", token);
+    }
+    return verified;
   }
 
   /**

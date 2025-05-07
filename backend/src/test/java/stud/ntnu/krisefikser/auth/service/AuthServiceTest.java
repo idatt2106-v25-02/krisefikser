@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -41,11 +42,14 @@ import stud.ntnu.krisefikser.auth.entity.PasswordResetToken;
 import stud.ntnu.krisefikser.auth.entity.RefreshToken;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
+import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
+import stud.ntnu.krisefikser.auth.exception.EmailNotVerifiedException;
 import stud.ntnu.krisefikser.auth.repository.PasswordResetTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.service.UserService;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -101,17 +105,14 @@ class AuthServiceTest {
         .roles("USER")
         .build();
 
-    Role role = new Role();
-    role.setName(Role.RoleType.USER);
-
-    user = stud.ntnu.krisefikser.user.entity.User.builder()
-        .id(UUID.randomUUID())
-        .email("test@example.com")
-        .firstName("Test")
-        .lastName("User")
-        .password("encoded-password")
-        .roles(Collections.singleton(role))
-        .build();
+    // Mock the user object instead of creating a real one
+    user = mock(stud.ntnu.krisefikser.user.entity.User.class);
+    when(user.getId()).thenReturn(UUID.randomUUID());
+    when(user.getEmail()).thenReturn("test@example.com");
+    when(user.getFirstName()).thenReturn("Test");
+    when(user.getLastName()).thenReturn("User");
+    when(user.getPassword()).thenReturn("encoded-password");
+    when(user.isEmailVerified()).thenReturn(true);
 
     refreshToken = RefreshToken.builder()
         .id(UUID.randomUUID())
@@ -157,7 +158,10 @@ class AuthServiceTest {
         .thenReturn(authentication);
     when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
+    
+    // Mock the user object and its behavior
     when(userService.getUserByEmail(anyString())).thenReturn(user);
+    when(user.isEmailVerified()).thenReturn(true);
 
     // Act
     LoginResponse response = authService.login(loginRequest);
@@ -170,6 +174,22 @@ class AuthServiceTest {
     verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
     verify(userDetailsService).loadUserByUsername("test@example.com");
     verify(refreshTokenRepository).save(any(RefreshToken.class));
+  }
+
+  @Test
+  void login_WithUnverifiedEmail_ShouldThrowException() {
+    // Arrange
+    when(userService.getUserByEmail(anyString())).thenReturn(user);
+    when(user.isEmailVerified()).thenReturn(false);
+
+    // Act & Assert
+    assertThatThrownBy(() -> authService.login(loginRequest))
+        .isInstanceOf(EmailNotVerifiedException.class)
+        .hasMessage("Email address not verified. Please verify your email before logging in.");
+
+    verify(authenticationManager, never()).authenticate(any(UsernamePasswordAuthenticationToken.class));
+    verify(userDetailsService, never()).loadUserByUsername(anyString());
+    verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
   }
 
   @Test
@@ -209,7 +229,18 @@ class AuthServiceTest {
   @Test
   void me_ShouldReturnCurrentUser() {
     // Arrange
+    UserResponse userResponse = new UserResponse(
+        UUID.randomUUID(),
+        "test@example.com",
+        List.of("USER"),
+        "Test",
+        "User",
+        true,
+        true,
+        true
+    );
     when(userService.getCurrentUser()).thenReturn(user);
+    when(user.toDto()).thenReturn(userResponse);
 
     // Act
     var result = authService.me();
@@ -219,6 +250,7 @@ class AuthServiceTest {
     assertThat(result.getEmail()).isEqualTo("test@example.com");
 
     verify(userService).getCurrentUser();
+    verify(user).toDto();
   }
 
   @Test

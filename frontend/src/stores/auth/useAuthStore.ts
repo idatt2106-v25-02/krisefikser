@@ -84,10 +84,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await registerMutation({ data })
 
-      if (response.accessToken) {
+      /*if (response.accessToken) {
         updateTokens(response.accessToken, response.refreshToken ?? '')
         await refetchUser()
-      }
+      }*/
 
       return response
     } catch (error) {
