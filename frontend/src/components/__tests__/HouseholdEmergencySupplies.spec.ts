@@ -3,12 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 
 const mockPush = vi.fn()
-const mockRouter = {
-  push: mockPush,
-}
 
+// Mock vue-router specifically for this test
 vi.mock('vue-router', () => ({
-  useRouter: () => mockRouter,
+  useRouter: () => ({
+    push: mockPush,
+  }),
 }))
 
 describe('HouseholdEmergencySupplies', () => {

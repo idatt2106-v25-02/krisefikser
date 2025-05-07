@@ -2,7 +2,8 @@ import { createComponentWrapper } from '@/components/__tests__/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import AddMemberDialog from '@/components/admin/users/AddMemberDialog.vue'
 
-vi.mock('@/components/admin/UserSelect.vue', () => ({
+// Mock the UserSelect component
+vi.mock('@/components/admin/users/UserSelect.vue', () => ({
   default: {
     name: 'UserSelect',
     template: '<div data-testid="user-select">User Select Component</div>',
@@ -11,6 +12,7 @@ vi.mock('@/components/admin/UserSelect.vue', () => ({
   },
 }))
 
+// Mock the Dialog components
 vi.mock('@/components/ui/dialog', () => ({
   Dialog: {
     name: 'Dialog',
@@ -95,6 +97,7 @@ describe('AddMemberDialog', () => {
       open: true,
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vm = wrapper.vm as any
 
     vm.selectedUserId = 'user123'

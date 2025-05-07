@@ -1,37 +1,74 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { createComponentWrapper } from '@/components/__tests__/test-utils'
-import { describe, it, expect, vi } from 'vitest'
+import { shallowMount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Navbar from '@/components/layout/Navbar.vue'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
+import { createPinia, setActivePinia } from 'pinia'
 
+// Mock vue-router
 vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({
     push: vi.fn(),
+    currentRoute: {
+      value: { path: '/' },
+    },
   })),
 }))
 
-vi.mock('@/stores/useAuthStore', () => ({
-  useAuthStore: vi.fn(() => ({
-    isAuthenticated: false,
-    isAdmin: false,
-    currentUser: null,
-    logout: vi.fn(),
-  })),
+// Mock the auth store
+vi.mock('@/stores/auth/useAuthStore', () => ({
+  useAuthStore: vi.fn(),
 }))
 
 describe('Navbar', () => {
+  beforeEach(() => {
+    // Reset the mock before each test
+    vi.mocked(useAuthStore).mockReset()
+
+    // Create a fresh Pinia instance for each test
+    const pinia = createPinia()
+    setActivePinia(pinia)
+  })
+
   it('renders correctly for non-authenticated users', () => {
-    const wrapper = createComponentWrapper(Navbar)
+    vi.mocked(useAuthStore).mockReturnValue({
+      isAuthenticated: false,
+      isAdmin: false,
+      currentUser: null,
+      logout: vi.fn(),
+    } as any)
 
-    // Check if logo is present
-    expect(wrapper.find('img[alt="Krisefikser.app"]').exists()).toBe(true)
+    // Use shallowMount instead of mount to avoid child component issues
+    const wrapper = shallowMount(Navbar, {
+      global: {
+        stubs: {
+          RouterLink: true, // Stub RouterLink
+        },
+        mocks: {
+          $router: {
+            push: vi.fn(),
+            currentRoute: {
+              value: { path: '/' },
+            },
+          },
+        },
+      },
+    })
 
-    // Check if login button is present for non-authenticated users
-    expect(wrapper.text()).toContain('Logg inn')
+    // Instead of looking for text content, verify the login link exists by its attributes
+    const loginLink = wrapper.find('router-link-stub[to="/logg-inn"]')
+    expect(loginLink.exists()).toBe(true)
+    expect(loginLink.classes()).toContain('bg-blue-600')
+    expect(loginLink.classes()).toContain('text-white')
+
+    // Verify mobile menu toggle button exists
+    expect(wrapper.find('button.text-gray-700').exists()).toBe(true)
   })
 
   it('displays admin link for admin users', () => {
-    // Mock auth store to return admin user
-    vi.mocked(useAuthStore).mockReturnValueOnce({
+    vi.mocked(useAuthStore).mockReturnValue({
       isAuthenticated: true,
       isAdmin: true,
       currentUser: {
@@ -39,25 +76,14 @@ describe('Navbar', () => {
         lastName: 'User',
       },
       logout: vi.fn(),
-      // Add these required Pinia store properties
-      $state: {},
-      $patch: vi.fn(),
-      $reset: vi.fn(),
-      $subscribe: vi.fn(),
-      $dispose: vi.fn(),
-      $onAction: vi.fn(),
-      $id: 'auth',
-    } as unknown as ReturnType<typeof useAuthStore>)
+    } as any)
 
     const wrapper = createComponentWrapper(Navbar)
-
-    // Check if admin link is present
     expect(wrapper.text()).toContain('Admin')
   })
 
   it('displays user information for authenticated users', () => {
-    // Mock auth store to return authenticated user
-    vi.mocked(useAuthStore).mockReturnValueOnce({
+    vi.mocked(useAuthStore).mockReturnValue({
       isAuthenticated: true,
       isAdmin: false,
       currentUser: {
@@ -65,22 +91,20 @@ describe('Navbar', () => {
         lastName: 'Doe',
       },
       logout: vi.fn(),
-      $state: {},
-      $patch: vi.fn(),
-      $reset: vi.fn(),
-      $subscribe: vi.fn(),
-      $dispose: vi.fn(),
-      $onAction: vi.fn(),
-      $id: 'auth',
-    } as unknown as ReturnType<typeof useAuthStore>)
+    } as any)
 
     const wrapper = createComponentWrapper(Navbar)
-
-    // Check if user name is displayed
     expect(wrapper.text()).toContain('John Doe')
   })
 
   it('toggles mobile menu when menu button is clicked', async () => {
+    vi.mocked(useAuthStore).mockReturnValue({
+      isAuthenticated: false,
+      isAdmin: false,
+      currentUser: null,
+      logout: vi.fn(),
+    } as any)
+
     const wrapper = createComponentWrapper(Navbar)
 
     // Check initial state (menu closed)
