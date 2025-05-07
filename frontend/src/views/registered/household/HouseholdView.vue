@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, watchEffect } from 'vue'
-import { useRouter } from 'vue-router'
+import router from '@/router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import Dialog from '@/components/ui/dialog/Dialog.vue'
+import DialogContent from '@/components/ui/dialog/DialogContent.vue'
+import DialogDescription from '@/components/ui/dialog/DialogDescription.vue'
+import DialogHeader from '@/components/ui/dialog/DialogHeader.vue'
+import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
+import DialogFooter from '@/components/ui/dialog/DialogFooter.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -156,7 +154,6 @@ const householdFormSchema = toTypedSchema(
   }),
 )
 
-const router = useRouter()
 const authStore = useAuthStore()
 const { toast } = useToast()
 const queryClient = useQueryClient()
@@ -274,10 +271,12 @@ const inventoryPreviewData = computed<Inventory>(() => {
 })
 
 watchEffect(() => {
-  console.log(
-    '[HouseholdDetailsView] household data changed (from watchEffect):',
-    JSON.parse(JSON.stringify(household.value)),
-  )
+  if (household.value) {
+    console.log(
+      '[HouseholdDetailsView] household data changed (from watchEffect):',
+      JSON.parse(JSON.stringify(household.value)),
+    )
+  }
 })
 
 // Mutations
@@ -652,10 +651,10 @@ const { mutate: setActiveHousehold, isPending: isSettingActiveHousehold } = useS
       })
       isChangeHouseholdDialogOpen.value = false
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       toast({
         title: 'Feil',
-        description: error?.message || 'Kunne ikke sette aktiv husstand',
+        description: (error as Error)?.message || 'Kunne ikke sette aktiv husstand',
         variant: 'destructive',
       })
     },
@@ -730,7 +729,7 @@ function handleChangeActiveHousehold(householdId: string) {
                 </div>
               </div>
             </div>
-            <div class="mt-4 md:mt-0 space-x-2">
+            <div class="mt-4 md:mt-0 space-x-2 flex-col items-center justify-items-end gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -742,7 +741,7 @@ function handleChangeActiveHousehold(householdId: string) {
                 Bytt husstand
               </Button>
               <Button variant="outline" size="sm" @click="openEditHouseholdDialog">
-                <Edit class="h-4 w-4 mr-1" />
+                <Edit class="h-4 w-4" />
                 Endre informasjon
               </Button>
             </div>

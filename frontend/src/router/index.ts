@@ -21,7 +21,7 @@ import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
 
 // Registered User views
 import DashboardView from '@/views/registered/dashboard/DashboardView.vue'
-import HouseholdDetailsView from '@/views/registered/household/HouseholdDetailsView.vue'
+import HouseholdDetailsView from '@/views/registered/household/HouseholdView.vue'
 import HouseholdInventoryView from '@/views/registered/inventory/HouseholdInventoryView.vue'
 import HomeAddressView from '@/views/registered/household/HomeAddressView.vue'
 import NewHouseholdView from '@/views/registered/household/NewHousehold.vue'
