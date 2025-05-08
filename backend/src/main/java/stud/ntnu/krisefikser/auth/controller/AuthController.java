@@ -119,6 +119,7 @@ public class AuthController {
           content = @Content(mediaType = "application/json"))
   })
   @PostMapping("/register/admin")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<RegisterResponse> registerAdmin(
       @Parameter(description = "Registration details including Turnstile token", required = true)
       @RequestBody RegisterRequest request) {
@@ -295,6 +296,7 @@ public class AuthController {
       @ApiResponse(responseCode = "500", description = "Error sending invitation email")
   })
   @PostMapping("/invite/admin")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<String> inviteAdmin(
       @Parameter(description = "Email address to send the admin invitation to", required = true)
       @RequestBody AdminInviteRequest request
@@ -318,7 +320,7 @@ public class AuthController {
     try {
       String email = authService.verifyAdminInviteToken(token);
       return ResponseEntity.ok(Map.of("email", email));
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
   }
