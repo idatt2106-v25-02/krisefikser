@@ -176,4 +176,53 @@ class EmailVerificationServiceTest {
                 anyString()
         );
     }
+
+    @Test
+    void sendPasswordResetEmail_Success() {
+        // Arrange
+        String resetLink = TEST_FRONTEND_URL + "/verifiser-passord-tilbakestilling?token=test-token";
+        long expirationHours = 24;
+        ResponseEntity<String> expectedResponse = ResponseEntity.ok("Email sent successfully");
+
+        when(emailService.sendEmail(anyString(), anyString(), anyString()))
+                .thenReturn(expectedResponse);
+
+        // Act
+        ResponseEntity<String> response = emailVerificationService.sendPasswordResetEmail(
+            testUser,
+            resetLink,
+            expirationHours
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Email sent successfully", response.getBody());
+        verify(emailService).sendEmail(
+            eq(testUser.getEmail()),
+            eq("Reset your password"),
+            anyString()
+        );
+    }
+
+    @Test
+    void sendPasswordResetEmail_ClientError() {
+        // Arrange
+        String resetLink = TEST_FRONTEND_URL + "/verifiser-passord-tilbakestilling?token=test-token";
+        long expirationHours = 24;
+        String errorMessage = "Invalid email address";
+
+        when(emailService.sendEmail(anyString(), anyString(), anyString()))
+                .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
+
+        // Act
+        ResponseEntity<String> response = emailVerificationService.sendPasswordResetEmail(
+            testUser,
+            resetLink,
+            expirationHours
+        );
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(errorMessage, response.getBody());
+    }
 } 
