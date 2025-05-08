@@ -45,7 +45,7 @@ export class NotificationService {
         (notification) => {
           // Add notification to store
           this.notificationStore.addNotification(notification)
-          
+
           // Speak the notification if TTS is enabled
           try {
             const accessibilityStore = useAccessibilityStore()

@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class RegisterResponse {
 
   @NotBlank
-  private String accessToken;
+  private String message;
   @NotBlank
-  private String refreshToken;
+  private boolean success;
 }

@@ -60,7 +60,11 @@ const events = ref<Event[]>([])
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
 const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
-const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
+const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold({
+  query: {
+    retry: 0,
+  },
+})
 
 // Computed properties
 const isDataLoading = computed(
@@ -100,6 +104,7 @@ function processMapData() {
 
   if (eventsData.value) {
     events.value = Array.isArray(eventsData.value) ? eventsData.value : [eventsData.value]
+    events.value = events.value.filter((event) => event.status !== 'FINISHED')
   }
 
   isLoading.value = false
@@ -217,61 +222,64 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="relative w-full h-screen overflow-hidden">
-    <MapComponent ref="mapRef" @map-created="onMapCreated" />
+  <div class="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
+    <div class="relative flex-grow overflow-hidden">
+      <MapComponent ref="mapRef" @map-created="onMapCreated" />
 
-    <div
-      v-if="isLoading || isLoadingActiveHousehold"
-      class="absolute top-0 left-0 right-0 bg-slate-700 text-white p-2 text-center"
-    >
-      Laster kartdata...
+      <div
+        v-if="isLoading || isLoadingActiveHousehold"
+        class="absolute top-0 left-0 right-0 bg-slate-700 text-white p-2 text-center"
+      >
+        Laster kartdata...
+      </div>
+
+      <template v-if="!isLoading && !isLoadingActiveHousehold">
+        <ShelterLayer v-if="mapInstance" :map="mapInstance as any" :shelters="shelters" />
+        <EventLayer v-if="mapInstance" :map="mapInstance as any" :events="events" />
+        <UserLocationLayer
+          v-if="mapInstance"
+          ref="userLocationRef"
+          :map="mapInstance as any"
+          :events="events"
+          @user-in-crisis-zone="handleUserCrisisZoneChange"
+          @user-location-available="onUserLocationStatus"
+        />
+        <HomeLocationLayer
+          v-if="
+            activeHousehold?.id &&
+            mapInstance &&
+            activeHousehold.latitude &&
+            activeHousehold.longitude
+          "
+          :map="mapInstance as any"
+          :home-location="{
+            latitude: activeHousehold.latitude,
+            longitude: activeHousehold.longitude,
+          }"
+          :home-address="activeHousehold.address"
+        />
+        <HouseholdMembersLayer
+          v-if="activeHousehold?.id && mapInstance"
+          :map="mapInstance as any"
+        />
+        <MeetingPointLayer
+          v-if="canShowMeetingPointLayer && mapInstance"
+          :map="mapInstance as any"
+          :household-id="householdId"
+          @meeting-point-clicked="handleMeetingPointClick"
+        />
+      </template>
+
+      <MapLegend
+        :user-location-available="userLocationAvailable"
+        :show-user-location="showUserLocation"
+        :user-in-crisis-zone="userInCrisisZone"
+        :is-adding-meeting-point="isAddingMeetingPoint"
+        :has-active-household="!!activeHousehold?.id"
+        @toggle-user-location="toggleUserLocation"
+        @toggle-meeting-point-creation="toggleMeetingPointCreation"
+      />
     </div>
-
-    <template v-if="!isLoading && !isLoadingActiveHousehold">
-      <ShelterLayer v-if="mapInstance" :map="mapInstance as any" :shelters="shelters" />
-      <EventLayer v-if="mapInstance" :map="mapInstance as any" :events="events" />
-      <UserLocationLayer
-        v-if="mapInstance"
-        ref="userLocationRef"
-        :map="mapInstance as any"
-        :events="events"
-        @user-in-crisis-zone="handleUserCrisisZoneChange"
-        @user-location-available="onUserLocationStatus"
-      />
-      <HomeLocationLayer
-        v-if="
-          activeHousehold?.id &&
-          mapInstance &&
-          activeHousehold.latitude &&
-          activeHousehold.longitude
-        "
-        :map="mapInstance as any"
-        :home-location="{
-          latitude: activeHousehold.latitude,
-          longitude: activeHousehold.longitude,
-        }"
-      />
-      <HouseholdMembersLayer
-        v-if="activeHousehold?.id && mapInstance"
-        :map="mapInstance as any"
-      />
-      <MeetingPointLayer
-        v-if="canShowMeetingPointLayer && mapInstance"
-        :map="mapInstance as any"
-        :household-id="householdId"
-        @meeting-point-clicked="handleMeetingPointClick"
-      />
-    </template>
-
-    <MapLegend
-      :user-location-available="userLocationAvailable"
-      :show-user-location="showUserLocation"
-      :user-in-crisis-zone="userInCrisisZone"
-      :is-adding-meeting-point="isAddingMeetingPoint"
-      :has-active-household="!!activeHousehold?.id"
-      @toggle-user-location="toggleUserLocation"
-      @toggle-meeting-point-creation="toggleMeetingPointCreation"
-    />
 
     <!-- Location Error Dialog -->
     <Dialog :open="showLocationError" @update:open="(val) => !val && (showLocationError = false)">
@@ -296,8 +304,8 @@ onMounted(() => {
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{{
-              selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass'
-            }}</DialogTitle>
+            selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass'
+          }}</DialogTitle>
         </DialogHeader>
         <MeetingPointForm
           :household-id="householdId"
@@ -312,10 +320,5 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Prevent scrolling on the map page */
-html,
-body {
-  height: 100%;
-  overflow: hidden;
-}
+/* No need for global style overrides with our flexbox layout */
 </style>

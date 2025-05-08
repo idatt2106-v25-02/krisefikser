@@ -15,6 +15,7 @@ import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.repository.GuestRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
+import stud.ntnu.krisefikser.household.repository.HouseholdInviteRepository;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
@@ -35,6 +36,7 @@ public class HouseholdService {
   private final UserService userService;
   private final ChecklistItemService checklistItemService;
   private final GuestRepository guestRepository;
+  private final HouseholdInviteRepository inviteRepository;
 
   /**
    * Retrieves all households that the current user is a member of.
@@ -230,6 +232,12 @@ public class HouseholdService {
       householdMemberService.removeMember(household, member.getUser());
     }
 
+    // Delete all invites associated with this household
+    inviteRepository.deleteAll(inviteRepository.findByHousehold(household));
+
+    // Delete all checklist items associated with this household
+    checklistItemService.deleteAllByHousehold(household);
+
     householdRepo.deleteById(id);
   }
 
@@ -371,6 +379,15 @@ public class HouseholdService {
         userService.updateActiveHousehold(null);
       }
     }
+
+    // Delete all invites associated with this household
+    Household household = householdRepo.findById(id)
+        .orElseThrow(HouseholdNotFoundException::new);
+    inviteRepository.deleteAll(inviteRepository.findByHousehold(household));
+
+    // Delete all checklist items associated with this household
+    checklistItemService.deleteAllByHousehold(household);
+
     // Delete the household (cascade will handle household members)
     householdRepo.deleteById(id);
   }

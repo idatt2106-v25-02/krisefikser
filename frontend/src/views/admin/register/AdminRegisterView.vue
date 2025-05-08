@@ -1,17 +1,13 @@
-<script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+<script setup lang="ts">
+import { onMounted, ref, onUnmounted } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { Mail, User } from 'lucide-vue-next'
+import { User, Mail } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import { toast } from 'vue-sonner'
 import { useRoute, useRouter } from 'vue-router'
 import { verifyAdminInviteToken } from '@/api/generated/authentication/authentication'
-import { Button } from '@/components/ui/button'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 // Declare the global turnstile object
 declare const turnstile: {
@@ -33,6 +29,11 @@ declare const turnstile: {
   getResponse: (widgetId?: string) => string
   remove: (widgetId?: string) => void
 }
+
+import { Button } from '@/components/ui/button'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -140,8 +141,10 @@ const onSubmit = handleSubmit(async (values) => {
       email: userEmail.value,
       turnstileToken: captchaToken.value,
     })
-    toast('Suksess')
-    await router.push('/admin')
+    toast('Suksess', {
+      description: 'Admin-kontoen din er opprettet og du er nå logget inn',
+    })
+    await router.push('/logg-inn')
   } catch (error: unknown) {
     resetTurnstile()
     toast('Registreringsfeil', {
@@ -191,8 +194,8 @@ onUnmounted(() => {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12">
     <form
-      class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
       @submit="onSubmit"
+      class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
     >
       <h1 class="text-3xl font-bold text-center">Admin Registrering</h1>
 
@@ -206,9 +209,9 @@ onUnmounted(() => {
                 class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
               />
               <Input
-                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Ola"
                 type="text"
+                placeholder="Ola"
+                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
             </div>
@@ -227,9 +230,9 @@ onUnmounted(() => {
                 class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
               />
               <Input
-                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nordmann"
                 type="text"
+                placeholder="Nordmann"
+                class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
               />
             </div>
@@ -244,10 +247,10 @@ onUnmounted(() => {
         <div class="relative">
           <Mail class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
           <input
-            :value="userEmail"
-            class="w-full px-3 py-2 pl-8 bg-gray-100 border border-gray-300 rounded-md shadow-sm"
-            readonly
             type="email"
+            :value="userEmail"
+            readonly
+            class="w-full px-3 py-2 pl-8 bg-gray-100 border border-gray-300 rounded-md shadow-sm"
           />
         </div>
       </div>
@@ -255,25 +258,25 @@ onUnmounted(() => {
       <!-- Password field using component -->
       <FormField v-slot="{ componentField }" name="password">
         <PasswordInput
-          :componentField="componentField"
-          :showComplexityRequirements="true"
-          :showIcon="true"
-          :showToggle="true"
-          label="Passord"
           name="password"
+          label="Passord"
           placeholder="********"
+          :componentField="componentField"
+          :showToggle="true"
+          :showIcon="true"
+          :showComplexityRequirements="true"
         />
       </FormField>
 
       <!-- Confirm Password using component -->
       <FormField v-slot="{ componentField }" name="confirmPassword">
         <PasswordInput
-          :componentField="componentField"
-          :showIcon="true"
-          :showToggle="true"
-          label="Bekreft passord"
           name="confirmPassword"
+          label="Bekreft passord"
           placeholder="********"
+          :componentField="componentField"
+          :showToggle="true"
+          :showIcon="true"
         />
       </FormField>
 
@@ -283,29 +286,29 @@ onUnmounted(() => {
           <div class="flex items-start space-x-2">
             <FormControl>
               <input
-                id="acceptedPrivacyPolicy"
-                :aria-checked="value"
-                :checked="value"
-                aria-label="Godta personvernerklæringen"
-                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                role="checkbox"
-                tabindex="0"
                 type="checkbox"
+                :checked="value"
                 @change="handleChange(($event.target as HTMLInputElement)?.checked ?? false)"
                 @keydown.enter.prevent="handleChange(!value)"
                 @keydown.space.prevent="handleChange(!value)"
+                id="acceptedPrivacyPolicy"
+                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                tabindex="0"
+                role="checkbox"
+                :aria-checked="value"
+                aria-label="Godta personvernerklæringen"
               />
             </FormControl>
             <label
-              class="text-sm text-gray-700 cursor-pointer select-none"
               for="acceptedPrivacyPolicy"
+              class="text-sm text-gray-700 cursor-pointer select-none"
             >
               Jeg godtar
               <router-link
-                aria-label="Åpne personvernerklæringen"
+                to="/personvern"
                 class="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm px-1"
                 tabindex="0"
-                to="/personvern"
+                aria-label="Åpne personvernerklæringen"
               >
                 personvernerklæringen
               </router-link>
@@ -320,9 +323,9 @@ onUnmounted(() => {
 
       <!-- Submit button -->
       <Button
+        type="submit"
         :disabled="!meta.valid || isLoading || !captchaToken || !userEmail"
         class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
-        type="submit"
       >
         <template v-if="isLoading">Oppretter admin-konto...</template>
         <template v-else>Registrer admin-konto</template>

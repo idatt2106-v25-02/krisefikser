@@ -117,7 +117,7 @@ watchEffect(() => {
 const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
-      router.push('/husstand')
+      refetchHousehold()
     },
   },
 })
@@ -125,7 +125,7 @@ const { mutate: leaveHousehold } = useLeaveHousehold({
 const { mutate: deleteHousehold } = useDeleteHousehold({
   mutation: {
     onSuccess: () => {
-      router.push('/husstand')
+      refetchHousehold()
     },
   },
 })
@@ -275,6 +275,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
 
             <!-- Household Actions -->
             <HouseholdActions
+              :is-owner="household.owner.id === authStore.currentUser?.id"
               @leave="handleLeaveHousehold"
               @delete="handleDeleteHousehold"
             />
