@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, watchEffect } from 'vue'
 import type { FunctionalComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth/useAuthStore' // For enabling queries
@@ -92,12 +92,25 @@ const authStore = useAuthStore()
 const queryClient = useQueryClient()
 
 // Get active household
-const { data: household } = useGetActiveHousehold({
+const {
+  data: household,
+  isError: isErrorHousehold,
+  error: errorHousehold,
+} = useGetActiveHousehold({
   query: {
+    retry: 0,
     enabled: authStore.isAuthenticated,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
   },
+})
+
+// Add error handling watchEffect
+watchEffect(() => {
+  if (isErrorHousehold.value) {
+    const err = errorHousehold.value as { response?: { status: number } }
+    if (err?.response?.status === 404) {
+      router.push('/bli-med-eller-opprett-husstand')
+    }
+  }
 })
 
 // Define householdId as computed that depends on the active household

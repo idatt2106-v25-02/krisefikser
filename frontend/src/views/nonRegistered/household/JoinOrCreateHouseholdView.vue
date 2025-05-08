@@ -1,5 +1,28 @@
 <script setup lang="ts">
-import { Home, UserPlus, Users, ArrowRight } from 'lucide-vue-next';
+import { Home, UserPlus, Users, ArrowRight, Plus, Map as MapIcon } from 'lucide-vue-next';
+import { useAuthStore } from '@/stores/auth/useAuthStore';
+import { Button } from '@/components/ui/button';
+import { computed } from 'vue';
+import router from '@/router';
+
+const authStore = useAuthStore();
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+
+const handleCreateHousehold = () => {
+  if (isAuthenticated.value) {
+    router.push('/husstand/opprett');
+  } else {
+    router.push('/registrer');
+  }
+};
+
+const handleJoinHousehold = () => {
+  if (isAuthenticated.value) {
+    router.push('/husstand/bli-med');
+  } else {
+    router.push('/logg-inn');
+  }
+};
 </script>
 
 <template>
@@ -25,13 +48,13 @@ import { Home, UserPlus, Users, ArrowRight } from 'lucide-vue-next';
             <p class="text-gray-600 mb-6">
               Start en ny husstand for deg og din familie. Du kan invitere andre medlemmer til å delta og samarbeide om beredskapslageret ditt.
             </p>
-            <router-link
-              to="/registrer"
-              class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition flex items-center"
+            <Button
+              @click="handleCreateHousehold"
+              class="bg-blue-600 text-white hover:bg-blue-700 transition flex items-center"
             >
-              Registrer deg for å opprette
-              <ArrowRight class="h-4 w-4 ml-2" />
-            </router-link>
+              <Plus class="h-4 w-4 mr-2" />
+              {{ isAuthenticated ? 'Opprett ny husstand' : 'Registrer deg for å opprette' }}
+            </Button>
           </div>
         </div>
 
@@ -45,13 +68,13 @@ import { Home, UserPlus, Users, ArrowRight } from 'lucide-vue-next';
             <p class="text-gray-600 mb-6">
               Har du fått en invitasjon? Bli med i en eksisterende husstand og bidra til beredskapsplanleggingen sammen med andre.
             </p>
-            <router-link
-              to="/logg-inn"
-              class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition flex items-center"
+            <Button
+              @click="handleJoinHousehold"
+              class="bg-green-600 text-white hover:bg-green-700 transition flex items-center"
             >
-              Logg inn for å bli med
-              <ArrowRight class="h-4 w-4 ml-2" />
-            </router-link>
+              <UserPlus class="h-4 w-4 mr-2" />
+              {{ isAuthenticated ? 'Bli med i husstand' : 'Logg inn for å bli med' }}
+            </Button>
           </div>
         </div>
       </div>
@@ -93,8 +116,8 @@ import { Home, UserPlus, Users, ArrowRight } from 'lucide-vue-next';
         </div>
       </div>
 
-      <!-- CTA section -->
-      <div class="text-center">
+      <!-- CTA section - Only show when not authenticated -->
+      <div v-if="!isAuthenticated" class="text-center">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Klar til å komme i gang?</h2>
         <p class="text-gray-600 mb-6">
           Det tar bare noen få minutter å registrere deg og begynne å forberede husstanden din på krisesituasjoner.
@@ -117,15 +140,3 @@ import { Home, UserPlus, Users, ArrowRight } from 'lucide-vue-next';
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { Map as MapIcon } from 'lucide-vue-next';
-
-export default defineComponent({
-  name: 'JoinOrCreateHouseholdView',
-  components: {
-    MapIcon
-  }
-});
-</script>
