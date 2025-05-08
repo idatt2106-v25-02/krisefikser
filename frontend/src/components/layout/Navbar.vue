@@ -192,16 +192,14 @@ export default {
           }
           break;
         case NotificationResponseType.EXPIRY_REMINDER:
-          const currentUser = authStore.currentUser;
-          const householdId = currentUser && 'activeHouseholdId' in currentUser
-            ? currentUser.activeHouseholdId
-            : undefined;
-          if (householdId) {
-            router.push(`/husstand/${householdId}/beredskapslager`);
-          }
+          router.push({ name: 'household-emergency-stock' });
           break;
         case NotificationResponseType.INFO:
-          router.push({ name: 'notifications' });
+          if (notification.itemId) {
+            router.push({ name: 'household-emergency-stock' });
+          } else {
+            router.push({ name: 'notifications' });
+          }
           break;
         default:
           console.log('No specific routing for this notification type:', notification.type);
