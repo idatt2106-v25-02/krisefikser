@@ -24,6 +24,12 @@ const userInCrisisZone = ref(false)
 const currentPosition = ref<GeolocationPosition | null>(null)
 const isInitialized = ref(false)
 
+// Alert state
+const showAlert = ref(false)
+const alertTitle = ref('')
+const alertMessage = ref('')
+const alertType = ref<'warning' | 'danger'>('warning')
+
 // Check if user is in event crisis zone
 function checkUserInEventZone(position: GeolocationPosition) {
   if (!props.map || !props.events || props.events.length === 0) return
@@ -48,8 +54,11 @@ function checkUserInEventZone(position: GeolocationPosition) {
         emit('userInCrisisZone', true)
 
         if (!wasInCrisisZone) {
-          const levelText = event.level === EventLevel.RED ? 'HØYT VARSEL' : 'ADVARSEL'
-          alert(`${levelText}: Du er i "${event.title}"-området.\n${event.description}`)
+          const isRed = event.level === EventLevel.RED
+          alertType.value = isRed ? 'danger' : 'warning'
+          alertTitle.value = isRed ? 'HØYT VARSEL' : 'ADVARSEL'
+          alertMessage.value = `Du er i "${event.title}"-området.\n${event.description}`
+          showAlert.value = true
         }
         return
       }
@@ -214,3 +223,132 @@ defineExpose({
   setInitialPosition,
 })
 </script>
+
+<template>
+  <!-- Alert Component -->
+  <Transition
+    enter-active-class="transition duration-200 ease-out"
+    enter-from-class="transform -translate-y-4 opacity-0"
+    enter-to-class="transform translate-y-0 opacity-100"
+    leave-active-class="transition duration-150 ease-in"
+    leave-from-class="transform translate-y-0 opacity-100"
+    leave-to-class="transform -translate-y-4 opacity-0"
+  >
+    <div
+      v-if="showAlert"
+      class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md mx-auto"
+    >
+      <div
+        :class="[
+          'rounded-lg shadow-lg p-4 flex items-start space-x-4',
+          alertType === 'danger' ? 'bg-red-50 border-2 border-red-500' : 'bg-yellow-50 border-2 border-yellow-500'
+        ]"
+      >
+        <div class="flex-shrink-0">
+          <svg
+            v-if="alertType === 'danger'"
+            class="h-6 w-6 text-red-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <svg
+            v-else
+            class="h-6 w-6 text-yellow-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3
+            :class="[
+              'text-lg font-bold',
+              alertType === 'danger' ? 'text-red-800' : 'text-yellow-800'
+            ]"
+          >
+            {{ alertTitle }}
+          </h3>
+          <p
+            :class="[
+              'mt-1 text-sm whitespace-pre-line',
+              alertType === 'danger' ? 'text-red-700' : 'text-yellow-700'
+            ]"
+          >
+            {{ alertMessage }}
+          </p>
+        </div>
+        <button
+          @click="showAlert = false"
+          class="flex-shrink-0 ml-4"
+          :class="[
+            'rounded-md inline-flex p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2',
+            alertType === 'danger'
+              ? 'text-red-500 hover:bg-red-100 focus:ring-red-500'
+              : 'text-yellow-500 hover:bg-yellow-100 focus:ring-yellow-500'
+          ]"
+        >
+          <span class="sr-only">Lukk</span>
+          <svg
+            class="h-5 w-5"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </Transition>
+</template>
+
+<style scoped>
+.user-location-marker {
+  position: relative;
+}
+
+.pulse {
+  position: relative;
+}
+
+.pulse::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background-color: rgb(59 130 246 / 0.5);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.5);
+  }
+}
+</style>
