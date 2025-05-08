@@ -180,17 +180,31 @@ export default {
         })
       }
 
-      if (notification.type === NotificationResponseType.EXPIRY_REMINDER) {
-        const currentUser = authStore.currentUser
-        const householdId = currentUser && 'activeHouseholdId' in currentUser
-          ? currentUser.activeHouseholdId
-          : undefined;
-
-        if (householdId) {
-          router.push(`/husstand/${householdId}/beredskapslager`);
-          showMobileNotifications.value = false;
-          return;
-        }
+      switch (notification.type) {
+        case NotificationResponseType.EVENT:
+          if (notification.eventId) {
+            router.push({ name: 'event-detail', params: { id: notification.eventId }});
+          }
+          break;
+        case NotificationResponseType.INVITE:
+          if (notification.householdId) {
+            router.push({ name: 'household', params: { id: notification.householdId }});
+          }
+          break;
+        case NotificationResponseType.EXPIRY_REMINDER:
+          const currentUser = authStore.currentUser;
+          const householdId = currentUser && 'activeHouseholdId' in currentUser
+            ? currentUser.activeHouseholdId
+            : undefined;
+          if (householdId) {
+            router.push(`/husstand/${householdId}/beredskapslager`);
+          }
+          break;
+        case NotificationResponseType.INFO:
+          router.push({ name: 'notifications' });
+          break;
+        default:
+          console.log('No specific routing for this notification type:', notification.type);
       }
 
       showMobileNotifications.value = false
@@ -252,22 +266,20 @@ export default {
 
     const getIconBgClass = (type: string | undefined) => {
       switch (type) {
-        case 'EXPIRY_REMINDER': return 'bg-yellow-100';
-        case 'CRISIS_UPDATE':
-        case 'NEARBY_CRISIS': return 'bg-red-100';
-        case 'HOUSEHOLD_INVITE': return 'bg-purple-100';
-        case 'SYSTEM_WIDE': return 'bg-blue-100';
+        case NotificationResponseType.EXPIRY_REMINDER: return 'bg-yellow-100';
+        case NotificationResponseType.EVENT: return 'bg-red-100';
+        case NotificationResponseType.INVITE: return 'bg-purple-100';
+        case NotificationResponseType.INFO: return 'bg-blue-100';
         default: return 'bg-gray-100';
       }
     };
 
     const getIconColorClass = (type: string | undefined) => {
       switch (type) {
-        case 'EXPIRY_REMINDER': return 'text-yellow-600';
-        case 'CRISIS_UPDATE':
-        case 'NEARBY_CRISIS': return 'text-red-600';
-        case 'HOUSEHOLD_INVITE': return 'text-purple-600';
-        case 'SYSTEM_WIDE': return 'text-blue-600';
+        case NotificationResponseType.EXPIRY_REMINDER: return 'text-yellow-600';
+        case NotificationResponseType.EVENT: return 'text-red-600';
+        case NotificationResponseType.INVITE: return 'text-purple-600';
+        case NotificationResponseType.INFO: return 'text-blue-600';
         default: return 'text-gray-600';
       }
     };

@@ -17,6 +17,7 @@ import {
 } from '@/api/generated/notification/notification'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { NotificationResponse } from '@/api/generated/model'
+import { NotificationResponseType } from '@/api/generated/model/notificationResponseType'
 import type { ErrorType } from '@/api/axios'
 import { useNotificationStore } from '@/stores/notificationStore'
 
@@ -382,9 +383,9 @@ watch(activeFilter, () => {
                   {{ notification.message }}
                 </div>
 
-                <!-- Action button logic remains, potentially using notification.url or needing backend changes -->
+                <!-- Action button logic -->
                 <div class="mt-3 flex gap-2">
-                <router-link
+                  <router-link
                     v-if="notification.id"
                     :to="{ name: 'notification-detail', params: { id: notification.id }}"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
@@ -392,17 +393,37 @@ watch(activeFilter, () => {
                     <LinkIcon class="h-3 w-3 mr-1" />
                     <span>Vis detaljer</span>
                   </router-link>
-                  <a
-                    v-if="(notification as any).url"
-                    :href="(notification as any).url"
-                    target="_blank"
-                    rel="noopener noreferrer"
+
+                  <!-- Dynamic action button based on notification type -->
+                  <router-link
+                    v-if="notification.type === NotificationResponseType.EVENT && notification.eventId"
+                    :to="{ name: 'event-detail', params: { id: notification.eventId }}"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
                     @click.stop
                   >
                     <LinkIcon class="h-3 w-3 mr-1" />
-                    <span>Åpne lenke</span>
-                  </a>
+                    <span>Gå til hendelse</span>
+                  </router-link>
+
+                  <router-link
+                    v-else-if="notification.type === NotificationResponseType.INVITE && notification.householdId"
+                    :to="{ name: 'household', params: { id: notification.householdId }}"
+                    class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                    @click.stop
+                  >
+                    <LinkIcon class="h-3 w-3 mr-1" />
+                    <span>Gå til husstand</span>
+                  </router-link>
+
+                  <router-link
+                    v-else-if="notification.type === NotificationResponseType.INFO && notification.itemId"
+                    :to="{ name: 'notifications' }"
+                    class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                    @click.stop
+                  >
+                    <LinkIcon class="h-3 w-3 mr-1" />
+                    <span>Mer informasjon</span>
+                  </router-link>
                 </div>
               </div>
             </div>

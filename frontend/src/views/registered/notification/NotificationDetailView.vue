@@ -64,14 +64,6 @@ const handleMarkAsRead = () => {
 const goBack = () => {
   router.push({ name: 'notifications' })
 }
-
-const handleNotificationAction = () => {
-  if (!notification.value) return
-
-  if (notification.value.url) {
-    window.open(notification.value.url, '_blank')
-  }
-}
 </script>
 
 <template>
@@ -129,13 +121,33 @@ const handleNotificationAction = () => {
             <CheckIcon class="h-4 w-4 mr-1" />
             {{ isMarkingAsRead ? 'Markerer...' : 'Marker som lest' }}
           </button>
-          <button
-            v-if="notification.url"
-            @click="handleNotificationAction"
+
+          <!-- Dynamic action buttons based on notification type -->
+          <button 
+            v-if="notification.type === NotificationResponseType.EVENT && notification.eventId"
+            @click="router.push({ name: 'event-detail', params: { id: notification.eventId }})"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center"
           >
             <LinkIcon class="h-4 w-4 mr-1" />
-            Åpne lenke
+            Gå til hendelse
+          </button>
+
+          <button 
+            v-else-if="notification.type === NotificationResponseType.INVITE && notification.householdId"
+            @click="router.push({ name: 'household', params: { id: notification.householdId }})"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center"
+          >
+            <LinkIcon class="h-4 w-4 mr-1" />
+            Gå til husstand
+          </button>
+
+          <button 
+            v-else-if="notification.type === NotificationResponseType.INFO && notification.itemId"
+            @click="router.push({ name: 'notifications' })"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center"
+          >
+            <LinkIcon class="h-4 w-4 mr-1" />
+            Mer informasjon
           </button>
         </div>
       </div>
