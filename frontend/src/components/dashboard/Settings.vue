@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed } from 'vue'
 import Switch from '@/components/ui/switch/Switch.vue'
 import { useMe } from '@/api/generated/authentication/authentication'
@@ -26,7 +26,6 @@ const {
 const { mutate: updateUserProfile } = useUpdateUser({
   mutation: {
     onSuccess: (data) => {
-      console.log('User settings updated successfully:', data)
       refetchUser()
     },
     onError: (error) => {
@@ -59,9 +58,6 @@ const handleToggle = (
     console.error('Current user or user ID is not available. Cannot update settings.')
     return
   }
-
-  console.log(`Attempting to toggle ${field} to ${value} via API for user ${currentUser.value.id}`)
-
   // Prepare the data payload for the mutation
   // It's crucial that this matches the backend's expected CreateUser DTO structure,
   // especially regarding optional/required fields and password handling.

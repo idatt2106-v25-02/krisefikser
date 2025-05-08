@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
+<script lang="ts" setup>
+import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { useMe } from '@/api/generated/authentication/authentication'
 import { useUpdateUser } from '@/api/generated/user/user'
@@ -22,7 +22,6 @@ const { data: currentUser, refetch: refetchUser } = useMe({
 const { mutate: updateUserProfile } = useUpdateUser({
   mutation: {
     onSuccess: (data) => {
-      console.log('User updated successfully:', data)
       refetchUser()
     },
     onError: (error) => {
@@ -82,47 +81,47 @@ const saveProfile = () => {
       <div class="space-y-4">
         <!-- First Name field -->
         <div>
-          <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1"
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="firstName"
             >Fornavn</label
           >
           <input
-            type="text"
             id="firstName"
             v-model="editedUser.firstName"
             :disabled="!isEditing"
             class="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+            type="text"
           />
         </div>
 
         <!-- Last Name field -->
         <div>
-          <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1"
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="lastName"
             >Etternavn</label
           >
           <input
-            type="text"
             id="lastName"
             v-model="editedUser.lastName"
             :disabled="!isEditing"
             class="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+            type="text"
           />
         </div>
 
         <!-- Email field -->
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-post</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="email">E-post</label>
           <input
-            type="email"
             id="email"
             v-model="editedUser.email"
             :disabled="!isEditing"
             class="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+            type="email"
           />
         </div>
 
         <!-- Save button (only shown when editing) -->
         <div v-if="isEditing" class="mt-6">
-          <Button type="submit" class="w-full">Lagre endringer</Button>
+          <Button class="w-full" type="submit">Lagre endringer</Button>
         </div>
       </div>
     </form>

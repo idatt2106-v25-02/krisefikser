@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue'
+<script lang="ts" setup>
+import { computed, ref } from 'vue'
 import router from '@/router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -27,50 +27,50 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import {
-  MapPin,
+  AlertCircle,
+  BookText,
+  CheckCircle,
+  Edit,
   ExternalLink,
+  Info,
+  Map as MapIcon,
+  MapPin,
+  RefreshCw,
   Trash,
   UserMinus,
-  AlertCircle,
-  Map as MapIcon,
-  Edit,
-  Info,
-  RefreshCw,
-  CheckCircle,
-  BookText,
 } from 'lucide-vue-next'
 import HouseholdMeetingMap from '@/components/household/HouseholdMeetingMap.vue'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 import {
-  useGetAllUserHouseholds,
-  useGetActiveHousehold,
-  useLeaveHousehold,
-  useDeleteHousehold,
-  useJoinHousehold,
-  useAddGuestToHousehold,
-  useRemoveGuestFromHousehold,
-  useUpdateActiveHousehold,
   getGetActiveHouseholdQueryKey,
+  useAddGuestToHousehold,
+  useDeleteHousehold,
+  useGetActiveHousehold,
+  useGetAllUserHouseholds,
+  useJoinHousehold,
+  useLeaveHousehold,
+  useRemoveGuestFromHousehold,
   useSetActiveHousehold,
+  useUpdateActiveHousehold,
 } from '@/api/generated/household/household.ts'
 import {
-  useCreateInvite,
-  useGetPendingInvitesForUser,
   useAcceptInvite,
+  useCreateInvite,
   useDeclineInvite,
   useGetPendingInvitesForHousehold,
+  useGetPendingInvitesForUser,
 } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import type {
-  HouseholdResponse,
+  CreateHouseholdRequest,
   GuestResponse,
   HouseholdMemberResponse,
-  CreateHouseholdRequest,
+  HouseholdResponse,
 } from '@/api/generated/model'
 import { useToast } from '@/components/ui/toast/use-toast.ts'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useGetInventorySummary, getGetInventorySummaryQueryKey } from '@/api/generated/item/item'
+import { getGetInventorySummaryQueryKey, useGetInventorySummary } from '@/api/generated/item/item'
 import PreparednessInfoDialog from '@/components/inventory/info/PreparednessInfoDialog.vue'
 
 interface MeetingPlace {
@@ -271,15 +271,6 @@ const inventoryPreviewData = computed<Inventory>(() => {
   }
 })
 
-watchEffect(() => {
-  if (household.value) {
-    console.log(
-      '[HouseholdDetailsView] household data changed (from watchEffect):',
-      JSON.parse(JSON.stringify(household.value)),
-    )
-  }
-})
-
 // Mutations
 const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
@@ -432,7 +423,6 @@ const { resetForm } = useForm<MemberFormValues>({
 const { mutateAsync: updateActiveHousehold } = useUpdateActiveHousehold({
   mutation: {
     onSuccess: (updatedHouseholdData) => {
-      console.log('useUpdateActiveHousehold onSuccess. Response:', updatedHouseholdData)
       queryClient.setQueryData(getGetActiveHouseholdQueryKey(), updatedHouseholdData)
       isEditHouseholdDialogOpen.value = false
       toast({
@@ -542,7 +532,6 @@ const handleFormSubmit = (values: MemberFormValues) => {
   }
 
   if (memberMode.value === 'invite') {
-    console.log('Attempting to send invite for email:', values.email)
     if (!values.email) {
       toast({
         title: 'Feil',
@@ -715,8 +704,8 @@ function handleChangeActiveHousehold(householdId: string) {
                 <div class="flex items-center">
                   <span
                     class="flex items-center cursor-pointer group"
-                    @click="goToHouseholdLocation"
                     title="Vis på kart"
+                    @click="goToHouseholdLocation"
                   >
                     <MapPin
                       class="h-4 w-4 mr-1 flex-shrink-0 text-gray-400 group-hover:text-blue-600 transition-colors"
@@ -730,21 +719,19 @@ function handleChangeActiveHousehold(householdId: string) {
                 </div>
               </div>
             </div>
-            <div
-              class="mt-4 md:mt-0 flex flex-col items-end space-y-2"
-            >
+            <div class="mt-4 md:mt-0 flex flex-col items-end space-y-2">
               <div class="flex flex-row space-x-2">
                 <router-link
-                  to="/husstand/refleksjoner"
                   class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                  to="/husstand/refleksjoner"
                 >
                   <BookText class="h-4 w-4 mr-2" />
                   Husstandens Refleksjoner
                 </router-link>
                 <Button
-                  variant="outline"
                   class="flex items-center"
                   size="sm"
+                  variant="outline"
                   @click="openEditHouseholdDialog"
                 >
                   <Edit class="h-4 w-4 mr-2" />
@@ -752,11 +739,11 @@ function handleChangeActiveHousehold(householdId: string) {
                 </Button>
               </div>
               <Button
-                variant="outline"
-                size="sm"
-                @click="isChangeHouseholdDialogOpen = true"
-                class="flex items-center"
                 :disabled="!allHouseholds || allHouseholds.length <= 1"
+                class="flex items-center"
+                size="sm"
+                variant="outline"
+                @click="isChangeHouseholdDialogOpen = true"
               >
                 <RefreshCw class="h-4 w-4 mr-2" />
                 Bytt husstand
@@ -773,10 +760,10 @@ function handleChangeActiveHousehold(householdId: string) {
               <div class="flex justify-between items-center mb-5">
                 <h2 class="text-xl font-semibold text-gray-800">Medlemmer og gjester</h2>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  @click="isAddMemberDialogOpen = true"
                   class="flex items-center gap-1"
+                  size="sm"
+                  variant="outline"
+                  @click="isAddMemberDialogOpen = true"
                 >
                   <span class="text-md">+</span>
                   <span>Legg til</span>
@@ -788,20 +775,20 @@ function handleChangeActiveHousehold(householdId: string) {
                   :variant="memberGuestTab === 'alle' ? 'default' : 'outline'"
                   size="sm"
                   @click="memberGuestTab = 'alle'"
-                  >Alle</Button
-                >
+                  >Alle
+                </Button>
                 <Button
                   :variant="memberGuestTab === 'medlemmer' ? 'default' : 'outline'"
                   size="sm"
                   @click="memberGuestTab = 'medlemmer'"
-                  >Medlemmer</Button
-                >
+                  >Medlemmer
+                </Button>
                 <Button
                   :variant="memberGuestTab === 'gjester' ? 'default' : 'outline'"
                   size="sm"
                   @click="memberGuestTab = 'gjester'"
-                  >Gjester</Button
-                >
+                  >Gjester
+                </Button>
               </div>
               <div
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2"
@@ -844,8 +831,8 @@ function handleChangeActiveHousehold(householdId: string) {
                           }}
                         </h3>
                         <span
-                          class="ml-2 text-xs"
                           :class="person.type === 'member' ? 'text-gray-400' : 'text-green-500'"
+                          class="ml-2 text-xs"
                         >
                           {{ person.type === 'member' ? 'Medlem' : 'Gjest' }}
                         </span>
@@ -858,19 +845,19 @@ function handleChangeActiveHousehold(householdId: string) {
                         "
                       >
                         <DropdownMenuTrigger as-child>
-                          <Button variant="ghost" size="icon" class="h-8 w-8">
+                          <Button class="h-8 w-8" size="icon" variant="ghost">
                             <span class="sr-only">Medlemsalternativer</span>
                             <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
+                              class="text-gray-400"
                               fill="none"
+                              height="16"
                               stroke="currentColor"
-                              stroke-width="2"
                               stroke-linecap="round"
                               stroke-linejoin="round"
-                              class="text-gray-400"
+                              stroke-width="2"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
                             >
                               <circle cx="12" cy="12" r="1" />
                               <circle cx="12" cy="5" r="1" />
@@ -880,10 +867,10 @@ function handleChangeActiveHousehold(householdId: string) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
+                            class="text-red-600"
                             @click="
                               onRemoveMember((person.data as HouseholdMemberResponse).user?.id)
                             "
-                            class="text-red-600"
                           >
                             <UserMinus class="h-4 w-4 mr-2" />
                             Fjern medlem
@@ -892,19 +879,19 @@ function handleChangeActiveHousehold(householdId: string) {
                       </DropdownMenu>
                       <DropdownMenu v-else-if="person.type === 'guest'">
                         <DropdownMenuTrigger as-child>
-                          <Button variant="ghost" size="icon" class="h-8 w-8">
+                          <Button class="h-8 w-8" size="icon" variant="ghost">
                             <span class="sr-only">Gjestalternativer</span>
                             <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
+                              class="text-gray-400"
                               fill="none"
+                              height="16"
                               stroke="currentColor"
-                              stroke-width="2"
                               stroke-linecap="round"
                               stroke-linejoin="round"
-                              class="text-gray-400"
+                              stroke-width="2"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
                             >
                               <circle cx="12" cy="12" r="1" />
                               <circle cx="12" cy="5" r="1" />
@@ -914,9 +901,9 @@ function handleChangeActiveHousehold(householdId: string) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            @click="handleRemoveGuest((person.data as GuestResponse).id)"
-                            class="text-red-600"
                             :disabled="isRemovingGuest"
+                            class="text-red-600"
+                            @click="handleRemoveGuest((person.data as GuestResponse).id)"
                           >
                             <UserMinus class="h-4 w-4 mr-2" />
                             Fjern gjest
@@ -946,17 +933,17 @@ function handleChangeActiveHousehold(householdId: string) {
                 <!-- Group for Info and Se Detaljer buttons -->
                 <div class="flex items-center space-x-2">
                   <button
-                    @click="isPreparednessInfoDialogOpen = true"
                     class="text-blue-600 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
                     title="Vis informasjon om beredskapsberegning"
+                    @click="isPreparednessInfoDialogOpen = true"
                   >
                     <Info class="h-5 w-5" />
                   </button>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    @click="navigateToInventory"
                     class="flex items-center gap-1"
+                    size="sm"
+                    variant="outline"
+                    @click="navigateToInventory"
                   >
                     <span>Se detaljer</span>
                   </Button>
@@ -980,9 +967,9 @@ function handleChangeActiveHousehold(householdId: string) {
                 <div class="flex justify-between items-center">
                   <h2 class="text-xl font-semibold text-gray-800">Møteplasser</h2>
                   <Button
-                    variant="outline"
-                    size="sm"
                     class="flex items-center gap-1"
+                    size="sm"
+                    variant="outline"
                     @click="isMeetingMapDialogOpen = true"
                   >
                     <MapIcon class="h-4 w-4" />
@@ -1025,16 +1012,16 @@ function handleChangeActiveHousehold(householdId: string) {
               <h2 class="text-xl font-semibold text-gray-800 mb-4">Husstandshandlinger</h2>
               <div class="space-y-3">
                 <button
-                  @click="handleLeaveHousehold"
                   class="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-gray-50"
+                  @click="handleLeaveHousehold"
                 >
                   <ExternalLink class="h-4 w-4 mr-2" />
                   Forlat husstand
                 </button>
 
                 <button
-                  @click="handleDeleteHousehold"
                   class="w-full bg-red-100 text-red-600 py-2 px-4 rounded-md flex items-center justify-center hover:bg-red-200"
+                  @click="handleDeleteHousehold"
                 >
                   <Trash class="h-4 w-4 mr-2" />
                   Slett husstand
@@ -1044,11 +1031,11 @@ function handleChangeActiveHousehold(householdId: string) {
 
             <!-- Invited (pending and declined) section as its own component -->
             <InvitedPendingList
-              :invites="
-                (householdPendingInvites || []).filter((i) => i.status === 'PENDING') as any
-              "
               :declined-invites="
                 (householdPendingInvites || []).filter((i) => i.status === 'DECLINED') as any
+              "
+              :invites="
+                (householdPendingInvites || []).filter((i) => i.status === 'PENDING') as any
               "
             />
           </div>
@@ -1065,13 +1052,13 @@ function handleChangeActiveHousehold(householdId: string) {
             </DialogHeader>
 
             <Form
-              :validation-schema="householdFormSchema"
               :initial-values="{
                 name: household.name,
                 address: household.address,
                 postalCode: household.postalCode || '',
                 city: household.city || '',
               }"
+              :validation-schema="householdFormSchema"
               @submit="onHouseholdSubmit"
             >
               <div class="grid gap-4 py-4">
@@ -1153,7 +1140,7 @@ function handleChangeActiveHousehold(householdId: string) {
                 </Button>
               </div>
               <Form v-slot="{ handleSubmit: _handleSubmit }" :validation-schema="memberFormSchema">
-                <form @submit.prevent="_handleSubmit(handleFormSubmit as any)" class="space-y-4">
+                <form class="space-y-4" @submit.prevent="_handleSubmit(handleFormSubmit as any)">
                   <FormField v-slot="{ field, errorMessage }" name="name">
                     <FormItem>
                       <FormLabel>Navn</FormLabel>
@@ -1171,7 +1158,7 @@ function handleChangeActiveHousehold(householdId: string) {
                     <FormItem>
                       <FormLabel>E-post</FormLabel>
                       <FormControl>
-                        <Input v-bind="field" type="email" />
+                        <Input type="email" v-bind="field" />
                       </FormControl>
                       <FormMessage>{{ errorMessage }}</FormMessage>
                     </FormItem>
@@ -1184,13 +1171,13 @@ function handleChangeActiveHousehold(householdId: string) {
                     <FormItem>
                       <FormLabel>Forbruksfaktor</FormLabel>
                       <FormControl>
-                        <Input v-bind="field" type="number" step="0.1" min="0.1" />
+                        <Input min="0.1" step="0.1" type="number" v-bind="field" />
                       </FormControl>
                       <FormMessage>{{ errorMessage }}</FormMessage>
                     </FormItem>
                   </FormField>
                   <DialogFooter>
-                    <Button type="submit" :disabled="isAddingGuest && memberMode === 'add'">
+                    <Button :disabled="isAddingGuest && memberMode === 'add'" type="submit">
                       {{ memberMode === 'invite' ? 'Send invitasjon' : 'Legg til medlem' }}
                     </Button>
                   </DialogFooter>
@@ -1214,15 +1201,15 @@ function handleChangeActiveHousehold(householdId: string) {
             <div class="py-6 px-2">
               <HouseholdMeetingMap
                 ref="mapRef"
+                :household-position="[household.latitude || 0, household.longitude || 0]"
                 :meeting-places="
                   household.meetingPlaces?.map((place: any) => ({
                     ...place,
                     position: [place.latitude, place.longitude],
                   })) || []
                 "
-                :household-position="[household.latitude || 0, household.longitude || 0]"
-                @meeting-place-selected="handleMeetingPlaceSelected"
                 class="min-h-[625px]"
+                @meeting-place-selected="handleMeetingPlaceSelected"
               />
 
               <div class="mt-4 flex gap-3">
@@ -1273,11 +1260,11 @@ function handleChangeActiveHousehold(householdId: string) {
                 Ingen husstander tilgjengelig
               </div>
               <div
-                v-else
                 v-for="h in allHouseholds"
+                v-else
                 :key="h.id"
-                class="border border-gray-200 rounded-lg p-3 mb-2 hover:bg-gray-50 transition"
                 :class="{ 'bg-blue-50 border-blue-300': h.id === household?.id }"
+                class="border border-gray-200 rounded-lg p-3 mb-2 hover:bg-gray-50 transition"
               >
                 <div class="flex items-center justify-between">
                   <div>
@@ -1286,9 +1273,9 @@ function handleChangeActiveHousehold(householdId: string) {
                   </div>
                   <button
                     v-if="h.id !== household?.id"
-                    @click="handleChangeActiveHousehold(h.id)"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
                     :disabled="isSettingActiveHousehold"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                    @click="handleChangeActiveHousehold(h.id)"
                   >
                     Velg
                   </button>
@@ -1301,7 +1288,7 @@ function handleChangeActiveHousehold(householdId: string) {
             </div>
 
             <DialogFooter>
-              <Button variant="outline" @click="isChangeHouseholdDialogOpen = false"> Lukk </Button>
+              <Button variant="outline" @click="isChangeHouseholdDialogOpen = false"> Lukk</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

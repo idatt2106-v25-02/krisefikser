@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { Plus } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,16 +11,16 @@ import BaseItemDialog from './BaseItemDialog.vue'
 
 // Define interfaces for our data structures
 interface FoodItem {
-  id: string;
-  name: string;
-  kcal: number;
-  expiryDate: string;
+  id: string
+  name: string
+  kcal: number
+  expiryDate: string
 }
 
 interface FormValues {
-  name: string;
-  kcal: number;
-  expiryDate: string;
+  name: string
+  kcal: number
+  expiryDate: string
 }
 
 const _props = defineProps<{
@@ -44,7 +44,11 @@ const schema = toTypedSchema(
 )
 
 // Form handling
-const { handleSubmit, values: formValues, errors: formErrors } = useForm<FormValues>({
+const {
+  handleSubmit,
+  values: formValues,
+  errors: formErrors,
+} = useForm<FormValues>({
   validationSchema: schema,
   initialValues: {
     name: '',
@@ -54,24 +58,18 @@ const { handleSubmit, values: formValues, errors: formErrors } = useForm<FormVal
 })
 
 function onSubmit(values: FormValues): void {
-  console.log('FoodItemDialog: Form submitted with raw values:', values);
   const newItem: FoodItem = {
     id: crypto.randomUUID(),
     name: values.name,
     kcal: values.kcal,
     expiryDate: values.expiryDate,
   }
-  console.log('FoodItemDialog: Emitting newItem:', newItem);
   emit('add-item', newItem)
   emit('close')
 }
 
 // New wrapper function to log errors
 async function handleFormSubmit() {
-  console.log('Attempting form submission...');
-  console.log('Current form values:', formValues);
-  console.log('Current form errors (before submit):', formErrors.value); // vee-validate errors are reactive
-
   // Manually trigger validation to see errors if handleSubmit doesn't proceed
   // const { valid } = await validate(); // Assuming 'validate' is available from useForm
   // console.log('Is form valid according to vee-validate?:', valid);
@@ -80,52 +78,53 @@ async function handleFormSubmit() {
   //   return;
   // }
 
-  handleSubmit(onSubmit)(); // Call the original handleSubmit
+  handleSubmit(onSubmit)() // Call the original handleSubmit
 }
 </script>
 
 <template>
   <BaseItemDialog
-    :is-open="isOpen"
     :category-id="categoryId"
     :category-name="categoryName"
+    :is-open="isOpen"
     title="Legg til matvare"
     @close="emit('close')"
   >
-    <form @submit.prevent="handleFormSubmit" class="space-y-4">
-      <FormField name="name" v-slot="{ field, errors }">
+    <form class="space-y-4" @submit.prevent="handleFormSubmit">
+      <FormField v-slot="{ field, errors }" name="name">
         <FormItem>
           <FormLabel class="text-gray-700">Navn</FormLabel>
           <FormControl>
-            <Input v-bind="field" placeholder="Matvare" />
+            <Input placeholder="Matvare" v-bind="field" />
           </FormControl>
           <small v-if="errors.length" class="text-red-500">{{ errors[0] }}</small>
         </FormItem>
       </FormField>
 
-      <FormField name="kcal" v-slot="{ field, errors }">
+      <FormField v-slot="{ field, errors }" name="kcal">
         <FormItem>
           <FormLabel class="text-gray-700">Kalorier (kcal)</FormLabel>
           <FormControl>
-            <Input v-bind="field" type="number" min="0" step="1" />
+            <Input min="0" step="1" type="number" v-bind="field" />
           </FormControl>
           <small v-if="errors.length" class="text-red-500">{{ errors[0] }}</small>
         </FormItem>
       </FormField>
 
-      <FormField name="expiryDate" v-slot="{ field, errors }">
+      <FormField v-slot="{ field, errors }" name="expiryDate">
         <FormItem>
           <FormLabel class="text-gray-700">Utløpsdato</FormLabel>
           <FormControl>
-            <Input v-bind="field" type="date" />
+            <Input type="date" v-bind="field" />
           </FormControl>
           <small v-if="errors.length" class="text-red-500">{{ errors[0] }}</small>
         </FormItem>
       </FormField>
 
       <CardFooter class="px-0 pt-4">
-        <Button type="submit" class="w-full bg-blue-600 hover:bg-blue-700">
-          <Plus class="mr-2 h-4 w-4" /> Legg til
+        <Button class="w-full bg-blue-600 hover:bg-blue-700" type="submit">
+          <Plus class="mr-2 h-4 w-4" />
+          Legg til
         </Button>
       </CardFooter>
     </form>

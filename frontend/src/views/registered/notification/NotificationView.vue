@@ -161,8 +161,6 @@ const handleNotificationClick = (notification: NotificationResponse) => {
   if (notification.id && !notification.read) {
     markAsRead(notification.id)
   }
-
-  console.log('Notification clicked:', notification)
   //TODO: Add routing logic
   // Add back specific routing if needed and if backend provides necessary IDs
   // else if (notification.type === 'CRISIS' && notification.referenceId) {
@@ -387,7 +385,7 @@ watch(activeFilter, () => {
                 <div class="mt-3 flex gap-2">
                   <router-link
                     v-if="notification.id"
-                    :to="{ name: 'notification-detail', params: { id: notification.id }}"
+                    :to="{ name: 'notification-detail', params: { id: notification.id } }"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
                   >
                     <LinkIcon class="h-3 w-3 mr-1" />
@@ -396,8 +394,10 @@ watch(activeFilter, () => {
 
                   <!-- Dynamic action button based on notification type -->
                   <router-link
-                    v-if="notification.type === NotificationResponseType.EVENT && notification.eventId"
-                    :to="{ name: 'event-detail', params: { id: notification.eventId }}"
+                    v-if="
+                      notification.type === NotificationResponseType.EVENT && notification.eventId
+                    "
+                    :to="{ name: 'event-detail', params: { id: notification.eventId } }"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
                     @click.stop
                   >
@@ -406,8 +406,11 @@ watch(activeFilter, () => {
                   </router-link>
 
                   <router-link
-                    v-else-if="notification.type === NotificationResponseType.INVITE && notification.householdId"
-                    :to="{ name: 'household', params: { id: notification.householdId }}"
+                    v-else-if="
+                      notification.type === NotificationResponseType.INVITE &&
+                      notification.householdId
+                    "
+                    :to="{ name: 'household', params: { id: notification.householdId } }"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
                     @click.stop
                   >
@@ -416,7 +419,9 @@ watch(activeFilter, () => {
                   </router-link>
 
                   <router-link
-                    v-else-if="notification.type === NotificationResponseType.INFO && notification.itemId"
+                    v-else-if="
+                      notification.type === NotificationResponseType.INFO && notification.itemId
+                    "
                     :to="{ name: 'notifications' }"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
                     @click.stop
@@ -449,17 +454,28 @@ watch(activeFilter, () => {
         <!-- Pagination Controls -->
         <div v-if="totalPages > 1" class="flex justify-center items-center space-x-4 mt-8">
           <button
-            :disabled="currentPage === 0"
-            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             :class="[
               currentPage === 0
                 ? 'bg-gray-100 text-gray-400'
-                : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200'
+                : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200',
             ]"
+            :disabled="currentPage === 0"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             @click="currentPage--"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            <svg
+              class="h-4 w-4 mr-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 19l-7-7 7-7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              />
             </svg>
             Forrige
           </button>
@@ -471,18 +487,29 @@ watch(activeFilter, () => {
             <span class="font-medium text-gray-700">av {{ totalPages }}</span>
           </div>
           <button
-            :disabled="currentPage >= totalPages - 1"
-            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             :class="[
               currentPage >= totalPages - 1
                 ? 'bg-gray-100 text-gray-400'
-                : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200'
+                : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200',
             ]"
+            :disabled="currentPage >= totalPages - 1"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             @click="currentPage++"
           >
             Neste
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <svg
+              class="h-4 w-4 ml-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 5l7 7-7 7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              />
             </svg>
           </button>
         </div>
