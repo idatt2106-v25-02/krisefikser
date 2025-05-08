@@ -36,6 +36,7 @@ import {
 import type { NotificationResponse } from '@/api/generated/model'
 import { NotificationResponseType } from '@/api/generated/model/notificationResponseType'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { useMe } from '@/api/generated/authentication/authentication'
 
 export default {
   name: 'AppNavbar',
@@ -70,6 +71,19 @@ export default {
     const isMenuOpen = ref(false)
     const showMobileNotifications = ref(false)
     const audioPlayerRef = ref<HTMLAudioElement | null>(null)
+
+    // Get current user data to check notification settings
+    const { data: currentUser } = useMe({
+      query: {
+        enabled: computed(() => authStore.isAuthenticated),
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      },
+    })
+
+    // Computed property to check if notifications should be shown
+    const shouldShowNotifications = computed(() => {
+      return currentUser.value?.notifications ?? false
+    })
 
     const allNavItems = computed(() => [
       {
@@ -321,6 +335,7 @@ export default {
       NotificationResponseType,
       filteredNavItems,
       isActive,
+      shouldShowNotifications,
     }
   }
 }
@@ -361,8 +376,8 @@ export default {
           </template>
           <template v-else>
             <div class="flex items-center space-x-2">
-              <!-- Notifications -->
-              <DropdownMenu>
+              <!-- Notifications - Only show if enabled in settings -->
+              <DropdownMenu v-if="shouldShowNotifications">
                 <DropdownMenuTrigger>
                   <button
                     class="relative flex items-center justify-center p-2 rounded-full transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 group"
@@ -507,9 +522,9 @@ export default {
           <span>{{ item.label }}</span>
         </router-link>
 
-        <!-- Mobile Notifications -->
+        <!-- Mobile Notifications - Only show if enabled in settings -->
         <div
-          v-if="authStore.isAuthenticated"
+          v-if="authStore.isAuthenticated && shouldShowNotifications"
           class="flex items-center justify-between px-3 py-2 rounded text-gray-700 hover:bg-gray-200 cursor-pointer relative"
           @click="showMobileNotifications = !showMobileNotifications"
         >
@@ -528,9 +543,9 @@ export default {
           </div>
         </div>
 
-        <!-- Mobile notifications panel -->
+        <!-- Mobile notifications panel - Only show if enabled in settings -->
         <div
-          v-if="showMobileNotifications && authStore.isAuthenticated"
+          v-if="showMobileNotifications && authStore.isAuthenticated && shouldShowNotifications"
           class="mt-2 bg-white rounded-md shadow-lg p-2"
         >
           <div class="p-2 border-b border-gray-100 flex justify-between items-center">
