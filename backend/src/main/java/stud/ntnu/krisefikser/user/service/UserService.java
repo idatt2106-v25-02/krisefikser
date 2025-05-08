@@ -21,8 +21,8 @@ import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 /**
- * Service class for managing users. This class provides methods to create, update, delete, and
- * Service class for managing users. This class provides methods to create, update, delete, and
+ * Service class for managing users. This class provides methods to create,
+ * update, delete, and
  * retrieve users.
  */
 @Service
@@ -38,7 +38,8 @@ public class UserService {
    *
    * @param data the user data
    * @return the created User entity
-   * @throws EmailAlreadyExistsException if the email is already in use by another user
+   * @throws EmailAlreadyExistsException if the email is already in use by another
+   *                                     user
    */
   public User createUser(CreateUser data) {
     return createUser(data, RoleType.USER);
@@ -50,7 +51,8 @@ public class UserService {
    * @param data     the user data
    * @param roleType the role type to assign to the user
    * @return the created User entity
-   * @throws EmailAlreadyExistsException if the email is already in use by another user
+   * @throws EmailAlreadyExistsException if the email is already in use by another
+   *                                     user
    */
   public User createUser(CreateUser data,
       RoleType roleType) {
@@ -65,12 +67,11 @@ public class UserService {
     Set<Role> roles = new HashSet<>();
     roles.add(userRole);
 
-    User user =
-        User.builder().email(data.getEmail()).password(passwordEncoder.encode(data.getPassword()))
-            .firstName(data.getFirstName()).lastName(data.getLastName())
-            .notifications(data.isNotifications()).emailUpdates(data.isEmailUpdates())
-            .locationSharing(data.isLocationSharing()).roles(roles).passwordRetries(0)
-            .lockedUntil(null).build();
+    User user = User.builder().email(data.getEmail()).password(passwordEncoder.encode(data.getPassword()))
+        .firstName(data.getFirstName()).lastName(data.getLastName())
+        .notifications(data.isNotifications()).emailUpdates(data.isEmailUpdates())
+        .locationSharing(data.isLocationSharing()).roles(roles).passwordRetries(0)
+        .lockedUntil(null).build();
 
     return userRepository.save(user);
   }
@@ -97,12 +98,13 @@ public class UserService {
    * @param userId the UUID of the user to update
    * @param data   the updated user data
    * @return the updated User entity
-   * @throws UserNotFoundException       if the user with the given ID does not exist
-   * @throws EmailAlreadyExistsException if the new email is already in use by another user
+   * @throws UserNotFoundException       if the user with the given ID does not
+   *                                     exist
+   * @throws EmailAlreadyExistsException if the new email is already in use by
+   *                                     another user
    */
   public User updateUser(UUID userId, CreateUser data) {
-    User user =
-        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+    User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
     // Check if email is being changed and if it already exists
     if (!user.getEmail().equals(data.getEmail()) && userRepository.existsByEmail(data.getEmail())) {
@@ -115,6 +117,14 @@ public class UserService {
     user.setLastName(data.getLastName());
     user.setNotifications(data.isNotifications());
     user.setEmailUpdates(data.isEmailUpdates());
+
+    // Check if location sharing is being disabled
+    if (user.isLocationSharing() && !data.isLocationSharing()) {
+      // Clear location data when disabling location sharing
+      user.setLatitude(null);
+      user.setLongitude(null);
+    }
+
     user.setLocationSharing(data.isLocationSharing());
 
     // Only update password if it's provided
@@ -161,14 +171,14 @@ public class UserService {
    *
    * @param userId the UUID of the user being accessed
    * @return true if the current user is an admin or the user being accessed,
-   * false otherwise
+   *         false otherwise
    */
   public boolean isAdminOrSelf(UUID userId) {
     User currentUser = getCurrentUser();
     return currentUser.getId().equals(userId)
         || currentUser.getRoles().stream()
-        .anyMatch(
-            role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
+            .anyMatch(
+                role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
   }
 
   /**
@@ -216,5 +226,31 @@ public class UserService {
   public User getUserByEmail(String email) {
     return userRepository.findByEmail(email).orElseThrow(
         () -> new UserNotFoundException("User with email " + email + " does not exist"));
+  }
+
+  /**
+   * Updates a user's location coordinates.
+   *
+   * @param userId    the UUID of the user to update
+   * @param latitude  the latitude coordinate
+   * @param longitude the longitude coordinate
+   * @return the updated User entity
+   * @throws UserDoesNotExistException if the user with the given ID does not
+   *                                   exist
+   */
+  public User updateUserLocation(UUID userId, Double latitude, Double longitude) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(
+            () -> new UserNotFoundException("User with id " + userId + " does not exist"));
+
+    // Only update location if user has enabled location sharing
+    if (user.isLocationSharing()) {
+      user.setLatitude(latitude);
+      user.setLongitude(longitude);
+      return userRepository.save(user);
+    }
+
+    // Return the user without updating location if sharing is disabled
+    return user;
   }
 }

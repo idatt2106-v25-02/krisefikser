@@ -127,14 +127,12 @@ class SummaryServiceTest {
     final int DAILY_WATER_LITERS = 3;
 
     // Calculate expected values
-    double multiplier =
-        householdMembers.size() + householdResponse.getGuests().getFirst()
-            .getConsumptionMultiplier(); // 2 + 0.5 = 2.5
+    double multiplier = householdMembers.size() + householdResponse.getGuests().getFirst()
+        .getConsumptionMultiplier(); // 2 + 0.5 = 2.5
     int expectedKcal = 5000; // Sum of all food items kcal
     int expectedKcalGoal = (int) (DAILY_KCAL * DAYS_GOAL * multiplier); // 2250 * 7 * 2 = 31500
     double expectedWaterLiters = 15.0; // From household
-    double expectedWaterLitersGoal =
-        DAILY_WATER_LITERS * DAYS_GOAL * multiplier; // 3 * 7 * 2 = 42
+    double expectedWaterLitersGoal = DAILY_WATER_LITERS * DAYS_GOAL * multiplier; // 3 * 7 * 2 = 42
     int expectedCheckedItems = 2; // Number of checked items
     int expectedTotalItems = 3; // Total number of checklist items
 
