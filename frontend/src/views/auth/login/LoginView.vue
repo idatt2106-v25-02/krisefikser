@@ -5,7 +5,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useAuthModeStore } from '@/stores/auth/useAuthModeStore.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import { User, Mail } from 'lucide-vue-next'
+import { User, Mail, AlertCircle } from 'lucide-vue-next'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 // === Store logic ===
 const authModeStore = useAuthModeStore()
@@ -42,7 +43,7 @@ const formSchema = computed(() =>
 
 // === Form logic ===
 // useForm returns handleSubmit, meta, and resetForm for tracking state
-const { handleSubmit, meta, resetForm } = useForm({
+const { handleSubmit, meta, resetForm, setFieldError } = useForm({
   validationSchema: formSchema,
 })
 
@@ -50,6 +51,8 @@ const { handleSubmit, meta, resetForm } = useForm({
 const isLoading = ref(false)
 // Track login attempts to allow resubmission
 const hasAttemptedLogin = ref(false)
+// Form level error message
+const formError = ref('')
 
 // Define error type for reuse
 type ApiError = {
@@ -118,6 +121,8 @@ const onSubmit = handleSubmit(async (values) => {
 
   isLoading.value = true
   hasAttemptedLogin.value = true
+  // Clear any previous errors
+  formError.value = ''
 
   try {
     // Map identifier to email for backend compatibility
@@ -131,16 +136,31 @@ const onSubmit = handleSubmit(async (values) => {
         description: 'Du er nå logget inn',
       })
     } catch (error: unknown) {
+      const errorMessage = getLoginErrorMessage(error as ApiError)
+      formError.value = errorMessage
+
+      // Set field-specific errors when appropriate
+      if (errorMessage.includes('Feil e-post eller passord')) {
+        setFieldError('password', 'Feil passord')
+      }
+
+      if (errorMessage.includes('ikke registrert')) {
+        setFieldError('identifier', 'E-postadressen er ikke registrert')
+      }
+
       toast('Innloggingsfeil', {
-        description: getLoginErrorMessage(error as ApiError),
+        description: errorMessage,
       })
     }
 
     // Redirect to the intended page after successful login
     await router.push(redirectPath.value)
   } catch (error: unknown) {
+    const errorMessage = getLoginErrorMessage(error as ApiError)
+    formError.value = errorMessage
+
     toast('Innloggingsfeil', {
-      description: getLoginErrorMessage(error as ApiError),
+      description: errorMessage,
     })
 
     // Clear password field but maintain identifier
@@ -164,6 +184,7 @@ const onSubmit = handleSubmit(async (values) => {
 function toggleLoginType() {
   authModeStore.toggle()
   resetForm()
+  formError.value = '' // Clear error when switching modes
 }
 </script>
 
@@ -176,6 +197,12 @@ function toggleLoginType() {
       <h1 class="text-3xl font-bold text-center">
         {{ isAdmin ? 'Admin-innlogging' : 'Innlogging' }}
       </h1>
+
+      <!-- Form-level error alert -->
+      <Alert v-if="formError" variant="destructive" class="bg-red-50 border-red-300 text-red-700">
+        <AlertCircle class="h-4 w-4" />
+        <AlertDescription class="ml-2">{{ formError }}</AlertDescription>
+      </Alert>
 
       <!-- Email or Username Field -->
       <FormField v-slot="{ componentField }" name="identifier">
@@ -198,6 +225,7 @@ function toggleLoginType() {
                 :placeholder="isAdmin ? 'admin_bruker' : 'navn@eksempel.no'"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 v-bind="componentField"
+                autocomplete="username"
               />
             </div>
           </FormControl>
@@ -214,6 +242,7 @@ function toggleLoginType() {
           :componentField="componentField"
           :showToggle="true"
           :showIcon="true"
+          autocomplete="current-password"
         />
       </FormField>
 
