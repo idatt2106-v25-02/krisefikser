@@ -164,21 +164,43 @@ onMounted(() => {
       </div>
 
       <!-- Pagination -->
-      <div v-if="sortedArticles.length > ARTICLES_PER_PAGE" class="flex justify-center mt-6 gap-2">
+      <div v-if="sortedArticles.length > ARTICLES_PER_PAGE" class="flex justify-center items-center space-x-4 mt-8">
         <button
-          class="px-4 py-2 rounded border text-gray-700 bg-white hover:bg-blue-50 disabled:opacity-50"
           :disabled="currentPage === 1"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="[
+            currentPage === 1
+              ? 'bg-gray-100 text-gray-400'
+              : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200'
+          ]"
           @click="currentPage--"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
           Forrige
         </button>
-        <span class="px-3 py-2 text-gray-600">Side {{ currentPage }} av {{ totalPages }}</span>
+        <div class="flex items-center gap-1 text-sm">
+          <span class="font-medium text-gray-700">Side</span>
+          <span class="px-3 py-1 rounded-md bg-blue-50 text-blue-700 font-medium">
+            {{ currentPage }}
+          </span>
+          <span class="font-medium text-gray-700">av {{ totalPages }}</span>
+        </div>
         <button
-          class="px-4 py-2 rounded border text-gray-700 bg-white hover:bg-blue-50 disabled:opacity-50"
           :disabled="currentPage === totalPages"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="[
+            currentPage === totalPages
+              ? 'bg-gray-100 text-gray-400'
+              : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200'
+          ]"
           @click="currentPage++"
         >
           Neste
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
     </div>
