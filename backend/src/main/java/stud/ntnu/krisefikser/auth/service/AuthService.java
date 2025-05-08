@@ -436,7 +436,8 @@ public class AuthService {
 
     User user = userService.getUserByEmail(email);
     if (user == null || !user.getRoles().stream()
-        .anyMatch(role -> role.getName().equals(RoleType.ADMIN))) {
+    .anyMatch(role -> role.getName().equals(RoleType.ADMIN)) && 
+    !user.getRoles().stream().anyMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       throw new InvalidTokenException();
     }
 
