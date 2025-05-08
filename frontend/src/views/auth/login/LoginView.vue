@@ -112,6 +112,10 @@ const getLoginErrorMessage = (error: ApiError) => {
     return 'For mange innloggingsforsøk. Vennligst vent litt før du prøver igjen.'
   }
 
+  if (statusCode === 428 || errorMessage.includes('Two-factor authentication is required')) {
+    return 'To-faktor autentisering er påkrevd for admin-innlogging. Vennligst sjekk e-posten din for verifiseringskode.'
+  }
+
   return errorMessage || message
 }
 

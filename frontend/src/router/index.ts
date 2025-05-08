@@ -17,6 +17,8 @@ import AdminResetPasswordLink from '@/views/admin/resetPassword/AdminResetPasswo
 import AdminRegisterView from '@/views/admin/register/AdminRegisterView.vue'
 import AdminScenariosView from '@/views/admin/scenario/ScenariosView.vue'
 import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
+import AdminInviteView from '@/views/admin/invite/AdminInviteView.vue'
+import VerifyAdminLoginView from '@/views/auth/VerifyAdminLoginView.vue'
 
 // Registered User views
 import DashboardView from '@/views/registered/dashboard/DashboardView.vue'
@@ -109,7 +111,7 @@ const router = createRouter({
       path: '/admin/registrer',
       name: 'admin-register',
       component: AdminRegisterView,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresGuest: true }
     },
     {
       path: '/admin/kart',
@@ -136,9 +138,21 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresSuperAdmin: true }
     },
     {
+      path: '/admin/invite',
+      name: 'admin-invite',
+      component: AdminInviteView,
+      meta: { requiresAuth: true, requiresSuperAdmin: true }
+    },
+    {
       path: '/verify',
       name: 'verify',
       component: VerifyToken,
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/verify-admin-login',
+      name: 'verify-admin-login',
+      component: VerifyAdminLoginView,
       meta: { requiresGuest: true }
     },
     {

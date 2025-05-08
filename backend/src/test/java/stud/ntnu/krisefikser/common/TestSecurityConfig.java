@@ -84,6 +84,10 @@ public class TestSecurityConfig {
   @Bean
   public UserDetailsService inMemoryUserDetailsService() {
     return new org.springframework.security.provisioning.InMemoryUserDetailsManager(
+        org.springframework.security.core.userdetails.User.withUsername("superadmin@example.com")
+            .password("{noop}password")
+            .roles("SUPER_ADMIN")
+            .build(),
         org.springframework.security.core.userdetails.User.withUsername("admin@example.com")
             .password("{noop}password")
             .roles("ADMIN", "USER")
