@@ -58,8 +58,11 @@ public class UserService {
         .firstName(data.getFirstName()).lastName(data.getLastName())
         .notifications(data.isNotifications()).emailUpdates(data.isEmailUpdates())
         .locationSharing(data.isLocationSharing()).roles(roles).passwordRetries(0)
-        .lockedUntil(null).emailVerified(roleType == RoleType.ADMIN || roleType == RoleType.SUPER_ADMIN).build();
-
+        .lockedUntil(null)
+        .emailVerified(roles.stream()
+            .anyMatch(
+                role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN))
+        .build();
     return userRepository.save(user);
   }
 
@@ -220,7 +223,7 @@ public class UserService {
    * @param latitude  the latitude coordinate
    * @param longitude the longitude coordinate
    * @return the updated User entity
-   * @throws UserDoesNotExistException if the user with the given ID does not exist
+   * @throws UserNotFoundException if the user with the given ID does not exist
    */
   public User updateUserLocation(UUID userId, Double latitude, Double longitude) {
     User user = userRepository.findById(userId)
