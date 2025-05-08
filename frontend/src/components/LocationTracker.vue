@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted  } from 'vue'
 import { useUpdateCurrentUserLocation } from '@/api/generated/user/user'
 import { toast } from 'vue-sonner'
 
@@ -42,6 +42,3 @@ onUnmounted(() => {
 })
 </script>
 
-<template>
-  <!-- This component doesn't render anything visible -->
-</template>

@@ -48,7 +48,3 @@ onUnmounted(() => {
   memberMarkers.value.forEach(marker => marker.remove())
 })
 </script>
-
-<template>
-  <!-- This component doesn't render anything visible -->
-</template>
