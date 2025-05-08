@@ -75,6 +75,17 @@ public class AuthService {
   private String frontendUrl;
 
   /**
+   * Checks if an email has a valid admin invite token.
+   *
+   * @param email The email to check
+   * @return true if the email has a valid invite token, false otherwise
+   */
+  public boolean isValidAdminInviteToken(String email) {
+    return adminInviteTokens.values().stream()
+        .anyMatch(token -> token.email.equals(email) && !token.isExpired());
+  }
+
+  /**
    * Registers a new admin user and generates access and refresh tokens.
    *
    * @param request The registration request containing admin user details.
