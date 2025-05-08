@@ -108,7 +108,7 @@ const router = createRouter({
       path: '/admin/registrer',
       name: 'admin-register',
       component: AdminRegisterView,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresGuest: true }
     },
     {
       path: '/admin/kart',

@@ -12,8 +12,8 @@ import type { SortObject } from './sortObject'
 export interface PageNotificationResponse {
   totalElements?: number
   totalPages?: number
-  numberOfElements?: number
   pageable?: PageableObject
+  numberOfElements?: number
   first?: boolean
   last?: boolean
   size?: number

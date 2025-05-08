@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import router from '@/router'
-import { useLogin, useRegister, useMe } from '@/api/generated/authentication/authentication.ts'
+import { useLogin, useRegister, useRegisterAdmin, useMe } from '@/api/generated/authentication/authentication.ts'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
 import axios from 'axios'
 
@@ -23,6 +23,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Get the register mutation
   const { mutateAsync: registerMutation } = useRegister()
+
+  // Get the register admin mutation
+  const { mutateAsync: registerAdminMutation } = useRegisterAdmin()
 
   // Get current user query - only enabled when we have a token
   const { data: currentUser, refetch: refetchUser } = useMe({
@@ -92,6 +95,20 @@ export const useAuthStore = defineStore('auth', () => {
       return response
     } catch (error) {
       console.error('Registration failed:', error)
+      throw error
+    }
+  }
+
+  async function registerAdmin(data: RegisterRequest) {
+    try {
+      const response = await registerAdminMutation({ data })
+      if (response.accessToken) {
+        updateTokens(response.accessToken, response.refreshToken ?? '')
+        await refetchUser()
+      }
+      return response
+    } catch (error) {
+      console.error('Admin registration failed:', error)
       throw error
     }
   }
@@ -175,6 +192,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     login,
     register,
+    registerAdmin,
     logout,
     refreshTokens,
     updateTokens,

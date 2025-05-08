@@ -6,8 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  sorted?: boolean
-  unsorted?: boolean
-  empty?: boolean
+/**
+ * Email address to send the admin invitation to
+ */
+export interface AdminInviteRequest {
+  email?: string
 }

@@ -6,6 +6,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { Mail, ArrowLeft, CheckCircle, ShieldCheck } from 'lucide-vue-next'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
+import { useToast } from '@/components/ui/toast/use-toast'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -23,20 +24,41 @@ const { handleSubmit, meta } = useForm({
 })
 
 const router = useRouter()
+const { toast } = useToast()
 const isSubmitted = ref(false)
 const isLoading = ref(false)
 const userEmail = ref('')
 
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
-  console.log('Inviting admin with email:', values.email)
+  try {
+    const response = await fetch('http://localhost:8080/api/auth/invite/admin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: values.email }),
+    })
 
-  // Simulate API call
-  setTimeout(() => {
+    if (!response.ok) {
+      throw new Error('Failed to send invitation')
+    }
+
     userEmail.value = values.email
     isSubmitted.value = true
+    toast({
+      title: 'Suksess',
+      description: 'Admin-invitasjon sendt',
+    })
+  } catch (error) {
+    toast({
+      title: 'Feil',
+      description: 'Kunne ikke sende invitasjon. Vennligst prøv igjen.',
+      variant: 'destructive',
+    })
+  } finally {
     isLoading.value = false
-  }, 1500)
+  }
 })
 
 const goBack = () => {
