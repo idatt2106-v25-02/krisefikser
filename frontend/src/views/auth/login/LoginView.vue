@@ -73,10 +73,8 @@ const getLoginErrorMessage = (error: ApiError) => {
     return 'Feil e-post eller passord. Vennligst prøv igjen.'
   }
 
-  if (errorMessage.includes('not found') || errorMessage.includes('no user')) {
-    return isAdmin.value
-      ? 'Brukernavn finnes ikke. Sjekk om du har skrevet riktig brukernavnet.'
-      : 'E-postadressen er ikke registrert. Vennligst registrer deg eller sjekk om du har skrevet riktig e-post.'
+  if (statusCode === 404) {
+    return 'E-postadressen er ikke registrert. Vennligst registrer deg eller sjekk om du har skrevet riktig e-post.'
   }
 
   if (errorMessage.includes('locked')) {
@@ -222,7 +220,7 @@ function toggleLoginType() {
       <!-- Submit Button (disabled unless form is valid and touched) -->
       <Button
         type="submit"
-        :disabled="(!meta.valid || !meta.dirty) && !hasAttemptedLogin || isLoading"
+        :disabled="((!meta.valid || !meta.dirty) && !hasAttemptedLogin) || isLoading"
         class="w-full hover:cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
       >
         <template v-if="isLoading">Logger inn...</template>
