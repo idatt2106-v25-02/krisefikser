@@ -15,23 +15,36 @@ const router = useRouter()
 
 console.log(articles.value)
 
+const arrayToDate = (dateArray?: number[]) => {
+  if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return null
+  // Note: Month in JavaScript is 0-based, so we subtract 1 from the month
+  return new Date(
+    dateArray[0],
+    dateArray[1] - 1,
+    dateArray[2],
+    dateArray[3] || 0,
+    dateArray[4] || 0,
+    dateArray[5] || 0,
+  )
+}
+
 const latestArticles = computed(() => {
   if (!articles?.value) return []
 
   // Sort by date and get the 3 most recent articles
   return [...articles.value]
     .sort((a, b) => {
-      const dateA = new Date(a.createdAt)?.getTime() || 0
-      const dateB = new Date(b.createdAt)?.getTime() || 0
+      const dateA = arrayToDate(a.createdAt)?.getTime() || 0
+      const dateB = arrayToDate(b.createdAt)?.getTime() || 0
       return dateB - dateA
     })
     .slice(0, 3)
 })
 
-const formatDate = (dateArray?: string) => {
+const formatDate = (dateArray?: number[]) => {
   if (!dateArray || !Array.isArray(dateArray)) return ''
 
-  const date = new Date(dateArray)
+  const date = arrayToDate(dateArray)
   if (!date || isNaN(date.getTime())) return ''
 
   try {
@@ -40,7 +53,7 @@ const formatDate = (dateArray?: string) => {
       month: 'long',
       year: 'numeric',
     })
-  } catch {
+  } catch (e) {
     // Fallback to English if Norwegian locale is not supported
     return date.toLocaleDateString('en', {
       day: 'numeric',
@@ -140,10 +153,10 @@ const goToAllNews = () => {
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M9 5l7 7-7 7"
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
+                d="M9 5l7 7-7 7"
               />
             </svg>
           </router-link>

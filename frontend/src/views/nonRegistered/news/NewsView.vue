@@ -17,12 +17,25 @@ const { data: articles, isLoading, error } = useGetAllArticles()
 const ARTICLES_PER_PAGE = 6
 const currentPage = ref(1)
 
+const arrayToDate = (dateArray?: number[]) => {
+  if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return null
+  // Note: Month in JavaScript is 0-based, so we subtract 1 from the month
+  return new Date(
+    dateArray[0],
+    dateArray[1] - 1,
+    dateArray[2],
+    dateArray[3] || 0,
+    dateArray[4] || 0,
+    dateArray[5] || 0,
+  )
+}
+
 const sortedArticles = computed(() => {
   if (!articles?.value) return []
   const articleArray = Array.isArray(articles.value) ? articles.value : [articles.value]
   return [...articleArray].sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime()
-    const dateB = new Date(b.createdAt).getTime()
+    const dateA = arrayToDate(a.createdAt)?.getTime() || 0
+    const dateB = arrayToDate(b.createdAt)?.getTime() || 0
     return dateB - dateA
   })
 })
@@ -36,10 +49,10 @@ const paginatedArticles = computed(() => {
   return sortedArticles.value.slice(start, start + ARTICLES_PER_PAGE)
 })
 
-const formatDate = (dateArray?: string) => {
+const formatDate = (dateArray?: number[]) => {
   if (!dateArray || !Array.isArray(dateArray)) return ''
 
-  const date = new Date(dateArray)
+  const date = arrayToDate(dateArray)
   if (!date || isNaN(date.getTime())) return ''
 
   try {
@@ -48,7 +61,8 @@ const formatDate = (dateArray?: string) => {
       month: 'long',
       year: 'numeric',
     })
-  } catch {
+  } catch (e) {
+    console.error('Error formatting date:', e)
     // Fallback to English if Norwegian locale is not supported
     return date.toLocaleDateString('en', {
       day: 'numeric',

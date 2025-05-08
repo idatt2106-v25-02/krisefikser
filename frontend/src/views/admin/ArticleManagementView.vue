@@ -155,26 +155,24 @@ const openImageInNewTab = (url: string) => {
 }
 
 // Format date
-const formatDate = (dateArray?: string) => {
-  if (!dateArray || !Array.isArray(dateArray)) return ''
-
-  const date = new Date(dateArray)
-  if (!date || isNaN(date.getTime())) return ''
-
-  try {
-    return date.toLocaleDateString('nb-NO', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  } catch {
-    // Fallback to English if Norwegian locale is not supported
-    return date.toLocaleDateString('en', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
+const formatDate = (dateArray: number[]) => {
+  const date = new Date(
+    Date.UTC(
+      dateArray[0], // year
+      dateArray[1] - 1, // month (0-based)
+      dateArray[2], // day
+      dateArray[3], // hour
+      dateArray[4], // minute
+      dateArray[5], // second
+    ),
+  )
+  return date.toLocaleDateString('nb-NO', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 </script>
 
@@ -337,7 +335,7 @@ const formatDate = (dateArray?: string) => {
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" @click="closeDialog"> Avbryt</Button>
+              <Button type="button" variant="outline" @click="closeDialog"> Avbryt </Button>
               <Button type="submit" variant="default">
                 {{ isEditing ? 'Oppdater' : 'Opprett' }}
               </Button>
