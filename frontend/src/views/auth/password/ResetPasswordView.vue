@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, h } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useRouter } from 'vue-router'
 import { KeyRound } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
+import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
@@ -50,15 +51,25 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     await authStore.updatePassword(values.oldPassword, values.password)
     isSuccessful.value = true
+    // Show success toast
+    toast('Passord oppdatert', {
+      description: 'Du vil bli logget ut for å sikre din konto.',
+    })
+    // Log out the user after successful password update
+    authStore.logout()
   } catch (error: any) {
     errorMessage.value = error.response?.data?.message || 'En feil oppstod ved oppdatering av passord'
+    // Show error toast
+    toast('Feil ved oppdatering av passord', {
+      description: error.response?.data?.message || 'En feil oppstod ved oppdatering av passord',
+    })
   } finally {
     isLoading.value = false
   }
 })
 
-const goToProfile = () => {
-  router.push('/profil')
+const goToLogin = () => {
+  router.push('/logg-inn')
 }
 </script>
 
@@ -80,11 +91,16 @@ const goToProfile = () => {
 
       <!-- Success message -->
       <div v-if="isSuccessful" class="text-center">
-        <p class="text-green-600 font-medium">Passordet ditt har blitt oppdatert.</p>
-        <p class="text-gray-600 mt-2">Du kan nå bruke ditt nye passord ved neste innlogging.</p>
+        <div class="mx-auto bg-green-100 p-2 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">Passord Oppdatert!</h2>
+        <p class="text-gray-600 mb-4">Ditt passord har blitt oppdatert. For å sikre din konto, må du logge inn på nytt med ditt nye passord.</p>
 
-        <Button class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700" @click="goToProfile">
-          Gå til profil
+        <Button class="w-full bg-blue-600 text-white hover:bg-blue-700" @click="goToLogin">
+          Gå til innlogging
         </Button>
       </div>
 

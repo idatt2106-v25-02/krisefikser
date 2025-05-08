@@ -122,10 +122,20 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function updatePassword(oldPassword: string, newPassword: string) {
     try {
+      console.log('Sending password update request with:', {
+        oldPassword,
+        newPassword: '***' // Don't log the actual new password
+      })
       const response = await axios.post('http://localhost:8080/api/auth/update-password', {
         oldPassword,
         password: newPassword
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken.value}`
+        }
       })
+      console.log('Password update response:', response.data)
       return response.data
     } catch (error) {
       console.error('Password update failed:', error)
