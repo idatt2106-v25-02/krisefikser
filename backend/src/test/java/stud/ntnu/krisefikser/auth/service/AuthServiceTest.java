@@ -10,9 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doNothing;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,17 +41,16 @@ import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
 import stud.ntnu.krisefikser.auth.entity.PasswordResetToken;
 import stud.ntnu.krisefikser.auth.entity.RefreshToken;
-import stud.ntnu.krisefikser.auth.entity.Role;
-import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
+import stud.ntnu.krisefikser.auth.exception.EmailNotVerifiedException;
 import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
-import stud.ntnu.krisefikser.auth.exception.EmailNotVerifiedException;
 import stud.ntnu.krisefikser.auth.repository.PasswordResetTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
-import stud.ntnu.krisefikser.user.dto.CreateUser;
-import stud.ntnu.krisefikser.user.service.UserService;
-import stud.ntnu.krisefikser.user.dto.UserResponse;
+import stud.ntnu.krisefikser.email.entity.VerificationToken;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
+import stud.ntnu.krisefikser.user.dto.CreateUser;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
+import stud.ntnu.krisefikser.user.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -141,24 +138,34 @@ class AuthServiceTest {
   }
 
   @Test
-  void register_ShouldReturnTokens() {
+  void registerAndSendVerificationEmail_ShouldSendVerificationEmail() {
     // Arrange
     when(userService.createUser(any(CreateUser.class))).thenReturn(user);
-    when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
-    when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
     when(turnstileService.verify(anyString())).thenReturn(true);
 
+    // Mock the verification token creation
+    VerificationToken mockToken = mock(VerificationToken.class);
+    when(emailVerificationService.createVerificationToken(
+        any(stud.ntnu.krisefikser.user.entity.User.class)))
+        .thenReturn(mockToken);
+
     // Act
-    var response = authService.register(registerRequest);
+    var response = authService.registerAndSendVerificationEmail(registerRequest);
 
     // Assert
     assertThat(response).isNotNull();
-    assertThat(response.getAccessToken()).isEqualTo("generated-token");
-    assertThat(response.getRefreshToken()).isEqualTo("generated-token");
+    assertThat(response.getMessage()).isEqualTo(
+        "User registered successfully. Verification email sent.");
+    assertThat(response.isSuccess()).isTrue();
 
-    verify(userService).createUser(any(CreateUser.class), eq(Role.RoleType.USER));
-    verify(userDetailsService).loadUserByUsername("test@example.com");
-    verify(refreshTokenRepository).save(any(RefreshToken.class));
+    verify(userService).createUser(any(CreateUser.class));
+    verify(emailVerificationService).createVerificationToken(
+        any(stud.ntnu.krisefikser.user.entity.User.class));
+    verify(emailVerificationService).sendVerificationEmail(
+        any(stud.ntnu.krisefikser.user.entity.User.class),
+        eq(mockToken));
+    verify(userDetailsService, never()).loadUserByUsername(anyString());
+    verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
   }
 
   @Test
@@ -198,7 +205,8 @@ class AuthServiceTest {
         .isInstanceOf(EmailNotVerifiedException.class)
         .hasMessage("Email address not verified. Please verify your email before logging in.");
 
-    verify(authenticationManager, never()).authenticate(any(UsernamePasswordAuthenticationToken.class));
+    verify(authenticationManager, never()).authenticate(
+        any(UsernamePasswordAuthenticationToken.class));
     verify(userDetailsService, never()).loadUserByUsername(anyString());
     verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
   }
@@ -339,7 +347,8 @@ class AuthServiceTest {
     verify(userService).getUserByEmail(email);
     verify(passwordResetTokenRepository).findByUser(user);
     verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
-    verify(emailVerificationService).sendPasswordResetEmail(eq(user), anyString(), eq(3600000L / (1000 * 60 * 60)));
+    verify(emailVerificationService).sendPasswordResetEmail(eq(user), anyString(),
+        eq(3600000L / (1000 * 60 * 60)));
   }
 
   @Test
@@ -368,7 +377,8 @@ class AuthServiceTest {
     verify(passwordResetTokenRepository).findByUser(user);
     verify(passwordResetTokenRepository).deleteAll(existingTokens);
     verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
-    verify(emailVerificationService).sendPasswordResetEmail(eq(user), anyString(), eq(3600000L / (1000 * 60 * 60)));
+    verify(emailVerificationService).sendPasswordResetEmail(eq(user), anyString(),
+        eq(3600000L / (1000 * 60 * 60)));
   }
 
   @Test

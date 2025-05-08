@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -68,7 +69,7 @@ class UserControllerTest {
         .password("encodedPassword")
         .firstName("Test")
         .lastName("User")
-        .roles(new HashSet<>(Arrays.asList(userRole)))
+        .roles(new HashSet<>(List.of(userRole)))
         .build();
 
     testUserDto = new CreateUser(
@@ -78,7 +79,9 @@ class UserControllerTest {
         "User",
         true,
         true,
-        true);
+        true,
+        List.of(RoleType.USER)
+    );
 
     testUserResponseResponse = testUser.toDto();
   }

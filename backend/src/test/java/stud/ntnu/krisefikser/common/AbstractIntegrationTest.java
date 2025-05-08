@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.common;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
@@ -105,26 +106,44 @@ public abstract class AbstractIntegrationTest {
           "User",
           "turnstile-token");
 
-      String responseContent = mockMvc.perform(
+      // Register the user
+      mockMvc.perform(
               post("/api/auth/register")
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
+          .andExpect(status().isOk())
+          .andReturn();
+
+      // Fetch the user from the database
+      this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
+          .orElseThrow(() -> new RuntimeException("Test user not found"));
+
+      // Manually set email as verified
+      this.testUser.setEmailVerified(true);
+      userRepository.save(this.testUser);
+
+      // Login to get access token
+      Map<String, String> loginRequest = Map.of(
+          "email", TEST_USER_EMAIL,
+          "password", DEFAULT_PASSWORD
+      );
+
+      String loginResponseContent = mockMvc.perform(
+              post("/api/auth/login")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(loginRequest)))
           .andExpect(status().isOk())
           .andReturn()
           .getResponse()
           .getContentAsString();
 
       // Parse response and extract token
-      Map<String, String> responseMap = objectMapper.readValue(responseContent,
+      Map<String, String> responseMap = objectMapper.readValue(loginResponseContent,
           new TypeReference<>() {
           });
 
       this.accessToken = responseMap.get("accessToken");
       log.debug("Got access token: {}", accessToken);
-
-      // Fetch the user from the database
-      this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
-          .orElseThrow(() -> new RuntimeException("Test user not found"));
 
       // Create Household - using both JWT and Spring Security for maximum
       // compatibility

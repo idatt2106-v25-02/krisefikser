@@ -1,9 +1,11 @@
 package stud.ntnu.krisefikser.household;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,184 +30,223 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
 
-        @Autowired
-        private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-        @Autowired
-        private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-        @Autowired
-        private HouseholdInviteRepository inviteRepository;
+  @Autowired
+  private HouseholdInviteRepository inviteRepository;
 
-        @Autowired
-        private HouseholdMemberRepository memberRepository;
+  @Autowired
+  private HouseholdMemberRepository memberRepository;
 
-        @Autowired
-        private UserRepository userRepository;
+  @Autowired
+  private UserRepository userRepository;
 
-        @MockBean
-        private TurnstileService turnstileService;
+  @MockBean
+  private TurnstileService turnstileService;
 
-        private User invitedUser;
-        private String invitedUserToken;
+  private User invitedUser;
+  private String invitedUserToken;
 
-        @BeforeEach
-        void setUp() throws Exception {
-                // Mock Turnstile verification
-                when(turnstileService.verify(any())).thenReturn(true);
+  @BeforeEach
+  void setUp() throws Exception {
+    // Mock Turnstile verification
+    when(turnstileService.verify(any())).thenReturn(true);
 
-                // Set up the test user and household
-                setUpUser();
+    // Set up the test user and household
+    setUpUser();
 
-                // Create and register another user to be invited
-                RegisterRequest registerRequest = new RegisterRequest(
-                                "invited@test.com",
-                                "password",
-                                "Invited",
-                                "User",
-                                "turnstile-token");
+    // Create and register another user to be invited
+    RegisterRequest registerRequest = new RegisterRequest(
+        "invited@test.com",
+        "password",
+        "Invited",
+        "User",
+        "turnstile-token");
 
-                String responseContent = mockMvc.perform(
-                                post("/api/auth/register")
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content(objectMapper.writeValueAsString(registerRequest)))
-                                .andExpect(status().isOk())
-                                .andReturn()
-                                .getResponse()
-                                .getContentAsString();
+    // Register the user
+    mockMvc.perform(
+            post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isOk());
 
-                // Parse response and extract token
-                Map<String, String> responseMap = objectMapper.readValue(responseContent,
-                                new TypeReference<>() {
-                                });
+    // Retrieve user from repository
+    this.invitedUser = userRepository.findByEmail("invited@test.com")
+        .orElseThrow(() -> new RuntimeException("Invited user not found"));
 
-                this.invitedUserToken = responseMap.get("accessToken");
-                this.invitedUser = userRepository.findByEmail("invited@test.com")
-                                .orElseThrow(() -> new RuntimeException("Invited user not found"));
-        }
+    // Manually set email as verified
+    this.invitedUser.setEmailVerified(true);
+    userRepository.save(this.invitedUser);
 
-        @Test
-        void completeInviteFlow() throws Exception {
-                // 1. Create invite by user ID
-                CreateHouseholdInviteRequest createRequest = new CreateHouseholdInviteRequest(
-                                getTestHousehold().getId(),
-                                invitedUser.getId(),
-                                null);
+    // Login to get the access token
+    Map<String, String> loginRequest = Map.of(
+        "email", "invited@test.com",
+        "password", "password"
+    );
 
-                MvcResult createResult = mockMvc.perform(
-                                withJwtAuth(
-                                                post("/api/household-invites")
-                                                                .contentType(MediaType.APPLICATION_JSON)
-                                                                .content(objectMapper
-                                                                                .writeValueAsString(createRequest))))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.invitedUser.id").value(invitedUser.getId().toString()))
-                                .andExpect(jsonPath("$.status").value(InviteStatus.PENDING.name()))
-                                .andReturn();
+    String loginResponseContent = mockMvc.perform(
+            post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
 
-                String responseContent = createResult.getResponse().getContentAsString();
-                UUID inviteId = UUID.fromString(objectMapper.readTree(responseContent).get("id").asText());
+    // Parse response and extract token
+    Map<String, String> responseMap = objectMapper.readValue(loginResponseContent,
+        new TypeReference<>() {
+        });
 
-                // 2. Get pending invites for household
-                mockMvc.perform(
-                                withJwtAuth(
-                                                get("/api/household-invites/household/" + getTestHousehold().getId()
-                                                                + "/pending")))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$[0].id").value(inviteId.toString()))
-                                .andExpect(jsonPath("$[0].status").value(InviteStatus.PENDING.name()));
+    this.invitedUserToken = responseMap.get("accessToken");
+  }
 
-                // 3. Switch to invited user context and get their pending invites
-                mockMvc.perform(
-                                get("/api/household-invites/pending")
-                                                .header("Authorization", "Bearer " + invitedUserToken))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$[0].id").value(inviteId.toString()));
+  @Test
+  void completeInviteFlow() throws Exception {
+    // 1. Create invite by user ID
+    CreateHouseholdInviteRequest createRequest = new CreateHouseholdInviteRequest(
+        getTestHousehold().getId(),
+        invitedUser.getId(),
+        null);
 
-                // 4. Accept the invite as invited user
-                mockMvc.perform(
-                                post("/api/household-invites/" + inviteId + "/accept")
-                                                .header("Authorization", "Bearer " + invitedUserToken))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.status").value(InviteStatus.ACCEPTED.name()));
+    MvcResult createResult = mockMvc.perform(
+            withJwtAuth(
+                post("/api/household-invites")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper
+                        .writeValueAsString(createRequest))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.invitedUser.id").value(invitedUser.getId().toString()))
+        .andExpect(jsonPath("$.status").value(InviteStatus.PENDING.name()))
+        .andReturn();
 
-                // 6. Create invite by email
-                createRequest = new CreateHouseholdInviteRequest(
-                                getTestHousehold().getId(),
-                                null,
-                                "newinvite@test.com");
+    String responseContent = createResult.getResponse().getContentAsString();
+    UUID inviteId = UUID.fromString(objectMapper.readTree(responseContent).get("id").asText());
 
-                MvcResult emailInviteResult = mockMvc.perform(
-                                withJwtAuth(
-                                                post("/api/household-invites")
-                                                                .contentType(MediaType.APPLICATION_JSON)
-                                                                .content(objectMapper
-                                                                                .writeValueAsString(createRequest))))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.invitedEmail").value("newinvite@test.com"))
-                                .andExpect(jsonPath("$.status").value(InviteStatus.PENDING.name()))
-                                .andReturn();
+    // 2. Get pending invites for household
+    mockMvc.perform(
+            withJwtAuth(
+                get("/api/household-invites/household/" + getTestHousehold().getId()
+                    + "/pending")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(inviteId.toString()))
+        .andExpect(jsonPath("$[0].status").value(InviteStatus.PENDING.name()));
 
-                UUID emailInviteId = UUID.fromString(
-                                objectMapper.readTree(emailInviteResult.getResponse().getContentAsString())
-                                                .get("id")
-                                                .asText());
+    // 3. Switch to invited user context and get their pending invites
+    mockMvc.perform(
+            get("/api/household-invites/pending")
+                .header("Authorization", "Bearer " + invitedUserToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(inviteId.toString()));
 
-                // 7. Cancel the email invite
-                mockMvc.perform(
-                                withJwtAuth(
-                                                post("/api/household-invites/" + emailInviteId + "/cancel")))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.status").value(InviteStatus.CANCELLED.name()));
+    // 4. Accept the invite as invited user
+    mockMvc.perform(
+            post("/api/household-invites/" + inviteId + "/accept")
+                .header("Authorization", "Bearer " + invitedUserToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value(InviteStatus.ACCEPTED.name()));
 
-                // 8. Create another invite for the same email - this should reuse the previous
-                // invite
-                MvcResult reusedInviteResult = mockMvc.perform(
-                                withJwtAuth(
-                                                post("/api/household-invites")
-                                                                .contentType(MediaType.APPLICATION_JSON)
-                                                                .content(objectMapper
-                                                                                .writeValueAsString(createRequest))))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.invitedEmail").value("newinvite@test.com"))
-                                .andExpect(jsonPath("$.status").value(InviteStatus.PENDING.name()))
-                                .andReturn();
+    // 6. Create invite by email
+    createRequest = new CreateHouseholdInviteRequest(
+        getTestHousehold().getId(),
+        null,
+        "newinvite@test.com");
 
-                // Verify this is the same invite ID (reused)
-                UUID reusedInviteId = UUID.fromString(
-                                objectMapper.readTree(reusedInviteResult.getResponse().getContentAsString())
-                                                .get("id")
-                                                .asText());
+    MvcResult emailInviteResult = mockMvc.perform(
+            withJwtAuth(
+                post("/api/household-invites")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper
+                        .writeValueAsString(createRequest))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.invitedEmail").value("newinvite@test.com"))
+        .andExpect(jsonPath("$.status").value(InviteStatus.PENDING.name()))
+        .andReturn();
 
-                // Assert that the invite was reused
-                assert emailInviteId.equals(reusedInviteId) : "Expected the same invite to be reused";
+    UUID emailInviteId = UUID.fromString(
+        objectMapper.readTree(emailInviteResult.getResponse().getContentAsString())
+            .get("id")
+            .asText());
 
-                // 9. Register new user with the invited email
-                RegisterRequest registerRequest = new RegisterRequest(
-                                "newinvite@test.com",
-                                "password",
-                                "New",
-                                "User",
-                                "turnstile-token");
+    // 7. Cancel the email invite
+    mockMvc.perform(
+            withJwtAuth(
+                post("/api/household-invites/" + emailInviteId + "/cancel")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value(InviteStatus.CANCELLED.name()));
 
-                String newUserResponse = mockMvc.perform(
-                                post("/api/auth/register")
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content(objectMapper.writeValueAsString(registerRequest)))
-                                .andExpect(status().isOk())
-                                .andReturn()
-                                .getResponse()
-                                .getContentAsString();
+    // 8. Create another invite for the same email - this should reuse the previous
+    // invite
+    MvcResult reusedInviteResult = mockMvc.perform(
+            withJwtAuth(
+                post("/api/household-invites")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper
+                        .writeValueAsString(createRequest))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.invitedEmail").value("newinvite@test.com"))
+        .andExpect(jsonPath("$.status").value(InviteStatus.PENDING.name()))
+        .andReturn();
 
-                String newUserToken = objectMapper.readValue(newUserResponse, new TypeReference<Map<String, String>>() {
-                })
-                                .get("accessToken");
+    // Verify this is the same invite ID (reused)
+    UUID reusedInviteId = UUID.fromString(
+        objectMapper.readTree(reusedInviteResult.getResponse().getContentAsString())
+            .get("id")
+            .asText());
 
-                // 10. Decline the invite as the new user - now should use the reused invite ID
-                mockMvc.perform(
-                                post("/api/household-invites/" + reusedInviteId + "/decline")
-                                                .header("Authorization", "Bearer " + newUserToken))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.status").value(InviteStatus.DECLINED.name()));
-        }
+    // Assert that the invite was reused
+    assert emailInviteId.equals(reusedInviteId) : "Expected the same invite to be reused";
+
+    // 9. Register new user with the invited email
+    RegisterRequest registerRequest = new RegisterRequest(
+        "newinvite@test.com",
+        "password",
+        "New",
+        "User",
+        "turnstile-token");
+
+    mockMvc.perform(
+            post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isOk());
+
+    // Find user and verify email
+    User newUser = userRepository.findByEmail("newinvite@test.com")
+        .orElseThrow(() -> new RuntimeException("New invited user not found"));
+    newUser.setEmailVerified(true);
+    userRepository.save(newUser);
+
+    // Login to get the access token
+    Map<String, String> loginRequest = Map.of(
+        "email", "newinvite@test.com",
+        "password", "password"
+    );
+
+    String loginResponseContent = mockMvc.perform(
+            post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    // Parse response and extract token
+    String newUserToken = objectMapper.readValue(loginResponseContent,
+            new TypeReference<Map<String, String>>() {
+            })
+        .get("accessToken");
+
+    // 10. Decline the invite as the new user
+    mockMvc.perform(
+            post("/api/household-invites/" + reusedInviteId + "/decline")
+                .header("Authorization", "Bearer " + newUserToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value(InviteStatus.DECLINED.name()));
+  }
 }
