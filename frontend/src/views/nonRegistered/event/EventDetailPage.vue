@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { formatDate } from '@/utils/date-formatter.ts';
 
 const route = useRoute();
 const queryClient = useQueryClient();
@@ -88,37 +89,6 @@ const reflectionsErrorMessage = computed(() => {
   if (reflectionsError.value instanceof Error) return reflectionsError.value.message;
   return reflectionsError.value ? 'En ukjent feil oppstod ved lasting av refleksjoner.' : '';
 });
-
-const formatDate = (dateInput?: string | number[] | null) => {
-  if (!dateInput) return 'Ukjent dato';
-
-  // If it's an array, convert to Date
-  if (Array.isArray(dateInput)) {
-    // Java months are 1-based, JS months are 0-based
-    const [year, month, day, hour, minute, second, nanosecond] = dateInput;
-    const ms = Math.floor((nanosecond || 0) / 1e6); // Convert nanoseconds to milliseconds
-    const date = new Date(year, month - 1, day, hour, minute, second, ms);
-    if (isNaN(date.getTime())) return 'Ukjent dato';
-    return date.toLocaleDateString('nb-NO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
-  // If it's a string, try to parse as date
-  const date = new Date(dateInput);
-  if (isNaN(date.getTime())) return 'Ukjent dato';
-  return date.toLocaleDateString('nb-NO', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
 
 const canManageReflection = (reflection: ReflectionResponse) => {
   if (!authStore.currentUser) return false;
