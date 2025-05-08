@@ -1,20 +1,9 @@
 <!-- NewsSection.vue -->
-<script lang="ts">
-export default {
-  name: 'NewsSection',
-}
-</script>
-
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGetAllArticles } from '@/api/generated/article/article'
-import {
-  Newspaper,
-  AlertTriangle,
-  Calendar,
-  ArrowRight
-} from 'lucide-vue-next'
+import { Newspaper, AlertTriangle, Calendar, ArrowRight } from 'lucide-vue-next'
 
 const router = useRouter()
 const { data: articles, isLoading, error } = useGetAllArticles()
@@ -22,19 +11,23 @@ const { data: articles, isLoading, error } = useGetAllArticles()
 const ARTICLES_PER_PAGE = 6
 const currentPage = ref(1)
 
-const arrayToDate = (dateArray?: number[]) => {
-  if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return null
-  // Note: Month in JavaScript is 0-based, so we subtract 1 from the month
-  return new Date(dateArray[0], dateArray[1] - 1, dateArray[2],
-    dateArray[3] || 0, dateArray[4] || 0, dateArray[5] || 0)
+const parseIsoString = (isoString?: string): Date | null => {
+  if (!isoString) return null
+  try {
+    return new Date(isoString)
+  } catch (e) {
+    console.error('Error parsing date string:', isoString, e)
+    return null
+  }
 }
 
 const sortedArticles = computed(() => {
   if (!articles?.value) return []
+  // Ensure articles.value is an array, even if the API returns a single object (though it should be an array)
   const articleArray = Array.isArray(articles.value) ? articles.value : [articles.value]
   return [...articleArray].sort((a, b) => {
-    const dateA = arrayToDate(a.createdAt)?.getTime() || 0
-    const dateB = arrayToDate(b.createdAt)?.getTime() || 0
+    const dateA = parseIsoString(a.createdAt)?.getTime() || 0
+    const dateB = parseIsoString(b.createdAt)?.getTime() || 0
     return dateB - dateA
   })
 })
@@ -48,10 +41,10 @@ const paginatedArticles = computed(() => {
   return sortedArticles.value.slice(start, start + ARTICLES_PER_PAGE)
 })
 
-const formatDate = (dateArray?: number[]) => {
-  if (!dateArray || !Array.isArray(dateArray)) return ''
+const formatDate = (isoString?: string) => {
+  if (!isoString) return ''
 
-  const date = arrayToDate(dateArray)
+  const date = parseIsoString(isoString)
   if (!date || isNaN(date.getTime())) return ''
 
   try {
@@ -73,7 +66,7 @@ const formatDate = (dateArray?: number[]) => {
 
 const getExcerpt = (text?: string) => {
   if (!text) return ''
-  const cleanText = text.replace(/### |##|#|\*\*/g, '');
+  const cleanText = text.replace(/### |##|#|\*\*/g, '')
 
   return cleanText.length > 200 ? cleanText.substring(0, 200) + '...' : cleanText
 }
@@ -95,26 +88,26 @@ const getArticleIcon = (title: string = '') => {
 }
 
 // Reference to the articles container for scrolling
-const articlesContainer = ref(null);
-const showScrollIndicator = ref(false);
+const articlesContainer = ref(null)
+const showScrollIndicator = ref(false)
 
 // Check if scrolling is needed
 onMounted(() => {
   if (articlesContainer.value) {
     const checkScroll = () => {
       if (articlesContainer.value) {
-        const { scrollHeight, clientHeight } = articlesContainer.value;
-        showScrollIndicator.value = scrollHeight > clientHeight;
+        const { scrollHeight, clientHeight } = articlesContainer.value
+        showScrollIndicator.value = scrollHeight > clientHeight
       }
-    };
+    }
 
     // Check initial state
-    setTimeout(checkScroll, 500);
+    setTimeout(checkScroll, 500)
 
     // Add resize listener
-    window.addEventListener('resize', checkScroll);
+    window.addEventListener('resize', checkScroll)
   }
-});
+})
 </script>
 
 <template>
@@ -123,7 +116,11 @@ onMounted(() => {
     <div class="absolute top-0 left-0 w-full h-64 bg-blue-50 -z-10 overflow-hidden">
       <div class="absolute bottom-0 left-0 right-0">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" class="w-full h-auto">
-          <path fill="#ffffff" fill-opacity="1" d="M0,128L48,144C96,160,192,192,288,186.7C384,181,480,139,576,138.7C672,139,768,181,864,170.7C960,160,1056,96,1152,85.3C1248,75,1344,117,1392,138.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+          <path
+            fill="#ffffff"
+            fill-opacity="1"
+            d="M0,128L48,144C96,160,192,192,288,186.7C384,181,480,139,576,138.7C672,139,768,181,864,170.7C960,160,1056,96,1152,85.3C1248,75,1344,117,1392,138.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          ></path>
         </svg>
       </div>
     </div>
@@ -137,7 +134,9 @@ onMounted(() => {
       </div>
 
       <div v-if="isLoading" class="text-center py-8">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"
+        ></div>
         <p class="text-gray-600">Laster nyheter...</p>
       </div>
 
@@ -158,7 +157,9 @@ onMounted(() => {
           @click="navigateToArticle(article.id)"
         >
           <!-- Blue corner decoration - same for all cards -->
-          <div class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-blue-50/70">
+          <div
+            class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-blue-50/70"
+          >
             <div class="absolute top-2.5 right-2.5">
               <component :is="getArticleIcon(article.title)" class="h-6 w-6 text-blue-500" />
             </div>
@@ -183,19 +184,33 @@ onMounted(() => {
       </div>
 
       <!-- Pagination -->
-      <div v-if="sortedArticles.length > ARTICLES_PER_PAGE" class="flex justify-center items-center space-x-4 mt-8">
+      <div
+        v-if="sortedArticles.length > ARTICLES_PER_PAGE"
+        class="flex justify-center items-center space-x-4 mt-8"
+      >
         <button
           :disabled="currentPage === 1"
           class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
           :class="[
             currentPage === 1
               ? 'bg-gray-100 text-gray-400'
-              : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200'
+              : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200',
           ]"
           @click="currentPage--"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Forrige
         </button>
@@ -212,13 +227,24 @@ onMounted(() => {
           :class="[
             currentPage === totalPages
               ? 'bg-gray-100 text-gray-400'
-              : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200'
+              : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200',
           ]"
           @click="currentPage++"
         >
           Neste
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 ml-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       </div>
