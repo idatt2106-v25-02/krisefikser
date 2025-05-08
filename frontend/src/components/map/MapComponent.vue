@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
@@ -46,6 +46,7 @@ L.Marker.mergeOptions({
 // Custom zoom control HTML
 const setupCustomControls = (map: L.Map) => {
   // Create custom zoom in control
+  // @ts-expect-error - Leaflet types are not correctly detecting L.control as callable
   const zoomInControl = L.control({ position: 'bottomleft' })
   zoomInControl.onAdd = function () {
     const div = L.DomUtil.create('div', 'custom-map-control zoom-in')
@@ -66,6 +67,7 @@ const setupCustomControls = (map: L.Map) => {
   zoomInControl.addTo(map)
 
   // Create custom zoom out control
+  // @ts-expect-error - Leaflet types are not correctly detecting L.control as callable
   const zoomOutControl = L.control({ position: 'bottomleft' })
   zoomOutControl.onAdd = function () {
     const div = L.DomUtil.create('div', 'custom-map-control zoom-out')
@@ -85,6 +87,7 @@ const setupCustomControls = (map: L.Map) => {
   zoomOutControl.addTo(map)
 
   // Create home button to reset view
+  // @ts-expect-error - Leaflet types are not correctly detecting L.control as callable
   const homeControl = L.control({ position: 'bottomleft' })
   homeControl.onAdd = function () {
     const div = L.DomUtil.create('div', 'custom-map-control home')
