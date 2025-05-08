@@ -6,8 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  empty?: boolean
-  sorted?: boolean
-  unsorted?: boolean
+export type GetExpiringItemsParams = {
+  before: string
 }

@@ -6,8 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  empty?: boolean
-  sorted?: boolean
-  unsorted?: boolean
-}
+export type GetHouseholdSummary200 = { [key: string]: number }

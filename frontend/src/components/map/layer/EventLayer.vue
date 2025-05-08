@@ -6,6 +6,7 @@ import {
   EventResponseLevel as EventLevel,
   EventResponseStatus as EventStatus,
 } from '@/api/generated/model'
+import { webSocket } from '@/main.ts'
 import { formatDate } from '@/utils/date-formatter'
 
 // Define props
@@ -14,7 +15,7 @@ const props = defineProps<{
   events: EventResponse[]
 }>()
 
-const circles: L.Circle[] = []
+const circleMap = new Map<number, L.Circle>()
 
 // Helper function to get severity name based on event level
 function getSeverityName(level?: EventLevel): string {
@@ -68,31 +69,12 @@ function getEventColor(level?: EventLevel, status?: EventStatus): string {
   }
 }
 
-// Add events to map
-function addEvents() {
-  if (!props.map) return
+// Create popup content
+function createPopupContent(event: EventResponse, color: string): string {
+  const startTime = formatDate(event.startTime)
+  const endTime = formatDate(event.endTime)
 
-  // Clear previous circles
-  for (const circle of circles) {
-    circle.remove()
-  }
-  circles.length = 0
-
-  // Add events
-  for (const event of props.events) {
-    if (event.latitude && event.longitude && event.radius) {
-      const color = getEventColor(event.level, event.status)
-
-      const startTime = formatDate(event.startTime)
-      const endTime = formatDate(event.endTime)
-
-      const circle = L.circle([event.latitude, event.longitude], {
-        radius: event.radius,
-        color: color,
-        fillColor: color,
-        fillOpacity: 0.3,
-        weight: 2,
-      }).addTo(props.map).bindPopup(`
+  return `
           <div style="min-width: 300px; font-family: system-ui, -apple-system, sans-serif; border-radius: 8px; overflow: hidden;">
 
             <div style="padding: 16px;">
@@ -100,14 +82,14 @@ function addEvents() {
 
               <!-- Metadata badges similar to EventDetailPage -->
               <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
-                <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; background-color: ${color}20; color: ${color};">
+                <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; background-color: ${color + '20'}; color: ${color};">
                   <svg xmlns="http://www.w3.org/2000/svg" style="height: 12px; width: 12px; margin-right: 4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                   </svg>
                   ${getStatusName(event.status)}
                 </span>
 
-                <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; background-color: ${color}10; color: ${color};">
+                <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; background-color: ${color + '10'}; color: ${color};">
                   <svg xmlns="http://www.w3.org/2000/svg" style="height: 12px; width: 12px; margin-right: 4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -159,24 +141,113 @@ function addEvents() {
               </a>
             </div>
           </div>
-        `)
+        `
+}
 
-      circles.push(circle)
+// Add a single event to the map
+function addEvent(event: EventResponse) {
+  if (!props.map || !event.id || !event.latitude || !event.longitude || !event.radius) {
+    return
+  }
+
+  // Skip if this event is already on the map
+  if (circleMap.has(event.id)) {
+    updateEvent(event)
+    return
+  }
+
+  const color = getEventColor(event.level)
+
+  const circle = L.circle([event.latitude, event.longitude], {
+    radius: event.radius,
+    color: color,
+    fillColor: color,
+    fillOpacity: 0.3,
+    weight: 2,
+  }).addTo(props.map)
+
+  circle.bindPopup(createPopupContent(event, color))
+
+  // Store the circle for later reference
+  circleMap.set(event.id, circle)
+}
+
+// Update an existing event circle
+function updateEvent(event: EventResponse) {
+  if (!event.id || !event.latitude || !event.longitude || !event.radius) {
+    return
+  }
+
+  const circle = circleMap.get(event.id)
+  if (!circle) {
+    // If we don't have this circle yet, add it
+    addEvent(event)
+    return
+  }
+
+  const color = getEventColor(event.level)
+
+  // Update circle properties
+  circle.setLatLng([event.latitude, event.longitude])
+  circle.setRadius(event.radius)
+  circle.setStyle({
+    color: color,
+    fillColor: color,
+    fillOpacity: 0.3,
+    weight: 2,
+  })
+
+  // Update popup content
+  circle.unbindPopup()
+  circle.bindPopup(createPopupContent(event, color))
+}
+
+// Remove an event from the map
+function removeEvent(eventId: number) {
+  const circle = circleMap.get(eventId)
+  if (circle && props.map) {
+    circle.remove()
+    circleMap.delete(eventId)
+  }
+}
+
+// Initialize events
+function initializeEvents() {
+  if (!props.map) return
+  circleMap.clear()
+  // Add all initial events to the map
+  for (const event of props.events) {
+    if (event.id) {
+      addEvent(event)
     }
   }
 }
 
+// Handler for new events coming from WebSocket
+function initializeWebsocket() {
+  webSocket.subscribe<EventResponse>('/topic/events', (event) => {
+    updateEvent(event)
+  })
+
+  webSocket.subscribe<EventResponse>('/topic/events/new', (event) => {
+    addEvent(event)
+  })
+
+  webSocket.subscribe<number>('/topic/events/delete', (eventId) => {
+    removeEvent(eventId)
+  })
+}
+
 onMounted(() => {
-  if (props.map) {
-    addEvents()
-  }
+  initializeEvents()
+  initializeWebsocket()
 })
 
 watch(
   () => props.map,
   (newMap) => {
     if (newMap) {
-      addEvents()
+      initializeEvents()
     }
   },
 )
@@ -184,7 +255,7 @@ watch(
 watch(
   () => props.events,
   () => {
-    addEvents()
+    initializeEvents()
   },
   { deep: true },
 )

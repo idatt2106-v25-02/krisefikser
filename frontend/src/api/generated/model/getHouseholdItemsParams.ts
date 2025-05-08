@@ -5,9 +5,9 @@
  * API for the Krisefikser application
  * OpenAPI spec version: 1.0
  */
+import type { Pageable } from './pageable'
 
-export interface SortObject {
-  empty?: boolean
-  sorted?: boolean
-  unsorted?: boolean
+export type GetHouseholdItemsParams = {
+  productTypeId?: string
+  pageable: Pageable
 }

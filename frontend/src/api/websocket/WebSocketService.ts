@@ -7,7 +7,7 @@ export class WebSocketService {
   private connectionPromise: Promise<void> | null = null
   private pendingOperations: Array<() => void> = []
 
-  constructor(serverUrl: string = import.meta.env.VITE_WS_URL as string, debug: boolean = false) {
+  constructor(serverUrl: string = import.meta.env.VITE_WS_URL as string, debug: boolean = true) {
     this.client = new Client({
       brokerURL: serverUrl,
       debug: debug ? (msg: string) => console.debug(msg) : () => {},

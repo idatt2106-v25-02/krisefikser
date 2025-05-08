@@ -6,8 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  empty?: boolean
-  sorted?: boolean
-  unsorted?: boolean
+export interface ProductType {
+  id?: string
+  name?: string
+  unit?: string
+  createdAt?: string
+  updatedAt?: string
 }
