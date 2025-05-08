@@ -395,7 +395,8 @@ watch(() => route.query, (newQuery) => {
             v-if="isFormOpen"
             :event-id="eventId"
             :initial-data="editingReflection"
-            @submitted="handleReflectionSubmitted"
+            @created="handleReflectionSubmitted"
+            @updated="handleReflectionSubmitted"
             @cancel="cancelEdit"
           />
         </DialogContent>
