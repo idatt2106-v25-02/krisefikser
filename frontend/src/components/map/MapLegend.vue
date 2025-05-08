@@ -117,10 +117,6 @@ function toggleLegend() {
             <span>Rødt nivå (Fare)</span>
           </div>
         </div>
-        <div class="text-xs text-gray-600 mt-2">
-          <div>Hendelsens gjennomsiktighet indikerer status:</div>
-          <div>Lav = Kommende, Høy = Pågående, Svak = Avsluttet</div>
-        </div>
       </div>
     </transition>
     <Button
