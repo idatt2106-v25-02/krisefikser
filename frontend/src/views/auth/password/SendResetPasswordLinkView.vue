@@ -4,7 +4,7 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { Mail, ArrowRight, CheckCircle } from 'lucide-vue-next'
-import axios from 'axios'
+import { useRequestPasswordReset } from '../../../api/generated/authentication/authentication'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -26,12 +26,16 @@ const isSubmitted = ref(false)
 const isLoading = ref(false)
 const userEmail = ref('')
 
+const requestPasswordResetMutation = useRequestPasswordReset()
+
 const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
 
   try {
-    await axios.post('http://localhost:8080/api/auth/request-password-reset', {
-      email: values.email
+    await requestPasswordResetMutation.mutateAsync({
+      data: {
+        email: values.email
+      }
     })
 
     userEmail.value = values.email
