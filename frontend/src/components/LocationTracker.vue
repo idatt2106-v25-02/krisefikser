@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useUpdateCurrentUserLocation } from '@/api/generated/user/user'
 import { toast } from 'vue-sonner'
 

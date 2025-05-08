@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref,  onUnmounted, watch } from 'vue'
 import L from 'leaflet'
 import type { Map as LeafletMap, Marker } from 'leaflet'
 import type { HouseholdMemberResponse } from '@/api/generated/model'
