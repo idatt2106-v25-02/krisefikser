@@ -30,6 +30,19 @@ const currentPage = ref(0)
 const queryClient = useQueryClient()
 const notificationStore = useNotificationStore()
 
+// Local state for optimistic updates
+const processingNotifications = ref(new Set<string>())
+const processingAllNotifications = ref(false)
+
+// Add type for paginated response
+interface PaginatedResponse<T> {
+  content: T[]
+  totalPages: number
+  totalElements: number
+  size: number
+  number: number
+}
+
 const formatDate = (dateInput: string | number[] | undefined): string => {
   if (!dateInput) {
     return '-'
@@ -82,7 +95,7 @@ const formatDate = (dateInput: string | number[] | undefined): string => {
 }
 
 // Fetch Unread Count
-const { data: unreadCountData } = useGetUnreadCount({
+const { data: unreadCountData, refetch: refetchUnreadCount } = useGetUnreadCount({
   query: {
     // Optional: Configure staleTime, refetchInterval, etc.
   },
@@ -105,26 +118,37 @@ const {
 } = useGetNotifications(notificationParams)
 
 // Mutations
-const { mutate: mutateReadNotification, isPending: isMarkingAsRead } = useReadNotification({
+const { mutate: mutateReadNotification } = useReadNotification({
   mutation: {
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
+    onSuccess: (_, variables) => {
+      refetchNotifications()
+      refetchUnreadCount()
+
+      if (variables.id) {
+        processingNotifications.value.delete(variables.id)
+      }
     },
-    onError: (error: ErrorType<unknown>) => {
-      console.error('Failed to mark notification as read:', error)
+    onError: (error: ErrorType<unknown>, variables) => {
+      if (variables.id) {
+        processingNotifications.value.delete(variables.id)
+      }
+      refetchNotifications()
+      refetchUnreadCount()
     },
   },
 })
 
-const { mutate: mutateReadAll, isPending: isMarkingAllAsRead } = useReadAll({
+const { mutate: mutateReadAll } = useReadAll({
   mutation: {
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
+      refetchNotifications()
+      refetchUnreadCount()
     },
     onError: (error: ErrorType<unknown>) => {
       console.error('Failed to mark all notifications as read:', error)
+      processingAllNotifications.value = false
+      refetchNotifications()
+      refetchUnreadCount()
     },
   },
 })
@@ -134,7 +158,19 @@ const notifications = computed(() => notificationsData.value?.content || [])
 const totalPages = computed(() => notificationsData.value?.totalPages || 0)
 
 const filteredNotifications = computed(() => {
-  const currentNotifications = notifications.value
+  let currentNotifications = notifications.value
+
+  // Apply "read" status for notifications in processing and from store
+  currentNotifications = currentNotifications.map((n) => {
+    if (
+      processingAllNotifications.value ||
+      (n.id && processingNotifications.value.has(n.id)) ||
+      (n.id && notificationStore.isNotificationRead(n.id))
+    ) {
+      return { ...n, read: true }
+    }
+    return n
+  })
 
   switch (activeFilter.value) {
     case 'unread':
@@ -151,7 +187,19 @@ const filteredNotifications = computed(() => {
 })
 
 const hasUnread = computed(() => {
-  return (unreadCountData.value ?? 0) > 0
+  if (processingAllNotifications.value) return false
+
+  const unreadCount = unreadCountData.value ?? 0
+  return unreadCount > 0
+})
+
+const isMarkingAsRead = (notificationId: string | undefined) => {
+  if (!notificationId) return false
+  return processingNotifications.value.has(notificationId)
+}
+
+const isMarkingAllAsRead = computed(() => {
+  return processingAllNotifications.value
 })
 
 const handleNotificationClick = (notification: NotificationResponse) => {
@@ -162,61 +210,73 @@ const handleNotificationClick = (notification: NotificationResponse) => {
   console.log('Notification clicked:', notification)
 }
 
-// Call local mutation function
+// Call local mutation function with optimistic updates
 const markAsRead = (notificationId: string) => {
   if (!notificationId) {
     console.error('Notification ID missing')
     return
   }
 
+  // Prevent duplicate processing
+  if (processingNotifications.value.has(notificationId)) {
+    return
+  }
+
+  // Add to processing set for UI indication
+  processingNotifications.value.add(notificationId)
+
   // Update local store
   notificationStore.markNotificationAsRead(notificationId)
 
-  // Update the notifications data immediately
+  // Optimistically update the UI by updating the local query cache
   const queryKey = ['/api/notifications', notificationParams.value]
-  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(
-    queryKey,
-  )
+  queryClient.setQueryData<PaginatedResponse<NotificationResponse>>(queryKey, (oldData) => {
+    if (!oldData || !oldData.content) return oldData
 
-  if (previousNotificationsData && previousNotificationsData.content) {
-    const updatedContent = previousNotificationsData.content.map((notif: NotificationResponse) =>
-      notif.id === notificationId ? { ...notif, read: true } : notif,
-    )
-    queryClient.setQueryData<{ content?: NotificationResponse[] }>(queryKey, {
-      ...previousNotificationsData,
-      content: updatedContent,
-    })
-  }
+    return {
+      ...oldData,
+      content: oldData.content.map((n: NotificationResponse) =>
+        n.id === notificationId ? { ...n, read: true } : n,
+      ),
+    }
+  })
 
-  // Also update the unread count immediately
+  // Also optimistically update the unread count
   const unreadCountKey = ['/api/notifications/unread']
-  const currentUnreadCount = queryClient.getQueryData<number>(unreadCountKey)
-  if (typeof currentUnreadCount === 'number') {
-    queryClient.setQueryData<number>(unreadCountKey, Math.max(0, currentUnreadCount - 1))
-  }
+  queryClient.setQueryData<number | undefined>(unreadCountKey, (oldData) => {
+    if (oldData === undefined) return oldData
+    return Math.max(0, oldData - 1)
+  })
 
   // Call the API to mark as read
   mutateReadNotification({ id: notificationId })
 }
 
 const markAllAsRead = () => {
-  notificationStore.markAllNotificationsAsRead()
-
-  const queryKey = ['/api/notifications', notificationParams.value]
-  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(
-    queryKey,
-  )
-
-  if (previousNotificationsData && previousNotificationsData.content) {
-    const updatedContent = previousNotificationsData.content.map(
-      (notif: NotificationResponse) => ({ ...notif, read: true }), // Mark all as read
-    )
-    queryClient.setQueryData<{ content?: NotificationResponse[] }>(queryKey, {
-      ...previousNotificationsData,
-      content: updatedContent,
-    })
+  if (processingAllNotifications.value) {
+    return
   }
 
+  processingAllNotifications.value = true
+
+  // Update local store
+  notificationStore.markAllNotificationsAsRead()
+
+  // Optimistically update UI
+  const queryKey = ['/api/notifications', notificationParams.value]
+  queryClient.setQueryData<PaginatedResponse<NotificationResponse>>(queryKey, (oldData) => {
+    if (!oldData || !oldData.content) return oldData
+
+    return {
+      ...oldData,
+      content: oldData.content.map((n: NotificationResponse) => ({ ...n, read: true })),
+    }
+  })
+
+  // Also optimistically update the unread count
+  queryClient.setQueryData<number>(['/api/notifications/unread'], 0)
+
+  // Call the API
   mutateReadAll()
 }
 
@@ -438,12 +498,16 @@ watch(activeFilter, () => {
           <div class="px-4 py-2 bg-gray-50 border-t flex justify-end">
             <button
               v-if="!notification.read && notification.id"
-              :disabled="isMarkingAsRead"
+              :disabled="notification.id ? isMarkingAsRead(notification.id) : false"
               class="text-xs text-blue-600 hover:text-blue-800 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-              @click.stop="markAsRead(notification.id)"
+              @click.stop="notification.id && markAsRead(notification.id)"
             >
               <CheckIcon class="h-3 w-3 mr-1" />
-              {{ isMarkingAsRead ? 'Markerer...' : 'Marker som lest' }}
+              {{
+                notification.id && isMarkingAsRead(notification.id)
+                  ? 'Markerer...'
+                  : 'Marker som lest'
+              }}
             </button>
             <span v-else class="text-xs text-gray-500 flex items-center">
               <CheckIcon class="h-3 w-3 mr-1" />
