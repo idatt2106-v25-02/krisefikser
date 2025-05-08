@@ -42,6 +42,10 @@ import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 import java.util.HashMap;
 import java.util.Map;
+import stud.ntnu.krisefikser.auth.dto.AdminInviteRequest;
+import stud.ntnu.krisefikser.email.service.EmailAdminService;
+import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.annotation.security.PermitAll;
 
 /**
  * REST controller for managing authentication-related operations. Provides endpoints for user
@@ -57,6 +61,7 @@ public class AuthController {
     private final EmailVerificationService emailVerificationService;
     private final AuthService authService;
     private final TurnstileService turnstileService;
+    private final EmailAdminService emailAdminService;
 
   /**
    * Registers a new user after verifying the CAPTCHA and validating the input.
@@ -274,6 +279,48 @@ public class AuthController {
   ) {
     PasswordResetResponse response = authService.completePasswordReset(request);
     return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Sends an admin invitation email to the specified email address.
+   *
+   * @param request The request containing the email address to send the invitation to
+   * @return ResponseEntity containing the status of the invitation operation
+   */
+  @Operation(summary = "Send admin invitation", description = "Sends an admin invitation email to the specified address")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Admin invitation sent successfully"),
+      @ApiResponse(responseCode = "400", description = "Invalid email address"),
+      @ApiResponse(responseCode = "403", description = "Insufficient permissions to send admin invitation"),
+      @ApiResponse(responseCode = "500", description = "Error sending invitation email")
+  })
+  @PostMapping("/invite/admin")
+  public ResponseEntity<String> inviteAdmin(
+      @Parameter(description = "Email address to send the admin invitation to", required = true)
+      @RequestBody AdminInviteRequest request
+  ) {
+      // Generate a unique token for the admin invitation
+      String inviteToken = authService.generateAdminInviteToken(request.getEmail());
+      String inviteLink = "http://localhost:3000/admin/registrer?token=" + inviteToken;
+      
+      return emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
+  }
+
+  /**
+   * Verifies an admin invitation token and returns the associated email address.
+   *
+   * @param token The invitation token to verify
+   * @return ResponseEntity containing the email address if token is valid
+   */
+  @GetMapping("/verify-admin-invite")
+  @PermitAll
+  public ResponseEntity<Map<String, String>> verifyAdminInviteToken(@RequestParam String token) {
+    try {
+      String email = authService.verifyAdminInviteToken(token);
+      return ResponseEntity.ok(Map.of("email", email));
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
   }
 
   /**

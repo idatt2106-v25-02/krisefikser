@@ -45,6 +45,11 @@ import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
+import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.time.Duration;
 
 /**
  * Service class for handling authentication-related operations such as user registration, login,
@@ -70,6 +75,22 @@ public class AuthService {
 
   @Value("${frontend.url}")
   private String frontendUrl;
+
+  private final Map<String, AdminInviteToken> adminInviteTokens = new ConcurrentHashMap<>();
+
+  private static class AdminInviteToken {
+    private final String email;
+    private final Instant expiryDate;
+
+    public AdminInviteToken(String email, Instant expiryDate) {
+      this.email = email;
+      this.expiryDate = expiryDate;
+    }
+
+    public boolean isExpired() {
+      return Instant.now().isAfter(expiryDate);
+    }
+  }
 
   /**
    * Registers a new admin user and generates access and refresh tokens.
@@ -341,5 +362,42 @@ if (!user.isEmailVerified()) {
         .message("Password updated")
         .success(true)
         .build();
+  }
+
+  /**
+   * Generates a unique token for admin invitation.
+   *
+   * @param email The email address of the invited user
+   * @return A unique token for the admin invitation
+   */
+  public String generateAdminInviteToken(String email) {
+    String token = UUID.randomUUID().toString();
+    Instant expiryDate = Instant.now().plus(Duration.ofHours(24));
+    
+    adminInviteTokens.put(token, new AdminInviteToken(email, expiryDate));
+    
+    return token;
+  }
+
+  /**
+   * Verifies an admin invitation token and returns the associated email address.
+   *
+   * @param token The invitation token to verify
+   * @return The email address associated with the token
+   * @throws RuntimeException if token is invalid or expired
+   */
+  public String verifyAdminInviteToken(String token) {
+    AdminInviteToken inviteToken = adminInviteTokens.get(token);
+    
+    if (inviteToken == null) {
+      throw new RuntimeException("Invalid token");
+    }
+    
+    if (inviteToken.isExpired()) {
+      adminInviteTokens.remove(token);
+      throw new RuntimeException("Token has expired");
+    }
+    
+    return inviteToken.email;
   }
 }
