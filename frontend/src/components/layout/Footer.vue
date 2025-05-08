@@ -1,16 +1,33 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
-import { LogOut } from 'lucide-vue-next';
+import { LogOut, Mail } from 'lucide-vue-next';
 
 export default defineComponent({
   name: 'AppFooter',
   components: {
-    LogOut
+    LogOut,
+    Mail
   },
   setup() {
     const authStore = useAuthStore();
-    return { authStore };
+
+    const handleEmailClick = (e: MouseEvent) => {
+      // Only use Gmail fallback on mobile devices or if explicitly needed
+      const isMobile = typeof window !== 'undefined' && 
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        e.preventDefault();
+        window.open('https://mail.google.com/mail/?view=cm&fs=1&to=kontakt@krisefikser.app&su=Henvendelse til Krisefikser', '_blank');
+      }
+      // On desktop, let the mailto: protocol handle it naturally
+    };
+
+    return { 
+      authStore,
+      handleEmailClick
+    };
   }
 });
 </script>
@@ -23,7 +40,7 @@ export default defineComponent({
         <div>
           <div class="flex items-center mb-4">
             <img src="/favicon.ico" alt="Krisefikser.app" class="h-6 w-auto mr-2" />
-            <span class="text-xl font-bold">Krisefikser.no</span>
+            <span class="text-xl font-bold">Krisefikser.app</span>
           </div>
           <p class="text-blue-200 mb-4">Vi hjelper deg å være forberedt når krisen rammer – før, under og etter.</p>
         </div>
@@ -71,7 +88,19 @@ export default defineComponent({
         <div>
           <h3 class="text-lg font-semibold mb-4">Kontakt</h3>
           <p class="text-blue-200 mb-2">Har du spørsmål eller tilbakemeldinger?</p>
-          <a href="mailto:kontakt@krisefikser.app" class="text-blue-200 hover:text-white transition">kontakt@krisefikser.app</a>
+          <div class="flex flex-col gap-2">
+            <a 
+              href="mailto:kontakt@krisefikser.app?subject=Henvendelse%20til%20Krisefikser&body=Hei%2C%0A%0AJeg%20kontakter%20dere%20ang%C3%A5ende%3A"
+              class="text-blue-200 hover:text-white transition inline-flex items-center group"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click="handleEmailClick"
+            >
+              <Mail class="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+              kontakt@krisefikser.app
+            </a>
+  
+          </div>
 
           <!-- Show logout option for authenticated users -->
           <div v-if="authStore.isAuthenticated" class="mt-6">
@@ -87,7 +116,7 @@ export default defineComponent({
       </div>
 
       <div class="border-t border-blue-800 mt-8 pt-8 text-center text-blue-300">
-        <p>&copy; 2025 Krisefikser.no. Alle rettigheter reservert.</p>
+        <p>&copy; 2025 Krisefikser.app. Alle rettigheter reservert.</p>
         <p class="mt-2">Et prosjekt utviklet ved NTNU</p>
       </div>
     </div>

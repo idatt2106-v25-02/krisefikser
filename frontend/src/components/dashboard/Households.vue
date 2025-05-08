@@ -1,11 +1,22 @@
-<script setup lang="ts">
-import { useLeaveHousehold, useSetActiveHousehold } from '@/api/generated/household/household'
-import { ref } from 'vue'
+<script lang="ts" setup>
 import {
-  useGetPendingInvitesForUser,
+  useGetActiveHousehold,
+  useGetAllUserHouseholds,
+  useJoinHousehold,
+  useLeaveHousehold,
+  useSetActiveHousehold,
+} from '@/api/generated/household/household'
+import { ref } from 'vue'
+import type { HouseholdResponse } from '@/api/generated/model'
+import {
   useAcceptInvite,
   useDeclineInvite,
+  useGetPendingInvitesForUser,
 } from '@/api/generated/household-invite-controller/household-invite-controller'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+// Import Button component
+import { Button } from '@/components/ui/button'
 
 const emit = defineEmits<{
   (e: 'refresh'): void
@@ -16,6 +27,8 @@ const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       emit('refresh')
+      refetchHouseholds()
+      refetchActiveHousehold()
     },
   },
 })
@@ -31,11 +44,21 @@ const { mutate: setActiveHousehold } = useSetActiveHousehold({
   },
 })
 
-const handleLeaveHousehold = (householdId: string) => {
+const authStore = useAuthStore()
+
+const handleLeaveHousehold = (household: HouseholdResponse) => {
+  // Check if the user is the owner
+  if (household.owner.id === authStore.currentUser?.id) {
+    alert(
+      'Du kan ikke forlate husstanden fordi du er eier. Du må enten overføre eierskapet til et annet medlem eller slette husstanden.',
+    )
+    return
+  }
+
   if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
     leaveHousehold({
       data: {
-        householdId,
+        householdId: household.id,
       },
     })
   }
@@ -49,14 +72,9 @@ const handleSetActiveHousehold = (householdId: string) => {
   })
 }
 
-import { useJoinHousehold } from '@/api/generated/household/household'
-import { useGetAllUserHouseholds } from '@/api/generated/household/household'
-import { useGetActiveHousehold } from '@/api/generated/household/household'
-
 const { mutate: JoinHousehold, isPending: isJoinHouseholdPending } = useJoinHousehold({
   mutation: {
     onSuccess: () => {
-      console.log('Successfully joined household')
       refetchHouseholds()
       householdCode.value = ''
       errorMessage.value = ''
@@ -77,16 +95,11 @@ const {
 
 const { data: activeHouseholdData, refetch: refetchActiveHousehold } = useGetActiveHousehold()
 
-// Import Button component
-import { Button } from '@/components/ui/button'
-
 const showJoinModal = ref(false)
 const householdCode = ref('')
 const errorMessage = ref('')
 
 const joinHousehold = () => {
-  console.log('Joining household with code:', householdCode.value)
-
   JoinHousehold({
     data: {
       householdId: householdCode.value,
@@ -104,19 +117,27 @@ const closeModal = () => {
 const { data: pendingInvites, refetch: refetchInvites } = useGetPendingInvitesForUser()
 const { mutate: acceptInvite } = useAcceptInvite({
   mutation: {
-    onSuccess: () => refetchInvites(),
+    onSuccess: () => {
+      refetchInvites()
+      refetchHouseholds()
+      refetchActiveHousehold()
+    },
   },
 })
 const { mutate: declineInvite } = useDeclineInvite({
   mutation: {
-    onSuccess: () => refetchInvites(),
+    onSuccess: () => {
+      refetchInvites()
+    },
   },
 })
+
+const router = useRouter()
 </script>
 
 <template>
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-    <router-link to="/husstand" class="inline-block mb-4">
+    <router-link class="inline-block mb-4" to="/husstand">
       <h2 class="text-lg font-semibold text-gray-800">Mine husstander</h2>
     </router-link>
     <!-- Pending Invites Section -->
@@ -128,8 +149,10 @@ const { mutate: declineInvite } = useDeclineInvite({
         class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-2 flex flex-col gap-2"
       >
         <div class="mb-2">
-          <span class="font-semibold">Husstand:</span> {{ invite.household?.name ?? 'Ukjent' }}<br />
-          <span class="font-semibold">Invitert av:</span> {{ invite.createdBy?.firstName }} {{ invite.createdBy?.lastName }}
+          <span class="font-semibold">Husstand:</span> {{ invite.household?.name ?? 'Ukjent'
+          }}<br />
+          <span class="font-semibold">Invitert av:</span> {{ invite.createdBy?.firstName }}
+          {{ invite.createdBy?.lastName }}
         </div>
         <div class="flex gap-2">
           <button
@@ -154,27 +177,34 @@ const { mutate: declineInvite } = useDeclineInvite({
       <li v-for="household in householdsData" :key="household.id" class="flex items-center">
         <div class="bg-blue-100 p-2 rounded-full mr-3">
           <svg
-            xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5 text-blue-600"
             fill="none"
-            viewBox="0 0 24 24"
             stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
             <path
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
             />
           </svg>
         </div>
         <div class="flex flex-1 items-center justify-between">
-          <router-link
-            :to="`/husstand/${household.id}`"
-            class="text-gray-800 hover:text-blue-600 font-medium"
+          <div
+            :class="[
+              'font-medium',
+              activeHouseholdData?.id === household.id
+                ? 'text-blue-600 hover:text-blue-800 cursor-pointer'
+                : 'text-gray-800 cursor-default',
+            ]"
+            @click="
+              activeHouseholdData?.id === household.id ? router.push({ name: 'household' }) : null
+            "
           >
             {{ household.name }}
-          </router-link>
+          </div>
           <div class="flex items-center space-x-2">
             <span
               v-if="activeHouseholdData?.id === household.id"
@@ -184,59 +214,61 @@ const { mutate: declineInvite } = useDeclineInvite({
             </span>
             <button
               v-else
-              @click="handleSetActiveHousehold(household.id)"
               class="text-blue-600 hover:text-blue-800 text-sm"
+              @click="handleSetActiveHousehold(household.id)"
             >
               Gjør aktiv
             </button>
             <button
-              @click="handleLeaveHousehold(household.id)"
+              v-if="household.owner.id !== authStore.currentUser?.id"
               class="text-red-600 hover:text-red-800 text-sm"
+              @click="handleLeaveHousehold(household)"
             >
               Forlat
             </button>
+            <span v-else class="text-xs text-gray-500"> (Eier) </span>
           </div>
         </div>
       </li>
     </ul>
     <div class="mt-4 flex items-center space-x-4">
       <router-link
-        to="/husstand/opprett"
         class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+        to="/husstand/opprett"
       >
         <svg
-          xmlns="http://www.w3.org/2000/svg"
           class="h-4 w-4 mr-1"
           fill="none"
-          viewBox="0 0 24 24"
           stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <path
+            d="M12 4v16m8-8H4"
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M12 4v16m8-8H4"
           />
         </svg>
         Opprett ny husstand
       </router-link>
 
       <button
-        @click="showJoinModal = true"
         class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+        @click="showJoinModal = true"
       >
         <svg
-          xmlns="http://www.w3.org/2000/svg"
           class="h-4 w-4 mr-1"
           fill="none"
-          viewBox="0 0 24 24"
           stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <path
+            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
           />
         </svg>
         Bli med i husstand
@@ -258,36 +290,36 @@ const { mutate: declineInvite } = useDeclineInvite({
         <label class="block text-sm font-medium text-gray-700 mb-1">Husholdningskode</label>
         <div class="relative">
           <svg
-            xmlns="http://www.w3.org/2000/svg"
             class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
             fill="none"
-            viewBox="0 0 24 24"
             stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
             <path
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
             />
           </svg>
           <input
             v-model="householdCode"
-            type="text"
-            placeholder="f.eks. 0e0beb57-..."
             class="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="f.eks. 0e0beb57-..."
+            type="text"
           />
         </div>
         <p v-if="errorMessage" class="mt-1 text-sm text-red-500">{{ errorMessage }}</p>
       </div>
 
       <DialogFooter class="flex gap-2 mt-4">
-        <Button variant="outline" @click="closeModal" class="flex-1"> Avbryt </Button>
+        <Button class="flex-1" variant="outline" @click="closeModal"> Avbryt</Button>
         <Button
+          :disabled="isJoinHouseholdPending"
+          class="flex-1"
           variant="default"
           @click="joinHousehold"
-          class="flex-1"
-          :disabled="isJoinHouseholdPending"
         >
           {{ isJoinHouseholdPending ? 'Blir med...' : 'Bli med' }}
         </Button>

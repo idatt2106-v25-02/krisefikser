@@ -30,6 +30,7 @@ import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
 import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
 import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
+import stud.ntnu.krisefikser.auth.exception.TwoFactorAuthRequiredException;
 
 /**
  * Global exception handler for the Krisefikser application.
@@ -148,6 +149,20 @@ public class GlobalExceptionHandler {
   public ProblemDetail handleInvalidCredentialsException(
       InvalidCredentialsException exception) {
     return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.UNAUTHORIZED,
+        exception.getMessage(), "auth");
+  }
+
+  /**
+   * Handles exceptions thrown when two-factor authentication is required for admin login.
+   *
+   * @param exception the two-factor authentication required exception
+   * @return a problem detail with PRECONDITION_REQUIRED status and the exception message
+   */
+  @ExceptionHandler(TwoFactorAuthRequiredException.class)
+  public ProblemDetail handleTwoFactorAuthRequiredException(
+      TwoFactorAuthRequiredException exception) {
+    log.info("Two-factor authentication required for admin login: {}", exception.getMessage());
+    return ProblemDetailUtils.createDomainProblemDetail(HttpStatus.PRECONDITION_REQUIRED,
         exception.getMessage(), "auth");
   }
 

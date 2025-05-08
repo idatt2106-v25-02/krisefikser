@@ -18,6 +18,8 @@ import AdminRegisterView from '@/views/admin/register/AdminRegisterView.vue'
 import AdminScenariosView from '@/views/admin/scenario/ScenariosView.vue'
 import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
 import ArticleManagementView from '@/views/admin/ArticleManagementView.vue'
+import AdminInviteView from '@/views/admin/invite/AdminInviteView.vue'
+import VerifyAdminLoginView from '@/views/auth/VerifyAdminLoginView.vue'
 
 // Registered User views
 import DashboardView from '@/views/registered/dashboard/DashboardView.vue'
@@ -49,6 +51,8 @@ import KriserPage from '@/views/nonRegistered/event/KriserPage.vue';
 import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue';
 import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue';
 import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue';
+import NotificationsView from '@/views/registered/notification/NotificationView.vue'
+import NotificationDetailView from '@/views/registered/notification/NotificationDetailView.vue'
 import VerifyToken from '@/views/VerifyToken.vue'
 
 const router = createRouter({
@@ -80,7 +84,7 @@ const router = createRouter({
     },
     {
       path: '/glemt-passord',
-      name: 'glemt-passord',
+      name: 'forgot-password',
       component: SendResetPasswordLinkView,
       meta: { requiresGuest: true }
     },
@@ -108,7 +112,7 @@ const router = createRouter({
       path: '/admin/registrer',
       name: 'admin-register',
       component: AdminRegisterView,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresGuest: true }
     },
     {
       path: '/admin/kart',
@@ -141,12 +145,29 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
+      path: '/admin/invite',
+      name: 'admin-invite',
+      component: AdminInviteView,
+      meta: { requiresAuth: true, requiresSuperAdmin: true }
+    },
+    {
       path: '/verify',
       name: 'verify',
       component: VerifyToken,
       meta: { requiresGuest: true }
     },
-
+    {
+      path: '/verify-admin-login',
+      name: 'verify-admin-login',
+      component: VerifyAdminLoginView,
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/admin/brukere-admin',
+      name: 'admin-users-admin',
+      component: ManageAdminsView,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
     // Registered User routes
     {
       path: '/dashboard',
@@ -199,7 +220,7 @@ const router = createRouter({
     },
     {
       path: '/endre-passord',
-      name: 'reset-password',
+      name: 'change-password',
       component: ResetPasswordView,
       meta: { requiresAuth: true }
     },
@@ -267,7 +288,20 @@ const router = createRouter({
       component: AfterCrisisView
     },
     {
-      path: '/scenarios',
+      path: '/varsler',
+      name: 'notifications',
+      component: NotificationsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/varsler/:id',
+      name: 'notification-detail',
+      component: NotificationDetailView,
+      props: true,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/scenarioer',
       name: 'scenarios-list',
       component: ScenariosListView
     },
@@ -282,7 +316,11 @@ const router = createRouter({
       name: 'not-found',
       component: NotFoundView
     }
-  ]
+  ],
+  scrollBehavior() {
+    // always scroll to top
+    return { top: 0, behavior: 'smooth' }
+  }
 })
 
 // Navigation guards

@@ -205,11 +205,11 @@ export default defineComponent({
       </div>
     </div>
 
-    <div class="flex items-center mb-6">
-      <BaseButton class="text-blue-600 hover:text-blue-800 transition-colors font-medium flex items-center group" @click="goBack">
+   <div class="flex items-center mb-6">
+      <button class="text-blue-600 hover:text-blue-800 transition-colors font-medium flex items-center group" @click="goBack">
         <ArrowLeft class="h-5 w-5 mr-2 group-hover:translate-x-[-3px] transition-transform" />
         <span>Tilbake til Mine Refleksjoner</span>
-      </BaseButton>
+      </button>
     </div>
 
     <!-- Loading state with improved animation -->
@@ -331,7 +331,7 @@ export default defineComponent({
             :key="reflectionToEdit.id"
             :event-id="reflectionToEdit.eventId!"
             :initial-data="reflectionToEdit"
-            @reflection-updated="handleReflectionUpdated"
+            @updated="handleReflectionUpdated"
             @cancel="cancelEdit"
             class="pt-4"
           />
