@@ -668,6 +668,32 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
     console.error('Error updating item:', error)
   }
 }
+
+// Add focus trap functionality
+function handleTabKey(event: KeyboardEvent, categoryId: string) {
+  if (event.key === 'Tab') {
+    const categoryElement = document.getElementById(`category-${categoryId}`)
+    if (!categoryElement) return
+
+    const focusableElements = categoryElement.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    const firstFocusableElement = focusableElements[0] as HTMLElement
+    const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement
+
+    if (event.shiftKey) {
+      if (document.activeElement === firstFocusableElement) {
+        event.preventDefault()
+        lastFocusableElement.focus()
+      }
+    } else {
+      if (document.activeElement === lastFocusableElement) {
+        event.preventDefault()
+        firstFocusableElement.focus()
+      }
+    }
+  }
+}
 </script>
 
 <template>
@@ -803,10 +829,25 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                       ? (expandedCategories = expandedCategories.filter((id) => id !== category.id))
                       : expandedCategories.push(category.id)
                   "
+                  @keydown.enter="
+                    expandedCategories.includes(category.id)
+                      ? (expandedCategories = expandedCategories.filter((id) => id !== category.id))
+                      : expandedCategories.push(category.id)
+                  "
+                  @keydown.space.prevent="
+                    expandedCategories.includes(category.id)
+                      ? (expandedCategories = expandedCategories.filter((id) => id !== category.id))
+                      : expandedCategories.push(category.id)
+                  "
+                  role="button"
+                  :aria-expanded="expandedCategories.includes(category.id)"
+                  :aria-controls="`category-${category.id}`"
+                  tabindex="0"
                 >
                   <div class="flex items-center">
                     <div
                       class="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-blue-100 text-blue-700"
+                      aria-hidden="true"
                     >
                       <component :is="category.icon" class="h-5 w-5" />
                     </div>
@@ -814,7 +855,7 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                   </div>
                   <div class="flex items-center">
                     <!-- Progress indicator -->
-                    <div class="w-20 bg-gray-200 rounded-full h-2.5 mr-4 overflow-hidden">
+                    <div class="w-20 bg-gray-200 rounded-full h-2.5 mr-4 overflow-hidden" role="progressbar" :aria-valuenow="category.current" :aria-valuemin="0" :aria-valuemax="category.target">
                       <div
                         :style="`width: ${Math.min(100, (category.current / category.target) * 100)}%`"
                         class="h-2.5 rounded-full bg-blue-500"
@@ -826,12 +867,19 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                     <ChevronDown
                       :class="{ 'transform rotate-180': expandedCategories.includes(category.id) }"
                       class="h-5 w-5 text-gray-500 transition-transform duration-200"
+                      aria-hidden="true"
                     />
                   </div>
                 </div>
 
                 <!-- Category items -->
-                <div v-if="expandedCategories.includes(category.id)">
+                <div
+                  v-show="expandedCategories.includes(category.id)"
+                  :id="`category-${category.id}`"
+                  role="region"
+                  :aria-label="`${category.name} items`"
+                  @keydown="(e) => handleTabKey(e, category.id)"
+                >
                   <div class="divide-y divide-gray-100">
                     <!-- For water: show inline input and save button -->
                     <template v-if="category.id === 'water'">
@@ -884,6 +932,7 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                           <button
                             class="flex items-center bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-md transition-colors text-base font-medium"
                             @click="saveEditWater"
+                            @keydown.enter.prevent="saveEditWater"
                           >
                             <Save class="h-5 w-5 mr-2" />
                             Oppdater vannmengde
@@ -903,9 +952,22 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                             ? startEdit(item)
                             : null
                         "
+                        @keydown.enter="
+                          category.id === 'food' && editingItemId !== item.id
+                            ? startEdit(item)
+                            : null
+                        "
+                        @keydown.space.prevent="
+                          category.id === 'food' && editingItemId !== item.id
+                            ? startEdit(item)
+                            : null
+                        "
+                        role="button"
+                        tabindex="0"
+                        :aria-label="`${item.name}, ${item.amount} ${item.unit}`"
                       >
                         <div class="flex items-center flex-grow">
-                          <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
+                          <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300" aria-hidden="true"></div>
                           <template v-if="category.id === 'food' && editingItemId === item.id">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-grow">
                               <input
@@ -990,6 +1052,7 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                                 class="flex items-center bg-green-600 text-white hover:bg-green-500 px-3 py-1.5 rounded-md transition-colors text-sm"
                                 title="Lagre endringer"
                                 @click.stop="saveEdit(category, item)"
+                                @keydown.enter.prevent="saveEdit(category, item)"
                               >
                                 <Save class="h-4 w-4 sm:mr-1" />
                                 <span class="hidden sm:inline">Lagre</span>
@@ -998,45 +1061,11 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                                 class="flex items-center bg-red-600 text-white hover:bg-red-500 px-3 py-1.5 rounded-md transition-colors text-sm"
                                 title="Avbryt redigering"
                                 @click.stop="cancelEdit"
+                                @keydown.enter.prevent="cancelEdit"
                               >
                                 <XCircle class="h-4 w-4 sm:mr-1" />
                                 <span class="hidden sm:inline">Avbryt</span>
                               </button>
-                            </div>
-                          </template>
-
-                          <!-- EXPIRY DATE DISPLAY (only when not editing food) -->
-                          <template
-                            v-if="
-                              category.id === 'food' && editingItemId !== item.id && item.expiryDate
-                            "
-                          >
-                            <div class="flex items-center">
-                              <span class="text-gray-600 mr-3 text-base">Utløpsdato:</span>
-                              <span
-                                :class="[
-                                  !item.expiryDate
-                                    ? 'text-gray-500'
-                                    : new Date(item.expiryDate) < new Date()
-                                      ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded'
-                                      : new Date(item.expiryDate) <
-                                          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                                        ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'
-                                        : 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded',
-                                ]"
-                                class="text-base"
-                              >
-                                {{
-                                  item.expiryDate
-                                    ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric',
-                                        timeZone: 'UTC',
-                                      })
-                                    : 'Ingen dato'
-                                }}
-                              </span>
                             </div>
                           </template>
 
@@ -1047,6 +1076,7 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                                 class="text-blue-600 hover:text-blue-800 p-1.5 rounded-md hover:bg-blue-50 transition-colors"
                                 title="Rediger matvare"
                                 @click.stop="startEdit(item)"
+                                @keydown.enter.prevent="startEdit(item)"
                               >
                                 <Edit class="h-5 w-5" />
                               </button>
@@ -1054,6 +1084,7 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                                 class="text-red-500 hover:text-red-700 p-1.5 rounded-md hover:bg-red-50 transition-colors"
                                 title="Slett matvare"
                                 @click.stop="promptDeleteFoodItem(item)"
+                                @keydown.enter.prevent="promptDeleteFoodItem(item)"
                               >
                                 <Trash class="h-5 w-5" />
                               </button>
@@ -1067,6 +1098,7 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                         <button
                           class="py-2 px-3 rounded flex items-center text-base font-medium w-full justify-center bg-blue-600 hover:bg-blue-700 text-white"
                           @click="openAddItemDialog(category.id, category.name)"
+                          @keydown.enter.prevent="openAddItemDialog(category.id, category.name)"
                         >
                           <Plus class="mr-2 h-4 w-4" />
                           Legg til vare

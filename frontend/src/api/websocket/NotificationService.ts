@@ -2,11 +2,14 @@
 import { useNotificationStore } from '@/stores/notificationStore'
 import type { NotificationResponse } from '@/api/generated/model/notificationResponse'
 import { webSocket } from '@/main.ts'
+import speechService from '@/services/tts/speechService.ts'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
 
 export class NotificationService {
   private static instance: NotificationService
   private isSubscribed = false
   private subscribedEmail: string | null = null
+  private notificationStore = useNotificationStore()
 
   private constructor() {}
 
@@ -37,13 +40,22 @@ export class NotificationService {
     }
 
     try {
-      // Get a fresh reference to the notification store
-      const notificationStore = useNotificationStore()
-
       await webSocket.subscribe<NotificationResponse>(
         `/user/${userEmail}/queue/notifications`,
         (notification) => {
-          notificationStore.addNotification(notification)
+          // Add notification to store
+          this.notificationStore.addNotification(notification)
+          
+          // Speak the notification if TTS is enabled
+          try {
+            const accessibilityStore = useAccessibilityStore()
+            if (accessibilityStore.ttsEnabled) {
+              const notificationText = `${notification.title}. ${notification.message}`
+              speechService.speak(notificationText)
+            }
+          } catch (error) {
+            console.warn('Could not access accessibility store:', error)
+          }
         },
       )
 

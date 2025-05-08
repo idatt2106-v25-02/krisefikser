@@ -77,18 +77,20 @@ const goToAllNews = () => {
     <!-- Description centered and "Se alle" button on same line -->
     <div class="relative mb-8">
       <!-- Centered paragraph -->
-      <p class="text-gray-600 max-w-3xl mx-auto text-center">
+      <p class="text-gray-600 max-w-3xl mx-auto text-center mb-4 md:mb-0">
         Hold deg oppdatert på nyheter og hendelser relatert til beredskap.
       </p>
 
-      <!-- Absolutely positioned button -->
-      <a @click="goToAllNews"
-         class="text-blue-600 font-medium hover:underline inline-flex items-center cursor-pointer whitespace-nowrap absolute right-0 top-0">
-        Se alle nyheter
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </a>
+      <!-- Responsive button -->
+      <div class="flex justify-center md:absolute md:right-0 md:top-0">
+        <a @click="goToAllNews"
+           class="text-blue-600 font-medium hover:underline inline-flex items-center cursor-pointer whitespace-nowrap">
+          Se alle nyheter
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
     </div>
 
     <div v-if="isLoading" class="text-center py-8">

@@ -6,7 +6,7 @@
         aria-label="Varsler"
       >
         <BellIcon
-          class="h-5 w-5 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
+          class="h-4 w-4 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
         />
         <span
           v-if="unreadCount && unreadCount > 0"
@@ -94,7 +94,10 @@
       <div class="p-2 border-t mt-1">
         <router-link
           to="/varsler"
-          class="text-sm text-blue-600 hover:underline w-full text-center block"
+          class="text-sm text-blue-600 hover:underline w-full text-center block focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+          tabindex="0"
+          @keydown.enter="() => $router.push('/varsler')"
+          @keydown.space.prevent="() => $router.push('/varsler')"
         >
           Se alle varsler
         </router-link>

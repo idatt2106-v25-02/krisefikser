@@ -637,7 +637,7 @@ export default {
           <div class="flex items-center">
             <span class="relative flex items-center justify-center">
               <BellIcon
-                class="h-5 w-5 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
+                class="h-4 w-4 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
               />
               <span
                 v-if="unreadCountData && unreadCountData > 0"

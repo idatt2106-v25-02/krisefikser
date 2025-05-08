@@ -31,8 +31,10 @@ import {
   useUpdateActiveHousehold,
   useSetActiveHousehold,
   useAddGuestToHousehold,
+  getGetActiveHouseholdQueryKey,
 } from '@/api/generated/household/household.ts'
 import { useCreateInvite } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
+import { useQueryClient } from '@tanstack/vue-query'
 
 interface MeetingPlace {
   id: string
@@ -83,6 +85,9 @@ const mapRef = ref<InstanceType<typeof HouseholdMeetingMap> | null>(null)
 const selectedMeetingPlace = ref<MeetingPlace | null>(null)
 const { toast } = useToast()
 const authStore = useAuthStore()
+
+// Add queryClient
+const queryClient = useQueryClient()
 
 // API hooks
 const { data: allHouseholds } = useGetAllUserHouseholds({
@@ -229,19 +234,81 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
   emit('meetingPlaceSelected', place)
 }
 
-function handleHouseholdSubmit(values: HouseholdFormValues) {
+// Add geocoding function
+async function geocodeAddress(
+  address: string,
+  postalCode: string,
+  city: string,
+): Promise<{ latitude: number; longitude: number } | null> {
+  try {
+    const fullAddress = `${address}, ${postalCode} ${city}`
+    const encodedQuery = encodeURIComponent(fullAddress)
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}&limit=1`
+
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'KrisefikserApp/1.0',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+
+    const data = await response.json()
+
+    if (data && data.length > 0) {
+      return {
+        latitude: parseFloat(data[0].lat),
+        longitude: parseFloat(data[0].lon),
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.error('Error geocoding address:', error)
+    return null
+  }
+}
+
+async function handleHouseholdSubmit(values: HouseholdFormValues) {
   if (!household.value?.id) return
 
-  updateActiveHousehold({
-    data: {
-      name: values.name,
-      address: values.address,
-      postalCode: values.postalCode,
-      city: values.city,
-      latitude: household.value.latitude,
-      longitude: household.value.longitude,
-    },
-  })
+  try {
+    // Geocode the new address
+    const location = await geocodeAddress(values.address, values.postalCode, values.city)
+
+    if (!location) {
+      toast({
+        title: 'Feil',
+        description: 'Kunne ikke finne koordinater for denne adressen. Vennligst sjekk adressen og prøv igjen.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Update household with new coordinates
+    updateActiveHousehold({
+      data: {
+        name: values.name,
+        address: values.address,
+        postalCode: values.postalCode,
+        city: values.city,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      },
+    })
+    // Invalidate the active household query to force a refresh
+    queryClient.invalidateQueries({ queryKey: getGetActiveHouseholdQueryKey() })
+  } catch (error) {
+    console.error('Error updating household:', error)
+    toast({
+      title: 'Feil',
+      description: 'Kunne ikke oppdatere husstand.',
+      variant: 'destructive',
+    })
+  }
 }
 
 function handleMemberSubmit(values: {
