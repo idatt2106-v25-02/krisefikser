@@ -175,7 +175,7 @@ public class AuthService {
 
     if (user.getRoles().stream()
         .anyMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
-        !user.getRoles().stream().anyMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
+        user.getRoles().stream().noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       log.info("Admin login attempt for user: {}", user.getEmail());
 
       // Generate verification token for admin login
@@ -333,7 +333,9 @@ public class AuthService {
     passwordResetTokenRepository.save(passwordResetToken);
 
     // Send password reset email
-    String resetLink = frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
+    String resetLink =
+        frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(
+            token, java.nio.charset.StandardCharsets.UTF_8);
     long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
 
     emailVerificationService.sendPasswordResetEmail(
@@ -433,9 +435,9 @@ public class AuthService {
     }
 
     User user = userService.getUserByEmail(email);
-    if (user == null || !user.getRoles().stream()
-    .anyMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
-    !user.getRoles().stream().anyMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
+    if (user == null || user.getRoles().stream()
+        .noneMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
+        user.getRoles().stream().noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       throw new InvalidTokenException();
     }
 
@@ -485,7 +487,9 @@ public class AuthService {
     passwordResetTokenRepository.save(passwordResetToken);
 
     // Send email
-    String resetLink = frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
+    String resetLink =
+        frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(
+            token, java.nio.charset.StandardCharsets.UTF_8);
     emailVerificationService.sendPasswordResetEmail(user, resetLink, expirationHours);
 
     return PasswordResetResponse.builder()
@@ -494,15 +498,7 @@ public class AuthService {
         .build();
   }
 
-  private static class AdminInviteToken {
-
-    private final String email;
-    private final Instant expiryDate;
-
-    public AdminInviteToken(String email, Instant expiryDate) {
-      this.email = email;
-      this.expiryDate = expiryDate;
-    }
+  private record AdminInviteToken(String email, Instant expiryDate) {
 
     public boolean isExpired() {
       return Instant.now().isAfter(expiryDate);
