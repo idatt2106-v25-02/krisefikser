@@ -34,6 +34,7 @@ import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
+import stud.ntnu.krisefikser.household.repository.HouseholdInviteRepository;
 
 @ExtendWith(MockitoExtension.class)
 class HouseholdServiceTest {
@@ -52,6 +53,9 @@ class HouseholdServiceTest {
 
   @Mock
   private GuestRepository guestRepository;
+
+  @Mock
+  private HouseholdInviteRepository inviteRepository;
 
   @InjectMocks
   private HouseholdService householdService;
@@ -120,6 +124,9 @@ class HouseholdServiceTest {
     // Set up mock for GuestRepository using lenient() to avoid
     // UnnecessaryStubbingException
     lenient().when(guestRepository.findByHousehold(any(Household.class))).thenReturn(Collections.emptyList());
+
+    // Set up mock for HouseholdInviteRepository
+    lenient().when(inviteRepository.findByHousehold(any(Household.class))).thenReturn(Collections.emptyList());
   }
 
   @Test
