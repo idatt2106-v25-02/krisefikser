@@ -225,4 +225,49 @@ class EmailVerificationServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(errorMessage, response.getBody());
     }
+
+    @Test
+    void sendAdminLoginVerificationEmail_Success() {
+        // Arrange
+        String verificationLink = TEST_FRONTEND_URL + "/admin-verifisering?token=test-token";
+        ResponseEntity<String> expectedResponse = ResponseEntity.ok("Email sent successfully");
+
+        when(emailService.sendEmail(anyString(), anyString(), anyString()))
+                .thenReturn(expectedResponse);
+
+        // Act
+        ResponseEntity<String> response = emailVerificationService.sendAdminLoginVerificationEmail(
+            testUser,
+            verificationLink
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Email sent successfully", response.getBody());
+        verify(emailService).sendEmail(
+            eq(testUser.getEmail()),
+            eq("Admin Login Verification"),
+            anyString()
+        );
+    }
+
+    @Test
+    void sendAdminLoginVerificationEmail_ClientError() {
+        // Arrange
+        String verificationLink = TEST_FRONTEND_URL + "/admin-verifisering?token=test-token";
+        String errorMessage = "Invalid email address";
+
+        when(emailService.sendEmail(anyString(), anyString(), anyString()))
+                .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
+
+        // Act
+        ResponseEntity<String> response = emailVerificationService.sendAdminLoginVerificationEmail(
+            testUser,
+            verificationLink
+        );
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(errorMessage, response.getBody());
+    }
 } 
