@@ -145,7 +145,6 @@ function startWatchingPosition() {
       emit('user-location-available', false)
     },
     { enableHighAccuracy: true },
-    { enableHighAccuracy: true },
   )
 }
 
@@ -181,7 +180,6 @@ watch(
       isInitialized.value = true
     }
   },
-  { immediate: true },
   { immediate: true },
 )
 
@@ -236,7 +234,9 @@ defineExpose({
       <div
         :class="[
           'rounded-lg shadow-lg p-4 flex items-start space-x-4',
-          alertType === 'danger' ? 'bg-red-50 border-2 border-red-500' : 'bg-yellow-50 border-2 border-yellow-500'
+          alertType === 'danger'
+            ? 'bg-red-50 border-2 border-red-500'
+            : 'bg-yellow-50 border-2 border-yellow-500',
         ]"
       >
         <div class="flex-shrink-0">
@@ -275,7 +275,7 @@ defineExpose({
           <h3
             :class="[
               'text-lg font-bold',
-              alertType === 'danger' ? 'text-red-800' : 'text-yellow-800'
+              alertType === 'danger' ? 'text-red-800' : 'text-yellow-800',
             ]"
           >
             {{ alertTitle }}
@@ -283,7 +283,7 @@ defineExpose({
           <p
             :class="[
               'mt-1 text-sm whitespace-pre-line',
-              alertType === 'danger' ? 'text-red-700' : 'text-yellow-700'
+              alertType === 'danger' ? 'text-red-700' : 'text-yellow-700',
             ]"
           >
             {{ alertMessage }}
@@ -296,7 +296,7 @@ defineExpose({
             'rounded-md inline-flex p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2',
             alertType === 'danger'
               ? 'text-red-500 hover:bg-red-100 focus:ring-red-500'
-              : 'text-yellow-500 hover:bg-yellow-100 focus:ring-yellow-500'
+              : 'text-yellow-500 hover:bg-yellow-100 focus:ring-yellow-500',
           ]"
         >
           <span class="sr-only">Lukk</span>
@@ -337,7 +337,8 @@ defineExpose({
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
