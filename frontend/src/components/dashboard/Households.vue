@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useLeaveHousehold, useSetActiveHousehold } from '@/api/generated/household/household'
 import { ref } from 'vue'
+import type { HouseholdResponse } from '@/api/generated/model'
 import {
   useGetPendingInvitesForUser,
   useAcceptInvite,
   useDeclineInvite,
 } from '@/api/generated/household-invite-controller/household-invite-controller'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 
 const emit = defineEmits<{
   (e: 'refresh'): void
@@ -32,11 +34,19 @@ const { mutate: setActiveHousehold } = useSetActiveHousehold({
   },
 })
 
-const handleLeaveHousehold = (householdId: string) => {
+const authStore = useAuthStore()
+
+const handleLeaveHousehold = (household: HouseholdResponse) => {
+  // Check if the user is the owner
+  if (household.owner.id === authStore.currentUser?.id) {
+    alert('Du kan ikke forlate husstanden fordi du er eier. Du må enten overføre eierskapet til et annet medlem eller slette husstanden.')
+    return
+  }
+
   if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
     leaveHousehold({
       data: {
-        householdId,
+        householdId: household.id,
       },
     })
   }
@@ -105,12 +115,18 @@ const closeModal = () => {
 const { data: pendingInvites, refetch: refetchInvites } = useGetPendingInvitesForUser()
 const { mutate: acceptInvite } = useAcceptInvite({
   mutation: {
-    onSuccess: () => refetchInvites(),
+    onSuccess: () => {
+      refetchInvites()
+      refetchHouseholds()
+      refetchActiveHousehold()
+    },
   },
 })
 const { mutate: declineInvite } = useDeclineInvite({
   mutation: {
-    onSuccess: () => refetchInvites(),
+    onSuccess: () => {
+      refetchInvites()
+    },
   },
 })
 
@@ -198,11 +214,18 @@ const router = useRouter()
               Gjør aktiv
             </button>
             <button
-              @click="handleLeaveHousehold(household.id)"
+              v-if="household.owner.id !== authStore.currentUser?.id"
+              @click="handleLeaveHousehold(household)"
               class="text-red-600 hover:text-red-800 text-sm"
             >
               Forlat
             </button>
+            <span
+              v-else
+              class="text-xs text-gray-500"
+            >
+              (Eier)
+            </span>
           </div>
         </div>
       </li>
