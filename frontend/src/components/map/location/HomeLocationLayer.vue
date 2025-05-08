@@ -16,7 +16,7 @@ const homeDivIcon = L.divIcon({
   className: 'home-location-marker',
   html: `
     <div class="relative">
-      <div class="w-10 h-10 flex items-center justify-center">
+      <div class="w-8 h-8 flex items-center justify-center">
         <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="2" y="2" width="48" height="48" rx="16" fill="#DCE5F9"/>
           <rect x="2" y="2" width="48" height="48" rx="16" fill="#DCE5F9"/>
