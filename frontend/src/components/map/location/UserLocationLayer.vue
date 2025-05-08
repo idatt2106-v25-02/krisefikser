@@ -13,6 +13,14 @@ const props = defineProps<{
   events?: Event[]
 }>()
 
+const userLocationIcon = L.icon({
+  iconUrl:
+    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQiIGhlaWdodD0iNDQiIHZpZXdCb3g9IjAgMCA0NCA0NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMjIiIGZpbGw9IiMyNTYzRUIiIGZpbGwtb3BhY2l0eT0iMC4yNSIvPgo8cmVjdCB4PSIxMyIgeT0iMTMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjkiIGZpbGw9IiMyNTYzRUIiLz4KPHJlY3QgeD0iMTMiIHk9IjEzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSI5IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMiLz4KPC9zdmc+Cg==',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16],
+})
+
 // Define emits
 const emit = defineEmits(['userInCrisisZone', 'user-location-available'])
 
@@ -68,23 +76,7 @@ function createUserMarker(position: GeolocationPosition) {
   const { latitude, longitude } = position.coords
 
   return L.marker([latitude, longitude], {
-    icon: L.divIcon({
-      className: 'user-location-marker',
-      html: `
-        <div class="">
-          <div class="pulse bg-blue-500 z-20 rounded-full w-8 h-8 flex items-center justify-center">
-            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="44" height="44" rx="22" fill="#2563EB" fill-opacity="0.25"/>
-              <rect x="13" y="13" width="18" height="18" rx="9" fill="#2563EB"/>
-              <rect x="13" y="13" width="18" height="18" rx="9" stroke="white" stroke-width="3"/>
-            </svg>
-          </div>
-        </div>
-      `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-      popupAnchor: [0, -16],
-    }),
+    icon: userLocationIcon,
     zIndexOffset: 1000,
   }).addTo(props.map)
 }
