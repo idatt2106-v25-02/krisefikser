@@ -5,6 +5,7 @@ import ShelterLayer from '@/components/map/layer/ShelterLayer.vue'
 import EventLayer from '@/components/map/layer/EventLayer.vue'
 import UserLocationLayer from '@/components/map/location/UserLocationLayer.vue'
 import HomeLocationLayer from '@/components/map/location/HomeLocationLayer.vue'
+import HouseholdMembersLayer from '@/components/map/location/HouseholdMembersLayer.vue'
 import MeetingPointLayer from '@/components/map/meetingPoint/MeetingPointLayer.vue'
 import MeetingPointForm from '@/components/map/meetingPoint/MeetingPointForm.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
@@ -249,6 +250,10 @@ onMounted(() => {
           latitude: activeHousehold.latitude,
           longitude: activeHousehold.longitude,
         }"
+      />
+      <HouseholdMembersLayer
+        v-if="activeHousehold?.id && mapInstance"
+        :map="mapInstance as any"
       />
       <MeetingPointLayer
         v-if="canShowMeetingPointLayer && mapInstance"

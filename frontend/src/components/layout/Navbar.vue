@@ -616,7 +616,6 @@ export default {
                       ? 'text-blue-700 border-blue-300 bg-blue-50/70'
                       : 'text-gray-700 border-gray-200 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50',
                   ]"
-                  aria-label="Min profil"
                 >
                   <UserIcon class="h-4 w-4 flex-shrink-0" />
                   <span class="font-medium text-sm">
@@ -627,7 +626,9 @@ export default {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <router-link to="/dashboard">
-                  <DropdownMenuItem :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }">
+                  <DropdownMenuItem
+                    :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }"
+                  >
                     <UserIcon class="h-5 w-5 mr-2" />
                     <span>Min Profil</span>
                   </DropdownMenuItem>

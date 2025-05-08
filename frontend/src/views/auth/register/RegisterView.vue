@@ -139,8 +139,8 @@ const onSubmit = handleSubmit(async (values) => {
     toast('Suksess', {
       description: 'Kontoen din er opprettet og du er nå logget inn',
     })
-    await router.push('/dashboard')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await router.push('/bekreft-e-post')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     // Reset the captcha on failed registration
     resetTurnstile()

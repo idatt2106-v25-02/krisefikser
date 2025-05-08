@@ -9,15 +9,13 @@ import lombok.NoArgsConstructor;
  * Data Transfer Object (DTO) for completing a password reset.
  *
  * <p>This class encapsulates the data required to complete a password reset, including
- * the user's email, reset token, and the new password.
+ * the reset token and the new password.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class CompletePasswordResetRequest {
-
-  String email;
   String token;
   String newPassword;
 }
