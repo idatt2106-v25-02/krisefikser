@@ -1,4 +1,6 @@
 import { ref } from 'vue'
+import speechService from '@/services/tts/speechService.ts'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
 
 export interface Toast {
   id: string
@@ -23,6 +25,17 @@ export function useToast() {
     }
 
     toasts.value = [...toasts.value, toast]
+
+    // Speak the toast if TTS is enabled
+    try {
+      const accessibilityStore = useAccessibilityStore()
+      if (accessibilityStore.ttsEnabled) {
+        const toastText = `${props.title ? props.title + '. ' : ''}${props.description || ''}`
+        speechService.speak(toastText)
+      }
+    } catch (error) {
+      console.warn('Could not access accessibility store:', error)
+    }
 
     // Auto dismiss after 5 seconds
     setTimeout(() => {

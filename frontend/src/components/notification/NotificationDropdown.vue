@@ -94,7 +94,10 @@
       <div class="p-2 border-t mt-1">
         <router-link
           to="/varsler"
-          class="text-sm text-blue-600 hover:underline w-full text-center block"
+          class="text-sm text-blue-600 hover:underline w-full text-center block focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+          tabindex="0"
+          @keydown.enter="() => $router.push('/varsler')"
+          @keydown.space.prevent="() => $router.push('/varsler')"
         >
           Se alle varsler
         </router-link>
