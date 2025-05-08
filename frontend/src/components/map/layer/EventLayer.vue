@@ -15,28 +15,29 @@ const props = defineProps<{
 
 const circles: L.Circle[] = []
 
-// Helper function to determine color based on event level
-function getEventColor(level?: EventLevel): string {
+// Helper function to determine color based on event level and status
+function getEventColor(level?: EventLevel, status?: EventStatus): string {
+  // Color combinations based on both level and status
+  if (status === EventStatus.ONGOING) {
+    switch (level) {
+      case EventLevel.RED:
+        return '#FF3B30' // Vibrant red for ongoing red events
+      case EventLevel.YELLOW:
+        return '#FFCC00' // Bright yellow for ongoing yellow events
+      case EventLevel.GREEN:
+      default:
+        return '#34C759' // Bright green for ongoing green events
+    }
+  }
+
   switch (level) {
     case EventLevel.RED:
-      return '#F44336' // Red
+      return '#FF9500' // Orange for upcoming red events
     case EventLevel.YELLOW:
-      return '#FFC107' // Yellow
+      return '#FFD60A' // Light yellow for upcoming yellow events
     case EventLevel.GREEN:
     default:
-      return '#4CAF50' // Green
-  }
-}
-
-// Helper function to determine opacity based on event status
-function getEventOpacity(status?: EventStatus): number {
-  switch (status) {
-    case EventStatus.UPCOMING:
-      return 0.3
-    case EventStatus.ONGOING:
-      return 0.6
-    default:
-      return 0.1
+      return '#30D158' // Lighter green for upcoming green events
   }
 }
 
@@ -53,32 +54,41 @@ function addEvents() {
   // Add events
   for (const event of props.events) {
     if (event.latitude && event.longitude && event.radius) {
-      const color = getEventColor(event.level)
-      const opacity = getEventOpacity(event.status)
+      const color = getEventColor(event.level, event.status)
 
       const startTime = event.startTime
         ? new Date(event.startTime).toLocaleString()
         : 'Ikke tilgjengelig'
       const endTime = event.endTime ? new Date(event.endTime).toLocaleString() : 'Ikke tilgjengelig'
 
-      const statusText = event.status
-        ? `<span style="font-weight: bold; color: ${color}">Status: ${event.status}</span>`
-        : ''
-
       const circle = L.circle([event.latitude, event.longitude], {
         radius: event.radius,
         color: color,
         fillColor: color,
-        fillOpacity: opacity,
+        fillOpacity: 0.4,
         weight: 2,
       }).addTo(props.map).bindPopup(`
-          <div style="min-width: 200px">
-            <h3 style="margin: 0 0 8px; color: ${color}">${event.title || 'Hendelse uten navn'}</h3>
-            ${statusText}<br>
-            <p style="margin: 8px 0">${event.description || 'Ingen beskrivelse tilgjengelig'}</p>
-            <div style="margin-top: 8px">
-              <div><strong>Start:</strong> ${startTime}</div>
-              ${event.endTime ? `<div><strong>Slutt:</strong> ${endTime}</div>` : ''}
+          <div style="min-width: 250px; font-family: system-ui, -apple-system, sans-serif; border-radius: 8px; overflow: hidden;">
+            <div style="padding: 12px 16px; background: ${color}15;">
+              <h3 style="margin: 0; color: ${color}; font-size: 18px;">${event.title || 'Hendelse uten navn'}</h3>
+              <div style="display: inline-block; margin-top: 8px; padding: 4px 8px; border-radius: 4px; background-color: ${color}; color: white; font-weight: 600; font-size: 12px; text-transform: uppercase;">${event.status || 'Ukjent status'}</div>
+            </div>
+            <div style="padding: 16px;">
+              <p style="margin: 0 0 16px; line-height: 1.5;">${event.description || 'Ingen beskrivelse tilgjengelig'}</p>
+              <div style="display: flex; flex-direction: column; gap: 4px; background: #f5f5f5; padding: 10px; border-radius: 6px;">
+                <div style="display: flex; align-items: center;">
+                  <span style="font-weight: 600; width: 60px;">Start:</span>
+                  <span>${startTime}</span>
+                </div>
+                ${
+                  event.endTime
+                    ? `<div style="display: flex; align-items: center;">
+                  <span style="font-weight: 600; width: 60px;">Slutt:</span>
+                  <span>${endTime}</span>
+                </div>`
+                    : ''
+                }
+              </div>
             </div>
           </div>
         `)
