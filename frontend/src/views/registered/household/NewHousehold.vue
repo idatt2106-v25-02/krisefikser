@@ -40,6 +40,10 @@ const onSubmit = (values: CreateHouseholdRequest) => {
   router.push({ name: 'household' })
 }
 
+const onCancel = () => {
+  router.push({ name: 'dashboard' })
+}
+
 const isFormVisible = ref(true)
 </script>
 
@@ -56,7 +60,7 @@ const isFormVisible = ref(true)
         :isLoading="isPending"
         :error="isError ? error?.message : undefined"
         @submit="onSubmit"
-        @cancel="emit('cancel')"
+        @cancel="onCancel"
       />
     </transition>
   </div>

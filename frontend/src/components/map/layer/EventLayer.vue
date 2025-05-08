@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, watch } from 'vue'
 import L from 'leaflet'
 import type { EventResponse } from '@/api/generated/model'
@@ -113,3 +113,7 @@ watch(
   { deep: true },
 )
 </script>
+
+<template>
+  <div></div>
+</template>

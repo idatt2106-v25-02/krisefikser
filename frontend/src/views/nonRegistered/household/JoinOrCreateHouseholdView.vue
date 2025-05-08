@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Home, UserPlus, Users, ArrowRight, Plus, Map as MapIcon } from 'lucide-vue-next';
+import { Home, UserPlus, Users, Plus, Map as MapIcon } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { computed } from 'vue';

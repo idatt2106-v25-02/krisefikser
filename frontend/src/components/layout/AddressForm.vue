@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
+<script lang="ts" setup>
+import { computed, ref } from 'vue'
 import { useForm } from 'vee-validate'
 import * as z from 'zod'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Home, MapPin, Mail, Building } from 'lucide-vue-next'
+import { Building, Home, Mail, MapPin } from 'lucide-vue-next'
 
 // Props
 const props = defineProps({
@@ -160,9 +160,6 @@ const onSubmit = handleSubmit(async (values) => {
     const location = await geocodeAddress(values)
 
     if (location) {
-      // Log the location if found
-      console.log('Geocoded location:', location.latitude, location.longitude)
-
       // Continue with form submission
       setTimeout(() => {
         loading.value = false
@@ -201,9 +198,9 @@ const buttonColorClass = computed(() => {
       </CardHeader>
 
       <CardContent>
-        <form @submit.prevent="onSubmit" class="space-y-6" novalidate>
+        <form class="space-y-6" novalidate @submit.prevent="onSubmit">
           <!-- Household Name (optional) -->
-          <FormField v-if="includeHouseholdName" name="name" v-slot="{ field, meta }">
+          <FormField v-if="includeHouseholdName" v-slot="{ field, meta }" name="name">
             <FormItem>
               <FormLabel>Husstandsnavn</FormLabel>
               <FormControl>
@@ -212,10 +209,10 @@ const buttonColorClass = computed(() => {
                     <Home class="h-5 w-5 text-gray-400" />
                   </div>
                   <Input
-                    v-bind="field"
                     id="name"
-                    placeholder="Skriv inn husstandsnavn"
                     class="pl-10"
+                    placeholder="Skriv inn husstandsnavn"
+                    v-bind="field"
                   />
                 </div>
               </FormControl>
@@ -225,7 +222,7 @@ const buttonColorClass = computed(() => {
             </FormItem>
           </FormField>
 
-          <FormField name="address" v-slot="{ field, meta }">
+          <FormField v-slot="{ field, meta }" name="address">
             <FormItem>
               <FormLabel>Adresse</FormLabel>
               <FormControl>
@@ -234,10 +231,10 @@ const buttonColorClass = computed(() => {
                     <MapPin class="h-5 w-5 text-gray-400" />
                   </div>
                   <Input
-                    v-bind="field"
                     id="address"
-                    placeholder="Skriv inn adresse"
                     class="pl-10"
+                    placeholder="Skriv inn adresse"
+                    v-bind="field"
                   />
                 </div>
               </FormControl>
@@ -248,7 +245,7 @@ const buttonColorClass = computed(() => {
           </FormField>
 
           <div class="grid grid-cols-2 gap-4">
-            <FormField name="postalCode" v-slot="{ field, meta }">
+            <FormField v-slot="{ field, meta }" name="postalCode">
               <FormItem>
                 <FormLabel>Postnummer</FormLabel>
                 <FormControl>
@@ -259,10 +256,10 @@ const buttonColorClass = computed(() => {
                       <Mail class="h-5 w-5 text-gray-400" />
                     </div>
                     <Input
-                      v-bind="field"
                       id="postalCode"
-                      placeholder="0000"
                       class="pl-10"
+                      placeholder="0000"
+                      v-bind="field"
                       @input="onPostalCodeInput"
                       @keypress="onPostalCodeKeyPressStrict"
                     />
@@ -274,7 +271,7 @@ const buttonColorClass = computed(() => {
               </FormItem>
             </FormField>
 
-            <FormField name="city" v-slot="{ field, meta }">
+            <FormField v-slot="{ field, meta }" name="city">
               <FormItem>
                 <FormLabel>By/sted</FormLabel>
                 <FormControl>
@@ -285,10 +282,10 @@ const buttonColorClass = computed(() => {
                       <Building class="h-5 w-5 text-gray-400" />
                     </div>
                     <Input
-                      v-bind="field"
                       id="city"
-                      placeholder="Skriv inn by/sted"
                       class="pl-10"
+                      placeholder="Skriv inn by/sted"
+                      v-bind="field"
                       @keypress="onOnlyLetters"
                     />
                   </div>
@@ -303,14 +300,14 @@ const buttonColorClass = computed(() => {
       </CardContent>
 
       <CardFooter class="flex justify-end space-x-3">
-        <Button variant="outline" type="button" @click="emit('cancel')">Avbryt</Button>
-        <Button type="submit" @click="onSubmit" :disabled="!meta.valid" :class="buttonColorClass">
+        <Button type="button" variant="outline" @click="emit('cancel')">Avbryt</Button>
+        <Button :class="buttonColorClass" :disabled="!meta.valid" type="submit" @click="onSubmit">
           <span v-if="loading" class="mr-2">
             <svg
               class="animate-spin h-4 w-4 text-white"
-              xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <circle
                 class="opacity-25"
@@ -322,8 +319,8 @@ const buttonColorClass = computed(() => {
               />
               <path
                 class="opacity-75"
-                fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                fill="currentColor"
               />
             </svg>
           </span>

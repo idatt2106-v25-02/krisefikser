@@ -21,7 +21,7 @@ const props = defineProps<{
   inventoryItems: InventoryItem[]
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'showInfo'): void
 }>()
 

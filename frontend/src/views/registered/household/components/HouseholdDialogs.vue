@@ -56,15 +56,8 @@ type MemberFormValues = {
   consumptionFactor?: number
 }
 
-type HouseholdFormValues = {
-  name: string
-  address: string
-  postalCode: string
-  city: string
-}
-
 // Props now only receive trigger states
-const props = defineProps<{
+const _props = defineProps<{
   isEditDialogOpen: boolean
   isAddMemberDialogOpen: boolean
   isMeetingMapDialogOpen: boolean
@@ -125,7 +118,7 @@ const { mutateAsync: updateActiveHousehold } = useUpdateActiveHousehold({
   },
 })
 
-const { mutate: setActiveHousehold, isPending: isSettingActiveHousehold } = useSetActiveHousehold({
+const { mutate: setActiveHousehold } = useSetActiveHousehold({
   mutation: {
     onSuccess: () => {
       emit('update:isChangeHouseholdDialogOpen', false)
@@ -214,6 +207,13 @@ const householdFormSchema = toTypedSchema(
   }),
 )
 
+interface HouseholdFormValues {
+  name: string
+  address: string
+  postalCode: string
+  city: string
+}
+
 const { resetForm } = useForm<MemberFormValues>({
   validationSchema: memberFormSchema,
 })
@@ -229,7 +229,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
   emit('meetingPlaceSelected', place)
 }
 
-function handleHouseholdSubmit(values: Record<string, any>) {
+function handleHouseholdSubmit(values: HouseholdFormValues) {
   if (!household.value?.id) return
 
   updateActiveHousehold({
@@ -244,7 +244,11 @@ function handleHouseholdSubmit(values: Record<string, any>) {
   })
 }
 
-function handleMemberSubmit(values: Record<string, any>) {
+function handleMemberSubmit(values: {
+  name?: string
+  email?: string
+  consumptionFactor?: number
+}) {
   if (!household.value?.id) return
 
   if (values.email) {
@@ -301,7 +305,7 @@ function handleChangeActiveHousehold(householdId: string) {
           postalCode: household.postalCode || '',
           city: household.city || '',
         }"
-        @submit="handleHouseholdSubmit"
+        @submit="($event: any) => handleHouseholdSubmit($event as HouseholdFormValues)"
       >
         <div class="grid gap-4 py-4">
           <FormField v-slot="{ componentField }" name="name">
