@@ -82,7 +82,9 @@ public class NotificationService {
    */
   public void createNotificationsForAll(Notification notification) {
     for (User user : userService.getAllUsers()) {
-      createNotification(new Notification(notification, user));
+      if (user.isNotifications()) {
+        createNotification(new Notification(notification, user));
+      }
     }
   }
 
@@ -94,7 +96,9 @@ public class NotificationService {
    */
   public void createNotificationsForAdmin(Notification notification) {
     for (User user : userService.getAllAdmins()) {
-      createNotification(new Notification(notification, user));
+      if (user.isNotifications()) {
+        createNotification(new Notification(notification, user));
+      }
     }
   }
 
@@ -106,7 +110,9 @@ public class NotificationService {
    */
   public void createNotificationsForHouseholdOwners(Notification notification) {
     for (User user : householdService.getHouseholdOwners()) {
-      createNotification(new Notification(notification, user));
+      if (user.isNotifications()) {
+        createNotification(new Notification(notification, user));
+      }
     }
   }
 
