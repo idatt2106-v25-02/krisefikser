@@ -45,11 +45,14 @@ import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties.Admin;
+
 import java.util.UUID;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.time.Duration;
+import stud.ntnu.krisefikser.auth.exception.TwoFactorAuthRequiredException;
 
 /**
  * Service class for handling authentication-related operations such as user registration, login,
@@ -176,7 +179,6 @@ public class AuthService {
       log.warn("Login attempt for non-existing user: {}", loginRequest.getEmail());
       throw new UserNotFoundException("User not found");
     }
-
 if (!user.isEmailVerified()) {
   throw new EmailNotVerifiedException("Email address not verified. Please verify your email before logging in.");
 }
@@ -192,7 +194,7 @@ if (!user.isEmailVerified()) {
     if (user.getRoles().stream()
         .anyMatch(role -> role.getName().equals(RoleType.ADMIN))) {
       log.info("Admin login attempt for user: {}", user.getEmail());
-      // TODO: Implement 2FA verification for admin login
+      throw new TwoFactorAuthRequiredException();
     }
 
     try {
