@@ -29,16 +29,11 @@
           {{ isMarkingAllAsRead ? 'Behandler...' : 'Merk alle som lest' }}
         </button>
       </div>
-      <div v-if="isLoading" class="p-4 text-center text-sm text-gray-500">
-        Laster varsler...
-      </div>
+      <div v-if="isLoading" class="p-4 text-center text-sm text-gray-500">Laster varsler...</div>
       <div v-else-if="error" class="p-4 text-center text-sm text-red-500">
         Kunne ikke laste varsler.
       </div>
-      <div
-        v-else-if="notifications.length === 0"
-        class="p-4 text-center text-sm text-gray-500"
-      >
+      <div v-else-if="notifications.length === 0" class="p-4 text-center text-sm text-gray-500">
         Ingen nye varsler.
       </div>
       <DropdownMenuItem
@@ -54,10 +49,7 @@
       >
         <div class="flex items-start p-3 w-full">
           <div
-            :class="[
-              'mr-3 p-1.5 rounded-full flex-shrink-0',
-              getIconBgClass(notification.type),
-            ]"
+            :class="['mr-3 p-1.5 rounded-full flex-shrink-0', getIconBgClass(notification.type)]"
           >
             <Calendar
               v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER"
@@ -112,8 +104,6 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 import {
   AlertTriangle,
   Bell,
@@ -130,14 +120,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { NotificationResponse } from '@/api/generated/model'
 import { NotificationResponseType } from '@/api/generated/model/notificationResponseType'
-import { useNotificationStore } from '@/stores/notificationStore'
 import { formatDate } from '@/utils/dateUtils'
 
-const props = defineProps<{
+defineProps<{
   notifications: NotificationResponse[]
   unreadCount: number
   isLoading: boolean
-  error: any
+  error: Error | string | null
   isMarkingAllAsRead: boolean
   shouldShowNotifications: boolean
 }>()
@@ -146,9 +135,6 @@ const emit = defineEmits<{
   (e: 'mark-all-as-read'): void
   (e: 'notification-click', notification: NotificationResponse): void
 }>()
-
-const router = useRouter()
-const notificationStore = useNotificationStore()
 
 const handleNotificationClick = (notification: NotificationResponse) => {
   emit('notification-click', notification)
@@ -187,4 +173,4 @@ const getIconColorClass = (type: string | undefined) => {
       return 'text-gray-600'
   }
 }
-</script> 
+</script>
