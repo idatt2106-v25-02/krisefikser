@@ -4,7 +4,6 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
 // Fix for the marker icon issue in Leaflet
-import { Marker } from 'leaflet'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
@@ -24,17 +23,14 @@ const props = defineProps<{
 // Define emits
 const emit = defineEmits(['map-created'])
 
-// Determine map style based on dark mode
-const mapStyle = computed(() => (props.darkMode ? 'mapbox/dark-v11' : 'mapbox/streets-v12'))
-
 // Then separately fix the Leaflet marker icon issue
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-;(Marker.prototype as any)._getIconUrl = function () {
+;(L.Marker.prototype as any)._getIconUrl = function () {
   return ''
 }
 
-Marker.mergeOptions({
+L.Marker.mergeOptions({
   icon: L.icon({
     iconUrl: markerIcon,
     iconRetinaUrl: markerIcon2x,
@@ -126,7 +122,7 @@ onMounted(() => {
     L.tileLayer(
       'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
       {
-        id: mapStyle.value,
+        id: 'mapbox/streets-v12',
         accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
         tileSize: 512,
         zoomOffset: -1,
