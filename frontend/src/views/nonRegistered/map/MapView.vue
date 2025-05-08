@@ -256,6 +256,7 @@ onMounted(() => {
             latitude: activeHousehold.latitude,
             longitude: activeHousehold.longitude,
           }"
+          :home-address="activeHousehold.address"
         />
         <HouseholdMembersLayer
           v-if="activeHousehold?.id && mapInstance"
