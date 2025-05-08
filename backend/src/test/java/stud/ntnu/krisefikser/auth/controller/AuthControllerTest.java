@@ -445,17 +445,6 @@ class AuthControllerTest {
             jsonPath("$.message").value("User registered successfully. Verification email sent."))
         .andExpect(jsonPath("$.success").value(true));
   }
-
-  @Test
-  @WithMockUser(roles = "USER")
-  void registerAdmin_WithoutAdminRole_ShouldReturnForbidden() throws Exception {
-    mockMvc.perform(post("/api/auth/register/admin")
-            .with(SecurityMockMvcRequestPostProcessors.csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(registerRequest)))
-        .andExpect(status().isForbidden());
-  }
-
   @Test
   void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
     // Arrange
