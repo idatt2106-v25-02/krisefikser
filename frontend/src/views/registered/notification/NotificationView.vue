@@ -378,31 +378,31 @@ watch(activeFilter, () => {
                     notification.createdAt ? formatDate(notification.createdAt) : ''
                   }}</span>
                 </div>
-                <p class="text-sm text-gray-600 mt-1">
-                  {{ notification.message || 'Ingen melding' }}
-                </p>
+                <div class="text-gray-700 leading-relaxed prose max-w-none mb-6">
+                  {{ notification.message }}
+                </div>
 
                 <!-- Action button logic remains, potentially using notification.url or needing backend changes -->
-                <div class="mt-3">
-                  <a
+                <div class="mt-3 flex gap-2">
+                  <router-link
+                    v-if="notification.id"
+                    :to="{ name: 'notification-detail', params: { id: notification.id }}"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    @click.stop
                   >
                     <LinkIcon class="h-3 w-3 mr-1" />
                     <span>Vis detaljer</span>
-                  </a>
-                  <!-- Fallback/Alternative: Re-add specific links if backend provides referenceId/householdId -->
-                  <!--
-                  <router-link
-                    v-else-if="notification.type === 'CRISIS' && notification.referenceId"
-                    :to="`/kart?crisis=${notification.referenceId}`"
-                     ...
-                  >
-                    ...
                   </router-link>
-                  -->
+                  <a
+                    v-if="notification.url"
+                    :href="notification.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                    @click.stop
+                  >
+                    <LinkIcon class="h-3 w-3 mr-1" />
+                    <span>Åpne lenke</span>
+                  </a>
                 </div>
               </div>
             </div>

@@ -49,6 +49,7 @@ import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue';
 import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue';
 import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue';
 import NotificationsView from '@/views/registered/notification/NotificationView.vue'
+import NotificationDetailView from '@/views/registered/notification/NotificationDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -242,6 +243,14 @@ const router = createRouter({
       path: '/varsler',
       name: 'notifications',
       component: NotificationsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/varsler/:id',
+      name: 'notification-detail',
+      component: NotificationDetailView,
+      props: true,
+      meta: { requiresAuth: true },
     },
     {
       path: '/scenarioer',
