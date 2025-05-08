@@ -133,7 +133,7 @@ public class EmailVerificationService {
         htmlContent
     );
   }
-    
+
   private String createAdminLoginVerificationEmailHtml(String firstName, String verificationLink) {
     return "<html><body>" +
         "<h2>Admin Login Verification</h2>" +

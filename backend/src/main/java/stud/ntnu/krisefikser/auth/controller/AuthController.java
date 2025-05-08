@@ -45,6 +45,7 @@ import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
+import stud.ntnu.krisefikser.config.FrontendConfig;
 
 /**
  * REST controller for managing authentication-related operations. Provides endpoints for user
@@ -62,6 +63,7 @@ public class AuthController {
   private final AuthService authService;
   private final TurnstileService turnstileService;
   private final EmailAdminService emailAdminService;
+  private final FrontendConfig frontendConfig;
 
   /**
    * Registers a new user after verifying the CAPTCHA and validating the input.
@@ -306,7 +308,7 @@ public class AuthController {
   ) {
     // Generate a unique token for the admin invitation
     String inviteToken = authService.generateAdminInviteToken(request.getEmail());
-    String inviteLink = "http://localhost:5173/admin/registrer?token=" + inviteToken;
+    String inviteLink = frontendConfig.getUrl() + "/admin/registrer?token=" + inviteToken;
 
     return emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
   }
