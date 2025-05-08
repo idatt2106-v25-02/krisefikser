@@ -2,9 +2,12 @@ package stud.ntnu.krisefikser.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 
 /**
  * Data Transfer Object (DTO) for creating a user. This class is used to transfer data between the
@@ -13,6 +16,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CreateUser {
 
   @NotBlank(message = "Email is required")
@@ -27,4 +31,5 @@ public class CreateUser {
   private boolean notifications;
   private boolean emailUpdates;
   private boolean locationSharing;
+  private List<RoleType> roles;
 }

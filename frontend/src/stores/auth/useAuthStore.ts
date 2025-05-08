@@ -91,14 +91,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function register(data: RegisterRequest) {
     try {
-      const response = await registerMutation({ data })
-
-      /*if (response.accessToken) {
-        updateTokens(response.accessToken, response.refreshToken ?? '')
-        await refetchUser()
-      }*/
-
-      return response
+      await registerMutation({ data })
     } catch (error) {
       console.error('Registration failed:', error)
       throw error
@@ -107,12 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function registerAdmin(data: RegisterRequest) {
     try {
-      const response = await registerAdminMutation({ data })
-      if (response.accessToken) {
-        updateTokens(response.accessToken, response.refreshToken ?? '')
-        await refetchUser()
-      }
-      return response
+      await registerAdminMutation({ data })
     } catch (error) {
       console.error('Admin registration failed:', error)
       throw error
