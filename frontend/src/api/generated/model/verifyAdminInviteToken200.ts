@@ -6,8 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  unsorted?: boolean
-  sorted?: boolean
-  empty?: boolean
-}
+export type VerifyAdminInviteToken200 = { [key: string]: string }
