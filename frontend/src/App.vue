@@ -5,6 +5,7 @@ import AppNavbar from '@/components/layout/Navbar.vue'
 import AppFooter from '@/components/layout/Footer.vue'
 import AccessibilityMenu from '@/components/textToSpeech/AccessibilityMenu.vue'
 import ReadPageButton from '@/components/textToSpeech/ReadPageButton.vue'
+import LocationTracker from '@/components/LocationTracker.vue'
 import router from '@/router'
 import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
 import { Toaster } from '@/components/ui/sonner'
@@ -45,6 +46,7 @@ onMounted(() => {
 
 <template>
   <div id="app">
+    <LocationTracker />
     <!-- TTS active indicator -->
     <div
       v-if="ttsEnabled"

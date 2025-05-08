@@ -21,7 +21,7 @@ import type {
 import { unref } from 'vue'
 import type { MaybeRef } from 'vue'
 
-import type { CreateUser, UserResponse } from '.././model'
+import type { CreateUser, UserLocationRequest, UserResponse } from '.././model'
 
 import { customInstance } from '../../axios'
 import type { ErrorType, BodyType } from '../../axios'
@@ -191,6 +191,93 @@ export const useDeleteUser = <TError = ErrorType<void>, TContext = unknown>(
   TContext
 > => {
   const mutationOptions = getDeleteUserMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Updates the current user's location coordinates if location sharing is enabled
+ * @summary Update user location
+ */
+export const updateCurrentUserLocation = (
+  userLocationRequest: MaybeRef<UserLocationRequest>,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  userLocationRequest = unref(userLocationRequest)
+
+  return customInstance<UserResponse>(
+    {
+      url: `http://localhost:8080/api/users/location`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: userLocationRequest,
+    },
+    options,
+  )
+}
+
+export const getUpdateCurrentUserLocationMutationOptions = <
+  TError = ErrorType<UserResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCurrentUserLocation>>,
+    TError,
+    { data: BodyType<UserLocationRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCurrentUserLocation>>,
+  TError,
+  { data: BodyType<UserLocationRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateCurrentUserLocation']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCurrentUserLocation>>,
+    { data: BodyType<UserLocationRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return updateCurrentUserLocation(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UpdateCurrentUserLocationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCurrentUserLocation>>
+>
+export type UpdateCurrentUserLocationMutationBody = BodyType<UserLocationRequest>
+export type UpdateCurrentUserLocationMutationError = ErrorType<UserResponse>
+
+/**
+ * @summary Update user location
+ */
+export const useUpdateCurrentUserLocation = <TError = ErrorType<UserResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateCurrentUserLocation>>,
+      TError,
+      { data: BodyType<UserLocationRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof updateCurrentUserLocation>>,
+  TError,
+  { data: BodyType<UserLocationRequest> },
+  TContext
+> => {
+  const mutationOptions = getUpdateCurrentUserLocationMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

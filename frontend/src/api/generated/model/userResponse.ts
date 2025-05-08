@@ -15,4 +15,6 @@ export interface UserResponse {
   notifications?: boolean
   emailUpdates?: boolean
   locationSharing?: boolean
+  latitude?: number
+  longitude?: number
 }

@@ -48,4 +48,15 @@ public class HouseholdMember {
     return new HouseholdMemberResponse(
         user.toDto());
   }
+
+  /**
+   * Converts to HouseholdMemberResponse including user location data.
+   * This should only be used when getting active household details.
+   * 
+   * @return HouseholdMemberResponse with user location data
+   */
+  public HouseholdMemberResponse toDtoWithLocation() {
+    return new HouseholdMemberResponse(
+        user.toDtoWithLocation());
+  }
 }

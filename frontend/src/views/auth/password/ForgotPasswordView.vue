@@ -1,112 +1,166 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { Mail, ArrowRight, CheckCircle } from 'lucide-vue-next'
+import { useRoute, useRouter } from 'vue-router'
+import { KeyRound } from 'lucide-vue-next'
 
 import { Button } from '@/components/ui/button'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { FormField } from '@/components/ui/form'
+import PasswordInput from '@/components/auth/PasswordInput.vue'
 
-// Skjema for glemt passord
-const forgotPasswordSchema = z.object({
-  email: z.string().email('Vennligst skriv inn en gyldig e-postadresse')
-})
+// Schema for the reset password form with password requirements
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Passord må være minst 8 tegn')
+      .max(50, 'Passord kan være maks 50 tegn')
+      .regex(/[A-Z]/, 'Må inneholde minst én stor bokstav')
+      .regex(/[a-z]/, 'Må inneholde minst én liten bokstav')
+      .regex(/[0-9]/, 'Må inneholde minst ett tall')
+      .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passordene stemmer ikke overens",
+    path: ['confirmPassword'],
+  })
 
-// Sett opp skjema-validering
+// Set up form validation
 const { handleSubmit, meta } = useForm({
-  validationSchema: toTypedSchema(forgotPasswordSchema),
+  validationSchema: toTypedSchema(resetPasswordSchema),
 })
 
-// Spor tilstanden for skjema-innsending
-const isSubmitted = ref(false)
+// Track form states
 const isLoading = ref(false)
-const userEmail = ref('')
+const isSuccessful = ref(false)
+const isTokenValid = ref(true)
 
-const onSubmit = handleSubmit((values) => {
+// Get token from URL
+const route = useRoute()
+const router = useRouter()
+const token = ref('')
+
+onMounted(() => {
+  // In a real application, you'd validate the token from the URL
+  token.value = route.query.token as string || 'dummy-token'
+
+  // Token validation commented out for now
+  /*
+  if (!token.value) {
+    isTokenValid.value = false
+    errorMessage.value = 'Ugyldig eller utløpt lenke for tilbakestilling av passord. Vennligst be om en ny.'
+  }
+  */
+
+  // Always consider token valid for now
+  isTokenValid.value = true
+})
+
+const onSubmit = handleSubmit(() => {
   isLoading.value = true
 
-  // Simuler API-kall
+  // Simulate API call to reset password
   setTimeout(() => {
-    userEmail.value = values.email
-    isSubmitted.value = true
+    // Here you would typically make an API call with the token and new password
+    isSuccessful.value = true
     isLoading.value = false
   }, 1500)
 })
+
+const goToLogin = () => {
+  // In a real application, this would navigate to your login page
+  router.push('/logg-inn')
+}
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-white p-4">
-    <Card class="w-full max-w-md border border-gray-200 shadow-sm">
-      <CardHeader class="space-y-1">
-        <CardTitle class="text-2xl font-bold text-center">Glemt Passord</CardTitle>
-        <CardDescription class="text-center text-gray-500" v-if="!isSubmitted">
-          Skriv inn e-postadressen din, så sender vi deg en lenke for å tilbakestille passordet ditt.
-        </CardDescription>
-      </CardHeader>
+  <div class="min-h-screen flex items-center justify-center bg-white">
+    <form
+      @submit="onSubmit"
+      class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
+    >
+      <div class="text-center">
+        <div class="mx-auto bg-blue-100 p-2 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+          <KeyRound class="h-6 w-6 text-blue-600" />
+        </div>
+        <h1 class="text-3xl font-bold">Tilbakestill Passord</h1>
+        <p class="text-sm text-gray-500 mt-2" v-if="!isSuccessful">
+          Opprett et nytt passord for kontoen din
+        </p>
+      </div>
 
-      <CardContent>
-        <!-- Suksess-tilstand -->
-        <div v-if="isSubmitted" class="space-y-4">
-          <Alert class="bg-green-50 border-green-200">
-            <CheckCircle class="h-5 w-5 text-green-500" />
-            <AlertDescription class="mt-2">
-              Vi har sendt en lenke for å tilbakestille passordet til <span class="font-medium">{{ userEmail }}</span>.
-              Vennligst sjekk e-posten din og følg instruksjonene.
-            </AlertDescription>
-          </Alert>
+      <!-- Success message -->
+      <div v-if="isSuccessful" class="text-center">
+        <p class="text-green-600 font-medium">Passordet ditt har blitt tilbakestilt.</p>
+        <p class="text-gray-600 mt-2">Du kan nå logge inn med ditt nye passord.</p>
 
-        <Button class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700" @click="isSubmitted = false">
-            Prøv en annen e-post
-          </Button>
+        <Button class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700" @click="goToLogin">
+          Gå til innlogging
+        </Button>
+      </div>
+
+      <!-- Form fields -->
+      <div v-else class="space-y-5">
+        <!-- Password field using the component -->
+        <FormField v-slot="{ componentField }" name="password">
+          <PasswordInput
+            name="password"
+            label="Nytt Passord"
+            placeholder="********"
+            :componentField="componentField"
+            :showToggle="true"
+            :showIcon="true"
+          />
+        </FormField>
+
+        <!-- Confirm Password using the component -->
+        <FormField v-slot="{ componentField }" name="confirmPassword">
+          <PasswordInput
+            name="confirmPassword"
+            label="Bekreft Nytt Passord"
+            placeholder="********"
+            :componentField="componentField"
+            :showToggle="true"
+            :showIcon="true"
+          />
+        </FormField>
+
+        <!-- Password requirements info -->
+        <div class="text-xs text-gray-500 space-y-1">
+          <p class="font-medium">Passordkrav:</p>
+          <ul class="space-y-1">
+            <li>• Minimum 8 tegn</li>
+            <li>• Minst én stor bokstav</li>
+            <li>• Minst én liten bokstav</li>
+            <li>• Minst ett tall</li>
+            <li>• Minst ett spesialtegn</li>
+          </ul>
         </div>
 
-        <!-- Skjema-tilstand -->
-        <form v-else @submit="onSubmit" class="space-y-4">
-          <FormField v-slot="{ componentField }" name="email">
-            <FormItem>
-              <FormLabel class="block text-sm font-medium text-gray-700">E-postadresse</FormLabel>
-              <FormControl>
-                <div class="relative">
-                  <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    type="email"
-                    placeholder="navn@eksempel.com"
-                    class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    v-bind="componentField"
-                  />
-                </div>
-              </FormControl>
-              <FormMessage class="text-sm text-red-500" />
-            </FormItem>
-          </FormField>
+        <Button
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
+          :disabled="!meta.valid || isLoading"
+        >
+          <span v-if="!isLoading">Tilbakestill Passord</span>
+          <span v-else class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Behandler...
+          </span>
+        </Button>
 
-          <Button
-            type="submit"
-            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
-            :disabled="!meta.valid || isLoading"
-          >
-            <span v-if="!isLoading">Tilbakestill Passord</span>
-            <span v-else class="flex items-center justify-center">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Behandler...
-            </span>
-            <ArrowRight class="ml-2 h-4 w-4" v-if="!isLoading" />
-          </Button>
-        </form>
-      </CardContent>
-
-      <CardFooter class="flex justify-center">
+        <!-- Login link -->
         <div class="text-sm text-center">
           <span class="text-gray-600">Husker du passordet ditt?</span>
           <a href="/logg-inn" class="ml-1 text-blue-600 hover:underline">Tilbake til innlogging</a>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </form>
   </div>
 </template>

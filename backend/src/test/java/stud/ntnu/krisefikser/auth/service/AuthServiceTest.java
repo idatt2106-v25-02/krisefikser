@@ -3,12 +3,15 @@ package stud.ntnu.krisefikser.auth.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,11 +45,15 @@ import stud.ntnu.krisefikser.auth.entity.PasswordResetToken;
 import stud.ntnu.krisefikser.auth.entity.RefreshToken;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
+import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
+import stud.ntnu.krisefikser.auth.exception.EmailNotVerifiedException;
 import stud.ntnu.krisefikser.auth.repository.PasswordResetTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.service.UserService;
+import stud.ntnu.krisefikser.user.dto.UserResponse;
+import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -78,6 +86,9 @@ class AuthServiceTest {
   @Mock
   private PasswordResetTokenRepository passwordResetTokenRepository;
 
+  @Mock
+  private EmailVerificationService emailVerificationService;
+
   @InjectMocks
   private AuthService authService;
 
@@ -101,17 +112,14 @@ class AuthServiceTest {
         .roles("USER")
         .build();
 
-    Role role = new Role();
-    role.setName(Role.RoleType.USER);
-
-    user = stud.ntnu.krisefikser.user.entity.User.builder()
-        .id(UUID.randomUUID())
-        .email("test@example.com")
-        .firstName("Test")
-        .lastName("User")
-        .password("encoded-password")
-        .roles(Collections.singleton(role))
-        .build();
+    // Mock the user object instead of creating a real one
+    user = mock(stud.ntnu.krisefikser.user.entity.User.class);
+    when(user.getId()).thenReturn(UUID.randomUUID());
+    when(user.getEmail()).thenReturn("test@example.com");
+    when(user.getFirstName()).thenReturn("Test");
+    when(user.getLastName()).thenReturn("User");
+    when(user.getPassword()).thenReturn("encoded-password");
+    when(user.isEmailVerified()).thenReturn(true);
 
     refreshToken = RefreshToken.builder()
         .id(UUID.randomUUID())
@@ -126,6 +134,10 @@ class AuthServiceTest {
     when(tokenService.generateAccessToken(any(UserDetails.class))).thenReturn("generated-token");
     when(tokenService.generateRefreshToken(any(UserDetails.class))).thenReturn("generated-token");
     when(tokenService.extractEmail(anyString())).thenReturn("test@example.com");
+
+    // Configure email verification service
+    when(emailVerificationService.sendPasswordResetEmail(any(), anyString(), anyLong()))
+        .thenReturn(ResponseEntity.ok("Email sent successfully"));
   }
 
   @Test
@@ -157,7 +169,10 @@ class AuthServiceTest {
         .thenReturn(authentication);
     when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
+
+    // Mock the user object and its behavior
     when(userService.getUserByEmail(anyString())).thenReturn(user);
+    when(user.isEmailVerified()).thenReturn(true);
 
     // Act
     LoginResponse response = authService.login(loginRequest);
@@ -170,6 +185,22 @@ class AuthServiceTest {
     verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
     verify(userDetailsService).loadUserByUsername("test@example.com");
     verify(refreshTokenRepository).save(any(RefreshToken.class));
+  }
+
+  @Test
+  void login_WithUnverifiedEmail_ShouldThrowException() {
+    // Arrange
+    when(userService.getUserByEmail(anyString())).thenReturn(user);
+    when(user.isEmailVerified()).thenReturn(false);
+
+    // Act & Assert
+    assertThatThrownBy(() -> authService.login(loginRequest))
+        .isInstanceOf(EmailNotVerifiedException.class)
+        .hasMessage("Email address not verified. Please verify your email before logging in.");
+
+    verify(authenticationManager, never()).authenticate(any(UsernamePasswordAuthenticationToken.class));
+    verify(userDetailsService, never()).loadUserByUsername(anyString());
+    verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
   }
 
   @Test
@@ -209,7 +240,19 @@ class AuthServiceTest {
   @Test
   void me_ShouldReturnCurrentUser() {
     // Arrange
+    UserResponse userResponse = new UserResponse(
+        UUID.randomUUID(),
+        "test@example.com",
+        List.of("USER"),
+        "Test",
+        "User",
+        true,
+        true,
+        true,
+        null,
+        null);
     when(userService.getCurrentUser()).thenReturn(user);
+    when(user.toDto()).thenReturn(userResponse);
 
     // Act
     var result = authService.me();
@@ -219,6 +262,7 @@ class AuthServiceTest {
     assertThat(result.getEmail()).isEqualTo("test@example.com");
 
     verify(userService).getCurrentUser();
+    verify(user).toDto();
   }
 
   @Test
@@ -282,6 +326,7 @@ class AuthServiceTest {
     when(tokenService.generateResetPasswordToken(email)).thenReturn("reset-token");
     when(jwtProperties.getResetPasswordTokenExpiration()).thenReturn(3600000L);
     when(user.getEmail()).thenReturn(email);
+    when(user.getFirstName()).thenReturn("Test");
 
     // Act
     PasswordResetResponse response = authService.requestPasswordReset(request);
@@ -294,6 +339,7 @@ class AuthServiceTest {
     verify(userService).getUserByEmail(email);
     verify(passwordResetTokenRepository).findByUser(user);
     verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
+    verify(emailVerificationService).sendPasswordResetEmail(eq(user), anyString(), eq(3600000L / (1000 * 60 * 60)));
   }
 
   @Test
@@ -310,6 +356,7 @@ class AuthServiceTest {
     when(tokenService.generateResetPasswordToken(email)).thenReturn("reset-token");
     when(jwtProperties.getResetPasswordTokenExpiration()).thenReturn(3600000L);
     when(user.getEmail()).thenReturn(email);
+    when(user.getFirstName()).thenReturn("Test");
 
     // Act
     PasswordResetResponse response = authService.requestPasswordReset(request);
@@ -321,16 +368,15 @@ class AuthServiceTest {
     verify(passwordResetTokenRepository).findByUser(user);
     verify(passwordResetTokenRepository).deleteAll(existingTokens);
     verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
+    verify(emailVerificationService).sendPasswordResetEmail(eq(user), anyString(), eq(3600000L / (1000 * 60 * 60)));
   }
 
   @Test
   void completePasswordReset_WithValidToken_ShouldUpdatePasswordAndDeleteToken() {
     // Arrange
-    String email = "test@example.com";
     String token = "valid-token";
     String newPassword = "NewPassword123!";
-    CompletePasswordResetRequest request = new CompletePasswordResetRequest(email, token,
-        newPassword);
+    CompletePasswordResetRequest request = new CompletePasswordResetRequest(token, newPassword);
 
     stud.ntnu.krisefikser.user.entity.User user = mock(
         stud.ntnu.krisefikser.user.entity.User.class);
@@ -338,9 +384,8 @@ class AuthServiceTest {
 
     when(passwordResetTokenRepository.findByToken(token)).thenReturn(
         Optional.of(passwordResetToken));
-    when(userService.getUserByEmail(email)).thenReturn(user);
-    when(user.getId()).thenReturn(UUID.randomUUID());
     when(passwordResetToken.getUser()).thenReturn(user);
+    when(user.getId()).thenReturn(UUID.randomUUID());
     when(passwordResetToken.isExpired()).thenReturn(false);
 
     // Act
@@ -356,24 +401,10 @@ class AuthServiceTest {
   }
 
   @Test
-  void completePasswordReset_WithMissingEmail_ShouldThrowException() {
-    // Arrange
-    CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        null, "token", "NewPassword123!");
-
-    // Act & Assert
-    assertThatThrownBy(() -> authService.completePasswordReset(request))
-        .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Email is required");
-
-    verify(passwordResetTokenRepository, never()).findByToken(anyString());
-  }
-
-  @Test
   void completePasswordReset_WithMissingToken_ShouldThrowException() {
     // Arrange
     CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        "test@example.com", null, "NewPassword123!");
+        null, "NewPassword123!");
 
     // Act & Assert
     assertThatThrownBy(() -> authService.completePasswordReset(request))
@@ -387,7 +418,7 @@ class AuthServiceTest {
   void completePasswordReset_WithMissingPassword_ShouldThrowException() {
     // Arrange
     CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        "test@example.com", "token", null);
+        "token", null);
 
     // Act & Assert
     assertThatThrownBy(() -> authService.completePasswordReset(request))
@@ -400,10 +431,9 @@ class AuthServiceTest {
   @Test
   void completePasswordReset_WithInvalidToken_ShouldThrowException() {
     // Arrange
-    String email = "test@example.com";
     String token = "invalid-token";
     CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        email, token, "NewPassword123!");
+        token, "NewPassword123!");
 
     when(passwordResetTokenRepository.findByToken(token)).thenReturn(Optional.empty());
 
@@ -417,42 +447,11 @@ class AuthServiceTest {
   }
 
   @Test
-  void completePasswordReset_WithMismatchedUser_ShouldThrowException() {
-    // Arrange
-    String email = "test@example.com";
-    String token = "valid-token";
-    CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        email, token, "NewPassword123!");
-
-    stud.ntnu.krisefikser.user.entity.User requestUser = mock(
-        stud.ntnu.krisefikser.user.entity.User.class);
-    stud.ntnu.krisefikser.user.entity.User tokenUser = mock(
-        stud.ntnu.krisefikser.user.entity.User.class);
-    PasswordResetToken passwordResetToken = mock(PasswordResetToken.class);
-
-    when(passwordResetTokenRepository.findByToken(token)).thenReturn(
-        Optional.of(passwordResetToken));
-    when(userService.getUserByEmail(email)).thenReturn(requestUser);
-    when(passwordResetToken.getUser()).thenReturn(tokenUser);
-    when(requestUser.getId()).thenReturn(UUID.randomUUID());
-    when(tokenUser.getId()).thenReturn(UUID.randomUUID()); // Different IDs
-
-    // Act & Assert
-    assertThatThrownBy(() -> authService.completePasswordReset(request))
-        .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Invalid token");
-
-    verify(passwordResetTokenRepository).findByToken(token);
-    verify(userService, never()).updatePassword(any(UUID.class), anyString());
-  }
-
-  @Test
   void completePasswordReset_WithExpiredToken_ShouldThrowException() {
     // Arrange
-    String email = "test@example.com";
     String token = "expired-token";
     CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-        email, token, "NewPassword123!");
+        token, "NewPassword123!");
 
     stud.ntnu.krisefikser.user.entity.User user = mock(
         stud.ntnu.krisefikser.user.entity.User.class);
@@ -460,9 +459,8 @@ class AuthServiceTest {
 
     when(passwordResetTokenRepository.findByToken(token)).thenReturn(
         Optional.of(passwordResetToken));
-    when(userService.getUserByEmail(email)).thenReturn(user);
-    when(user.getId()).thenReturn(UUID.randomUUID());
     when(passwordResetToken.getUser()).thenReturn(user);
+    when(user.getId()).thenReturn(UUID.randomUUID());
     when(passwordResetToken.isExpired()).thenReturn(true);
 
     // Act & Assert

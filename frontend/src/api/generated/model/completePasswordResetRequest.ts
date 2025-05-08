@@ -7,7 +7,6 @@
  */
 
 export interface CompletePasswordResetRequest {
-  email?: string
   token?: string
   newPassword?: string
 }
