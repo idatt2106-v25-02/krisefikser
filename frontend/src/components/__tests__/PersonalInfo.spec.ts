@@ -31,12 +31,7 @@ vi.mock('@/stores/auth/useAuthStore', () => ({
 }))
 
 describe('PersonalInfo', () => {
-  it('renders user information correctly', async () => {
-    // Mount component
-    const wrapper = createComponentWrapper(PersonalInfo)
-    await wrapper.vm.$nextTick()
 
-  })
 
   it('toggles edit mode on button click', async () => {
     // Mount component
