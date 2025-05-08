@@ -83,7 +83,7 @@ const router = createRouter({
     },
     {
       path: '/glemt-passord',
-      name: 'glemt-passord',
+      name: 'forgot-password',
       component: SendResetPasswordLinkView,
       meta: { requiresGuest: true }
     },
@@ -213,7 +213,7 @@ const router = createRouter({
     },
     {
       path: '/endre-passord',
-      name: 'reset-password',
+      name: 'change-password',
       component: ResetPasswordView,
       meta: { requiresAuth: true }
     },

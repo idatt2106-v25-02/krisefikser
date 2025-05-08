@@ -5,6 +5,8 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useRoute, useRouter } from 'vue-router'
 import { KeyRound } from 'lucide-vue-next'
+import { useCompletePasswordReset } from '../../../api/generated/authentication/authentication'
+import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
@@ -42,32 +44,44 @@ const isTokenValid = ref(true)
 const route = useRoute()
 const router = useRouter()
 const token = ref('')
+const errorMessage = ref('')
 
 onMounted(() => {
-  // In a real application, you'd validate the token from the URL
-  token.value = route.query.token as string || 'dummy-token'
-
-  // Token validation commented out for now
-  /*
+  token.value = route.query.token as string
   if (!token.value) {
     isTokenValid.value = false
     errorMessage.value = 'Ugyldig eller utløpt lenke for tilbakestilling av passord. Vennligst be om en ny.'
+    router.push('/glemt-passord')
   }
-  */
-
-  // Always consider token valid for now
-  isTokenValid.value = true
 })
 
-const onSubmit = handleSubmit(() => {
-  isLoading.value = true
+const completePasswordResetMutation = useCompletePasswordReset()
 
-  // Simulate API call to reset password
-  setTimeout(() => {
-    // Here you would typically make an API call with the token and new password
+const onSubmit = handleSubmit(async (values) => {
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    await completePasswordResetMutation.mutateAsync({
+      data: {
+        token: token.value,
+        newPassword: values.password
+      }
+    })
+
     isSuccessful.value = true
+    toast('Passord tilbakestilt', {
+      description: 'Ditt passord har blitt tilbakestilt. Du kan nå logge inn med ditt nye passord.',
+    })
+  } catch (error) {
+    console.error('Failed to reset password:', error)
+    errorMessage.value = 'Kunne ikke tilbakestille passord. Vennligst prøv igjen eller be om en ny lenke.'
+    toast('Feil ved tilbakestilling av passord', {
+      description: 'Kunne ikke tilbakestille passord. Vennligst prøv igjen eller be om en ny lenke.',
+    })
+  } finally {
     isLoading.value = false
-  }, 1500)
+  }
 })
 
 const goToLogin = () => {
@@ -100,6 +114,11 @@ const goToLogin = () => {
         <Button class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700" @click="goToLogin">
           Gå til innlogging
         </Button>
+      </div>
+
+      <!-- Error message -->
+      <div v-if="errorMessage" class="text-red-500 text-sm text-center mb-4">
+        {{ errorMessage }}
       </div>
 
       <!-- Form fields -->
