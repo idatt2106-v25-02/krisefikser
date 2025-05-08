@@ -10,15 +10,15 @@ import type { SortObject } from './sortObject'
 import type { PageableObject } from './pageableObject'
 
 export interface PageProductType {
-  totalElements?: number
   totalPages?: number
+  totalElements?: number
+  first?: boolean
+  last?: boolean
+  numberOfElements?: number
   size?: number
   content?: ProductType[]
   number?: number
   sort?: SortObject
-  first?: boolean
-  last?: boolean
-  numberOfElements?: number
   pageable?: PageableObject
   empty?: boolean
 }
