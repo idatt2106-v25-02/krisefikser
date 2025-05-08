@@ -301,7 +301,7 @@ public class AuthController {
   ) {
       // Generate a unique token for the admin invitation
       String inviteToken = authService.generateAdminInviteToken(request.getEmail());
-      String inviteLink = "http://localhost:3000/admin/registrer?token=" + inviteToken;
+      String inviteLink = "http://localhost:5173/admin/registrer?token=" + inviteToken;
       
       return emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
   }
