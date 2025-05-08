@@ -13,6 +13,15 @@ import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
+// Define error type
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 // Schema for the email form
 const emailSchema = z.object({
   email: z.string().email('Vennligst skriv inn en gyldig e-postadresse')
@@ -45,10 +54,11 @@ const onSubmit = handleSubmit(async (values) => {
     toast('Suksess', {
       description: 'Passord-tilbakestillingslink er sendt til admin-brukeren'
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to request admin password reset:', error)
+    const apiError = error as ApiError
     toast('Feil', {
-      description: error.response?.data?.message || 'Kunne ikke sende passord-tilbakestillingslink'
+      description: apiError.response?.data?.message || 'Kunne ikke sende passord-tilbakestillingslink'
     })
   } finally {
     isLoading.value = false
