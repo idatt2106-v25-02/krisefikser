@@ -35,10 +35,8 @@ function getEventOpacity(status?: EventStatus): number {
       return 0.3
     case EventStatus.ONGOING:
       return 0.6
-    case EventStatus.FINISHED:
-      return 0.1
     default:
-      return 0.5
+      return 0.1
   }
 }
 

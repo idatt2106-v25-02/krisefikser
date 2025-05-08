@@ -104,6 +104,7 @@ function processMapData() {
 
   if (eventsData.value) {
     events.value = Array.isArray(eventsData.value) ? eventsData.value : [eventsData.value]
+    events.value = events.value.filter((event) => event.status !== 'FINISHED')
   }
 
   isLoading.value = false
