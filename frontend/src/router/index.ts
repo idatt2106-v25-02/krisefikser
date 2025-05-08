@@ -126,7 +126,12 @@ const router = createRouter({
       component: ManageAdminsView,
       meta: { requiresAuth: true, requiresAdmin: true },
     },
-
+    {
+      path: '/admin/brukere-admin',
+      name: 'admin-users-admin',
+      component: ManageAdminsView,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
     // Registered User routes
     {
       path: '/dashboard',
