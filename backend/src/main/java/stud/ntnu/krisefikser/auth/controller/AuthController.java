@@ -7,11 +7,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.security.PermitAll;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import stud.ntnu.krisefikser.auth.dto.AdminInviteRequest;
 import stud.ntnu.krisefikser.auth.dto.CompletePasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginResponse;
@@ -32,20 +35,16 @@ import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
 import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
+import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.email.entity.VerificationToken;
+import stud.ntnu.krisefikser.email.service.EmailAdminService;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
-import java.util.HashMap;
-import java.util.Map;
-import stud.ntnu.krisefikser.auth.dto.AdminInviteRequest;
-import stud.ntnu.krisefikser.email.service.EmailAdminService;
-import org.springframework.security.access.prepost.PreAuthorize;
-import jakarta.annotation.security.PermitAll;
 
 /**
  * REST controller for managing authentication-related operations. Provides endpoints for user
@@ -57,11 +56,12 @@ import jakarta.annotation.security.PermitAll;
 @Tag(name = "Authentication", description = "Authentication management APIs")
 @Validated
 public class AuthController {
-    private final UserRepository userRepository;
-    private final EmailVerificationService emailVerificationService;
-    private final AuthService authService;
-    private final TurnstileService turnstileService;
-    private final EmailAdminService emailAdminService;
+
+  private final UserRepository userRepository;
+  private final EmailVerificationService emailVerificationService;
+  private final AuthService authService;
+  private final TurnstileService turnstileService;
+  private final EmailAdminService emailAdminService;
 
   /**
    * Registers a new user after verifying the CAPTCHA and validating the input.
@@ -83,7 +83,8 @@ public class AuthController {
   })
   @PostMapping("/register")
   public ResponseEntity<RegisterResponse> register(
-      @Parameter(description = "Registration details including Turnstile token", required = true) @RequestBody RegisterRequest request) {
+      @Parameter(description = "Registration details including Turnstile token", required = true)
+      @RequestBody RegisterRequest request) {
     try {
       RegisterResponse response = authService.register(request);
       // Create and send verification email
@@ -96,7 +97,8 @@ public class AuthController {
       throw e; // Re-throw to let the global exception handler handle it
     }
   }
-   /**
+
+  /**
    * Registers a new admin user after verifying the CAPTCHA and validating the input. This endpoint
    * is restricted to users with administrative privileges.
    *
@@ -135,7 +137,8 @@ public class AuthController {
    * @return ResponseEntity containing the status of the verification operation.
    */
   @PostMapping("/verify-email")
-  @Operation(summary = "Verify email address", description = "Verifies user's email address using a token")
+  @Operation(summary = "Verify email address",
+      description = "Verifies user's email address using a token")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Email verified successfully"),
       @ApiResponse(responseCode = "400", description = "Invalid or expired verification token")
@@ -143,13 +146,11 @@ public class AuthController {
   public ResponseEntity<String> verifyEmail(@RequestParam String token) {
     boolean verified = authService.verifyEmail(token);
     if (verified) {
-      return ResponseEntity.ok("Email verified successfully.");
-    } else {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body("Invalid or expired verification token.");
+      return ResponseEntity.ok("Email verified successfully");
     }
+    return ResponseEntity.badRequest().body("Invalid or expired token");
   }
-  
+
 
   /**
    * Authenticates a user and returns access tokens.
@@ -288,11 +289,13 @@ public class AuthController {
    * @param request The request containing the email address to send the invitation to
    * @return ResponseEntity containing the status of the invitation operation
    */
-  @Operation(summary = "Send admin invitation", description = "Sends an admin invitation email to the specified address")
+  @Operation(summary = "Send admin invitation",
+      description = "Sends an admin invitation email to the specified address")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Admin invitation sent successfully"),
       @ApiResponse(responseCode = "400", description = "Invalid email address"),
-      @ApiResponse(responseCode = "403", description = "Insufficient permissions to send admin invitation"),
+      @ApiResponse(responseCode = "403",
+          description = "Insufficient permissions to send admin invitation"),
       @ApiResponse(responseCode = "500", description = "Error sending invitation email")
   })
   @PostMapping("/invite/admin")
@@ -301,11 +304,11 @@ public class AuthController {
       @Parameter(description = "Email address to send the admin invitation to", required = true)
       @RequestBody AdminInviteRequest request
   ) {
-      // Generate a unique token for the admin invitation
-      String inviteToken = authService.generateAdminInviteToken(request.getEmail());
-      String inviteLink = "http://localhost:5173/admin/registrer?token=" + inviteToken;
-      
-      return emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
+    // Generate a unique token for the admin invitation
+    String inviteToken = authService.generateAdminInviteToken(request.getEmail());
+    String inviteLink = "http://localhost:5173/admin/registrer?token=" + inviteToken;
+
+    return emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
   }
 
   /**
@@ -322,6 +325,16 @@ public class AuthController {
       return ResponseEntity.ok(Map.of("email", email));
     } catch (RuntimeException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+  }
+
+  @PostMapping("/verify-admin-login")
+  public ResponseEntity<LoginResponse> verifyAdminLogin(@RequestParam String token) {
+    try {
+      LoginResponse response = authService.verifyAdminLogin(token);
+      return ResponseEntity.ok(response);
+    } catch (InvalidTokenException e) {
+      return ResponseEntity.badRequest().build();
     }
   }
 

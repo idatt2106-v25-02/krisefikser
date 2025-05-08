@@ -37,6 +37,7 @@ import type {
   UserResponse,
   VerifyAdminInviteToken200,
   VerifyAdminInviteTokenParams,
+  VerifyAdminLoginParams,
   VerifyEmailParams,
 } from '.././model'
 
@@ -128,6 +129,87 @@ export const useVerifyEmail = <TError = ErrorType<string>, TContext = unknown>(
   TContext
 > => {
   const mutationOptions = getVerifyEmailMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+export const verifyAdminLogin = (
+  params: MaybeRef<VerifyAdminLoginParams>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  params = unref(params)
+
+  return customInstance<LoginResponse>(
+    {
+      url: `http://localhost:8080/api/auth/verify-admin-login`,
+      method: 'POST',
+      params: unref(params),
+      signal,
+    },
+    options,
+  )
+}
+
+export const getVerifyAdminLoginMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyAdminLogin>>,
+    TError,
+    { params: VerifyAdminLoginParams },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verifyAdminLogin>>,
+  TError,
+  { params: VerifyAdminLoginParams },
+  TContext
+> => {
+  const mutationKey = ['verifyAdminLogin']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verifyAdminLogin>>,
+    { params: VerifyAdminLoginParams }
+  > = (props) => {
+    const { params } = props ?? {}
+
+    return verifyAdminLogin(params, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type VerifyAdminLoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof verifyAdminLogin>>
+>
+
+export type VerifyAdminLoginMutationError = ErrorType<unknown>
+
+export const useVerifyAdminLogin = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof verifyAdminLogin>>,
+      TError,
+      { params: VerifyAdminLoginParams },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof verifyAdminLogin>>,
+  TError,
+  { params: VerifyAdminLoginParams },
+  TContext
+> => {
+  const mutationOptions = getVerifyAdminLoginMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

@@ -194,6 +194,14 @@ if (!user.isEmailVerified()) {
     if (user.getRoles().stream()
         .anyMatch(role -> role.getName().equals(RoleType.ADMIN))) {
       log.info("Admin login attempt for user: {}", user.getEmail());
+      
+      // Generate verification token for admin login
+      String token = tokenService.generateResetPasswordToken(user.getEmail());
+      String verificationLink = frontendUrl + "/verify-admin-login?token=" + token;
+      
+      // Send verification email
+      emailVerificationService.sendAdminLoginVerificationEmail(user, verificationLink);
+      
       throw new TwoFactorAuthRequiredException();
     }
 
@@ -420,5 +428,32 @@ if (!user.isEmailVerified()) {
     }
     
     return inviteToken.email;
+  }
+
+  /**
+   * Verifies an admin login attempt using the provided token.
+   *
+   * @param token The verification token sent to the admin's email
+   * @return A LoginResponse containing the access and refresh tokens if verification is successful
+   * @throws InvalidTokenException if the token is invalid or expired
+   */
+  public LoginResponse verifyAdminLogin(String token) {
+    String email = tokenService.extractEmail(token);
+    if (email == null) {
+      throw new InvalidTokenException();
+    }
+
+    User user = userService.getUserByEmail(email);
+    if (user == null || !user.getRoles().stream().anyMatch(role -> role.getName().equals(RoleType.ADMIN))) {
+      throw new InvalidTokenException();
+    }
+
+    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+    String accessToken = tokenService.generateAccessToken(userDetails);
+    String refreshToken = tokenService.generateRefreshToken(userDetails);
+
+    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).user(user).build());
+
+    return new LoginResponse(accessToken, refreshToken);
   }
 }

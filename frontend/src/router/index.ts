@@ -18,6 +18,7 @@ import AdminRegisterView from '@/views/admin/register/AdminRegisterView.vue'
 import AdminScenariosView from '@/views/admin/scenario/ScenariosView.vue'
 import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
 import AdminInviteView from '@/views/admin/invite/AdminInviteView.vue'
+import VerifyAdminLoginView from '@/views/auth/VerifyAdminLoginView.vue'
 
 // Registered User views
 import DashboardView from '@/views/registered/dashboard/DashboardView.vue'
@@ -144,6 +145,12 @@ const router = createRouter({
       path: '/verify',
       name: 'verify',
       component: VerifyToken,
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/verify-admin-login',
+      name: 'verify-admin-login',
+      component: VerifyAdminLoginView,
       meta: { requiresGuest: true }
     },
 
