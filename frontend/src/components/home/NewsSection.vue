@@ -5,7 +5,7 @@ export default {
 }
 </script>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useGetAllArticles } from '@/api/generated/article/article'
 import { useRouter } from 'vue-router'
@@ -15,17 +15,14 @@ const router = useRouter()
 
 console.log(articles.value)
 
-const arrayToDate = (dateArray?: number[]) => {
-  if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return null
-  // Note: Month in JavaScript is 0-based, so we subtract 1 from the month
-  return new Date(
-    dateArray[0],
-    dateArray[1] - 1,
-    dateArray[2],
-    dateArray[3] || 0,
-    dateArray[4] || 0,
-    dateArray[5] || 0,
-  )
+const parseIsoString = (isoString?: string): Date | null => {
+  if (!isoString) return null
+  try {
+    return new Date(isoString)
+  } catch (e) {
+    console.error('Error parsing date string:', isoString, e)
+    return null
+  }
 }
 
 const latestArticles = computed(() => {
@@ -34,17 +31,17 @@ const latestArticles = computed(() => {
   // Sort by date and get the 3 most recent articles
   return [...articles.value]
     .sort((a, b) => {
-      const dateA = arrayToDate(a.createdAt)?.getTime() || 0
-      const dateB = arrayToDate(b.createdAt)?.getTime() || 0
+      const dateA = parseIsoString(a.createdAt)?.getTime() || 0
+      const dateB = parseIsoString(b.createdAt)?.getTime() || 0
       return dateB - dateA
     })
     .slice(0, 3)
 })
 
-const formatDate = (dateArray?: number[]) => {
-  if (!dateArray || !Array.isArray(dateArray)) return ''
+const formatDate = (isoString?: string) => {
+  if (!isoString) return ''
 
-  const date = arrayToDate(dateArray)
+  const date = parseIsoString(isoString)
   if (!date || isNaN(date.getTime())) return ''
 
   try {
@@ -90,22 +87,22 @@ const goToAllNews = () => {
       <!-- Responsive button -->
       <div class="flex justify-center md:absolute md:right-0 md:top-0">
         <a
-          class="text-blue-600 font-medium hover:underline inline-flex items-center cursor-pointer whitespace-nowrap"
           @click="goToAllNews"
+          class="text-blue-600 font-medium hover:underline inline-flex items-center cursor-pointer whitespace-nowrap"
         >
           Se alle nyheter
           <svg
+            xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5 ml-1"
             fill="none"
-            stroke="currentColor"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+            stroke="currentColor"
           >
             <path
-              d="M9 5l7 7-7 7"
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
+              d="M9 5l7 7-7 7"
             />
           </svg>
         </a>
@@ -131,8 +128,8 @@ const goToAllNews = () => {
       >
         <div
           v-if="article.imageUrl"
-          :style="`background-image: url('${article.imageUrl}')`"
           class="h-48 bg-cover bg-center"
+          :style="`background-image: url('${article.imageUrl}')`"
         ></div>
         <div v-else class="h-48 bg-gray-200"></div>
         <div class="p-6">
@@ -146,11 +143,11 @@ const goToAllNews = () => {
           >
             Les mer
             <svg
+              xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5 ml-1"
               fill="none"
-              stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+              stroke="currentColor"
             >
               <path
                 stroke-linecap="round"

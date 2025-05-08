@@ -1,8 +1,7 @@
-<!-- ArticleManagementView.vue -->
-<script lang="ts" setup>
+<script setup lang="ts">
 import AdminLayout from '@/components/admin/AdminLayout.vue'
-import { computed, ref } from 'vue'
-import { Image as ImageIcon, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Pencil, Trash2, Plus, Search, Image as ImageIcon } from 'lucide-vue-next'
 
 // Import shadcn components
 import { Button } from '@/components/ui/button'
@@ -19,10 +18,10 @@ import { Textarea } from '@/components/ui/textarea'
 
 // Import API hooks
 import {
-  useCreateArticle,
-  useDeleteArticle,
   useGetAllArticles,
+  useCreateArticle,
   useUpdateArticle,
+  useDeleteArticle,
 } from '@/api/generated/article/article'
 import type { ArticleRequest, ArticleResponse } from '@/api/generated/model'
 
@@ -154,25 +153,41 @@ const openImageInNewTab = (url: string) => {
   link.click()
 }
 
+const parseIsoString = (isoString?: string): Date | null => {
+  if (!isoString) return null
+  try {
+    return new Date(isoString)
+  } catch (e) {
+    console.error('Error parsing date string:', isoString, e)
+    return null
+  }
+}
+
 // Format date
-const formatDate = (dateArray: number[]) => {
-  const date = new Date(
-    Date.UTC(
-      dateArray[0], // year
-      dateArray[1] - 1, // month (0-based)
-      dateArray[2], // day
-      dateArray[3], // hour
-      dateArray[4], // minute
-      dateArray[5], // second
-    ),
-  )
-  return date.toLocaleDateString('nb-NO', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+const formatDate = (isoString?: string) => {
+  if (!isoString) return ''
+
+  const date = parseIsoString(isoString)
+  if (!date || isNaN(date.getTime())) return ''
+
+  try {
+    return date.toLocaleDateString('nb-NO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    // Fallback to English if Norwegian locale is not supported
+    return date.toLocaleDateString('en', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
 }
 </script>
 
@@ -182,8 +197,8 @@ const formatDate = (dateArray: number[]) => {
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Administrer artikler</h2>
         <Button
-          class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
           variant="default"
+          class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
           @click="openDialog()"
         >
           <Plus class="h-4 w-4 mr-1" />
@@ -198,9 +213,9 @@ const formatDate = (dateArray: number[]) => {
             <Search class="h-4 w-4 text-gray-500" />
             <input
               v-model="searchQuery"
-              class="bg-transparent border-0 outline-none ml-2 text-gray-700 w-full"
-              placeholder="Søk artikler..."
               type="text"
+              placeholder="Søk artikler..."
+              class="bg-transparent border-0 outline-none ml-2 text-gray-700 w-full"
             />
           </div>
         </div>
@@ -218,20 +233,20 @@ const formatDate = (dateArray: number[]) => {
               <thead class="bg-gray-50">
                 <tr>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Tittel
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Opprettet
                   </th>
                   <th
-                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                     scope="col"
+                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     Handlinger
                   </th>
@@ -243,8 +258,8 @@ const formatDate = (dateArray: number[]) => {
                     <div class="flex items-center">
                       <img
                         v-if="article.imageUrl"
-                        :alt="article.title"
                         :src="article.imageUrl"
+                        :alt="article.title"
                         class="h-10 w-10 rounded-full object-cover mr-3"
                       />
                       <div class="text-sm font-medium text-gray-900">{{ article.title }}</div>
@@ -256,17 +271,17 @@ const formatDate = (dateArray: number[]) => {
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div class="flex justify-center space-x-2">
                       <Button
-                        class="text-blue-600 hover:text-blue-800"
-                        size="icon"
                         variant="ghost"
+                        size="icon"
+                        class="text-blue-600 hover:text-blue-800"
                         @click="openDialog(article)"
                       >
                         <Pencil class="h-4 w-4" />
                       </Button>
                       <Button
-                        class="text-red-600 hover:text-red-800"
-                        size="icon"
                         variant="ghost"
+                        size="icon"
+                        class="text-red-600 hover:text-red-800"
                         @click="deleteArticle(article.id)"
                       >
                         <Trash2 class="h-4 w-4" />
@@ -286,14 +301,14 @@ const formatDate = (dateArray: number[]) => {
           <DialogHeader>
             <DialogTitle>{{ isEditing ? 'Rediger artikkel' : 'Opprett ny artikkel' }}</DialogTitle>
             <DialogDescription>
-              Fyll ut informasjonen under for å {{ isEditing ? 'oppdatere' : 'opprette' }}
-              artikkelen.
+              Fyll ut informasjonen under for å
+              {{ isEditing ? 'oppdatere' : 'opprette' }} artikkelen.
             </DialogDescription>
           </DialogHeader>
 
-          <form class="space-y-4" @submit.prevent="handleSubmit">
+          <form @submit.prevent="handleSubmit" class="space-y-4">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700" for="title">Tittel</label>
+              <label for="title" class="text-sm font-medium text-gray-700">Tittel</label>
               <Input
                 id="title"
                 v-model="articleForm.title"
@@ -303,7 +318,7 @@ const formatDate = (dateArray: number[]) => {
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700" for="imageUrl">Bilde URL</label>
+              <label for="imageUrl" class="text-sm font-medium text-gray-700">Bilde URL</label>
               <div class="flex space-x-2">
                 <Input
                   id="imageUrl"
@@ -312,11 +327,11 @@ const formatDate = (dateArray: number[]) => {
                   required
                 />
                 <Button
-                  :disabled="!articleForm.imageUrl"
-                  class="flex-shrink-0"
                   type="button"
                   variant="outline"
+                  class="flex-shrink-0"
                   @click="openImageInNewTab(articleForm.imageUrl)"
+                  :disabled="!articleForm.imageUrl"
                 >
                   <ImageIcon class="h-4 w-4" />
                 </Button>
@@ -324,13 +339,13 @@ const formatDate = (dateArray: number[]) => {
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700" for="text">Innhold</label>
+              <label for="text" class="text-sm font-medium text-gray-700">Innhold</label>
               <Textarea
                 id="text"
                 v-model="articleForm.text"
                 placeholder="Skriv inn artikkelinnhold"
-                required
                 rows="10"
+                required
               />
             </div>
 
