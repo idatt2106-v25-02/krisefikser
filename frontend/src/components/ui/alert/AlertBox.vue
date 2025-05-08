@@ -1,8 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script lang="ts">
-import { onMounted, computed } from 'vue'
-import speechService from '@/services/tts/speechService.ts'
-import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
+import { computed } from 'vue'
 
 export default {
   name: 'AlertBox',
@@ -17,21 +15,7 @@ export default {
       default: null,
     },
   },
-  setup(props, { slots }) {
-    onMounted(() => {
-      try {
-        const accessibilityStore = useAccessibilityStore()
-        if (accessibilityStore.ttsEnabled && slots.default) {
-          const alertText = slots.default()[0].children
-          if (alertText) {
-            speechService.speak(alertText)
-          }
-        }
-      } catch (error) {
-        console.warn('Could not access accessibility store:', error)
-      }
-    })
-
+  setup(props) {
     return {
       backgroundClass: computed(() => {
         const types: Record<'info' | 'warning' | 'success' | 'error', string> = {
