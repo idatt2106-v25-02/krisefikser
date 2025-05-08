@@ -48,6 +48,7 @@ import KriserPage from '@/views/nonRegistered/event/KriserPage.vue';
 import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue';
 import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue';
 import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue';
+import NotificationsView from '@/views/registered/notification/NotificationView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -237,6 +238,11 @@ const router = createRouter({
       component: AfterCrisisView,
     },
 
+    {
+      path: '/varsler',
+      name: 'notifications',
+      component: NotificationsView,
+    },
     {
       path: '/scenarioer',
       name: 'scenarios-list',
