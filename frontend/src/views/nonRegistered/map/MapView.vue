@@ -60,7 +60,11 @@ const events = ref<Event[]>([])
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
 const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
-const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
+const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold({
+  query: {
+    retry: 0,
+  },
+})
 
 // Computed properties
 const isDataLoading = computed(

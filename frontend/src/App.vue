@@ -73,7 +73,7 @@ onMounted(() => {
     <div id="main-content" class="min-h-screen">
       <router-view />
     </div>
-    <AppFooter />
+    <AppFooter v-if="!router.currentRoute.value.path.includes('kart')" />
     <Toaster />
     <AccessibilityMenu />
     <ReadPageButton />
