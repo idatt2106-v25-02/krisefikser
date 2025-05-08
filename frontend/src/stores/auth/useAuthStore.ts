@@ -120,6 +120,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function updatePassword(oldPassword: string, newPassword: string) {
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/update-password', {
+        oldPassword,
+        password: newPassword
+      })
+      return response.data
+    } catch (error) {
+      console.error('Password update failed:', error)
+      throw error
+    }
+  }
+
   function logout() {
     console.log('Logging out')
     // Clear tokens
@@ -155,6 +168,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     refreshTokens,
     updateTokens,
+    updatePassword,
 
     // Expose for debugging
     refetchUser,

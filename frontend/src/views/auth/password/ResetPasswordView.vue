@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { KeyRound } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
 
-// Schema for the reset password form with password requirements
-const resetPasswordSchema = z
+// Schema for the update password form with password requirements
+const updatePasswordSchema = z
   .object({
+    oldPassword: z.string().min(1, 'Nåværende passord er påkrevd'),
     password: z
       .string()
       .min(8, 'Passord må være minst 8 tegn')
@@ -30,49 +32,33 @@ const resetPasswordSchema = z
 
 // Set up form validation
 const { handleSubmit, meta } = useForm({
-  validationSchema: toTypedSchema(resetPasswordSchema),
+  validationSchema: toTypedSchema(updatePasswordSchema),
 })
 
 // Track form states
 const isLoading = ref(false)
 const isSuccessful = ref(false)
-const isTokenValid = ref(true)
+const errorMessage = ref('')
 
-// Get token from URL
-const route = useRoute()
 const router = useRouter()
-const token = ref('')
+const authStore = useAuthStore()
 
-onMounted(() => {
-  // In a real application, you'd validate the token from the URL
-  token.value = route.query.token as string || 'dummy-token'
-
-  // Token validation commented out for now
-  /*
-  if (!token.value) {
-    isTokenValid.value = false
-    errorMessage.value = 'Ugyldig eller utløpt lenke for tilbakestilling av passord. Vennligst be om en ny.'
-  }
-  */
-
-  // Always consider token valid for now
-  isTokenValid.value = true
-})
-
-const onSubmit = handleSubmit(() => {
+const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
+  errorMessage.value = ''
 
-  // Simulate API call to reset password
-  setTimeout(() => {
-    // Here you would typically make an API call with the token and new password
+  try {
+    await authStore.updatePassword(values.oldPassword, values.password)
     isSuccessful.value = true
+  } catch (error: any) {
+    errorMessage.value = error.response?.data?.message || 'En feil oppstod ved oppdatering av passord'
+  } finally {
     isLoading.value = false
-  }, 1500)
+  }
 })
 
-const goToLogin = () => {
-  // In a real application, this would navigate to your login page
-  router.push('/logg-inn')
+const goToProfile = () => {
+  router.push('/profil')
 }
 </script>
 
@@ -86,25 +72,42 @@ const goToLogin = () => {
         <div class="mx-auto bg-blue-100 p-2 rounded-full w-12 h-12 flex items-center justify-center mb-4">
           <KeyRound class="h-6 w-6 text-blue-600" />
         </div>
-        <h1 class="text-3xl font-bold">Tilbakestill Passord</h1>
+        <h1 class="text-3xl font-bold">Oppdater Passord</h1>
         <p class="text-sm text-gray-500 mt-2" v-if="!isSuccessful">
-          Opprett et nytt passord for kontoen din
+          Oppdater passordet ditt
         </p>
       </div>
 
       <!-- Success message -->
       <div v-if="isSuccessful" class="text-center">
-        <p class="text-green-600 font-medium">Passordet ditt har blitt tilbakestilt.</p>
-        <p class="text-gray-600 mt-2">Du kan nå logge inn med ditt nye passord.</p>
+        <p class="text-green-600 font-medium">Passordet ditt har blitt oppdatert.</p>
+        <p class="text-gray-600 mt-2">Du kan nå bruke ditt nye passord ved neste innlogging.</p>
 
-        <Button class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700" @click="goToLogin">
-          Gå til innlogging
+        <Button class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700" @click="goToProfile">
+          Gå til profil
         </Button>
+      </div>
+
+      <!-- Error message -->
+      <div v-if="errorMessage" class="text-red-500 text-sm text-center">
+        {{ errorMessage }}
       </div>
 
       <!-- Form fields -->
       <div v-else class="space-y-5">
-        <!-- Password field using the component -->
+        <!-- Current Password field -->
+        <FormField v-slot="{ componentField }" name="oldPassword">
+          <PasswordInput
+            name="oldPassword"
+            label="Nåværende Passord"
+            placeholder="********"
+            :componentField="componentField"
+            :showToggle="true"
+            :showIcon="true"
+          />
+        </FormField>
+
+        <!-- New Password field -->
         <FormField v-slot="{ componentField }" name="password">
           <PasswordInput
             name="password"
@@ -113,10 +116,11 @@ const goToLogin = () => {
             :componentField="componentField"
             :showToggle="true"
             :showIcon="true"
+            :showComplexityRequirements="true"
           />
         </FormField>
 
-        <!-- Confirm Password using the component -->
+        <!-- Confirm Password field -->
         <FormField v-slot="{ componentField }" name="confirmPassword">
           <PasswordInput
             name="confirmPassword"
@@ -128,24 +132,12 @@ const goToLogin = () => {
           />
         </FormField>
 
-        <!-- Password requirements info -->
-        <div class="text-xs text-gray-500 space-y-1">
-          <p class="font-medium">Passordkrav:</p>
-          <ul class="space-y-1">
-            <li>• Minimum 8 tegn</li>
-            <li>• Minst én stor bokstav</li>
-            <li>• Minst én liten bokstav</li>
-            <li>• Minst ett tall</li>
-            <li>• Minst ett spesialtegn</li>
-          </ul>
-        </div>
-
         <Button
           type="submit"
           class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
           :disabled="!meta.valid || isLoading"
         >
-          <span v-if="!isLoading">Tilbakestill Passord</span>
+          <span v-if="!isLoading">Oppdater Passord</span>
           <span v-else class="flex items-center justify-center">
             <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -155,10 +147,10 @@ const goToLogin = () => {
           </span>
         </Button>
 
-        <!-- Login link -->
+        <!-- Back to profile link -->
         <div class="text-sm text-center">
-          <span class="text-gray-600">Husker du passordet ditt?</span>
-          <a href="/logg-inn" class="ml-1 text-blue-600 hover:underline">Tilbake til innlogging</a>
+          <span class="text-gray-600">Vil du ikke endre passord?</span>
+          <a href="/profil" class="ml-1 text-blue-600 hover:underline">Tilbake til profil</a>
         </div>
       </div>
     </form>
