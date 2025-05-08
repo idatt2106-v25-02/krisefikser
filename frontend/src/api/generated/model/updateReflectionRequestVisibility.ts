@@ -9,7 +9,7 @@
 export type UpdateReflectionRequestVisibility =
   (typeof UpdateReflectionRequestVisibility)[keyof typeof UpdateReflectionRequestVisibility]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const UpdateReflectionRequestVisibility = {
   PUBLIC: 'PUBLIC',
   HOUSEHOLD: 'HOUSEHOLD',

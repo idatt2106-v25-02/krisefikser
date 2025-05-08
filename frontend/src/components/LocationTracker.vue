@@ -6,8 +6,8 @@ import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 const authStore = useAuthStore()
 const updateLocationMutation = useUpdateCurrentUserLocation({
   mutation: {
-    throwOnError: false
-  }
+    throwOnError: false,
+  },
 })
 let intervalId: number | null = null
 

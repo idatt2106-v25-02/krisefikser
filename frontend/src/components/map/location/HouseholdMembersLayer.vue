@@ -1,9 +1,12 @@
-<script lang="ts" setup>
-import { onUnmounted, ref, watch } from 'vue'
-import type { Map as LeafletMap, Marker } from 'leaflet'
+<script setup lang="ts">
+import { ref, onUnmounted, watch } from 'vue'
 import L from 'leaflet'
+import type { Map as LeafletMap, Marker } from 'leaflet'
 import type { HouseholdMemberResponse } from '@/api/generated/model'
 import { useGetActiveHousehold } from '@/api/generated/household/household'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
+
+const authStore = useAuthStore()
 
 const props = defineProps<{
   map: LeafletMap
@@ -29,9 +32,13 @@ watch(
     memberMarkers.value = []
 
     if (!newMembers) return
+    if (!newMembers) return
 
     // Add new markers for each member with location
     newMembers.forEach((member: HouseholdMemberResponse) => {
+      // Skip if the member is the current user
+      if (member.user.id === authStore.currentUser?.id) return
+
       if (member.user.latitude && member.user.longitude) {
         const marker = L.marker([member.user.latitude, member.user.longitude], { icon: memberIcon })
           .bindPopup(`${member.user.firstName} ${member.user.lastName}`)
@@ -49,6 +56,7 @@ onUnmounted(() => {
   memberMarkers.value.forEach((marker) => marker.remove())
 })
 </script>
+
 <template>
   <div></div>
 </template>
