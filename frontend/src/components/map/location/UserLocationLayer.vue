@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+<script lang="ts" setup>
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import L from 'leaflet'
 import type { EventResponse as Event } from '@/api/generated/model'
 import {
@@ -90,9 +90,9 @@ function createUserMarker(position: GeolocationPosition) {
       `,
       iconSize: [32, 32],
       iconAnchor: [16, 16],
-      popupAnchor: [0, -16]
+      popupAnchor: [0, -16],
     }),
-    zIndexOffset: 1000
+    zIndexOffset: 1000,
   }).addTo(props.map)
 }
 
@@ -150,7 +150,7 @@ function startWatchingPosition() {
       userLocationAvailable.value = false
       emit('user-location-available', false)
     },
-    { enableHighAccuracy: true }
+    { enableHighAccuracy: true },
   )
 }
 
@@ -186,7 +186,7 @@ watch(
       isInitialized.value = true
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // Watch for events changes
@@ -223,7 +223,6 @@ defineExpose({
   setInitialPosition,
 })
 </script>
-
 <template>
   <!-- Alert Component -->
   <Transition

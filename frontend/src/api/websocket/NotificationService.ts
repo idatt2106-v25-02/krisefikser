@@ -43,7 +43,6 @@ export class NotificationService {
       await webSocket.subscribe<NotificationResponse>(
         `/user/${userEmail}/queue/notifications`,
         (notification) => {
-          console.log('Received notification:', notification)
           notificationStore.addNotification(notification)
         },
       )

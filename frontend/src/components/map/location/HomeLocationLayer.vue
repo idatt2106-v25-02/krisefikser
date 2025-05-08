@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+<script lang="ts" setup>
+import { onMounted, ref, watch } from 'vue'
 import L from 'leaflet'
 
 // Define props
@@ -40,9 +40,9 @@ function updateHomeMarker() {
       `,
       iconSize: [40, 40],
       iconAnchor: [20, 20],
-      popupAnchor: [0, -20]
+      popupAnchor: [0, -20],
     }),
-    zIndexOffset: 900
+    zIndexOffset: 900,
   }).addTo(props.map)
 }
 
@@ -52,7 +52,7 @@ watch(
   () => {
     updateHomeMarker()
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 )
 
 // Watch for map changes
@@ -63,7 +63,7 @@ watch(
       updateHomeMarker()
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // Clean up on unmount
@@ -71,3 +71,6 @@ onMounted(() => {
   updateHomeMarker()
 })
 </script>
+<template>
+  <div></div>
+</template>
