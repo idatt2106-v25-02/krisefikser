@@ -1,12 +1,12 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import axios from 'axios'
+  import { useVerifyEmail } from '../api/generated/authentication/authentication'
 
   const route = useRoute()
   const router = useRouter()
 
-  const token = ref(route.query.token || '')
+  const token = ref(Array.isArray(route.query.token) ? route.query.token[0] : route.query.token || '')
   const loading = ref(false)
   const error = ref(false)
   const errorMessage = ref('')
@@ -15,6 +15,8 @@
   const redirectToLogin = () => {
     router.push({ path: '/logg-inn', query: { token: token.value } })
   }
+
+  const verifyEmailMutation = useVerifyEmail()
 
   onMounted(async () => {
     if (!token.value) {
@@ -30,14 +32,16 @@
     try {
       await new Promise(resolve => setTimeout(resolve, 1500))
 
-      await axios.post(`http://localhost:8080/api/auth/verify-email?token=${token.value}`)
+      await verifyEmailMutation.mutateAsync({
+        params: {
+          token: token.value
+        }
+      })
 
       verificationSuccess.value = true
     } catch (err: unknown) {
       error.value = true
-      if (axios.isAxiosError(err) && err.response?.data?.message) {
-        errorMessage.value = err.response.data.message;
-      } else if (err instanceof Error && err.message.includes('Network Error')) {
+      if (err instanceof Error && err.message.includes('Network Error')) {
         errorMessage.value = 'Nettverksfeil. Kunne ikke koble til serveren. Prøv igjen senere.';
       } else {
         errorMessage.value = 'Token er ugyldig, utløpt, eller noe gikk galt. Prøv igjen eller be om en ny bekreftelseslenke.'
