@@ -371,7 +371,7 @@ class AuthControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(roles = "SUPER_ADMIN")
     void inviteAdmin_WithValidEmail_ShouldReturnOk() throws Exception {
         String inviteToken = "valid-invite-token";
         when(authService.generateAdminInviteToken(anyString())).thenReturn(inviteToken);

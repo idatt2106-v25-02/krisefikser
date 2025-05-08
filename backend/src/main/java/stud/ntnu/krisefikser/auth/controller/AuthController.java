@@ -121,7 +121,7 @@ public class AuthController {
           content = @Content(mediaType = "application/json"))
   })
   @PostMapping("/register/admin")
-  @PermitAll
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<RegisterResponse> registerAdmin(
       @Parameter(description = "Registration details including Turnstile token", required = true)
       @RequestBody RegisterRequest request) {
@@ -146,9 +146,9 @@ public class AuthController {
   public ResponseEntity<String> verifyEmail(@RequestParam String token) {
     boolean verified = authService.verifyEmail(token);
     if (verified) {
-      return ResponseEntity.ok("Email verified successfully");
+      return ResponseEntity.ok("Email verified successfully.");
     }
-    return ResponseEntity.badRequest().body("Invalid or expired token");
+    return ResponseEntity.badRequest().body("Invalid or expired verification token.");
   }
 
 
