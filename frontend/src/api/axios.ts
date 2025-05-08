@@ -27,6 +27,20 @@ const processQueue = (error: any | null, token: string | null = null) => {
   failedQueue = []
 }
 
+// Add request interceptor to add Authorization header
+AXIOS_INSTANCE.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
 // Request interceptor
 AXIOS_INSTANCE.interceptors.request.use(
   (config) => {

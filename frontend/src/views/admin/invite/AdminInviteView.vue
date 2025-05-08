@@ -7,6 +7,8 @@ import * as z from 'zod'
 import { Mail, ArrowLeft, CheckCircle, ShieldCheck } from 'lucide-vue-next'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
 import { useToast } from '@/components/ui/toast/use-toast'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
+import { useInviteAdmin } from '@/api/generated/authentication/authentication'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -28,22 +30,14 @@ const { toast } = useToast()
 const isSubmitted = ref(false)
 const isLoading = ref(false)
 const userEmail = ref('')
+const authStore = useAuthStore()
+
+const { mutateAsync: inviteAdminMutation } = useInviteAdmin()
 
 const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
   try {
-    const response = await fetch('http://localhost:8080/api/auth/invite/admin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email: values.email }),
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to send invitation')
-    }
-
+    await inviteAdminMutation({ data: { email: values.email } })
     userEmail.value = values.email
     isSubmitted.value = true
     toast({

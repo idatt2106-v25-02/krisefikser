@@ -119,7 +119,7 @@ public class AuthController {
           content = @Content(mediaType = "application/json"))
   })
   @PostMapping("/register/admin")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PermitAll
   public ResponseEntity<RegisterResponse> registerAdmin(
       @Parameter(description = "Registration details including Turnstile token", required = true)
       @RequestBody RegisterRequest request) {
@@ -296,7 +296,7 @@ public class AuthController {
       @ApiResponse(responseCode = "500", description = "Error sending invitation email")
   })
   @PostMapping("/invite/admin")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('SUPER_ADMIN')")
   public ResponseEntity<String> inviteAdmin(
       @Parameter(description = "Email address to send the admin invitation to", required = true)
       @RequestBody AdminInviteRequest request

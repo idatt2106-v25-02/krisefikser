@@ -7,6 +7,7 @@ import { User, Mail } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import { toast } from 'vue-sonner'
 import { useRoute, useRouter } from 'vue-router'
+import { verifyAdminInviteToken } from '@/api/generated/authentication/authentication'
 
 // Declare the global turnstile object
 declare const turnstile: {
@@ -53,12 +54,8 @@ onMounted(async () => {
 
   isLoading.value = true
   try {
-    const response = await fetch(`http://localhost:8080/api/auth/verify-admin-invite?token=${token.value}`)
-    if (!response.ok) {
-      throw new Error('Invalid token')
-    }
-    const data = await response.json()
-    userEmail.value = data.email
+    const response = await verifyAdminInviteToken({ token: token.value })
+    userEmail.value = response.email
   } catch (error) {
     toast('Feil', {
       description: 'Ugyldig eller utløpt invitasjonstoken',
