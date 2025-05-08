@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted  } from 'vue'
 import { useUpdateCurrentUserLocation } from '@/api/generated/user/user'
-import { toast } from 'vue-sonner'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 
-const updateLocationMutation = useUpdateCurrentUserLocation()
+const authStore = useAuthStore()
+const updateLocationMutation = useUpdateCurrentUserLocation({
+  mutation: {
+    throwOnError: false
+  }
+})
 let intervalId: number | null = null
 
 const updateLocation = async () => {
+  // Only update location if user is authenticated
+  if (!authStore.isAuthenticated) {
+    return
+  }
+
   try {
     // Request location from browser
     const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -22,16 +32,18 @@ const updateLocation = async () => {
     })
   } catch (error) {
     console.error('Failed to update location:', error)
-    toast.error('Kunne ikke oppdatere posisjon')
   }
 }
 
 onMounted(() => {
-  // Request initial location permission and update
-  updateLocation()
+  // Only start tracking if user is authenticated
+  if (authStore.isAuthenticated) {
+    // Request initial location permission and update
+    updateLocation()
 
-  // Set up interval for periodic updates (every 15 seconds)
-  intervalId = window.setInterval(updateLocation, 15000)
+    // Set up interval for periodic updates (every 15 seconds)
+    intervalId = window.setInterval(updateLocation, 15000)
+  }
 })
 
 onUnmounted(() => {
