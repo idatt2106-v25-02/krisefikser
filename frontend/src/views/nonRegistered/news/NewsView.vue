@@ -61,6 +61,7 @@ const formatDate = (dateArray?: number[]) => {
       year: 'numeric',
     })
   } catch (e) {
+    console.error('Error formatting date:', e)
     // Fallback to English if Norwegian locale is not supported
     return date.toLocaleDateString('en', {
       day: 'numeric',
