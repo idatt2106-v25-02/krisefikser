@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Admin Invitation</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 3px;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    p {
+      color: #555;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #888;
+    }
+
+    .invite-link {
+      color: #007bff;
+      text-decoration: none;
+      word-wrap: break-word;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .warning {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 10px;
+      border-radius: 3px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Admin Invitation</h2>
+  <p>Hello,</p>
+  <p>You have been invited to join the Krisefikser platform as an administrator. This invitation will allow you to:</p>
+  <ul>
+    <li>Manage crisis scenarios</li>
+    <li>Monitor and respond to user reports</li>
+    <li>Access administrative features</li>
+  </ul>
+
+  <div class="warning">
+    <strong>Important:</strong> This invitation link is unique to you and will expire in 24 hours. Please do not share it with others.
+  </div>
+
+  <p>To accept this invitation and set up your admin account, click the button below:</p>
+  <p>
+    <a class="button" href="{{link}}">Accept Admin Invitation</a>
+  </p>
+
+  <!-- Add the invitation link as text for manual copying -->
+  <p>If the button above doesn't work, you can manually copy and paste the following URL into your browser:</p>
+  <p>
+    <a class="invite-link" href="{{link}}">{{link}}</a>
+  </p>
+
+  <p>If you did not expect this invitation or believe it was sent in error, please ignore this email.</p>
+
+  <p class="footer">Best regards,<br>The Krisefikser Team</p>
+</div>
+</body>
+</html> 
