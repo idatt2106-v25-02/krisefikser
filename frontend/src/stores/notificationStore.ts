@@ -42,7 +42,6 @@ export const useNotificationStore = defineStore('notification', () => {
 
   const unreadCount = computed(() => {
     const count = notifications.value.filter((n) => !n.read).length
-    console.log('[NotificationStore] Calculated unreadCount:', count) // DEBUG for unreadCount
     return count
   })
 
@@ -61,24 +60,15 @@ export const useNotificationStore = defineStore('notification', () => {
   })
 
   function addNotification(notification: NotificationResponse) {
-    console.log(
-      '[NotificationStore] Attempting to add notification:',
-      JSON.parse(JSON.stringify(notification)),
-    ) // DEBUG incoming notification
+    // DEBUG incoming notification
     // Avoid adding duplicates if WebSocket somehow sends multiple times
     const exists = notifications.value.some((n) => n.id === notification.id)
     if (!exists) {
       notifications.value.unshift({ ...notification }) // Ensure reactivity by spreading
-      console.log(
-        '[NotificationStore] Notification added. Current count:',
-        notifications.value.length,
-      )
       // Optional: Limit the number of notifications stored in memory
       // if (notifications.value.length > 50) {
       //   notifications.value.pop();
       // }
-    } else {
-      console.log('[NotificationStore] Notification already exists, not adding:', notification.id)
     }
   }
 
@@ -95,7 +85,6 @@ export const useNotificationStore = defineStore('notification', () => {
       // const newArray = [...notifications.value];
       // newArray[index] = { ...newArray[index], read: true };
       // notifications.value = newArray;
-      console.log(`[NotificationStore] Marked as read (local): ${notificationId}`)
       // The backend call (Vue Query mutation) is handled in Navbar.vue where this is called
       // TODO: Ensure the vue-query mutation success also invalidates any queries
       // that might populate this store if it were to fetch its own data.
@@ -114,7 +103,6 @@ export const useNotificationStore = defineStore('notification', () => {
     })
     if (actuallyMarked) {
       notifications.value = newNotifications
-      console.log('[NotificationStore] All marked as read (local)')
       // The backend call (Vue Query mutation) is handled in Navbar.vue
     }
   }

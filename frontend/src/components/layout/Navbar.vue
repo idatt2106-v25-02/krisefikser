@@ -1,37 +1,37 @@
 <script lang="ts">
 import {
-  Map as MapIcon,
-  Home,
-  Package,
-  Menu as MenuIcon,
-  X,
-  LogIn,
-  User as UserIcon,
-  LogOut,
-  ListChecks,
-  BookText,
-  Bell as BellIcon,
   AlertTriangle,
-  Calendar,
-  Bell,
-  Info,
-  RefreshCw,
   ArrowRight,
+  Bell as BellIcon,
+  Bell,
+  BookText,
+  Calendar,
+  Home,
+  Info,
+  ListChecks,
+  LogIn,
+  LogOut,
+  Map as MapIcon,
+  Menu as MenuIcon,
+  Package,
+  RefreshCw,
+  User as UserIcon,
+  X,
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   useGetNotifications,
   useGetUnreadCount,
-  useReadNotification,
   useReadAll,
+  useReadNotification,
 } from '@/api/generated/notification/notification'
 import type { NotificationResponse } from '@/api/generated/model'
 import { NotificationResponseType } from '@/api/generated/model/notificationResponseType'
@@ -159,13 +159,33 @@ export default {
 
     const displayedNotifications = computed(() => {
       const notificationsFromFetch = fetchedNotificationsData.value?.content || []
-      return notificationsFromFetch
-        .slice(0, 5)
-        .sort((a, b) => {
-          const dateA = new Date(Array.isArray(a.createdAt) ? new Date(a.createdAt[0], a.createdAt[1] -1, a.createdAt[2], a.createdAt[3], a.createdAt[4], a.createdAt[5]).toISOString() : a.createdAt || 0).getTime();
-          const dateB = new Date(Array.isArray(b.createdAt) ? new Date(b.createdAt[0], b.createdAt[1] -1, b.createdAt[2], b.createdAt[3], b.createdAt[4], b.createdAt[5]).toISOString() : b.createdAt || 0).getTime();
-          return dateB - dateA;
-        });
+      return notificationsFromFetch.slice(0, 5).sort((a, b) => {
+        const dateA = new Date(
+          Array.isArray(a.createdAt)
+            ? new Date(
+                a.createdAt[0],
+                a.createdAt[1] - 1,
+                a.createdAt[2],
+                a.createdAt[3],
+                a.createdAt[4],
+                a.createdAt[5],
+              ).toISOString()
+            : a.createdAt || 0,
+        ).getTime()
+        const dateB = new Date(
+          Array.isArray(b.createdAt)
+            ? new Date(
+                b.createdAt[0],
+                b.createdAt[1] - 1,
+                b.createdAt[2],
+                b.createdAt[3],
+                b.createdAt[4],
+                b.createdAt[5],
+              ).toISOString()
+            : b.createdAt || 0,
+        ).getTime()
+        return dateB - dateA
+      })
     })
 
     const displayUnreadCount = computed(() => fetchedUnreadCountData.value ?? 0)
@@ -173,50 +193,53 @@ export default {
     watch(displayUnreadCount, (newCount, oldCount) => {
       if (newCount !== undefined && oldCount !== undefined && newCount > oldCount) {
         if (audioPlayerRef.value) {
-          audioPlayerRef.value.play().catch(error => {
-            console.warn("Audio play was prevented. User interaction might be required.", error);
-          });
+          audioPlayerRef.value.play().catch((error) => {
+            console.warn('Audio play was prevented. User interaction might be required.', error)
+          })
         }
         if (navigator.vibrate) {
-          navigator.vibrate(200);
+          navigator.vibrate(200)
         }
       }
-    });
+    })
 
     const handleNotificationClick = (notification: NotificationResponse) => {
       if (notification.id && !notification.read) {
         notificationStore.markNotificationAsRead(notification.id)
-        mutateReadNotification({ id: notification.id }, {
-          onSuccess: () => {
-            refetchFetchedNotifications()
-            refetchFetchedUnreadCount()
-          }
-        })
+        mutateReadNotification(
+          { id: notification.id },
+          {
+            onSuccess: () => {
+              refetchFetchedNotifications()
+              refetchFetchedUnreadCount()
+            },
+          },
+        )
       }
 
       switch (notification.type) {
         case NotificationResponseType.EVENT:
           if (notification.eventId) {
-            router.push({ name: 'event-detail', params: { id: notification.eventId }});
+            router.push({ name: 'event-detail', params: { id: notification.eventId } })
           }
-          break;
+          break
         case NotificationResponseType.INVITE:
           if (notification.householdId) {
-            router.push({ name: 'household', params: { id: notification.householdId }});
+            router.push({ name: 'household', params: { id: notification.householdId } })
           }
-          break;
+          break
         case NotificationResponseType.EXPIRY_REMINDER:
-          router.push({ name: 'household-emergency-stock' });
-          break;
+          router.push({ name: 'household-emergency-stock' })
+          break
         case NotificationResponseType.INFO:
           if (notification.itemId) {
-            router.push({ name: 'household-emergency-stock' });
+            router.push({ name: 'household-emergency-stock' })
           } else {
-            router.push({ name: 'notifications' });
+            router.push({ name: 'notifications' })
           }
-          break;
+          break
         default:
-          console.log('No specific routing for this notification type:', notification.type);
+          console.warn('No specific routing for this notification type:', notification.type)
       }
 
       showMobileNotifications.value = false
@@ -228,17 +251,17 @@ export default {
         onSuccess: () => {
           refetchFetchedNotifications()
           refetchFetchedUnreadCount()
-        }
+        },
       })
     }
 
     const formatDate = (dateInput: string | number[] | undefined): string => {
-      if (!dateInput) return '-';
+      if (!dateInput) return '-'
 
-      let notificationDate: Date;
+      let notificationDate: Date
 
       if (typeof dateInput === 'string') {
-        notificationDate = new Date(dateInput);
+        notificationDate = new Date(dateInput)
       } else if (Array.isArray(dateInput) && dateInput.length >= 6) {
         notificationDate = new Date(
           dateInput[0],
@@ -247,59 +270,73 @@ export default {
           dateInput[3],
           dateInput[4],
           dateInput[5],
-          dateInput[6] ? Math.floor(dateInput[6] / 1000000) : 0
-        );
+          dateInput[6] ? Math.floor(dateInput[6] / 1000000) : 0,
+        )
       } else {
-        return 'Invalid date format';
+        return 'Invalid date format'
       }
 
       if (isNaN(notificationDate.getTime())) {
-        return 'Invalid date';
+        return 'Invalid date'
       }
 
-      const now = new Date();
-      const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000);
+      const now = new Date()
+      const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000)
 
-      if (diffInSeconds < 0) return 'In the future';
-      if (diffInSeconds < 5) return 'Nå nettopp';
-      if (diffInSeconds < 60) return `${diffInSeconds} sek siden`;
-      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min siden`;
+      if (diffInSeconds < 0) return 'In the future'
+      if (diffInSeconds < 5) return 'Nå nettopp'
+      if (diffInSeconds < 60) return `${diffInSeconds} sek siden`
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min siden`
 
-      const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
+      const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24))
 
-      if (diffInDays === 0) return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`;
-      if (diffInDays === 1) return 'I går';
+      if (diffInDays === 0)
+        return `I dag, ${notificationDate.getHours().toString().padStart(2, '0')}:${notificationDate.getMinutes().toString().padStart(2, '0')}`
+      if (diffInDays === 1) return 'I går'
       if (diffInDays < 7) {
-        const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
-        return days[notificationDate.getDay()];
+        const days = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
+        return days[notificationDate.getDay()]
       }
-      return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`;
-    };
+      return `${notificationDate.getDate().toString().padStart(2, '0')}.${(notificationDate.getMonth() + 1).toString().padStart(2, '0')}.${notificationDate.getFullYear()}`
+    }
 
     const getIconBgClass = (type: string | undefined) => {
       switch (type) {
-        case NotificationResponseType.EXPIRY_REMINDER: return 'bg-yellow-100';
-        case NotificationResponseType.EVENT: return 'bg-red-100';
-        case NotificationResponseType.INVITE: return 'bg-purple-100';
-        case NotificationResponseType.INFO: return 'bg-blue-100';
-        default: return 'bg-gray-100';
+        case NotificationResponseType.EXPIRY_REMINDER:
+          return 'bg-yellow-100'
+        case NotificationResponseType.EVENT:
+          return 'bg-red-100'
+        case NotificationResponseType.INVITE:
+          return 'bg-purple-100'
+        case NotificationResponseType.INFO:
+          return 'bg-blue-100'
+        default:
+          return 'bg-gray-100'
       }
-    };
+    }
 
     const getIconColorClass = (type: string | undefined) => {
       switch (type) {
-        case NotificationResponseType.EXPIRY_REMINDER: return 'text-yellow-600';
-        case NotificationResponseType.EVENT: return 'text-red-600';
-        case NotificationResponseType.INVITE: return 'text-purple-600';
-        case NotificationResponseType.INFO: return 'text-blue-600';
-        default: return 'text-gray-600';
+        case NotificationResponseType.EXPIRY_REMINDER:
+          return 'text-yellow-600'
+        case NotificationResponseType.EVENT:
+          return 'text-red-600'
+        case NotificationResponseType.INVITE:
+          return 'text-purple-600'
+        case NotificationResponseType.INFO:
+          return 'text-blue-600'
+        default:
+          return 'text-gray-600'
       }
-    };
+    }
 
     // Add route watcher in setup to replace the options API version
-    watch(() => route.path, () => {
-      isMenuOpen.value = false
-    });
+    watch(
+      () => route.path,
+      () => {
+        isMenuOpen.value = false
+      },
+    )
 
     watch(
       () => authStore.isAuthenticated,
@@ -312,7 +349,7 @@ export default {
           notificationStore.clearAllNotifications()
         }
       },
-      { immediate: true }
+      { immediate: true },
     )
 
     return {
@@ -337,17 +374,17 @@ export default {
       isActive,
       shouldShowNotifications,
     }
-  }
+  },
 }
 </script>
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
-    <audio ref="audioPlayerRef" src="/sounds/notification.mp3" preload="auto"></audio>
+    <audio ref="audioPlayerRef" preload="auto" src="/sounds/notification.mp3"></audio>
     <div class="container mx-auto px-4 py-4">
       <div class="flex justify-between items-center">
         <div class="flex items-center">
-          <router-link to="/" class="flex items-center">
-            <img src="/favicon.ico" alt="Krisefikser.app" class="h-5 w-auto mr-2" />
+          <router-link class="flex items-center" to="/">
+            <img alt="Krisefikser.app" class="h-5 w-auto mr-2" src="/favicon.ico" />
             <span class="text-lg font-bold text-blue-700">Krisefikser.app</span>
           </router-link>
         </div>
@@ -356,11 +393,11 @@ export default {
           <router-link
             v-for="item in filteredNavItems"
             :key="item.label"
-            :to="item.to"
             :class="[
               'flex items-center transition text-sm',
               isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
             ]"
+            :to="item.to"
           >
             <component :is="item.icon" class="h-4 w-4 mr-1" />
             <span>{{ item.label }}</span>
@@ -368,8 +405,8 @@ export default {
 
           <template v-if="!authStore.isAuthenticated">
             <router-link
-              to="/logg-inn"
               class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2"
+              to="/logg-inn"
             >
               Logg inn
             </router-link>
@@ -380,14 +417,16 @@ export default {
               <DropdownMenu v-if="shouldShowNotifications">
                 <DropdownMenuTrigger>
                   <button
-                    class="relative flex items-center justify-center p-2 rounded-full transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 group"
                     aria-label="Varsler"
+                    class="relative flex items-center justify-center p-2 rounded-full transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 group"
                   >
-                    <BellIcon class="h-5 w-5 text-gray-700 group-hover:text-blue-600 transition-colors duration-150" />
+                    <BellIcon
+                      class="h-5 w-5 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
+                    />
                     <span
                       v-if="unreadCountData && unreadCountData > 0"
                       class="absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 px-1 flex items-center justify-center text-xs font-bold bg-red-500 text-white rounded-full shadow-lg border-2 border-white z-10 animate-pulse"
-                      style="font-variant-numeric: tabular-nums;"
+                      style="font-variant-numeric: tabular-nums"
                     >
                       {{ unreadCountData }}
                     </span>
@@ -398,9 +437,9 @@ export default {
                     <h3 class="text-sm font-semibold">Varsler</h3>
                     <button
                       v-if="notifications.length > 0 && unreadCountData > 0"
-                      @click="markAllAsRead"
-                      class="text-xs text-blue-600 hover:underline"
                       :disabled="isMarkingAllAsRead"
+                      class="text-xs text-blue-600 hover:underline"
+                      @click="markAllAsRead"
                     >
                       {{ isMarkingAllAsRead ? 'Behandler...' : 'Merk alle som lest' }}
                     </button>
@@ -411,39 +450,75 @@ export default {
                   <div v-else-if="notificationsError" class="p-4 text-center text-sm text-red-500">
                     Kunne ikke laste varsler.
                   </div>
-                  <div v-else-if="notifications.length === 0" class="p-4 text-center text-sm text-gray-500">
+                  <div
+                    v-else-if="notifications.length === 0"
+                    class="p-4 text-center text-sm text-gray-500"
+                  >
                     Ingen nye varsler.
                   </div>
                   <DropdownMenuItem
                     v-for="notification in notifications"
                     :key="notification.id"
-                    @click="() => handleNotificationClick(notification)"
                     :class="[
                       'hover:bg-gray-100 cursor-pointer border-b last:border-b-0 border-gray-200',
-                      !notification.read ? 'bg-blue-50 border-l-4 border-blue-500' : 'border-l-4 border-transparent'
+                      !notification.read
+                        ? 'bg-blue-50 border-l-4 border-blue-500'
+                        : 'border-l-4 border-transparent',
                     ]"
+                    @click="() => handleNotificationClick(notification)"
                   >
                     <div class="flex items-start p-3 w-full">
-                      <div :class="['mr-3 p-1.5 rounded-full flex-shrink-0', getIconBgClass(notification.type)]">
-                        <Calendar v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                        <AlertTriangle v-else-if="notification.type === NotificationResponseType.EVENT " :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                        <UserIcon v-else-if="notification.type === NotificationResponseType.INVITE" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                        <Bell v-else-if="notification.type === NotificationResponseType.INFO" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                      <div
+                        :class="[
+                          'mr-3 p-1.5 rounded-full flex-shrink-0',
+                          getIconBgClass(notification.type),
+                        ]"
+                      >
+                        <Calendar
+                          v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER"
+                          :class="['h-4 w-4', getIconColorClass(notification.type)]"
+                        />
+                        <AlertTriangle
+                          v-else-if="notification.type === NotificationResponseType.EVENT"
+                          :class="['h-4 w-4', getIconColorClass(notification.type)]"
+                        />
+                        <UserIcon
+                          v-else-if="notification.type === NotificationResponseType.INVITE"
+                          :class="['h-4 w-4', getIconColorClass(notification.type)]"
+                        />
+                        <Bell
+                          v-else-if="notification.type === NotificationResponseType.INFO"
+                          :class="['h-4 w-4', getIconColorClass(notification.type)]"
+                        />
                         <Info v-else :class="['h-4 w-4', getIconColorClass(notification.type)]" />
                       </div>
                       <div class="flex-grow overflow-hidden">
                         <div class="flex justify-between w-full items-center">
-                          <span class="font-semibold text-sm text-gray-800 truncate pr-2" :title="notification.title">{{ notification.title }}</span>
-                          <span :class="['text-xs ml-1 flex-shrink-0', !notification.read ? 'text-blue-600 font-bold' : 'text-gray-500']">
+                          <span
+                            :title="notification.title"
+                            class="font-semibold text-sm text-gray-800 truncate pr-2"
+                            >{{ notification.title }}</span
+                          >
+                          <span
+                            :class="[
+                              'text-xs ml-1 flex-shrink-0',
+                              !notification.read ? 'text-blue-600 font-bold' : 'text-gray-500',
+                            ]"
+                          >
                             {{ formatDate(notification.createdAt) }}
                           </span>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1 whitespace-normal break-words">{{ notification.message }}</p>
+                        <p class="text-xs text-gray-600 mt-1 whitespace-normal break-words">
+                          {{ notification.message }}
+                        </p>
                       </div>
                     </div>
                   </DropdownMenuItem>
                   <div class="p-2 border-t mt-1">
-                    <router-link to="/varsler" class="text-sm text-blue-600 hover:underline w-full text-center block">
+                    <router-link
+                      class="text-sm text-blue-600 hover:underline w-full text-center block"
+                      to="/varsler"
+                    >
                       Se alle varsler
                     </router-link>
                   </div>
@@ -486,7 +561,7 @@ export default {
                       <span>Mine Refleksjoner</span>
                     </DropdownMenuItem>
                   </router-link>
-                  <DropdownMenuItem @select="authStore.logout" variant="destructive">
+                  <DropdownMenuItem variant="destructive" @select="authStore.logout">
                     <LogOut class="h-4 w-4 mr-2" />
                     <span>Logg ut</span>
                   </DropdownMenuItem>
@@ -497,7 +572,7 @@ export default {
         </div>
 
         <div class="md:hidden">
-          <button @click="isMenuOpen = !isMenuOpen" class="text-gray-700 focus:outline-none">
+          <button class="text-gray-700 focus:outline-none" @click="isMenuOpen = !isMenuOpen">
             <MenuIcon v-if="!isMenuOpen" class="h-6 w-6" />
             <X v-else class="h-6 w-6" />
           </button>
@@ -510,13 +585,13 @@ export default {
         <router-link
           v-for="item in filteredNavItems"
           :key="item.label"
-          :to="item.to"
           :class="[
             'flex items-center px-3 py-2 rounded',
             isActive(item.to)
               ? 'text-blue-600 font-medium bg-blue-50 text-sm'
               : 'text-gray-700 hover:bg-gray-200 text-sm',
           ]"
+          :to="item.to"
         >
           <component :is="item.icon" class="h-4 w-4 mr-2" />
           <span>{{ item.label }}</span>
@@ -530,11 +605,13 @@ export default {
         >
           <div class="flex items-center">
             <span class="relative flex items-center justify-center">
-              <BellIcon class="h-5 w-5 text-gray-700 group-hover:text-blue-600 transition-colors duration-150" />
+              <BellIcon
+                class="h-5 w-5 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
+              />
               <span
                 v-if="unreadCountData && unreadCountData > 0"
                 class="absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 px-1 flex items-center justify-center text-xs font-bold bg-red-500 text-white rounded-full shadow-lg border-2 border-white z-10 animate-pulse"
-                style="font-variant-numeric: tabular-nums;"
+                style="font-variant-numeric: tabular-nums"
               >
                 {{ unreadCountData }}
               </span>
@@ -551,11 +628,11 @@ export default {
           <div class="p-2 border-b border-gray-100 flex justify-between items-center">
             <h3 class="font-medium text-gray-900">Varsler</h3>
             <button
-              @click="() => refetchNotifications()"
               :disabled="isFetchingNotifications"
               class="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+              @click="() => refetchNotifications()"
             >
-              <RefreshCw class="h-4 w-4" :class="{ 'animate-spin': isFetchingNotifications }" />
+              <RefreshCw :class="{ 'animate-spin': isFetchingNotifications }" class="h-4 w-4" />
             </button>
           </div>
           <div class="max-h-96 overflow-y-auto">
@@ -572,19 +649,31 @@ export default {
             <div
               v-for="notification in notifications"
               :key="notification.id"
-              @click="handleNotificationClick(notification)"
-              class="p-3 hover:bg-blue-50 border-b border-gray-100 cursor-pointer"
               :class="{ 'bg-blue-50': !notification.read }"
+              class="p-3 hover:bg-blue-50 border-b border-gray-100 cursor-pointer"
+              @click="handleNotificationClick(notification)"
             >
               <div class="flex items-start gap-2">
                 <div
-                  class="rounded-full p-2 flex-shrink-0"
                   :class="getIconBgClass(notification.type)"
+                  class="rounded-full p-2 flex-shrink-0"
                 >
-                  <Calendar v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                  <AlertTriangle v-else-if="notification.type === NotificationResponseType.EVENT" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                  <UserIcon v-else-if="notification.type === NotificationResponseType.INVITE" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                  <Bell v-else-if="notification.type === NotificationResponseType.INFO" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                  <Calendar
+                    v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER"
+                    :class="['h-4 w-4', getIconColorClass(notification.type)]"
+                  />
+                  <AlertTriangle
+                    v-else-if="notification.type === NotificationResponseType.EVENT"
+                    :class="['h-4 w-4', getIconColorClass(notification.type)]"
+                  />
+                  <UserIcon
+                    v-else-if="notification.type === NotificationResponseType.INVITE"
+                    :class="['h-4 w-4', getIconColorClass(notification.type)]"
+                  />
+                  <Bell
+                    v-else-if="notification.type === NotificationResponseType.INFO"
+                    :class="['h-4 w-4', getIconColorClass(notification.type)]"
+                  />
                   <Info v-else :class="['h-4 w-4', getIconColorClass(notification.type)]" />
                 </div>
                 <div>
@@ -602,17 +691,17 @@ export default {
             class="p-2 border-t border-gray-100"
           >
             <button
-              @click="markAllAsRead"
               :disabled="isMarkingAllAsRead"
               class="text-sm text-blue-600 hover:text-blue-800 w-full text-center disabled:opacity-50 mb-2"
+              @click="markAllAsRead"
             >
               {{ isMarkingAllAsRead ? 'Markerer...' : 'Marker alle som lest' }}
             </button>
           </div>
           <div class="p-2 border-t border-gray-100">
             <router-link
-              to="/varsler"
               class="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center"
+              to="/varsler"
               @click="showMobileNotifications = false"
             >
               <span>Se alle varsler</span>
@@ -623,8 +712,8 @@ export default {
 
         <template v-if="!authStore.isAuthenticated">
           <router-link
-            to="/logg-inn"
             class="flex items-center px-3 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            to="/logg-inn"
           >
             <LogIn class="h-5 w-5 mr-2" />
             <span>Logg inn</span>
@@ -651,9 +740,7 @@ export default {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <router-link to="/dashboard">
-                  <DropdownMenuItem
-                    :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }"
-                  >
+                  <DropdownMenuItem :class="{ 'bg-blue-50 text-blue-600': isActive('/dashboard') }">
                     <UserIcon class="h-5 w-5 mr-2" />
                     <span>Min Profil</span>
                   </DropdownMenuItem>
@@ -666,7 +753,7 @@ export default {
                     <span>Mine Refleksjoner</span>
                   </DropdownMenuItem>
                 </router-link>
-                <DropdownMenuItem @select="authStore.logout" variant="destructive">
+                <DropdownMenuItem variant="destructive" @select="authStore.logout">
                   <LogOut class="h-4 w-4 mr-2" />
                   <span>Logg ut</span>
                 </DropdownMenuItem>
