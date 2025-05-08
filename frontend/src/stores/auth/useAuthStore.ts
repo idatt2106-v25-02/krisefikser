@@ -1,7 +1,12 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import router from '@/router'
-import { useLogin, useMe, useRegister } from '@/api/generated/authentication/authentication.ts'
+import {
+  useLogin,
+  useMe,
+  useRegister,
+  useRegisterAdmin,
+} from '@/api/generated/authentication/authentication.ts'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
 import axios from 'axios'
 
@@ -21,6 +26,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Get the register mutation
   const { mutateAsync: registerMutation } = useRegister()
+
+  // Get the register admin mutation
+  const { mutateAsync: registerAdminMutation } = useRegisterAdmin()
 
   // Get current user query - only enabled when we have a token
   const { data: currentUser, refetch: refetchUser } = useMe({
@@ -93,6 +101,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function registerAdmin(data: RegisterRequest) {
+    try {
+      const response = await registerAdminMutation({ data })
+      if (response.accessToken) {
+        updateTokens(response.accessToken, response.refreshToken ?? '')
+        await refetchUser()
+      }
+      return response
+    } catch (error) {
+      console.error('Admin registration failed:', error)
+      throw error
+    }
+  }
+
   async function refreshTokens() {
     if (!refreshToken.value) {
       console.error('No refresh token available')
@@ -102,7 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       // Use direct axios for the refresh call
-      const response = await axios.post('http://localhost:8080/api/auth/refresh', {
+      const response = await axios.post(import.meta.env.VITE_API_URL + '/api/auth/refresh', {
         refreshToken: refreshToken.value,
       })
 
@@ -120,7 +142,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function updatePassword(oldPassword: string, newPassword: string) {
     try {
       const response = await axios.post(
-        'http://localhost:8080/api/auth/update-password',
+        import.meta.env.VITE_API_URL + '/api/auth/update-password',
         {
           oldPassword,
           password: newPassword,
@@ -169,6 +191,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     login,
     register,
+    registerAdmin,
     logout,
     refreshTokens,
     updateTokens,

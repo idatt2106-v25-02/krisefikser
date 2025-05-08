@@ -22,6 +22,7 @@ import { unref } from 'vue'
 import type { MaybeRef } from 'vue'
 
 import type {
+  AdminInviteRequest,
   CompletePasswordResetRequest,
   LoginRequest,
   LoginResponse,
@@ -34,6 +35,9 @@ import type {
   UpdatePasswordRequest,
   UpdatePasswordResponse,
   UserResponse,
+  VerifyAdminInviteToken200,
+  VerifyAdminInviteTokenParams,
+  VerifyAdminLoginParams,
   VerifyEmailParams,
 } from '.././model'
 
@@ -125,6 +129,87 @@ export const useVerifyEmail = <TError = ErrorType<string>, TContext = unknown>(
   TContext
 > => {
   const mutationOptions = getVerifyEmailMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+export const verifyAdminLogin = (
+  params: MaybeRef<VerifyAdminLoginParams>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  params = unref(params)
+
+  return customInstance<LoginResponse>(
+    {
+      url: `http://localhost:8080/api/auth/verify-admin-login`,
+      method: 'POST',
+      params: unref(params),
+      signal,
+    },
+    options,
+  )
+}
+
+export const getVerifyAdminLoginMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyAdminLogin>>,
+    TError,
+    { params: VerifyAdminLoginParams },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verifyAdminLogin>>,
+  TError,
+  { params: VerifyAdminLoginParams },
+  TContext
+> => {
+  const mutationKey = ['verifyAdminLogin']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verifyAdminLogin>>,
+    { params: VerifyAdminLoginParams }
+  > = (props) => {
+    const { params } = props ?? {}
+
+    return verifyAdminLogin(params, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type VerifyAdminLoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof verifyAdminLogin>>
+>
+
+export type VerifyAdminLoginMutationError = ErrorType<unknown>
+
+export const useVerifyAdminLogin = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof verifyAdminLogin>>,
+      TError,
+      { params: VerifyAdminLoginParams },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof verifyAdminLogin>>,
+  TError,
+  { params: VerifyAdminLoginParams },
+  TContext
+> => {
+  const mutationOptions = getVerifyAdminLoginMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -656,6 +741,93 @@ export const useLogin = <TError = ErrorType<LoginResponse>, TContext = unknown>(
   return useMutation(mutationOptions, queryClient)
 }
 /**
+ * Sends an admin invitation email to the specified address
+ * @summary Send admin invitation
+ */
+export const inviteAdmin = (
+  adminInviteRequest: MaybeRef<AdminInviteRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  adminInviteRequest = unref(adminInviteRequest)
+
+  return customInstance<string>(
+    {
+      url: `http://localhost:8080/api/auth/invite/admin`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: adminInviteRequest,
+      signal,
+    },
+    options,
+  )
+}
+
+export const getInviteAdminMutationOptions = <
+  TError = ErrorType<string>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof inviteAdmin>>,
+    TError,
+    { data: BodyType<AdminInviteRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof inviteAdmin>>,
+  TError,
+  { data: BodyType<AdminInviteRequest> },
+  TContext
+> => {
+  const mutationKey = ['inviteAdmin']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof inviteAdmin>>,
+    { data: BodyType<AdminInviteRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return inviteAdmin(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type InviteAdminMutationResult = NonNullable<Awaited<ReturnType<typeof inviteAdmin>>>
+export type InviteAdminMutationBody = BodyType<AdminInviteRequest>
+export type InviteAdminMutationError = ErrorType<string>
+
+/**
+ * @summary Send admin invitation
+ */
+export const useInviteAdmin = <TError = ErrorType<string>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof inviteAdmin>>,
+      TError,
+      { data: BodyType<AdminInviteRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof inviteAdmin>>,
+  TError,
+  { data: BodyType<AdminInviteRequest> },
+  TContext
+> => {
+  const mutationOptions = getInviteAdminMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
  * Verifies the reset token and updates the user's password
  * @summary Complete password reset
  */
@@ -747,6 +919,92 @@ export const useCompletePasswordReset = <
 
   return useMutation(mutationOptions, queryClient)
 }
+export const verifyAdminInviteToken = (
+  params: MaybeRef<VerifyAdminInviteTokenParams>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  params = unref(params)
+
+  return customInstance<VerifyAdminInviteToken200>(
+    {
+      url: `http://localhost:8080/api/auth/verify-admin-invite`,
+      method: 'GET',
+      params: unref(params),
+      signal,
+    },
+    options,
+  )
+}
+
+export const getVerifyAdminInviteTokenQueryKey = (
+  params: MaybeRef<VerifyAdminInviteTokenParams>,
+) => {
+  return [
+    'http:',
+    'localhost:8080',
+    'api',
+    'auth',
+    'verify-admin-invite',
+    ...(params ? [params] : []),
+  ] as const
+}
+
+export const getVerifyAdminInviteTokenQueryOptions = <
+  TData = Awaited<ReturnType<typeof verifyAdminInviteToken>>,
+  TError = ErrorType<unknown>,
+>(
+  params: MaybeRef<VerifyAdminInviteTokenParams>,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof verifyAdminInviteToken>>, TError, TData>
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = getVerifyAdminInviteTokenQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof verifyAdminInviteToken>>> = ({ signal }) =>
+    verifyAdminInviteToken(params, requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof verifyAdminInviteToken>>,
+    TError,
+    TData
+  >
+}
+
+export type VerifyAdminInviteTokenQueryResult = NonNullable<
+  Awaited<ReturnType<typeof verifyAdminInviteToken>>
+>
+export type VerifyAdminInviteTokenQueryError = ErrorType<unknown>
+
+export function useVerifyAdminInviteToken<
+  TData = Awaited<ReturnType<typeof verifyAdminInviteToken>>,
+  TError = ErrorType<unknown>,
+>(
+  params: MaybeRef<VerifyAdminInviteTokenParams>,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof verifyAdminInviteToken>>, TError, TData>
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getVerifyAdminInviteTokenQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>
+
+  return query
+}
+
 /**
  * Retrieves the currently authenticated user's details
  * @summary Get current user
