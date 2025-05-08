@@ -17,6 +17,7 @@ import AdminResetPasswordLink from '@/views/admin/resetPassword/AdminResetPasswo
 import AdminRegisterView from '@/views/admin/register/AdminRegisterView.vue'
 import AdminScenariosView from '@/views/admin/scenario/ScenariosView.vue'
 import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
+import ArticleManagementView from '@/views/admin/ArticleManagementView.vue'
 import AdminInviteView from '@/views/admin/invite/AdminInviteView.vue'
 import VerifyAdminLoginView from '@/views/auth/VerifyAdminLoginView.vue'
 
@@ -136,6 +137,12 @@ const router = createRouter({
       name: 'admin-users',
       component: ManageAdminsView,
       meta: { requiresAuth: true, requiresSuperAdmin: true }
+    },
+    {
+      path: '/admin/artikler',
+      name: 'admin-articles',
+      component: ArticleManagementView,
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/invite',

@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, watchEffect } from 'vue'
 import type { FunctionalComponent } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth/useAuthStore' // For enabling queries
 import { useQueryClient } from '@tanstack/vue-query' // For potential invalidation later
-
 import {
-  Home,
-  ChevronDown,
-  Utensils,
-  Droplet,
   Ambulance,
-  Zap,
-  Phone,
+  ChevronDown,
+  Droplet,
+  Edit,
+  Home,
+  Info,
   Package,
+  Phone,
   Plus,
   Save,
-  XCircle,
-  Edit,
   Trash,
-  Info,
+  Utensils,
+  XCircle,
+  Zap,
 } from 'lucide-vue-next'
 import HouseholdEmergencySupplies from '@/components/household/HouseholdEmergencySupplies.vue'
 import ProductSearch from '@/components/inventory/ProductSearch.vue'
@@ -31,21 +30,25 @@ import PreparednessInfoDialog from '@/components/inventory/info/PreparednessInfo
 
 // Import API hooks and types
 import {
-  useGetInventorySummary,
-  useGetAllFoodItems,
-  useGetAllChecklistItems,
-  getGetInventorySummaryQueryKey,
-  getGetAllFoodItemsQueryKey,
   getGetAllChecklistItemsQueryKey,
+  getGetAllFoodItemsQueryKey,
+  getGetInventorySummaryQueryKey,
   useCreateFoodItem,
+  useDeleteFoodItem,
+  useGetAllChecklistItems,
+  useGetAllFoodItems,
+  useGetInventorySummary,
+  useSetWaterAmount,
   useToggleChecklistItem,
   useUpdateFoodItem,
-  useDeleteFoodItem,
-  useSetWaterAmount,
 } from '@/api/generated/item/item'
-import type { FoodItemResponse, ChecklistItemResponse } from '@/api/generated/model'
+import type {
+  ChecklistItemResponse,
+  FoodItemResponse,
+  GuestResponse,
+  HouseholdMemberResponse,
+} from '@/api/generated/model'
 import { useGetActiveHousehold } from '@/api/generated/household/household'
-import type { HouseholdMemberResponse, GuestResponse } from '@/api/generated/model'
 
 // Define types for data structures (will need adjustments based on backend DTOs)
 interface InventoryItem {
@@ -92,12 +95,25 @@ const authStore = useAuthStore()
 const queryClient = useQueryClient()
 
 // Get active household
-const { data: household } = useGetActiveHousehold({
+const {
+  data: household,
+  isError: isErrorHousehold,
+  error: errorHousehold,
+} = useGetActiveHousehold({
   query: {
+    retry: 0,
     enabled: authStore.isAuthenticated,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
   },
+})
+
+// Add error handling watchEffect
+watchEffect(() => {
+  if (isErrorHousehold.value) {
+    const err = errorHousehold.value as { response?: { status: number } }
+    if (err?.response?.status === 404) {
+      router.push('/bli-med-eller-opprett-husstand')
+    }
+  }
 })
 
 // Define householdId as computed that depends on the active household
@@ -232,35 +248,14 @@ const displayedCategories = computed<Category[]>(() => {
       target: inventorySummary.value.kcalGoal ?? 0,
       unit: 'kcal',
       items: foodItems.value.map((fi: FoodItemResponse) => {
-        console.log(
-          'HouseholdInventoryView: Mapping food item for display. fi.expirationDate:',
-          fi.expirationDate,
-          'Type:',
-          typeof fi.expirationDate,
-          'Item name:',
-          fi.name,
-        )
-
         let dateInputForProcessing: string | number | undefined = fi.expirationDate
         if (typeof fi.expirationDate === 'number') {
           dateInputForProcessing = fi.expirationDate * 1000
-          console.log(
-            'HouseholdInventoryView: Converted numeric timestamp to milliseconds:',
-            dateInputForProcessing,
-            'Item name:',
-            fi.name,
-          )
         }
 
         const processedExpiryDate = dateInputForProcessing
           ? new Date(dateInputForProcessing).toISOString().split('T')[0]
           : null
-        console.log(
-          'HouseholdInventoryView: Processed expiryDate for display mapping:',
-          processedExpiryDate,
-          'Item name:',
-          fi.name,
-        )
         return {
           id: fi.id,
           name: fi.name,
@@ -418,7 +413,6 @@ function navigateToHousehold() {
 }
 
 function openAddItemDialog(categoryId: string, categoryName: string): void {
-  console.log('openAddItemDialog called with:', categoryId, categoryName)
   selectedCategory.value = { id: categoryId, name: categoryName }
   isAddItemDialogOpen.value = true
 }
@@ -431,7 +425,6 @@ function getDialogComponent(
   | typeof ChecklistItemDialog
   | typeof MiscItemDialog
   | null {
-  console.log('getDialogComponent called with:', categoryId)
   switch (categoryId) {
     case 'water':
       return WaterItemDialog
@@ -619,10 +612,6 @@ async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
 
 async function handleAddItem(newItem: InventoryItem): Promise<void> {
   try {
-    console.log('HouseholdInventoryView: handleAddItem received newItem:', newItem)
-    console.log('HouseholdInventoryView: newItem.expiryDate value:', newItem.expiryDate)
-    console.log('HouseholdInventoryView: Type of newItem.expiryDate:', typeof newItem.expiryDate)
-
     if (!household.value?.id) return
 
     if (selectedCategory.value?.id === 'food') {
@@ -636,16 +625,8 @@ async function handleAddItem(newItem: InventoryItem): Promise<void> {
           icon: newItem.iconName ?? 'utensils',
         },
       }
-      console.log(
-        'HouseholdInventoryView: Attempting to parse date for payload. Input to new Date():',
-        newItem.expiryDate,
-      )
       if (newItem.expiryDate) {
-        const dateObject = new Date(newItem.expiryDate)
-        console.log('HouseholdInventoryView: Date object created:', dateObject)
-        console.log('HouseholdInventoryView: dateObject.toISOString():', dateObject.toISOString())
       }
-      console.log('mutating with payload:', payload)
       await createFoodItem.mutateAsync(payload)
     } else {
       await toggleChecklistItem.mutateAsync({
@@ -687,6 +668,32 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
     console.error('Error updating item:', error)
   }
 }
+
+// Add focus trap functionality
+function handleTabKey(event: KeyboardEvent, categoryId: string) {
+  if (event.key === 'Tab') {
+    const categoryElement = document.getElementById(`category-${categoryId}`)
+    if (!categoryElement) return
+
+    const focusableElements = categoryElement.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    const firstFocusableElement = focusableElements[0] as HTMLElement
+    const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement
+
+    if (event.shiftKey) {
+      if (document.activeElement === firstFocusableElement) {
+        event.preventDefault()
+        lastFocusableElement.focus()
+      }
+    } else {
+      if (document.activeElement === lastFocusableElement) {
+        event.preventDefault()
+        firstFocusableElement.focus()
+      }
+    }
+  }
+}
 </script>
 
 <template>
@@ -694,7 +701,7 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
     <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <div class="flex items-center text-sm text-gray-500 mb-3">
-          <button @click="navigateToHousehold" class="hover:text-blue-600 flex items-center">
+          <button class="hover:text-blue-600 flex items-center" @click="navigateToHousehold">
             <Home class="h-5 w-5 mr-2" />
             {{ household?.name }}
           </button>
@@ -718,16 +725,16 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg font-semibold text-gray-800">Oversikt</h2>
               <button
-                @click="isPreparednessInfoDialogOpen = true"
                 class="text-blue-600 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors -mr-1"
                 title="Vis informasjon om beredskapsberegning"
+                @click="isPreparednessInfoDialogOpen = true"
               >
                 <Info class="h-5 w-5" />
               </button>
             </div>
             <HouseholdEmergencySupplies
-              :inventory="formattedInventory"
               :household-id="householdId"
+              :inventory="formattedInventory"
               :show-details-button="false"
               @open-info-dialog="isPreparednessInfoDialogOpen = true"
             />
@@ -750,12 +757,12 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                 class="flex items-center p-4 bg-gray-50 rounded"
               >
                 <div
-                  class="h-12 w-12 rounded-full flex items-center justify-center mr-4"
                   :class="
                     person.type === 'member'
                       ? 'bg-blue-100 text-blue-700'
                       : 'bg-green-100 text-green-700'
                   "
+                  class="h-12 w-12 rounded-full flex items-center justify-center mr-4"
                 >
                   <span class="font-bold">
                     {{
@@ -822,10 +829,25 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                       ? (expandedCategories = expandedCategories.filter((id) => id !== category.id))
                       : expandedCategories.push(category.id)
                   "
+                  @keydown.enter="
+                    expandedCategories.includes(category.id)
+                      ? (expandedCategories = expandedCategories.filter((id) => id !== category.id))
+                      : expandedCategories.push(category.id)
+                  "
+                  @keydown.space.prevent="
+                    expandedCategories.includes(category.id)
+                      ? (expandedCategories = expandedCategories.filter((id) => id !== category.id))
+                      : expandedCategories.push(category.id)
+                  "
+                  role="button"
+                  :aria-expanded="expandedCategories.includes(category.id)"
+                  :aria-controls="`category-${category.id}`"
+                  tabindex="0"
                 >
                   <div class="flex items-center">
                     <div
                       class="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-blue-100 text-blue-700"
+                      aria-hidden="true"
                     >
                       <component :is="category.icon" class="h-5 w-5" />
                     </div>
@@ -833,59 +855,66 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                   </div>
                   <div class="flex items-center">
                     <!-- Progress indicator -->
-                    <div class="w-20 bg-gray-200 rounded-full h-2.5 mr-4 overflow-hidden">
+                    <div class="w-20 bg-gray-200 rounded-full h-2.5 mr-4 overflow-hidden" role="progressbar" :aria-valuenow="category.current" :aria-valuemin="0" :aria-valuemax="category.target">
                       <div
-                        class="h-2.5 rounded-full bg-blue-500"
                         :style="`width: ${Math.min(100, (category.current / category.target) * 100)}%`"
+                        class="h-2.5 rounded-full bg-blue-500"
                       ></div>
                     </div>
                     <span class="mr-4 text-base font-medium">
                       {{ category.current }} / {{ category.target }} {{ category.unit }}
                     </span>
                     <ChevronDown
-                      class="h-5 w-5 text-gray-500 transition-transform duration-200"
                       :class="{ 'transform rotate-180': expandedCategories.includes(category.id) }"
+                      class="h-5 w-5 text-gray-500 transition-transform duration-200"
+                      aria-hidden="true"
                     />
                   </div>
                 </div>
 
                 <!-- Category items -->
-                <div v-if="expandedCategories.includes(category.id)">
+                <div
+                  v-show="expandedCategories.includes(category.id)"
+                  :id="`category-${category.id}`"
+                  role="region"
+                  :aria-label="`${category.name} items`"
+                  @keydown="(e) => handleTabKey(e, category.id)"
+                >
                   <div class="divide-y divide-gray-100">
                     <!-- For water: show inline input and save button -->
                     <template v-if="category.id === 'water'">
                       <div class="p-4 space-y-4">
                         <div class="grid sm:grid-cols-2 gap-4 items-end">
                           <div>
-                            <label for="waterAddInput" class="block mb-1 text-sm text-gray-700"
+                            <label class="block mb-1 text-sm text-gray-700" for="waterAddInput"
                               >Legg til liter:</label
                             >
                             <input
                               id="waterAddInput"
-                              type="number"
-                              min="0"
-                              step="0.1"
                               v-model.number="waterToAdd"
+                              class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full"
+                              min="0"
+                              placeholder="0.0"
+                              step="0.1"
+                              type="number"
                               @input="handleWaterAddChange"
                               @keydown.enter.prevent="saveEditWater"
-                              class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full"
-                              placeholder="0.0"
                             />
                           </div>
                           <div>
-                            <label for="waterSubtractInput" class="block mb-1 text-sm text-gray-700"
+                            <label class="block mb-1 text-sm text-gray-700" for="waterSubtractInput"
                               >Trekk fra liter:</label
                             >
                             <input
                               id="waterSubtractInput"
-                              type="number"
-                              min="0"
-                              step="0.1"
                               v-model.number="waterToSubtract"
+                              class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full"
+                              min="0"
+                              placeholder="0.0"
+                              step="0.1"
+                              type="number"
                               @input="handleWaterSubtractChange"
                               @keydown.enter.prevent="saveEditWater"
-                              class="border border-gray-300 rounded-md shadow-sm px-3 py-2 text-base focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-full"
-                              placeholder="0.0"
                             />
                           </div>
                         </div>
@@ -901,10 +930,12 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                             >
                           </div>
                           <button
-                            @click="saveEditWater"
                             class="flex items-center bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-md transition-colors text-base font-medium"
+                            @click="saveEditWater"
+                            @keydown.enter.prevent="saveEditWater"
                           >
-                            <Save class="h-5 w-5 mr-2" /> Oppdater vannmengde
+                            <Save class="h-5 w-5 mr-2" />
+                            Oppdater vannmengde
                           </button>
                         </div>
                       </div>
@@ -913,42 +944,55 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                     <template v-else>
                       <div
                         v-for="item in category.items"
-                        :key="item.id"
                         :id="`item-${item.id}`"
+                        :key="item.id"
                         class="flex items-center justify-between py-3 px-4 hover:bg-gray-50 transition-colors duration-200 relative"
                         @click="
                           category.id === 'food' && editingItemId !== item.id
                             ? startEdit(item)
                             : null
                         "
+                        @keydown.enter="
+                          category.id === 'food' && editingItemId !== item.id
+                            ? startEdit(item)
+                            : null
+                        "
+                        @keydown.space.prevent="
+                          category.id === 'food' && editingItemId !== item.id
+                            ? startEdit(item)
+                            : null
+                        "
+                        role="button"
+                        tabindex="0"
+                        :aria-label="`${item.name}, ${item.amount} ${item.unit}`"
                       >
                         <div class="flex items-center flex-grow">
-                          <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300"></div>
+                          <div class="flex-shrink-0 w-2 h-10 rounded mr-4 bg-blue-300" aria-hidden="true"></div>
                           <template v-if="category.id === 'food' && editingItemId === item.id">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-grow">
                               <input
                                 v-model="editingName"
-                                @keydown.enter.prevent="saveEdit(category, item)"
-                                @click.stop="() => {}"
                                 class="border border-gray-300 rounded-md shadow-sm px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:w-32"
                                 placeholder="Navn"
+                                @keydown.enter.prevent="saveEdit(category, item)"
+                                @click.stop="() => {}"
                               />
                               <input
                                 v-model.number="editingAmount"
-                                type="number"
+                                class="border border-gray-300 rounded-md shadow-sm px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-20 sm:w-16"
                                 min="0.1"
+                                placeholder="Kcal"
                                 step="0.1"
+                                type="number"
                                 @keydown.enter.prevent="saveEdit(category, item)"
                                 @click.stop="() => {}"
-                                class="border border-gray-300 rounded-md shadow-sm px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-20 sm:w-16"
-                                placeholder="Kcal"
                               />
                               <input
                                 v-model="editingExpiryDate"
+                                class="border border-gray-300 rounded-md shadow-sm px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                 type="date"
                                 @keydown.enter.prevent="saveEdit(category, item)"
                                 @click.stop="() => {}"
-                                class="border border-gray-300 rounded-md shadow-sm px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                               />
                             </div>
                           </template>
@@ -969,10 +1013,10 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                               <div class="relative flex items-center">
                                 <input
                                   :id="`checkbox-${item.id}`"
-                                  type="checkbox"
                                   :checked="item.checked"
-                                  @change="toggleChecklistItem.mutateAsync({ id: item.id })"
                                   class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3 accent-blue-600"
+                                  type="checkbox"
+                                  @change="toggleChecklistItem.mutateAsync({ id: item.id })"
                                 />
                               </div>
                               <span
@@ -992,8 +1036,8 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                         <div class="flex items-center space-x-2 sm:space-x-3">
                           <!-- AMOUNT DISPLAY (only when not editing food) -->
                           <div
-                            class="text-right min-w-[70px] sm:min-w-[90px]"
                             v-if="category.id === 'food' && editingItemId !== item.id"
+                            class="text-right min-w-[70px] sm:min-w-[90px]"
                           >
                             <span
                               class="font-medium px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
@@ -1005,17 +1049,19 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                           <template v-if="category.id === 'food' && editingItemId === item.id">
                             <div class="flex items-center space-x-2">
                               <button
-                                @click.stop="saveEdit(category, item)"
                                 class="flex items-center bg-green-600 text-white hover:bg-green-500 px-3 py-1.5 rounded-md transition-colors text-sm"
                                 title="Lagre endringer"
+                                @click.stop="saveEdit(category, item)"
+                                @keydown.enter.prevent="saveEdit(category, item)"
                               >
                                 <Save class="h-4 w-4 sm:mr-1" />
                                 <span class="hidden sm:inline">Lagre</span>
                               </button>
                               <button
-                                @click.stop="cancelEdit"
                                 class="flex items-center bg-red-600 text-white hover:bg-red-500 px-3 py-1.5 rounded-md transition-colors text-sm"
                                 title="Avbryt redigering"
+                                @click.stop="cancelEdit"
+                                @keydown.enter.prevent="cancelEdit"
                               >
                                 <XCircle class="h-4 w-4 sm:mr-1" />
                                 <span class="hidden sm:inline">Avbryt</span>
@@ -1023,55 +1069,22 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                             </div>
                           </template>
 
-                          <!-- EXPIRY DATE DISPLAY (only when not editing food) -->
-                          <template
-                            v-if="
-                              category.id === 'food' && editingItemId !== item.id && item.expiryDate
-                            "
-                          >
-                            <div class="flex items-center">
-                              <span class="text-gray-600 mr-3 text-base">Utløpsdato:</span>
-                              <span
-                                :class="[
-                                  !item.expiryDate
-                                    ? 'text-gray-500'
-                                    : new Date(item.expiryDate) < new Date()
-                                      ? 'text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded'
-                                      : new Date(item.expiryDate) <
-                                          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                                        ? 'text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded'
-                                        : 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded',
-                                ]"
-                                class="text-base"
-                              >
-                                {{
-                                  item.expiryDate
-                                    ? new Date(item.expiryDate).toLocaleDateString('no-NO', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric',
-                                        timeZone: 'UTC',
-                                      })
-                                    : 'Ingen dato'
-                                }}
-                              </span>
-                            </div>
-                          </template>
-
                           <!-- ACTION BUTTONS (Edit/Delete - only when not editing food) -->
                           <template v-if="category.id === 'food' && editingItemId !== item.id">
                             <div class="flex items-center space-x-1 sm:space-x-2">
                               <button
-                                @click.stop="startEdit(item)"
                                 class="text-blue-600 hover:text-blue-800 p-1.5 rounded-md hover:bg-blue-50 transition-colors"
                                 title="Rediger matvare"
+                                @click.stop="startEdit(item)"
+                                @keydown.enter.prevent="startEdit(item)"
                               >
                                 <Edit class="h-5 w-5" />
                               </button>
                               <button
                                 class="text-red-500 hover:text-red-700 p-1.5 rounded-md hover:bg-red-50 transition-colors"
-                                @click.stop="promptDeleteFoodItem(item)"
                                 title="Slett matvare"
+                                @click.stop="promptDeleteFoodItem(item)"
+                                @keydown.enter.prevent="promptDeleteFoodItem(item)"
                               >
                                 <Trash class="h-5 w-5" />
                               </button>
@@ -1083,10 +1096,12 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
                       <!-- Add item button: only for food -->
                       <div v-if="category.id === 'food'" class="p-2 bg-blue-50">
                         <button
-                          @click="openAddItemDialog(category.id, category.name)"
                           class="py-2 px-3 rounded flex items-center text-base font-medium w-full justify-center bg-blue-600 hover:bg-blue-700 text-white"
+                          @click="openAddItemDialog(category.id, category.name)"
+                          @keydown.enter.prevent="openAddItemDialog(category.id, category.name)"
                         >
-                          <Plus class="mr-2 h-4 w-4" /> Legg til vare
+                          <Plus class="mr-2 h-4 w-4" />
+                          Legg til vare
                         </button>
                       </div>
                     </template>
@@ -1102,9 +1117,9 @@ async function saveEdit(category: Category, item: InventoryItem): Promise<void> 
       <component
         :is="getDialogComponent(selectedCategory?.id || '')"
         v-if="selectedCategory"
-        :is-open="isAddItemDialogOpen"
         :category-id="selectedCategory.id"
         :category-name="selectedCategory.name"
+        :is-open="isAddItemDialogOpen"
         @close="isAddItemDialogOpen = false"
         @add-item="handleAddItem"
       />

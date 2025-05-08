@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, watch } from 'vue'
 import L from 'leaflet'
 
@@ -101,5 +101,5 @@ watch(
 </script>
 
 <template>
-  <template></template>
+  <div></div>
 </template>

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, onUnmounted } from 'vue'
 import { useUpdateCurrentUserLocation } from '@/api/generated/user/user'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
@@ -53,3 +53,7 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<template>
+  <div></div>
+</template>

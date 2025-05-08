@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+<script lang="ts" setup>
+import { onMounted, ref, watch } from 'vue'
 import L from 'leaflet'
 
 // Define props
@@ -101,7 +101,6 @@ onMounted(() => {
   updateHomeMarker()
 })
 </script>
-
 <template>
-  <template></template>
+  <div></div>
 </template>

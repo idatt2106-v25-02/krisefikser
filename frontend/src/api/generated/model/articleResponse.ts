@@ -10,6 +10,6 @@ export interface ArticleResponse {
   id: number
   title: string
   text: string
-  createdAt: string
+  createdAt: number[]
   imageUrl: string
 }
