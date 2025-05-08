@@ -84,10 +84,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await registerMutation({ data })
 
-      if (response.accessToken) {
+      /*if (response.accessToken) {
         updateTokens(response.accessToken, response.refreshToken ?? '')
         await refetchUser()
-      }
+      }*/
 
       return response
     } catch (error) {
@@ -116,6 +116,29 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('Token refresh failed:', error)
       logout()
+      throw error
+    }
+  }
+
+  async function updatePassword(oldPassword: string, newPassword: string) {
+    try {
+      console.log('Sending password update request with:', {
+        oldPassword,
+        newPassword: '***' // Don't log the actual new password
+      })
+      const response = await axios.post('http://localhost:8080/api/auth/update-password', {
+        oldPassword,
+        password: newPassword
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken.value}`
+        }
+      })
+      console.log('Password update response:', response.data)
+      return response.data
+    } catch (error) {
+      console.error('Password update failed:', error)
       throw error
     }
   }
@@ -155,6 +178,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     refreshTokens,
     updateTokens,
+    updatePassword,
 
     // Expose for debugging
     refetchUser,

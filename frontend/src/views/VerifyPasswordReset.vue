@@ -5,6 +5,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useRoute, useRouter } from 'vue-router'
 import { KeyRound } from 'lucide-vue-next'
+import axios from 'axios'
 
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
@@ -44,38 +45,33 @@ const router = useRouter()
 const token = ref('')
 
 onMounted(() => {
-  // In a real application, you'd validate the token from the URL
-  token.value = route.query.token as string || 'dummy-token'
-
-  // Token validation commented out for now
-  /*
+  token.value = route.query.token as string
   if (!token.value) {
     isTokenValid.value = false
-    errorMessage.value = 'Ugyldig eller utløpt lenke for tilbakestilling av passord. Vennligst be om en ny.'
   }
-  */
-
-  // Always consider token valid for now
-  isTokenValid.value = true
 })
 
-const onSubmit = handleSubmit(() => {
+const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
 
-  // Simulate API call to reset password
-  setTimeout(() => {
-    // Here you would typically make an API call with the token and new password
+  try {
+    await axios.post('http://localhost:8080/api/auth/complete-password-reset', {
+      token: token.value,
+      newPassword: values.password
+    })
+
     isSuccessful.value = true
+  } catch (error) {
+    console.error('Failed to reset password:', error)
+  } finally {
     isLoading.value = false
-  }, 1500)
+  }
 })
 
 const goToLogin = () => {
-  // In a real application, this would navigate to your login page
   router.push('/logg-inn')
 }
 </script>
-
 <template>
   <div class="min-h-screen flex items-center justify-center bg-white">
     <form
@@ -164,3 +160,4 @@ const goToLogin = () => {
     </form>
   </div>
 </template>
+

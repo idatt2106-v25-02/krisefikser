@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface CompletePasswordResetRequest {
-  token?: string
-  newPassword?: string
+export type VerifyEmailParams = {
+  token: string
 }
