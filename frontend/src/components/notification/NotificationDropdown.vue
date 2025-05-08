@@ -6,7 +6,7 @@
         aria-label="Varsler"
       >
         <BellIcon
-          class="h-5 w-5 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
+          class="h-4 w-4 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
         />
         <span
           v-if="unreadCount && unreadCount > 0"
