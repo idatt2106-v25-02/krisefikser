@@ -5,7 +5,7 @@ export default {
 }
 </script>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed } from 'vue'
 import { useGetAllArticles } from '@/api/generated/article/article'
 import { useRouter } from 'vue-router'
@@ -15,30 +15,23 @@ const router = useRouter()
 
 console.log(articles.value)
 
-const arrayToDate = (dateArray?: number[]) => {
-  if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return null
-  // Note: Month in JavaScript is 0-based, so we subtract 1 from the month
-  return new Date(dateArray[0], dateArray[1] - 1, dateArray[2],
-    dateArray[3] || 0, dateArray[4] || 0, dateArray[5] || 0)
-}
-
 const latestArticles = computed(() => {
   if (!articles?.value) return []
 
   // Sort by date and get the 3 most recent articles
   return [...articles.value]
     .sort((a, b) => {
-      const dateA = arrayToDate(a.createdAt)?.getTime() || 0
-      const dateB = arrayToDate(b.createdAt)?.getTime() || 0
+      const dateA = new Date(a.createdAt)?.getTime() || 0
+      const dateB = new Date(b.createdAt)?.getTime() || 0
       return dateB - dateA
     })
     .slice(0, 3)
 })
 
-const formatDate = (dateArray?: number[]) => {
+const formatDate = (dateArray?: string) => {
   if (!dateArray || !Array.isArray(dateArray)) return ''
 
-  const date = arrayToDate(dateArray)
+  const date = new Date(dateArray)
   if (!date || isNaN(date.getTime())) return ''
 
   try {
@@ -47,7 +40,7 @@ const formatDate = (dateArray?: number[]) => {
       month: 'long',
       year: 'numeric',
     })
-  } catch (e) {
+  } catch {
     // Fallback to English if Norwegian locale is not supported
     return date.toLocaleDateString('en', {
       day: 'numeric',
@@ -83,11 +76,24 @@ const goToAllNews = () => {
 
       <!-- Responsive button -->
       <div class="flex justify-center md:absolute md:right-0 md:top-0">
-        <a @click="goToAllNews"
-           class="text-blue-600 font-medium hover:underline inline-flex items-center cursor-pointer whitespace-nowrap">
+        <a
+          class="text-blue-600 font-medium hover:underline inline-flex items-center cursor-pointer whitespace-nowrap"
+          @click="goToAllNews"
+        >
           Se alle nyheter
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          <svg
+            class="h-5 w-5 ml-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 5l7 7-7 7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+            />
           </svg>
         </a>
       </div>
@@ -112,8 +118,8 @@ const goToAllNews = () => {
       >
         <div
           v-if="article.imageUrl"
-          class="h-48 bg-cover bg-center"
           :style="`background-image: url('${article.imageUrl}')`"
+          class="h-48 bg-cover bg-center"
         ></div>
         <div v-else class="h-48 bg-gray-200"></div>
         <div class="p-6">
@@ -126,8 +132,19 @@ const goToAllNews = () => {
             class="text-blue-600 font-medium hover:underline inline-flex items-center"
           >
             Les mer
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <svg
+              class="h-5 w-5 ml-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 5l7 7-7 7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              />
             </svg>
           </router-link>
         </div>
