@@ -11,17 +11,20 @@ import { verifyAdminInviteToken } from '@/api/generated/authentication/authentic
 
 // Declare the global turnstile object
 declare const turnstile: {
-  render: (container: string | HTMLElement, options: {
-    sitekey: string
-    callback?: (token: string) => void
-    'error-callback'?: () => void
-    'expired-callback'?: () => void
-    theme?: 'light' | 'dark' | 'auto'
-    size?: 'normal' | 'compact'
-    tabindex?: number
-    'response-field'?: boolean
-    'response-field-name'?: string
-  }) => string
+  render: (
+    container: string | HTMLElement,
+    options: {
+      sitekey: string
+      callback?: (token: string) => void
+      'error-callback'?: () => void
+      'expired-callback'?: () => void
+      theme?: 'light' | 'dark' | 'auto'
+      size?: 'normal' | 'compact'
+      tabindex?: number
+      'response-field'?: boolean
+      'response-field-name'?: string
+    },
+  ) => string
   reset: (widgetId?: string) => void
   getResponse: (widgetId?: string) => string
   remove: (widgetId?: string) => void
@@ -141,11 +144,13 @@ const onSubmit = handleSubmit(async (values) => {
     toast('Suksess', {
       description: 'Admin-kontoen din er opprettet og du er nå logget inn',
     })
-    await router.push('/admin')
+    await router.push('/logg-inn')
   } catch (error: unknown) {
     resetTurnstile()
     toast('Registreringsfeil', {
-      description: getErrorMessage(error as { response?: { data?: { message?: string }; status?: number } }),
+      description: getErrorMessage(
+        error as { response?: { data?: { message?: string }; status?: number } },
+      ),
     })
   } finally {
     isLoading.value = false
@@ -200,7 +205,9 @@ onUnmounted(() => {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Fornavn</FormLabel>
           <FormControl>
             <div class="relative">
-              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <User
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="text"
                 placeholder="Ola"
@@ -219,7 +226,9 @@ onUnmounted(() => {
           <FormLabel class="block text-sm font-medium text-gray-700 mb-1">Etternavn</FormLabel>
           <FormControl>
             <div class="relative">
-              <User class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <User
+                class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
+              />
               <Input
                 type="text"
                 placeholder="Nordmann"
