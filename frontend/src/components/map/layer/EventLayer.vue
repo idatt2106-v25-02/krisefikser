@@ -90,7 +90,7 @@ function addEvents() {
         radius: event.radius,
         color: color,
         fillColor: color,
-        fillOpacity: 0.4,
+        fillOpacity: 0.3,
         weight: 2,
       }).addTo(props.map).bindPopup(`
           <div style="min-width: 300px; font-family: system-ui, -apple-system, sans-serif; border-radius: 8px; overflow: hidden;">
