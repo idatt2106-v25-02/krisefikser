@@ -73,17 +73,19 @@ function createUserMarker(position: GeolocationPosition) {
       html: `
         <div class="">
           <div class="pulse bg-blue-500 z-20 rounded-full w-8 h-8 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="44" height="44" rx="22" fill="#2563EB" fill-opacity="0.25"/>
+              <rect x="13" y="13" width="18" height="18" rx="9" fill="#2563EB"/>
+              <rect x="13" y="13" width="18" height="18" rx="9" stroke="white" stroke-width="3"/>
             </svg>
           </div>
         </div>
       `,
       iconSize: [32, 32],
       iconAnchor: [16, 16],
-      popupAnchor: [0, -16]
+      popupAnchor: [0, -16],
     }),
-    zIndexOffset: 1000
+    zIndexOffset: 1000,
   }).addTo(props.map)
 }
 
@@ -141,7 +143,7 @@ function startWatchingPosition() {
       userLocationAvailable.value = false
       emit('user-location-available', false)
     },
-    { enableHighAccuracy: true }
+    { enableHighAccuracy: true },
   )
 }
 
@@ -177,7 +179,7 @@ watch(
       isInitialized.value = true
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // Watch for events changes

@@ -24,6 +24,10 @@ const shelterIcon = L.icon({
 
 const markers: L.Marker[] = []
 
+function getGoogleMapsUrl(lat: number, lng: number) {
+  return lat && lng ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` : null
+}
+
 // Add shelters to map
 function addShelters() {
   if (!props.map) return
@@ -35,32 +39,46 @@ function addShelters() {
   // Add shelters to map
   for (const shelter of props.shelters) {
     const marker = L.marker(shelter.position, { icon: shelterIcon }).addTo(props.map).bindPopup(`
-        <strong>${shelter.name}</strong><br>
-        Kapasitet: ${shelter.capacity} personer<br>
-        <button class="directions-btn bg-[#4CAF50] text-white border-none py-1 px-2.5 mt-1 rounded cursor-pointer hover:bg-[#45a049]" data-lat="${shelter.position[0]}" data-lng="${shelter.position[1]}">
-          Få veibeskrivelse
-        </button>
-      `)
+        <div style="min-width: 300px; font-family: system-ui, -apple-system, sans-serif; border-radius: 8px; overflow: hidden;">
+          <div style="padding: 16px;">
+            <h3 style="margin: 0 0 12px; color: #1f2937; font-size: 18px; font-weight: 700;">${shelter.name}</h3>
 
-    // Event listener for directions button in popup
-    marker.on('popupopen', () => {
-      setTimeout(() => {
-        const btn = document.querySelector('.directions-btn')
-        if (btn) {
-          btn.addEventListener('click', (e) => {
-            const target = e.target as HTMLElement
-            const lat = target.getAttribute('data-lat')
-            const lng = target.getAttribute('data-lng')
-            if (lat && lng) {
-              window.open(
-                `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
-                '_blank',
-              )
-            }
-          })
-        }
-      }, 100)
-    })
+            <!-- Metadata badge -->
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+              <span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; background-color: #36415320; color: #364153;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="height: 12px; width: 12px; margin-right: 4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2 2 7l10 5 10-5-10-5z"></path>
+                  <path d="M2 17l10 5 10-5"></path>
+                  <path d="M2 12l10 5 10-5"></path>
+                </svg>
+                Tilfluktsrom
+              </span>
+            </div>
+
+            <!-- Capacity information -->
+            <div style="display: flex; flex-direction: column; gap: 4px; background: #f9fafb; padding: 10px; border-radius: 6px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="height: 14px; width: 14px; margin-right: 6px; color: #6b7280;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span style="font-weight: 500; width: 80px; color: #6b7280; font-size: 14px;">Kapasitet:</span>
+                <span style="color: #374151; font-size: 14px;">${shelter.capacity} personer</span>
+              </div>
+            </div>
+
+            <!-- Directions button -->
+            <a class="directions-btn" href="${getGoogleMapsUrl(shelter.position[0], shelter.position[1])}" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background-color: #10B981; color: white; font-weight: 500; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; transition: background-color 0.2s;" data-lat="${shelter.position[0]}" data-lng="${shelter.position[1]}">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px; margin-right: 6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+              </svg>
+              Få veibeskrivelse
+            </a>
+          </div>
+        </div>
+      `)
 
     markers.push(marker)
   }
