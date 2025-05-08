@@ -19,6 +19,11 @@ public class EmailAdminService {
      * @return ResponseEntity containing the response from the email service
      */
     public ResponseEntity<String> sendAdminInvitation(String email, String inviteLink) {
+        if (email == null || inviteLink == null) {
+            return ResponseEntity.badRequest()
+                .body("Email and invite link cannot be null");
+        }
+
         try {
             Map<String, String> variables = new HashMap<>();
             variables.put("link", inviteLink);
