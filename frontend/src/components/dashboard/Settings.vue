@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
+
 import { toast } from 'vue-sonner'
 import Switch from '@/components/ui/switch/Switch.vue'
 import { useMe } from '@/api/generated/authentication/authentication'
