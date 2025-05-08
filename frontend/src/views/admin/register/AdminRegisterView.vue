@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, onUnmounted, nextTick } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -55,7 +55,7 @@ onMounted(async () => {
   try {
     const response = await verifyAdminInviteToken({ token: token.value })
     userEmail.value = response.email
-  } catch (error) {
+  } catch {
     toast('Feil', {
       description: 'Ugyldig eller utløpt invitasjonstoken',
     })
@@ -93,7 +93,7 @@ const rawSchema = z
   })
 
 // Set up form validation
-const { handleSubmit, meta, setFieldError } = useForm({
+const { handleSubmit, meta } = useForm({
   validationSchema: toTypedSchema(rawSchema),
 })
 
@@ -142,10 +142,10 @@ const onSubmit = handleSubmit(async (values) => {
       description: 'Admin-kontoen din er opprettet og du er nå logget inn',
     })
     await router.push('/admin')
-  } catch (error: any) {
+  } catch (error: unknown) {
     resetTurnstile()
     toast('Registreringsfeil', {
-      description: getErrorMessage(error),
+      description: getErrorMessage(error as { response?: { data?: { message?: string }; status?: number } }),
     })
   } finally {
     isLoading.value = false

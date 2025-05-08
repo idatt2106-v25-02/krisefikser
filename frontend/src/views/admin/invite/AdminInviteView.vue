@@ -4,10 +4,9 @@ import { useRouter } from 'vue-router'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { Mail, ArrowLeft, CheckCircle, ShieldCheck } from 'lucide-vue-next'
+import { Mail, ArrowLeft, CheckCircle } from 'lucide-vue-next'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
 import { useToast } from '@/components/ui/toast/use-toast'
-import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { useInviteAdmin } from '@/api/generated/authentication/authentication'
 
 import { Button } from '@/components/ui/button'
@@ -30,7 +29,6 @@ const { toast } = useToast()
 const isSubmitted = ref(false)
 const isLoading = ref(false)
 const userEmail = ref('')
-const authStore = useAuthStore()
 
 const { mutateAsync: inviteAdminMutation } = useInviteAdmin()
 
@@ -44,7 +42,7 @@ const onSubmit = handleSubmit(async (values) => {
       title: 'Suksess',
       description: 'Admin-invitasjon sendt',
     })
-  } catch (error) {
+  } catch {
     toast({
       title: 'Feil',
       description: 'Kunne ikke sende invitasjon. Vennligst prøv igjen.',
