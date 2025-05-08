@@ -384,7 +384,7 @@ watch(activeFilter, () => {
 
                 <!-- Action button logic remains, potentially using notification.url or needing backend changes -->
                 <div class="mt-3 flex gap-2">
-                  <router-link
+                <router-link
                     v-if="notification.id"
                     :to="{ name: 'notification-detail', params: { id: notification.id }}"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
@@ -393,8 +393,8 @@ watch(activeFilter, () => {
                     <span>Vis detaljer</span>
                   </router-link>
                   <a
-                    v-if="notification.url"
-                    :href="notification.url"
+                    v-if="(notification as any).url"
+                    :href="(notification as any).url"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"

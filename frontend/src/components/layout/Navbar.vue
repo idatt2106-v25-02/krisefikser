@@ -181,16 +181,16 @@ export default {
       }
 
       if (notification.type === NotificationResponseType.EXPIRY_REMINDER) {
-        const householdId = authStore.currentUser?.activeHouseholdId;
+        const currentUser = authStore.currentUser
+        const householdId = currentUser && 'activeHouseholdId' in currentUser
+          ? (currentUser as any).activeHouseholdId
+          : undefined;
+
         if (householdId) {
           router.push(`/husstand/${householdId}/beredskapslager`);
           showMobileNotifications.value = false;
           return;
         }
-      }
-
-      if (notification.url) {
-        window.open(notification.url, '_blank')
       }
 
       showMobileNotifications.value = false
@@ -272,6 +272,11 @@ export default {
       }
     };
 
+    // Add route watcher in setup to replace the options API version
+    watch(() => route.path, () => {
+      isMenuOpen.value = false
+    });
+
     watch(
       () => authStore.isAuthenticated,
       (isAuth) => {
@@ -307,21 +312,9 @@ export default {
       filteredNavItems,
       isActive,
     }
-  },
-  data() {
-    return {
-      isMenuOpen: false,
-    }
-  },
-  watch: {
-    // Close the mobile menu when the route changes
-    $route() {
-      this.isMenuOpen = false
-    },
-  },
+  }
 }
 </script>
-
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
     <audio ref="audioPlayerRef" src="/sounds/notification.mp3" preload="auto"></audio>
@@ -408,9 +401,9 @@ export default {
                     <div class="flex items-start p-3 w-full">
                       <div :class="['mr-3 p-1.5 rounded-full flex-shrink-0', getIconBgClass(notification.type)]">
                         <Calendar v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                        <AlertTriangle v-else-if="notification.type === NotificationResponseType.CRISIS_UPDATE || notification.type === NotificationResponseType.NEARBY_CRISIS" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                        <AlertTriangle v-else-if="notification.type === NotificationResponseType.EVENT " :class="['h-4 w-4', getIconColorClass(notification.type)]" />
                         <UserIcon v-else-if="notification.type === NotificationResponseType.INVITE" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                        <Bell v-else-if="notification.type === NotificationResponseType.SYSTEM_WIDE" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                        <Bell v-else-if="notification.type === NotificationResponseType.INFO" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
                         <Info v-else :class="['h-4 w-4', getIconColorClass(notification.type)]" />
                       </div>
                       <div class="flex-grow overflow-hidden">
@@ -564,9 +557,9 @@ export default {
                   :class="getIconBgClass(notification.type)"
                 >
                   <Calendar v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                  <AlertTriangle v-else-if="notification.type === NotificationResponseType.CRISIS_UPDATE || notification.type === NotificationResponseType.NEARBY_CRISIS" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                  <AlertTriangle v-else-if="notification.type === NotificationResponseType.EVENT" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
                   <UserIcon v-else-if="notification.type === NotificationResponseType.INVITE" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                  <Bell v-else-if="notification.type === NotificationResponseType.SYSTEM_WIDE" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
+                  <Bell v-else-if="notification.type === NotificationResponseType.INFO" :class="['h-4 w-4', getIconColorClass(notification.type)]" />
                   <Info v-else :class="['h-4 w-4', getIconColorClass(notification.type)]" />
                 </div>
                 <div>
