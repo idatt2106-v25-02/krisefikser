@@ -99,15 +99,16 @@ class AuthControllerTest {
         loginRequest = new LoginRequest("test@example.com", "Password123!");
         refreshRequest = new RefreshRequest("refresh-token-123");
         userResponse = new UserResponse(
-            UUID.randomUUID(),
-            "test@example.com",
-            List.of("USER"),
-            "Test",
-            "User",
-            false,
-            false,
-            false
-        );
+                UUID.randomUUID(),
+                "test@example.com",
+                List.of("USER"),
+                "Test",
+                "User",
+                false,
+                false,
+                false,
+                null,
+                null);
         testUser = new User();
         testUser.setEmail("test@example.com");
         testUser.setFirstName("Test");
@@ -126,25 +127,26 @@ class AuthControllerTest {
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.accessToken").value("access-token"))
-            .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
     }
 
-/*
-
-    @Test
-    void register_WithExistingEmail_ShouldReturnConflict() throws Exception {
-        when(turnstileService.verify(any(String.class))).thenReturn(true);
-        when(authService.register(any(RegisterRequest.class)))
-            .thenThrow(new EmailAlreadyExistsException("Email already exists"));
-
-        mockMvc.perform(post("/api/auth/register")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
-            .andExpect(status().isConflict());
-    } */
+    /*
+     * 
+     * @Test
+     * void register_WithExistingEmail_ShouldReturnConflict() throws Exception {
+     * when(turnstileService.verify(any(String.class))).thenReturn(true);
+     * when(authService.register(any(RegisterRequest.class)))
+     * .thenThrow(new EmailAlreadyExistsException("Email already exists"));
+     * 
+     * mockMvc.perform(post("/api/auth/register")
+     * .with(SecurityMockMvcRequestPostProcessors.csrf())
+     * .contentType(MediaType.APPLICATION_JSON)
+     * .content(objectMapper.writeValueAsString(registerRequest)))
+     * .andExpect(status().isConflict());
+     * }
+     */
 
     @Test
     @WithMockUser
@@ -154,8 +156,8 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/verify-email")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .param("token", "valid-token"))
-            .andExpect(status().isOk())
-            .andExpect(content().string("Email verified successfully."));
+                .andExpect(status().isOk())
+                .andExpect(content().string("Email verified successfully."));
     }
 
     @Test
@@ -166,8 +168,8 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/verify-email")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .param("token", "invalid-token"))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().string("Invalid or expired verification token."));
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Invalid or expired verification token."));
     }
 
     @Test
@@ -179,33 +181,33 @@ class AuthControllerTest {
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.accessToken").value("access-token"))
-            .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
     }
 
     @Test
     void login_WithInvalidCredentials_ShouldReturnUnauthorized() throws Exception {
         when(authService.login(any(LoginRequest.class)))
-            .thenThrow(new InvalidCredentialsException("Invalid credentials"));
+                .thenThrow(new InvalidCredentialsException("Invalid credentials"));
 
         mockMvc.perform(post("/api/auth/login")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
-            .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void login_WithLockedAccount_ShouldReturnLocked() throws Exception {
         when(authService.login(any(LoginRequest.class)))
-            .thenThrow(new LockedException("Account is locked"));
+                .thenThrow(new LockedException("Account is locked"));
 
         mockMvc.perform(post("/api/auth/login")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
-            .andExpect(status().isLocked());
+                .andExpect(status().isLocked());
     }
 
     @Test
@@ -217,21 +219,21 @@ class AuthControllerTest {
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(refreshRequest)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.accessToken").value("new-access-token"))
-            .andExpect(jsonPath("$.refreshToken").value("new-refresh-token"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("new-access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("new-refresh-token"));
     }
 
     @Test
     void refresh_WithInvalidToken_ShouldReturnUnauthorized() throws Exception {
         when(authService.refresh(any(RefreshRequest.class)))
-            .thenThrow(new InvalidTokenException());
+                .thenThrow(new InvalidTokenException());
 
         mockMvc.perform(post("/api/auth/refresh")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(refreshRequest)))
-            .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -240,17 +242,17 @@ class AuthControllerTest {
         when(authService.me()).thenReturn(userResponse);
 
         mockMvc.perform(get("/api/auth/me"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.email").value("test@example.com"))
-            .andExpect(jsonPath("$.roles[0]").value("USER"))
-            .andExpect(jsonPath("$.firstName").value("Test"))
-            .andExpect(jsonPath("$.lastName").value("User"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.roles[0]").value("USER"))
+                .andExpect(jsonPath("$.firstName").value("Test"))
+                .andExpect(jsonPath("$.lastName").value("User"));
     }
 
     @Test
     void me_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/api/auth/me"))
-            .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -258,18 +260,18 @@ class AuthControllerTest {
     void updatePassword_WithValidPasswords_ShouldReturnSuccess() throws Exception {
         UpdatePasswordRequest request = new UpdatePasswordRequest("OldPassword123!", "NewPassword123!");
         UpdatePasswordResponse response = UpdatePasswordResponse.builder()
-            .message("Password updated successfully")
-            .success(true)
-            .build();
+                .message("Password updated successfully")
+                .success(true)
+                .build();
         when(authService.updatePassword(any(UpdatePasswordRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/auth/update-password")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.message").value("Password updated successfully"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Password updated successfully"));
     }
 
     @Test
@@ -277,97 +279,94 @@ class AuthControllerTest {
     void updatePassword_WithInvalidCurrentPassword_ShouldReturnUnauthorized() throws Exception {
         UpdatePasswordRequest request = new UpdatePasswordRequest("WrongPassword123!", "NewPassword123!");
         when(authService.updatePassword(any(UpdatePasswordRequest.class)))
-            .thenThrow(new InvalidCredentialsException("Invalid current password"));
+                .thenThrow(new InvalidCredentialsException("Invalid current password"));
 
         mockMvc.perform(post("/api/auth/update-password")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void requestPasswordReset_WithValidEmail_ShouldReturnSuccess() throws Exception {
         RequestPasswordResetRequest request = new RequestPasswordResetRequest("test@example.com");
         PasswordResetResponse response = PasswordResetResponse.builder()
-            .message("Password reset email sent")
-            .success(true)
-            .build();
+                .message("Password reset email sent")
+                .success(true)
+                .build();
         when(authService.requestPasswordReset(any(RequestPasswordResetRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/auth/request-password-reset")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.message").value("Password reset email sent"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Password reset email sent"));
     }
 
     @Test
     void requestPasswordReset_WithNonexistentEmail_ShouldReturnNotFound() throws Exception {
         RequestPasswordResetRequest request = new RequestPasswordResetRequest("nonexistent@example.com");
         when(authService.requestPasswordReset(any(RequestPasswordResetRequest.class)))
-            .thenThrow(new UserNotFoundException("User not found"));
+                .thenThrow(new UserNotFoundException("User not found"));
 
         mockMvc.perform(post("/api/auth/request-password-reset")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
     }
 
     @Test
     void completePasswordReset_WithValidToken_ShouldReturnSuccess() throws Exception {
         CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-            "valid-token",
-            "NewPassword123!"
-        );
+                "valid-token",
+                "NewPassword123!");
         PasswordResetResponse response = PasswordResetResponse.builder()
-            .message("Password reset successful")
-            .success(true)
-            .build();
+                .message("Password reset successful")
+                .success(true)
+                .build();
         when(authService.completePasswordReset(any(CompletePasswordResetRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/auth/complete-password-reset")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.message").value("Password reset successful"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Password reset successful"));
     }
 
     @Test
     void completePasswordReset_WithInvalidToken_ShouldReturnUnauthorized() throws Exception {
         CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-            "invalid-token",
-            "NewPassword123!"
-        );
+                "invalid-token",
+                "NewPassword123!");
         when(authService.completePasswordReset(any(CompletePasswordResetRequest.class)))
-            .thenThrow(new InvalidTokenException());
+                .thenThrow(new InvalidTokenException());
 
         mockMvc.perform(post("/api/auth/complete-password-reset")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void completePasswordReset_WithNonexistentEmail_ShouldReturnNotFound() throws Exception {
         CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-            "valid-token",
-            "NewPassword123!"
-        );
+                "valid-token",
+                "NewPassword123!");
         when(authService.completePasswordReset(any(CompletePasswordResetRequest.class)))
-            .thenThrow(new UserNotFoundException("User not found"));
+                .thenThrow(new UserNotFoundException("User not found"));
 
         mockMvc.perform(post("/api/auth/complete-password-reset")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -5,7 +5,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useRoute, useRouter } from 'vue-router'
 import { KeyRound } from 'lucide-vue-next'
-import axios from 'axios'
+import { useCompletePasswordReset } from '../api/generated/authentication/authentication'
 
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
@@ -51,13 +51,17 @@ onMounted(() => {
   }
 })
 
+const completePasswordResetMutation = useCompletePasswordReset()
+
 const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
 
   try {
-    await axios.post('http://localhost:8080/api/auth/complete-password-reset', {
-      token: token.value,
-      newPassword: values.password
+    await completePasswordResetMutation.mutateAsync({
+      data: {
+        token: token.value,
+        newPassword: values.password
+      }
     })
 
     isSuccessful.value = true

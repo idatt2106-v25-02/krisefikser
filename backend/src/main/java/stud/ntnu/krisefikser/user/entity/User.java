@@ -72,6 +72,12 @@ public class User {
   @Column(nullable = false)
   private boolean locationSharing = false;
 
+  @Column
+  private Double latitude;
+
+  @Column
+  private Double longitude;
+
   @CreationTimestamp
   private LocalDateTime createdAt;
 
@@ -96,9 +102,9 @@ public class User {
   }
 
   /**
-   * Converts the User entity to a UserResponse DTO.
+   * Converts the User entity to a UserResponse DTO without location data.
    *
-   * @return a UserResponse DTO containing user information.
+   * @return a UserResponse DTO containing user information without location data.
    */
   public UserResponse toDto() {
     List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
@@ -111,6 +117,32 @@ public class User {
         lastName,
         notifications,
         emailUpdates,
-        locationSharing);
+        locationSharing,
+        null, // Do not include latitude
+        null); // Do not include longitude
+  }
+
+  /**
+   * Converts the User entity to a UserResponse DTO including location data.
+   * This should only be used in contexts where sharing location is appropriate,
+   * such as when getting the active household.
+   *
+   * @return a UserResponse DTO containing user information including location
+   *         data.
+   */
+  public UserResponse toDtoWithLocation() {
+    List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();
+
+    return new UserResponse(
+        id,
+        email,
+        roleNames,
+        firstName,
+        lastName,
+        notifications,
+        emailUpdates,
+        locationSharing,
+        latitude,
+        longitude);
   }
 }

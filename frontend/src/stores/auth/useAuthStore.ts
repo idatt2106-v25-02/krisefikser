@@ -122,7 +122,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       // Use direct axios for the refresh call
-      const response = await axios.post('http://localhost:8080/api/auth/refresh', {
+      const response = await axios.post(import.meta.env.VITE_API_URL + '/api/auth/refresh', {
         refreshToken: refreshToken.value,
       })
 
@@ -143,7 +143,7 @@ export const useAuthStore = defineStore('auth', () => {
         oldPassword,
         newPassword: '***' // Don't log the actual new password
       })
-      const response = await axios.post('http://localhost:8080/api/auth/update-password', {
+      const response = await axios.post(import.meta.env.VITE_API_URL + '/api/auth/update-password', {
         oldPassword,
         password: newPassword
       }, {

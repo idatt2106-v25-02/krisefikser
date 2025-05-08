@@ -6,8 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface SortObject {
-  empty?: boolean
-  unsorted?: boolean
-  sorted?: boolean
+/**
+ * Location coordinates
+ */
+export interface UserLocationRequest {
+  latitude?: number
+  longitude?: number
 }

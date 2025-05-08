@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
+import stud.ntnu.krisefikser.user.dto.UserLocationRequest;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
@@ -87,8 +88,9 @@ public class UserController {
     if (!userService.isAdminOrSelf(userId)) {
       throw new UnauthorizedAccessException("You are not authorized to update this user");
     }
-    User updatedUser = userService.updateUser(userId, userDto);
-    return ResponseEntity.ok(updatedUser.toDto());
+
+    User user = userService.updateUser(userId, userDto);
+    return ResponseEntity.ok(user.toDto());
   }
 
   /**
@@ -112,5 +114,28 @@ public class UserController {
     }
     userService.deleteUser(userId);
     return ResponseEntity.ok().build();
+  }
+
+  @Operation(summary = "Update user location", description = "Updates the current user's location coordinates if location sharing is enabled")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully updated user location", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Location sharing is disabled"),
+      @ApiResponse(responseCode = "401", description = "Not authenticated"),
+      @ApiResponse(responseCode = "404", description = "User not found")
+  })
+  @PutMapping("/location")
+  public ResponseEntity<UserResponse> updateCurrentUserLocation(
+      @Parameter(description = "Location coordinates") @RequestBody UserLocationRequest locationRequest) {
+    User currentUser = userService.getCurrentUser();
+
+    // Check if location sharing is enabled before attempting to update
+    if (!currentUser.isLocationSharing()) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    User updatedUser = userService.updateUserLocation(currentUser.getId(), locationRequest.getLatitude(),
+        locationRequest.getLongitude());
+    // Use regular toDto that doesn't include location data in the response
+    return ResponseEntity.ok(updatedUser.toDto());
   }
 }
