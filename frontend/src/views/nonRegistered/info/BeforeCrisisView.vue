@@ -336,7 +336,7 @@ export default {
       secondaryButtonText="Logg inn"
       secondaryButtonRoute="/logg-inn"
       authPrimaryButtonText="Gå til beredskapslager"
-      authPrimaryButtonRoute="/husstand/:id/beredskapslager"
+      authPrimaryButtonRoute="/husstand/beredskapslager"
       authSecondaryButtonText="Administrer husstand"
       authSecondaryButtonRoute="/husstand"
       colorTheme="blue"
