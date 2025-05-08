@@ -27,27 +27,30 @@ const processQueue = (error: any | null, token: string | null = null) => {
   failedQueue = []
 }
 
+// Add request interceptor to add Authorization header
+AXIOS_INSTANCE.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
 // Request interceptor
 AXIOS_INSTANCE.interceptors.request.use(
   (config) => {
-    console.log('Request interceptor - checking for token')
-
     // Try to get token from store first, fall back to localStorage
     const store = getStoreRef()
     const token = store?.accessToken || localStorage.getItem('accessToken')
 
-    console.log('Token from store/localStorage:', token ? 'exists' : 'not found')
-
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log('Added Authorization header')
     }
-
-    console.log('Final request config:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-    })
 
     return config
   },
@@ -60,10 +63,6 @@ AXIOS_INSTANCE.interceptors.request.use(
 // Response interceptor
 AXIOS_INSTANCE.interceptors.response.use(
   (response) => {
-    console.log('Response received:', {
-      url: response.config.url,
-      status: response.status,
-    })
     return response
   },
   async (error) => {
@@ -96,15 +95,11 @@ AXIOS_INSTANCE.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      console.log('Attempting to refresh token')
-
       // Try to get refreshToken from store, fall back to localStorage
       const store = getStoreRef()
       const refreshToken = store?.refreshToken || localStorage.getItem('refreshToken')
 
       if (!refreshToken) {
-        console.log('No refresh token available')
-
         // Handle logout - use store if available, otherwise just clear localStorage
         if (store) {
           store.logout()
@@ -114,7 +109,6 @@ AXIOS_INSTANCE.interceptors.response.use(
 
           // If we're not already on the login page, redirect to it
           if (!window.location.pathname.includes('/logg-inn')) {
-            console.log('Redirecting to login page')
             window.location.href = '/logg-inn'
           }
         }
@@ -144,8 +138,6 @@ AXIOS_INSTANCE.interceptors.response.use(
         localStorage.setItem('accessToken', newAccessToken)
         localStorage.setItem('refreshToken', newRefreshToken)
 
-        console.log('Token refresh successful')
-
         // Update authorization header for the original request
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
 
@@ -168,7 +160,6 @@ AXIOS_INSTANCE.interceptors.response.use(
 
           // If we're not already on the login page, redirect to it
           if (!window.location.pathname.includes('/logg-inn')) {
-            console.log('Redirecting to login page')
             window.location.href = '/logg-inn'
           }
         }
@@ -204,7 +195,7 @@ export const customInstance = async <T>(
   // Handle the pageable flattening for notifications API
   if (config.params && config.params.pageable) {
     config.params = {
-      ...config.params.pageable
+      ...config.params.pageable,
     }
   }
   // Create a custom paramsSerializer to handle arrays without brackets
@@ -212,11 +203,11 @@ export const customInstance = async <T>(
   const paramsSerializer = (params: any) => {
     const parts: string[] = []
 
-    Object.keys(params).forEach(key => {
+    Object.keys(params).forEach((key) => {
       const value = params[key]
       if (Array.isArray(value)) {
         // Handle arrays without brackets
-        value.forEach(item => {
+        value.forEach((item) => {
           parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(item)}`)
         })
       } else if (value !== null && value !== undefined) {

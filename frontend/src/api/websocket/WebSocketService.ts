@@ -1,69 +1,51 @@
-import { Client, type IMessage, type StompSubscription, type StompHeaders } from '@stomp/stompjs';
+import { Client, type IMessage, type StompHeaders, type StompSubscription } from '@stomp/stompjs'
 
 export class WebSocketService {
-  private client: Client;
-  private activeSubscriptions: Map<string, StompSubscription> = new Map();
-  private isConnected: boolean = false;
-  private connectionPromise: Promise<void> | null = null;
-  private pendingOperations: Array<() => void> = [];
+  private client: Client
+  private activeSubscriptions: Map<string, StompSubscription> = new Map()
+  private isConnected: boolean = false
+  private connectionPromise: Promise<void> | null = null
+  private pendingOperations: Array<() => void> = []
 
-  constructor(
-    serverUrl: string = import.meta.env.VITE_WS_URL as string,
-    debug: boolean = true
-  ) {
+  constructor(serverUrl: string = import.meta.env.VITE_WS_URL as string, debug: boolean = false) {
     this.client = new Client({
       brokerURL: serverUrl,
-      debug: debug ? (msg: string) => console.log(msg) : () => {},
+      debug: debug ? (msg: string) => console.debug(msg) : () => {},
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-    });
+    })
 
     this.connectionPromise = new Promise<void>((resolve) => {
       this.client.onConnect = () => {
-        this.isConnected = true;
-        console.log('WebSocket connected');
+        this.isConnected = true
 
         // Process any operations that were waiting for connection
-        this.processPendingOperations();
-        resolve();
-      };
-    });
+        this.processPendingOperations()
+        resolve()
+      }
+    })
 
     this.client.onStompError = (frame) => {
-      console.error('Broker reported error:', frame.headers['message']);
-      console.error('Additional details:', frame.body);
-    };
+      console.error('Broker reported error:', frame.headers['message'])
+      console.error('Additional details:', frame.body)
+    }
 
     this.client.onDisconnect = () => {
-      this.isConnected = false;
-      this.activeSubscriptions.clear();
-      console.log('WebSocket disconnected');
+      this.isConnected = false
+      this.activeSubscriptions.clear()
 
       // Reset connection promise for future reconnection
       this.connectionPromise = new Promise<void>((resolve) => {
         this.client.onConnect = () => {
-          this.isConnected = true;
-          console.log('WebSocket reconnected');
-          this.processPendingOperations();
-          resolve();
-        };
-      });
-    };
-
-    this.client.activate();
-  }
-
-  /**
-   * Process any operations that were queued while waiting for connection
-   */
-  private processPendingOperations(): void {
-    const operations = [...this.pendingOperations];
-    this.pendingOperations = [];
-
-    for (const operation of operations) {
-      operation();
+          this.isConnected = true
+          this.processPendingOperations()
+          resolve()
+        }
+      })
     }
+
+    this.client.activate()
   }
 
   /**
@@ -71,9 +53,9 @@ export class WebSocketService {
    */
   public waitForConnection(): Promise<void> {
     if (this.isConnected) {
-      return Promise.resolve();
+      return Promise.resolve()
     }
-    return this.connectionPromise || Promise.reject('Connection attempt not initiated');
+    return this.connectionPromise || Promise.reject('Connection attempt not initiated')
   }
 
   /**
@@ -86,28 +68,28 @@ export class WebSocketService {
   public async subscribe<T>(
     topic: string,
     callback: (payload: T) => void,
-    options?: { headers?: StompHeaders }
+    options?: { headers?: StompHeaders },
   ): Promise<StompSubscription> {
-    await this.waitForConnection();
+    await this.waitForConnection()
 
     // Unsubscribe first if already subscribed
-    await this.unsubscribe(topic);
+    await this.unsubscribe(topic)
 
     const subscription = this.client.subscribe(
       topic,
       (message: IMessage) => {
         try {
-          const payload = JSON.parse(message.body) as T;
-          callback(payload);
+          const payload = JSON.parse(message.body) as T
+          callback(payload)
         } catch (error) {
-          console.error(`Error parsing message from ${topic}:`, error);
+          console.error(`Error parsing message from ${topic}:`, error)
         }
       },
-      options?.headers
-    );
+      options?.headers,
+    )
 
-    this.activeSubscriptions.set(topic, subscription);
-    return subscription;
+    this.activeSubscriptions.set(topic, subscription)
+    return subscription
   }
 
   /**
@@ -115,25 +97,25 @@ export class WebSocketService {
    * @param topic The topic to subscribe to
    * @param callback Callback function with typed payload
    * @param options Optional subscription options including headers
-   * @returns Promise resolving to Subscription object
+   * @returns Promise resolving to a Subscription object
    */
   public queueSubscription<T>(
     topic: string,
     callback: (payload: T) => void,
-    options?: { headers?: StompHeaders }
+    options?: { headers?: StompHeaders },
   ): Promise<StompSubscription> {
     return new Promise((resolve) => {
       const operation = async () => {
-        const subscription = await this.subscribe(topic, callback, options);
-        resolve(subscription);
-      };
+        const subscription = await this.subscribe(topic, callback, options)
+        resolve(subscription)
+      }
 
       if (this.isConnected) {
-        operation();
+        operation()
       } else {
-        this.pendingOperations.push(operation);
+        this.pendingOperations.push(operation)
       }
-    });
+    })
   }
 
   /**
@@ -144,14 +126,14 @@ export class WebSocketService {
   public async unsubscribe(topic: string): Promise<void> {
     if (!this.isConnected) {
       // If not connected, just remove from our tracking
-      this.activeSubscriptions.delete(topic);
-      return;
+      this.activeSubscriptions.delete(topic)
+      return
     }
 
-    const subscription = this.activeSubscriptions.get(topic);
+    const subscription = this.activeSubscriptions.get(topic)
     if (subscription) {
-      subscription.unsubscribe();
-      this.activeSubscriptions.delete(topic);
+      subscription.unsubscribe()
+      this.activeSubscriptions.delete(topic)
     }
   }
 
@@ -160,17 +142,21 @@ export class WebSocketService {
    * @param destination The destination to send to
    * @param body The message body
    * @param headers Optional headers
-   * @returns Promise that resolves when message is sent
+   * @returns Promise that resolves when a message is sent
    */
-  public async send(destination: string, body: string | object, headers?: StompHeaders): Promise<void> {
-    await this.waitForConnection();
+  public async send(
+    destination: string,
+    body: string | object,
+    headers?: StompHeaders,
+  ): Promise<void> {
+    await this.waitForConnection()
 
-    const messageBody = typeof body === 'string' ? body : JSON.stringify(body);
+    const messageBody = typeof body === 'string' ? body : JSON.stringify(body)
     this.client.publish({
       destination,
       body: messageBody,
-      headers
-    });
+      headers,
+    })
   }
 
   /**
@@ -178,24 +164,36 @@ export class WebSocketService {
    */
   public unsubscribeAll(): void {
     this.activeSubscriptions.forEach((subscription) => {
-      subscription.unsubscribe();
-    });
-    this.activeSubscriptions.clear();
+      subscription.unsubscribe()
+    })
+    this.activeSubscriptions.clear()
   }
 
   /**
    * Check if the client is currently connected
    */
   public isWebSocketConnected(): boolean {
-    return this.isConnected;
+    return this.isConnected
   }
 
   /**
    * Disconnect from the WebSocket
    */
   public disconnect(): void {
-    this.pendingOperations = [];
-    this.unsubscribeAll();
-    this.client.deactivate();
+    this.pendingOperations = []
+    this.unsubscribeAll()
+    this.client.deactivate()
+  }
+
+  /**
+   * Process any operations that were queued while waiting for connection
+   */
+  private processPendingOperations(): void {
+    const operations = [...this.pendingOperations]
+    this.pendingOperations = []
+
+    for (const operation of operations) {
+      operation()
+    }
   }
 }

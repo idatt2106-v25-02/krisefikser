@@ -2,8 +2,10 @@
 import { useRouter } from 'vue-router'
 import { Map, BookOpen, Users, Home, FileText } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const navigateToMap = () => {
   router.push('/admin/kart')
@@ -22,7 +24,11 @@ const navigateToArticles = () => {
 }
 
 const navigateToUsers = () => {
-  router.push('/admin/brukere')
+  if (authStore.isSuperAdmin) {
+    router.push('/admin/brukere');
+  } else {
+    router.push('/admin/brukere-admin');
+  }
 }
 </script>
 

@@ -25,7 +25,7 @@ export default defineComponent({
     eventId: { type: Number as PropType<number>, required: true },
     initialData: { type: Object as PropType<ReflectionResponse | null>, default: null },
   },
-  emits: ['submitted', 'cancel'],
+  emits: ['submitted', 'cancel', 'created', 'updated' ],
   setup(props, { emit }) {
     const queryClient = useQueryClient();
     const VisibilityEnum = CreateReflectionRequestVisibility;
@@ -54,8 +54,20 @@ export default defineComponent({
       }
     }, { immediate: true });
 
-    const mutation = useCreateReflection();
-    const updateMutation = useUpdateReflection();
+    const mutation = useCreateReflection({
+      mutation: {
+        onSuccess: () => {
+          emit('created');
+        }
+      }
+    });
+    const updateMutation = useUpdateReflection({
+      mutation: {
+        onSuccess: () => {
+          emit('updated');
+        }
+      }
+    });
 
     const buttonText = computed(() => {
       if (isEditing.value) {
