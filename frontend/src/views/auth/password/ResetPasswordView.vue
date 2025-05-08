@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h } from 'vue'
+import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -11,6 +11,16 @@ import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
+
+// Define error type for API responses
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string
+    }
+    status?: number
+  }
+}
 
 // Schema for the update password form with password requirements
 const updatePasswordSchema = z
@@ -57,11 +67,12 @@ const onSubmit = handleSubmit(async (values) => {
     })
     // Log out the user after successful password update
     authStore.logout()
-  } catch (error: any) {
-    errorMessage.value = error.response?.data?.message || 'En feil oppstod ved oppdatering av passord'
+  } catch (error: unknown) {
+    const apiError = error as ApiError
+    errorMessage.value = apiError.response?.data?.message || 'En feil oppstod ved oppdatering av passord'
     // Show error toast
     toast('Feil ved oppdatering av passord', {
-      description: error.response?.data?.message || 'En feil oppstod ved oppdatering av passord',
+      description: apiError.response?.data?.message || 'En feil oppstod ved oppdatering av passord',
     })
   } finally {
     isLoading.value = false
