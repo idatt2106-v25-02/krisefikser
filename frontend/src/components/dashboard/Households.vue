@@ -6,6 +6,7 @@ import {
   useAcceptInvite,
   useDeclineInvite,
 } from '@/api/generated/household-invite-controller/household-invite-controller'
+import { useRouter } from 'vue-router'
 
 const emit = defineEmits<{
   (e: 'refresh'): void
@@ -112,6 +113,8 @@ const { mutate: declineInvite } = useDeclineInvite({
     onSuccess: () => refetchInvites(),
   },
 })
+
+const router = useRouter()
 </script>
 
 <template>
@@ -169,12 +172,17 @@ const { mutate: declineInvite } = useDeclineInvite({
           </svg>
         </div>
         <div class="flex flex-1 items-center justify-between">
-          <router-link
-            :to="`/husstand/${household.id}`"
-            class="text-gray-800 hover:text-blue-600 font-medium"
+          <div 
+            :class="[
+              'font-medium',
+              activeHouseholdData?.id === household.id 
+                ? 'text-blue-600 hover:text-blue-800 cursor-pointer' 
+                : 'text-gray-800 cursor-default'
+            ]"
+            @click="activeHouseholdData?.id === household.id ? router.push({ name: 'household' }) : null"
           >
             {{ household.name }}
-          </router-link>
+          </div>
           <div class="flex items-center space-x-2">
             <span
               v-if="activeHouseholdData?.id === household.id"

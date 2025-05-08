@@ -309,7 +309,11 @@ const router = createRouter({
       name: 'not-found',
       component: NotFoundView
     }
-  ]
+  ],
+  scrollBehavior() {
+    // always scroll to top
+    return { top: 0, behavior: 'smooth' }
+  }
 })
 
 // Navigation guards
