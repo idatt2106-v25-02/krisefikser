@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -47,6 +48,7 @@ import stud.ntnu.krisefikser.auth.exception.*;
 import stud.ntnu.krisefikser.auth.service.*;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
+import stud.ntnu.krisefikser.email.service.EmailAdminService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
@@ -81,11 +83,15 @@ class AuthControllerTest {
     @MockitoBean
     private UserRepository userRepository;
 
+    @MockitoBean
+    private EmailAdminService emailAdminService;
+
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;
     private RefreshRequest refreshRequest;
     private UserResponse userResponse;
     private User testUser;
+    private AdminInviteRequest adminInviteRequest;
 
     @BeforeEach
     void setUp() {
@@ -106,6 +112,7 @@ class AuthControllerTest {
         testUser.setEmail("test@example.com");
         testUser.setFirstName("Test");
         testUser.setLastName("User");
+        adminInviteRequest = new AdminInviteRequest("admin@example.com");
     }
 
     @Test
@@ -361,5 +368,84 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void inviteAdmin_WithValidEmail_ShouldReturnOk() throws Exception {
+        String inviteToken = "valid-invite-token";
+        when(authService.generateAdminInviteToken(anyString())).thenReturn(inviteToken);
+        when(emailAdminService.sendAdminInvitation(anyString(), anyString()))
+            .thenReturn(ResponseEntity.ok("Admin invitation sent successfully"));
+
+        mockMvc.perform(post("/api/auth/invite/admin")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(adminInviteRequest)))
+            .andExpect(status().isOk())
+            .andExpect(content().string("Admin invitation sent successfully"));
+
+        verify(authService).generateAdminInviteToken(adminInviteRequest.getEmail());
+        verify(emailAdminService).sendAdminInvitation(eq(adminInviteRequest.getEmail()), anyString());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void inviteAdmin_WithoutAdminRole_ShouldReturnForbidden() throws Exception {
+        mockMvc.perform(post("/api/auth/invite/admin")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(adminInviteRequest)))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void verifyAdminInvite_WithValidToken_ShouldReturnEmail() throws Exception {
+        String email = "admin@example.com";
+        when(authService.verifyAdminInviteToken(anyString())).thenReturn(email);
+
+        mockMvc.perform(get("/api/auth/verify-admin-invite")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .param("token", "valid-token"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.email").value(email));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void verifyAdminInvite_WithInvalidToken_ShouldReturnBadRequest() throws Exception {
+        when(authService.verifyAdminInviteToken(anyString()))
+            .thenThrow(new RuntimeException("Invalid token"));
+
+        mockMvc.perform(get("/api/auth/verify-admin-invite")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .param("token", "invalid-token"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void registerAdmin_WithValidData_ShouldReturnOk() throws Exception {
+        RegisterResponse response = new RegisterResponse("access-token", "refresh-token");
+        when(authService.registerAdmin(any(RegisterRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/auth/register/admin")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.accessToken").value("access-token"))
+            .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void registerAdmin_WithoutAdminRole_ShouldReturnForbidden() throws Exception {
+        mockMvc.perform(post("/api/auth/register/admin")
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)))
+            .andExpect(status().isForbidden());
     }
 }
