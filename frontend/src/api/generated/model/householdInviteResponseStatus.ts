@@ -9,7 +9,7 @@
 export type HouseholdInviteResponseStatus =
   (typeof HouseholdInviteResponseStatus)[keyof typeof HouseholdInviteResponseStatus]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const HouseholdInviteResponseStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',

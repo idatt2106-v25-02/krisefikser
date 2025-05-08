@@ -10,15 +10,15 @@ import type { SortObject } from './sortObject'
 import type { PageableObject } from './pageableObject'
 
 export interface PageHouseholdItemResponse {
-  totalPages?: number
   totalElements?: number
+  totalPages?: number
   first?: boolean
   last?: boolean
-  numberOfElements?: number
   size?: number
   content?: HouseholdItemResponse[]
   number?: number
   sort?: SortObject
+  numberOfElements?: number
   pageable?: PageableObject
   empty?: boolean
 }
