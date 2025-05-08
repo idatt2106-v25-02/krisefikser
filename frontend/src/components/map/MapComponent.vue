@@ -47,14 +47,31 @@ Marker.mergeOptions({
 onMounted(() => {
   try {
     // Create map
-    const map = L.map('map').setView(TRONDHEIM_CENTER, props.initialZoom || 13)
+    const map = L.map('map', {
+      zoomControl: false, // We'll reposition this
+      scrollWheelZoom: true,
+      maxZoom: 18,
+      minZoom: 3,
+    }).setView(TRONDHEIM_CENTER, props.initialZoom || 13)
     mapInstance.value = map
 
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map)
+    // Add Mapbox tiles (more stylish than OpenStreetMap)
+    L.tileLayer(
+      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+      {
+        id: 'mapbox/light-v11',
+        accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
+        tileSize: 512,
+        zoomOffset: -1,
+      } as L.TileLayerOptions & { accessToken: string },
+    ).addTo(map)
+
+    // Add zoom control in better position
+    L.control
+      .zoom({
+        position: 'bottomright',
+      })
+      .addTo(map)
 
     // Emit map created event
     emit('map-created', map)

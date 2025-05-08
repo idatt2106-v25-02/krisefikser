@@ -251,10 +251,7 @@ onMounted(() => {
           longitude: activeHousehold.longitude,
         }"
       />
-      <HouseholdMembersLayer
-        v-if="activeHousehold?.id && mapInstance"
-        :map="mapInstance as any"
-      />
+      <HouseholdMembersLayer v-if="activeHousehold?.id && mapInstance" :map="mapInstance as any" />
       <MeetingPointLayer
         v-if="canShowMeetingPointLayer && mapInstance"
         :map="mapInstance as any"
@@ -296,8 +293,8 @@ onMounted(() => {
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{{
-              selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass'
-            }}</DialogTitle>
+            selectedMeetingPoint ? 'Rediger møteplass' : 'Ny møteplass'
+          }}</DialogTitle>
         </DialogHeader>
         <MeetingPointForm
           :household-id="householdId"
