@@ -98,10 +98,10 @@ onUnmounted(() => {
     </div>
 
     <AppNavbar />
-    <div id="main-content" class="min-h-screen">
+    <div id="main-content" class="relative flex-grow">
       <router-view />
     </div>
-    <AppFooter />
+    <AppFooter v-if="!router.currentRoute.value.path.includes('kart')" />
     <Toaster />
     <AccessibilityMenu />
     <ReadPageButton />

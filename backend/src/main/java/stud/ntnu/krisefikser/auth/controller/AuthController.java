@@ -36,15 +36,12 @@ import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
-import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.config.FrontendConfig;
-import stud.ntnu.krisefikser.email.entity.VerificationToken;
 import stud.ntnu.krisefikser.email.service.EmailAdminService;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
-import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 /**
@@ -87,17 +84,8 @@ public class AuthController {
   public ResponseEntity<RegisterResponse> register(
       @Parameter(description = "Registration details including Turnstile token", required = true)
       @RequestBody RegisterRequest request) {
-    try {
-      RegisterResponse response = authService.register(request);
-      // Create and send verification email
-      User newUser = userRepository.findByEmail(request.getEmail())
-          .orElseThrow(() -> new RuntimeException("User not found after registration"));
-      VerificationToken token = emailVerificationService.createVerificationToken(newUser);
-      emailVerificationService.sendVerificationEmail(newUser, token);
-      return ResponseEntity.ok(response);
-    } catch (TurnstileVerificationException e) {
-      throw e; // Re-throw to let the global exception handler handle it
-    }
+    RegisterResponse response = authService.registerAndSendVerificationEmail(request);
+    return ResponseEntity.ok(response);
   }
 
   /**
@@ -123,8 +111,7 @@ public class AuthController {
           content = @Content(mediaType = "application/json"))
   })
   @PostMapping("/register/admin")
-  @PreAuthorize(
-      "hasRole('ADMIN') or (#request != null and @authService.isValidAdminInviteToken(#request.email))")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
   public ResponseEntity<RegisterResponse> registerAdmin(
       @Parameter(description = "Registration details including Turnstile token", required = true)
       @RequestBody RegisterRequest request) {

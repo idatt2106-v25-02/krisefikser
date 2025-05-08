@@ -33,4 +33,7 @@ public interface HouseholdInviteRepository extends JpaRepository<HouseholdInvite
         Optional<HouseholdInvite> findByHouseholdAndInvitedEmail(Household household, String email);
 
         Optional<HouseholdInvite> findByHouseholdAndInvitedUser(Household household, User user);
+
+        // Find all invites for a household
+        List<HouseholdInvite> findByHousehold(Household household);
 }

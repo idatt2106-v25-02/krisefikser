@@ -75,7 +75,8 @@ public class EmailVerificationService {
     return "<html><body>" +
         "<h2>Welcome to Krisefikser!</h2>" +
         "<p>Hello " + firstName + ",</p>" +
-        "<p>Thank you for registering. Please click the link below to verify your email address:</p>"
+        "<p>Thank you for registering. Please click the link below to verify your email "
+        + "address:</p>"
         +
         "<p><a href='" + verificationLink + "'>Verify Email Address</a></p>" +
         "<p>This link will expire in " + tokenValidityHours + " hours.</p>" +
@@ -138,11 +139,13 @@ public class EmailVerificationService {
     return "<html><body>" +
         "<h2>Admin Login Verification</h2>" +
         "<p>Hello " + firstName + ",</p>" +
-        "<p>We detected an admin login attempt. To complete the login process, please click the link below:</p>"
+        "<p>We detected an admin login attempt. To complete the login process, please click the "
+        + "link below:</p>"
         +
         "<p><a href='" + verificationLink + "'>Verify Admin Login</a></p>" +
         "<p>This link will expire in " + tokenValidityHours + " hours.</p>" +
-        "<p>If you did not attempt to log in, please contact the system administrator immediately.</p>"
+        "<p>If you did not attempt to log in, please contact the system administrator immediately"
+        + ".</p>"
         +
         "</body></html>";
   }
