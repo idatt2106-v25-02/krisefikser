@@ -96,7 +96,7 @@ const {
 // Watch for changes in households data and errors
 watch(
   [householdsData, householdsError],
-  ([newData, error]) => {
+  ([error]) => {
     if (error) {
       console.error('Error fetching households:', error)
     }

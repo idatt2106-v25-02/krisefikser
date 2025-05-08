@@ -331,7 +331,7 @@ const { mutate: createInvite } = useCreateInvite({
 
 const { mutate: addGuest, isPending: isAddingGuest } = useAddGuestToHousehold({
   mutation: {
-    onSuccess: (response) => {
+    onSuccess: () => {
       toast({
         title: 'Gjest lagt til',
         description: 'Gjesten har blitt lagt til i husstanden.',
