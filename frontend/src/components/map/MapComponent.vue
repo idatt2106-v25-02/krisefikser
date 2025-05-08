@@ -121,16 +121,23 @@ onMounted(() => {
     }).setView(TRONDHEIM_CENTER, props.initialZoom || 13)
     mapInstance.value = map
 
-    // Add Mapbox tiles with style that matches the app theme
-    L.tileLayer(
-      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
-      {
-        id: 'mapbox/streets-v12',
-        accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
-        tileSize: 512,
-        zoomOffset: -1,
-      } as L.TileLayerOptions & { accessToken: string },
-    ).addTo(map)
+    if (import.meta.env.VITE_MAPBOX_ACCESS_TOKEN) {
+      L.tileLayer(
+        'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+        {
+          id: 'mapbox/streets-v12',
+          accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
+          tileSize: 512,
+          zoomOffset: -1,
+        } as L.TileLayerOptions & { accessToken: string },
+      ).addTo(map)
+    } else {
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map)
+    }
 
     // Add custom controls
     setupCustomControls(map)
