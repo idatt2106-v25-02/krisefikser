@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGetNotifications, useReadNotification } from '@/api/generated/notification/notification'
 import { AlertTriangle, Bell, Calendar, Info, ArrowLeft, Link as LinkIcon, Check as CheckIcon } from 'lucide-vue-next'
@@ -120,16 +120,16 @@ const handleNotificationAction = () => {
           {{ notification.message }}
         </div>
         <div class="flex gap-3">
-          <button 
-            v-if="!notification.read" 
-            @click="handleMarkAsRead" 
-            :disabled="isMarkingAsRead" 
+          <button
+            v-if="!notification.read"
+            @click="handleMarkAsRead"
+            :disabled="isMarkingAsRead"
             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50 flex items-center"
           >
             <CheckIcon class="h-4 w-4 mr-1" />
             {{ isMarkingAsRead ? 'Markerer...' : 'Marker som lest' }}
           </button>
-          <button 
+          <button
             v-if="notification.url"
             @click="handleNotificationAction"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center"
@@ -151,4 +151,4 @@ const handleNotificationAction = () => {
 .prose {
   line-height: 1.6;
 }
-</style> 
+</style>

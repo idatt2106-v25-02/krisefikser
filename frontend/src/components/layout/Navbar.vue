@@ -183,7 +183,7 @@ export default {
       if (notification.type === NotificationResponseType.EXPIRY_REMINDER) {
         const currentUser = authStore.currentUser
         const householdId = currentUser && 'activeHouseholdId' in currentUser
-          ? (currentUser as any).activeHouseholdId
+          ? currentUser.activeHouseholdId
           : undefined;
 
         if (householdId) {
