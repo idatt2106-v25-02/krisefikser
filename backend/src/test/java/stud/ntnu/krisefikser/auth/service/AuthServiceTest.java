@@ -169,7 +169,7 @@ class AuthServiceTest {
         .thenReturn(authentication);
     when(userDetailsService.loadUserByUsername(anyString())).thenReturn(userDetails);
     when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
-    
+
     // Mock the user object and its behavior
     when(userService.getUserByEmail(anyString())).thenReturn(user);
     when(user.isEmailVerified()).thenReturn(true);
@@ -248,8 +248,9 @@ class AuthServiceTest {
         "User",
         true,
         true,
-        true
-    );
+        true,
+        null,
+        null);
     when(userService.getCurrentUser()).thenReturn(user);
     when(user.toDto()).thenReturn(userResponse);
 
