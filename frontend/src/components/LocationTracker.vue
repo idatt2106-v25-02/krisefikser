@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted  } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useUpdateCurrentUserLocation } from '@/api/generated/user/user'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 
 const authStore = useAuthStore()
 const updateLocationMutation = useUpdateCurrentUserLocation({
   mutation: {
-    throwOnError: false
-  }
+    throwOnError: false,
+  },
 })
 let intervalId: number | null = null
 
@@ -27,8 +27,8 @@ const updateLocation = async () => {
     await updateLocationMutation.mutateAsync({
       data: {
         latitude: position.coords.latitude,
-        longitude: position.coords.longitude
-      }
+        longitude: position.coords.longitude,
+      },
     })
   } catch (error) {
     console.error('Failed to update location:', error)
@@ -53,4 +53,3 @@ onUnmounted(() => {
   }
 })
 </script>
-
