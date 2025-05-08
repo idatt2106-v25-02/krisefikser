@@ -50,6 +50,8 @@ import KriserPage from '@/views/nonRegistered/event/KriserPage.vue';
 import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue';
 import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue';
 import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue';
+import NotificationsView from '@/views/registered/notification/NotificationView.vue'
+import NotificationDetailView from '@/views/registered/notification/NotificationDetailView.vue'
 import VerifyToken from '@/views/VerifyToken.vue'
 
 const router = createRouter({
@@ -153,7 +155,12 @@ const router = createRouter({
       component: VerifyAdminLoginView,
       meta: { requiresGuest: true }
     },
-
+    {
+      path: '/admin/brukere-admin',
+      name: 'admin-users-admin',
+      component: ManageAdminsView,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
     // Registered User routes
     {
       path: '/dashboard',
@@ -274,7 +281,20 @@ const router = createRouter({
       component: AfterCrisisView
     },
     {
-      path: '/scenarios',
+      path: '/varsler',
+      name: 'notifications',
+      component: NotificationsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/varsler/:id',
+      name: 'notification-detail',
+      component: NotificationDetailView,
+      props: true,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/scenarioer',
       name: 'scenarios-list',
       component: ScenariosListView
     },
