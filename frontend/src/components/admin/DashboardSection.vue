@@ -1,7 +1,7 @@
 <!-- DashboardSection.vue -->
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Map, AlertTriangle, BookOpen, Mail, ArrowRight } from 'lucide-vue-next'
+import { Map, AlertTriangle, BookOpen, Mail, ArrowRight, FileText } from 'lucide-vue-next'
 
 // Import shadcn Button component
 import { Button } from '@/components/ui/button';
@@ -232,6 +232,19 @@ const getCardLink = (title: string) => {
               <AlertTriangle class="h-5 w-5 text-orange-600" />
             </div>
             <span class="ml-2 text-gray-700">Registrer hendelse</span>
+          </Link>
+        </Button>
+
+        <Button
+          as-child
+          variant="outline"
+          class="flex items-center p-3 justify-start h-auto border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+        >
+          <Link to="/admin/artikler" class="flex items-center w-full">
+            <div class="bg-blue-100 p-2 rounded-full">
+              <FileText class="h-5 w-5 text-blue-600" />
+            </div>
+            <span class="ml-2 text-gray-700">Administrer artikler</span>
           </Link>
         </Button>
 

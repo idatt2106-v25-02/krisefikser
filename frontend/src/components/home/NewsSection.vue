@@ -13,28 +13,48 @@ import { useRouter } from 'vue-router'
 const { data: articles, isLoading, error } = useGetAllArticles()
 const router = useRouter()
 
+console.log(articles.value)
+
+const arrayToDate = (dateArray?: number[]) => {
+  if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return null
+  // Note: Month in JavaScript is 0-based, so we subtract 1 from the month
+  return new Date(dateArray[0], dateArray[1] - 1, dateArray[2],
+    dateArray[3] || 0, dateArray[4] || 0, dateArray[5] || 0)
+}
+
 const latestArticles = computed(() => {
   if (!articles?.value) return []
 
   // Sort by date and get the 3 most recent articles
   return [...articles.value]
     .sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      const dateA = arrayToDate(a.createdAt)?.getTime() || 0
+      const dateB = arrayToDate(b.createdAt)?.getTime() || 0
       return dateB - dateA
     })
     .slice(0, 3)
 })
 
-const formatDate = (dateString?: string) => {
-  if (!dateString) return ''
+const formatDate = (dateArray?: number[]) => {
+  if (!dateArray || !Array.isArray(dateArray)) return ''
 
-  const date = new Date(dateString)
-  return date.toLocaleDateString('no-NO', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  const date = arrayToDate(dateArray)
+  if (!date || isNaN(date.getTime())) return ''
+
+  try {
+    return date.toLocaleDateString('nb-NO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  } catch (e) {
+    // Fallback to English if Norwegian locale is not supported
+    return date.toLocaleDateString('en', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  }
 }
 
 const getExcerpt = (text?: string) => {
