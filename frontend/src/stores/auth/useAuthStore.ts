@@ -8,7 +8,7 @@ import {
   useRegisterAdmin,
   useUpdatePassword,
 } from '@/api/generated/authentication/authentication.ts'
-import type { LoginRequest, RegisterRequest, UpdatePasswordRequest } from '@/api/generated/model'
+import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
 import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
