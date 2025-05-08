@@ -164,7 +164,7 @@ defineExpose({
 </script>
 
 <template>
-  <div id="map" class="w-full h-full z-[1] rounded-lg shadow-md overflow-hidden"></div>
+  <div id="map" class="w-full h-full z-[1] overflow-hidden"></div>
 </template>
 
 <style scoped>
