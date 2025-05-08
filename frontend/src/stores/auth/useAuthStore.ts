@@ -6,8 +6,9 @@ import {
   useMe,
   useRegister,
   useRegisterAdmin,
+  useUpdatePassword,
 } from '@/api/generated/authentication/authentication.ts'
-import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
+import type { LoginRequest, RegisterRequest, UpdatePasswordRequest } from '@/api/generated/model'
 import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -51,6 +52,9 @@ export const useAuthStore = defineStore('auth', () => {
   const isSuperAdmin = computed(() => {
     return currentUser.value?.roles?.includes('SUPER_ADMIN') || false
   })
+
+  // Get the update password mutation
+  const { mutateAsync: updatePasswordMutation } = useUpdatePassword()
 
   // Function to update tokens in both store and localStorage
   function updateTokens(newAccessToken: string, newRefreshToken: string) {
@@ -141,20 +145,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function updatePassword(oldPassword: string, newPassword: string) {
     try {
-      const response = await axios.post(
-        import.meta.env.VITE_API_URL + '/api/auth/update-password',
-        {
+      const response = await updatePasswordMutation({
+        data: {
           oldPassword,
           password: newPassword,
         },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken.value}`,
-          },
-        },
-      )
-      return response.data
+      })
+      return response
     } catch (error) {
       console.error('Password update failed:', error)
       throw error
