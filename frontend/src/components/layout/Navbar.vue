@@ -1,6 +1,3 @@
-// Add type declarations at the top of the file interface WebKitAudioContext extends AudioContext {}
-declare global { interface Window { webkitAudioContext?: new () => WebKitAudioContext; } }
-
 <script lang="ts">
 import {
   AlertTriangle,
@@ -486,24 +483,9 @@ export default {
 </script>
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
-    <!-- Updated audio element with multiple sources for better compatibility -->
     <audio ref="audioPlayerRef" preload="auto">
       <source src="/sounds/notification.mp3" type="audio/mpeg" />
-      <!-- Uncomment if you have a WAV version -->
-      <!-- <source src="/sounds/notification.wav" type="audio/wav"> -->
     </audio>
-
-    <!-- Test button (uncomment during development and remove in production) -->
-    <!--
-    <div class="fixed bottom-4 right-4 z-50">
-      <button
-        @click="testSound"
-        class="bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg hover:bg-blue-700"
-      >
-        Test Notification Sound
-      </button>
-    </div>
-    -->
 
     <div class="container mx-auto px-4 py-4">
       <div class="flex justify-between items-center">
