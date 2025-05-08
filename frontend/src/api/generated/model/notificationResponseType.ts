@@ -9,7 +9,7 @@
 export type NotificationResponseType =
   (typeof NotificationResponseType)[keyof typeof NotificationResponseType]
 
- 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const NotificationResponseType = {
   INVITE: 'INVITE',
   EVENT: 'EVENT',

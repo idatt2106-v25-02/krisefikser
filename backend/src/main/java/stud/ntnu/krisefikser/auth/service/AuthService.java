@@ -174,7 +174,8 @@ public class AuthService {
     }
 
     if (user.getRoles().stream()
-        .anyMatch(role -> role.getName().equals(RoleType.ADMIN))) {
+        .anyMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
+        !user.getRoles().stream().anyMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       log.info("Admin login attempt for user: {}", user.getEmail());
 
       // Generate verification token for admin login
@@ -332,7 +333,7 @@ public class AuthService {
     passwordResetTokenRepository.save(passwordResetToken);
 
     // Send password reset email
-    String resetLink = frontendUrl + "/verifiser-passord-tilbakestilling?token=" + token;
+    String resetLink = frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
     long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
 
     emailVerificationService.sendPasswordResetEmail(
@@ -432,8 +433,9 @@ public class AuthService {
     }
 
     User user = userService.getUserByEmail(email);
-    if (user == null || user.getRoles().stream()
-        .noneMatch(role -> role.getName().equals(RoleType.ADMIN))) {
+    if (user == null || !user.getRoles().stream()
+    .anyMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
+    !user.getRoles().stream().anyMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       throw new InvalidTokenException();
     }
 
@@ -446,7 +448,61 @@ public class AuthService {
     return new LoginResponse(accessToken, refreshToken);
   }
 
-  private record AdminInviteToken(String email, Instant expiryDate) {
+  /**
+   * Requests a password reset for an admin user. This method is specifically for superadmins to
+   * initiate password resets for admin users.
+   *
+   * @param request The request containing the admin's email address
+   * @return A response indicating the success of the operation
+   */
+  public PasswordResetResponse requestAdminPasswordReset(RequestPasswordResetRequest request) {
+    User user = userService.getUserByEmail(request.getEmail());
+    if (user == null) {
+      throw new UserNotFoundException("User not found");
+    }
+
+    // Verify that the user is an admin but not a superadmin
+    boolean isAdmin = user.getRoles().stream()
+        .anyMatch(role -> role.getName().equals(RoleType.ADMIN));
+    boolean isSuperAdmin = user.getRoles().stream()
+        .anyMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN));
+
+    if (!isAdmin || isSuperAdmin) {
+      throw new RuntimeException("User is not an admin or is a superadmin");
+    }
+
+    // Generate reset token
+    String token = tokenService.generateResetPasswordToken(user.getEmail());
+    long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
+
+    // Save token
+    PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+        .token(token)
+        .user(user)
+        .expiryDate(Instant.now().plus(Duration.ofHours(expirationHours)))
+        .build();
+
+    passwordResetTokenRepository.save(passwordResetToken);
+
+    // Send email
+    String resetLink = frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
+    emailVerificationService.sendPasswordResetEmail(user, resetLink, expirationHours);
+
+    return PasswordResetResponse.builder()
+        .message("Reset password request sent to " + user.getEmail())
+        .success(true)
+        .build();
+  }
+
+  private static class AdminInviteToken {
+
+    private final String email;
+    private final Instant expiryDate;
+
+    public AdminInviteToken(String email, Instant expiryDate) {
+      this.email = email;
+      this.expiryDate = expiryDate;
+    }
 
     public boolean isExpired() {
       return Instant.now().isAfter(expiryDate);
