@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
+import { toast } from 'vue-sonner'
 import Switch from '@/components/ui/switch/Switch.vue'
 import { useMe } from '@/api/generated/authentication/authentication'
 import { useUpdateUser } from '@/api/generated/user/user'
@@ -27,27 +28,13 @@ const { mutate: updateUserProfile } = useUpdateUser({
   mutation: {
     onSuccess: () => {
       refetchUser()
+      toast.success('Innstillinger oppdatert')
     },
     onError: (error) => {
       console.error('Failed to update user settings:', error)
+      toast.error('Kunne ikke oppdatere innstillinger')
     },
   },
-})
-
-// Computed properties for switch states with getter and setter
-const notificationsSwitch = computed({
-  get: () => currentUser.value?.notifications ?? false,
-  set: (value: boolean) => handleToggle('notifications', value),
-})
-
-const emailUpdatesSwitch = computed({
-  get: () => currentUser.value?.emailUpdates ?? false,
-  set: (value: boolean) => handleToggle('emailUpdates', value),
-})
-
-const locationSharingSwitch = computed({
-  get: () => currentUser.value?.locationSharing ?? false,
-  set: (value: boolean) => handleToggle('locationSharing', value),
 })
 
 const handleToggle = (
@@ -55,21 +42,18 @@ const handleToggle = (
   value: boolean,
 ) => {
   if (!currentUser.value || !currentUser.value.id) {
-    console.error('Current user or user ID is not available. Cannot update settings.')
+    toast.error('Brukerdata er ikke tilgjengelig')
     return
   }
-  // Prepare the data payload for the mutation
-  // It's crucial that this matches the backend's expected CreateUser DTO structure,
-  // especially regarding optional/required fields and password handling.
+
   const payload: CreateUser = {
     firstName: currentUser.value.firstName || '',
     lastName: currentUser.value.lastName || '',
     email: currentUser.value.email || '',
-    password: '', // Add empty string for password to satisfy DTO, backend will ignore if empty
-
-    notifications: field === 'notifications' ? value : currentUser.value.notifications,
-    emailUpdates: field === 'emailUpdates' ? value : currentUser.value.emailUpdates,
-    locationSharing: field === 'locationSharing' ? value : currentUser.value.locationSharing,
+    password: '',
+    notifications: field === 'notifications' ? value : currentUser.value.notifications ?? false,
+    emailUpdates: field === 'emailUpdates' ? value : currentUser.value.emailUpdates ?? false,
+    locationSharing: field === 'locationSharing' ? value : currentUser.value.locationSharing ?? false,
   }
 
   updateUserProfile({
@@ -95,8 +79,8 @@ const handleToggle = (
           <p class="text-sm text-gray-500">Motta varslinger om viktige hendelser</p>
         </div>
         <Switch
-          :model-value="notificationsSwitch"
-          @update:model-value="notificationsSwitch = $event"
+          :model-value="currentUser.notifications ?? false"
+          @update:model-value="(val) => handleToggle('notifications', val)"
         />
       </div>
 
@@ -107,8 +91,8 @@ const handleToggle = (
           <p class="text-sm text-gray-500">Motta ukentlige oppdateringer på e-post</p>
         </div>
         <Switch
-          :model-value="emailUpdatesSwitch"
-          @update:model-value="emailUpdatesSwitch = $event"
+          :model-value="currentUser.emailUpdates ?? false"
+          @update:model-value="(val) => handleToggle('emailUpdates', val)"
         />
       </div>
 
@@ -119,8 +103,8 @@ const handleToggle = (
           <p class="text-sm text-gray-500">Tillat appen å bruke din lokasjon</p>
         </div>
         <Switch
-          :model-value="locationSharingSwitch"
-          @update:model-value="locationSharingSwitch = $event"
+          :model-value="currentUser.locationSharing ?? false"
+          @update:model-value="(val) => handleToggle('locationSharing', val)"
         />
       </div>
     </div>
