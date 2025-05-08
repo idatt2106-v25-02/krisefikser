@@ -10,7 +10,6 @@ import {
 } from '@/api/generated/authentication/authentication.ts'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
 import axios from 'axios'
-import type { a } from 'vitest/dist/chunks/suite.d.FvehnV49.js'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -101,12 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function registerAdmin(data: RegisterRequest) {
     try {
-      const response = await registerAdminMutation({ data })
-      if (response.accessToken) {
-        updateTokens(response.accessToken, response.refreshToken ?? '')
-        await refetchUser()
-      }
-      return response
+      await registerAdminMutation({ data })
     } catch (error) {
       console.error('Admin registration failed:', error)
       throw error
