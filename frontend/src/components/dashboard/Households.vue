@@ -19,6 +19,8 @@ const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
       emit('refresh')
+      refetchHouseholds()
+      refetchActiveHousehold()
     },
   },
 })
