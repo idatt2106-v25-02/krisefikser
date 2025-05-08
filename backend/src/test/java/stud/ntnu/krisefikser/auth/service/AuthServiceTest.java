@@ -3,6 +3,7 @@ package stud.ntnu.krisefikser.auth.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
@@ -52,7 +53,7 @@ import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.service.UserService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
-import stud.ntnu.krisefikser.email.service.EmailService;
+import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -86,7 +87,7 @@ class AuthServiceTest {
   private PasswordResetTokenRepository passwordResetTokenRepository;
 
   @Mock
-  private EmailService emailService;
+  private EmailVerificationService emailVerificationService;
 
   @InjectMocks
   private AuthService authService;
@@ -134,8 +135,8 @@ class AuthServiceTest {
     when(tokenService.generateRefreshToken(any(UserDetails.class))).thenReturn("generated-token");
     when(tokenService.extractEmail(anyString())).thenReturn("test@example.com");
 
-    // Configure email service
-    when(emailService.sendEmail(anyString(), anyString(), anyString()))
+    // Configure email verification service
+    when(emailVerificationService.sendPasswordResetEmail(any(), anyString(), anyLong()))
         .thenReturn(ResponseEntity.ok("Email sent successfully"));
   }
 
@@ -324,6 +325,7 @@ class AuthServiceTest {
     when(tokenService.generateResetPasswordToken(email)).thenReturn("reset-token");
     when(jwtProperties.getResetPasswordTokenExpiration()).thenReturn(3600000L);
     when(user.getEmail()).thenReturn(email);
+    when(user.getFirstName()).thenReturn("Test");
 
     // Act
     PasswordResetResponse response = authService.requestPasswordReset(request);
@@ -336,6 +338,7 @@ class AuthServiceTest {
     verify(userService).getUserByEmail(email);
     verify(passwordResetTokenRepository).findByUser(user);
     verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
+    verify(emailVerificationService).sendPasswordResetEmail(eq(user), anyString(), eq(3600000L / (1000 * 60 * 60)));
   }
 
   @Test
@@ -352,6 +355,7 @@ class AuthServiceTest {
     when(tokenService.generateResetPasswordToken(email)).thenReturn("reset-token");
     when(jwtProperties.getResetPasswordTokenExpiration()).thenReturn(3600000L);
     when(user.getEmail()).thenReturn(email);
+    when(user.getFirstName()).thenReturn("Test");
 
     // Act
     PasswordResetResponse response = authService.requestPasswordReset(request);
@@ -363,6 +367,7 @@ class AuthServiceTest {
     verify(passwordResetTokenRepository).findByUser(user);
     verify(passwordResetTokenRepository).deleteAll(existingTokens);
     verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
+    verify(emailVerificationService).sendPasswordResetEmail(eq(user), anyString(), eq(3600000L / (1000 * 60 * 60)));
   }
 
   @Test
