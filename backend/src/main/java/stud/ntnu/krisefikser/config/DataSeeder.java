@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -418,6 +419,13 @@ public class DataSeeder implements CommandLineRunner {
   private void seedUsers() {
     List<User> users = new ArrayList<>();
 
+    Role userRole = roleRepository.findByName(RoleType.USER)
+        .orElseThrow(() -> new RuntimeException("User role not found"));
+    Role adminRole = roleRepository.findByName(RoleType.ADMIN)
+        .orElseThrow(() -> new RuntimeException("Admin role not found"));
+    Role superAdminRole = roleRepository.findByName(RoleType.SUPER_ADMIN)
+        .orElseThrow(() -> new RuntimeException("Super Admin role not found"));
+
     // Create 25 random users
     for (int i = 0; i < 25; i++) {
       String firstName = faker.name().firstName();
@@ -428,6 +436,8 @@ public class DataSeeder implements CommandLineRunner {
           .password(passwordEncoder.encode("password"))
           .firstName(firstName)
           .lastName(lastName)
+          .emailVerified(true)
+          .roles(new HashSet<>(List.of(userRole)))
           .build();
 
       users.add(user);
@@ -439,8 +449,21 @@ public class DataSeeder implements CommandLineRunner {
         .password(passwordEncoder.encode("admin123"))
         .firstName("Admin")
         .lastName("User")
+        .emailVerified(true)
+        .roles(new HashSet<>(List.of(userRole, adminRole)))
         .build();
     users.add(adminUser);
+
+    // Add a test super admin user
+    User superAdminUser = User.builder()
+        .email("super.admin@example.com")
+        .password(passwordEncoder.encode("admin123"))
+        .firstName("Super")
+        .lastName("Admin")
+        .emailVerified(true)
+        .roles(new HashSet<>(List.of(userRole, adminRole, superAdminRole)))
+        .build();
+    users.add(superAdminUser);
 
     // Add brotherman testern
     User brotherman = User.builder()
@@ -448,6 +471,7 @@ public class DataSeeder implements CommandLineRunner {
         .password(passwordEncoder.encode("password"))
         .firstName("Brotherman")
         .lastName("Testern")
+        .emailVerified(true)
         .build();
     users.add(brotherman);
 
