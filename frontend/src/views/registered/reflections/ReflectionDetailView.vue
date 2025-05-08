@@ -331,7 +331,7 @@ export default defineComponent({
             :key="reflectionToEdit.id"
             :event-id="reflectionToEdit.eventId!"
             :initial-data="reflectionToEdit"
-            @reflection-updated="handleReflectionUpdated"
+            @updated="handleReflectionUpdated"
             @cancel="cancelEdit"
             class="pt-4"
           />

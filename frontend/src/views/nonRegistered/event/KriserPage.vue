@@ -184,11 +184,11 @@ export default defineComponent({
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
             <!-- Tab navigation -->
             <div class="border-b">
-              <div class="flex">
+              <div class="flex overflow-x-auto whitespace-nowrap scrollbar-hide">
                 <button
                   @click="activeTab = 'all'"
                   :class="[
-                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px',
+                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
                     activeTab === 'all'
                       ? 'border-blue-500 text-blue-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -199,7 +199,7 @@ export default defineComponent({
                 <button
                   @click="activeTab = 'ongoing'"
                   :class="[
-                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px',
+                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
                     activeTab === 'ongoing'
                       ? 'border-red-500 text-red-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -216,7 +216,7 @@ export default defineComponent({
                 <button
                   @click="activeTab = 'upcoming'"
                   :class="[
-                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px',
+                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
                     activeTab === 'upcoming'
                       ? 'border-blue-500 text-blue-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -227,7 +227,7 @@ export default defineComponent({
                 <button
                   @click="activeTab = 'finished'"
                   :class="[
-                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px',
+                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
                     activeTab === 'finished'
                       ? 'border-gray-500 text-gray-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -496,5 +496,16 @@ export default defineComponent({
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 </style>

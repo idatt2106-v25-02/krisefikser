@@ -68,7 +68,7 @@ public class SecurityConfiguration {
             .requestMatchers(HttpMethod.POST, "/api/email/**", "/api/auth/verify-email",
                 "/api/auth/verify-password-reset", "/api/auth/verify-admin-login").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/auth/verify-admin-invite").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/auth/register/admin").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/auth/register/admin", "/api/auth/admin/reset-password-link").permitAll()
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyRequest().authenticated())

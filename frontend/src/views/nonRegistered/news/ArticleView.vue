@@ -11,15 +11,34 @@ const articleId = computed(() => Number(route.params.id))
 
 const { data: article, isLoading, error } = useGetArticleById(articleId)
 
-const formatDate = (dateString?: string) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  if (isNaN(date.getTime())) return ''
-  return date.toLocaleDateString('no-NO', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+const arrayToDate = (dateArray?: number[]) => {
+  if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 3) return null
+  // Note: Month in JavaScript is 0-based, so we subtract 1 from the month
+  return new Date(dateArray[0], dateArray[1] - 1, dateArray[2],
+    dateArray[3] || 0, dateArray[4] || 0, dateArray[5] || 0)
+}
+
+const formatDate = (dateArray?: number[]) => {
+  if (!dateArray || !Array.isArray(dateArray)) return ''
+
+  const date = arrayToDate(dateArray)
+  if (!date || isNaN(date.getTime())) return ''
+
+  try {
+    return date.toLocaleDateString('nb-NO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  } catch (e) {
+    console.error('Error formatting date:', e)
+    // Fallback to English if Norwegian locale is not supported
+    return date.toLocaleDateString('en', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  }
 }
 
 const goBackToNews = () => {
@@ -46,13 +65,12 @@ const goBackToNews = () => {
         </button>
       </div>
 
-      <!-- Loading state with improved animation -->
-      <div v-if="isLoading" class="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center justify-center py-16">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-b-blue-500 border-blue-100 mb-4"></div>
-        <p class="text-gray-600 font-medium">Laster artikkel...</p>
+      <!-- Loading state -->
+      <div v-if="isLoading" class="bg-white rounded-lg shadow-lg p-8 flex items-center justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
 
-      <!-- Error state with better visual cues -->
+      <!-- Error state -->
       <div v-else-if="error" class="bg-white rounded-lg shadow-lg p-8 border-l-4 border-red-500">
         <div class="flex items-start">
           <div class="flex-shrink-0 mt-0.5">
@@ -67,7 +85,7 @@ const goBackToNews = () => {
         </div>
       </div>
 
-      <!-- Article Content with enhanced styling -->
+      <!-- Article Content -->
       <div v-else-if="article" class="bg-white rounded-lg shadow-lg p-8 relative">
         <!-- Decorative element in top corner -->
         <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/70 rounded-bl-full -mt-2 -mr-2 overflow-hidden z-0">
@@ -85,16 +103,16 @@ const goBackToNews = () => {
 
           <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">{{ article.title }}</h1>
 
-          <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-            <p>{{ article.text }}</p>
-          </div>
-
-          <div v-if="article.imageUrl" class="mt-8">
+          <div v-if="article.imageUrl" class="mb-8">
             <img
               :src="article.imageUrl"
               alt="Artikkelillustrasjon"
-              class="rounded-lg w-full h-auto shadow-md"
+              class="rounded-lg w-full h-[400px] object-cover shadow-md"
             />
+          </div>
+
+          <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
+            <p>{{ article.text }}</p>
           </div>
         </div>
       </div>

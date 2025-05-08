@@ -919,6 +919,98 @@ export const useCompletePasswordReset = <
 
   return useMutation(mutationOptions, queryClient)
 }
+/**
+ * Generates a password reset token and sends it to the admin user's email. Only accessible by superadmins.
+ * @summary Request password reset for admin user
+ */
+export const requestAdminPasswordReset = (
+  requestPasswordResetRequest: MaybeRef<RequestPasswordResetRequest>,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  requestPasswordResetRequest = unref(requestPasswordResetRequest)
+
+  return customInstance<PasswordResetResponse>(
+    {
+      url: `http://localhost:8080/api/auth/admin/reset-password-link`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: requestPasswordResetRequest,
+      signal,
+    },
+    options,
+  )
+}
+
+export const getRequestAdminPasswordResetMutationOptions = <
+  TError = ErrorType<PasswordResetResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestAdminPasswordReset>>,
+    TError,
+    { data: BodyType<RequestPasswordResetRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof requestAdminPasswordReset>>,
+  TError,
+  { data: BodyType<RequestPasswordResetRequest> },
+  TContext
+> => {
+  const mutationKey = ['requestAdminPasswordReset']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof requestAdminPasswordReset>>,
+    { data: BodyType<RequestPasswordResetRequest> }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return requestAdminPasswordReset(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type RequestAdminPasswordResetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof requestAdminPasswordReset>>
+>
+export type RequestAdminPasswordResetMutationBody = BodyType<RequestPasswordResetRequest>
+export type RequestAdminPasswordResetMutationError = ErrorType<PasswordResetResponse>
+
+/**
+ * @summary Request password reset for admin user
+ */
+export const useRequestAdminPasswordReset = <
+  TError = ErrorType<PasswordResetResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof requestAdminPasswordReset>>,
+      TError,
+      { data: BodyType<RequestPasswordResetRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationReturnType<
+  Awaited<ReturnType<typeof requestAdminPasswordReset>>,
+  TError,
+  { data: BodyType<RequestPasswordResetRequest> },
+  TContext
+> => {
+  const mutationOptions = getRequestAdminPasswordResetMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
 export const verifyAdminInviteToken = (
   params: MaybeRef<VerifyAdminInviteTokenParams>,
   options?: SecondParameter<typeof customInstance>,

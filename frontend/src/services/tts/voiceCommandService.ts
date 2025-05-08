@@ -156,9 +156,9 @@ class VoiceCommandService {
       }
     } else if (command.includes('les siden') || command.includes('les innhold')) {
       if (store.ttsEnabled) {
-        // Trigger read page functionality
-        const event = new KeyboardEvent('keydown', { key: 'r' })
-        document.dispatchEvent(event)
+        // Trigger read page functionality using the correct custom event
+        const readPageEvent = new CustomEvent('readPage')
+        document.dispatchEvent(readPageEvent)
       }
     } else if (command.includes('stopp lesing')) {
       speechService.cancel()

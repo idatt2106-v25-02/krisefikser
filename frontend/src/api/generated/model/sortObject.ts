@@ -7,6 +7,11 @@
  */
 
 export interface SortObject {
+<<<<<<< HEAD
+=======
+  unsorted?: boolean
+  sorted?: boolean
+>>>>>>> d648c161310ce72f9eb231ed1439feaf604f72c0
   empty?: boolean
   unsorted?: boolean
   sorted?: boolean
