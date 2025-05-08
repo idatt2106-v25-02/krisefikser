@@ -5,25 +5,14 @@ export default {
 }
 </script>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed } from 'vue'
 import { useGetAllArticles } from '@/api/generated/article/article'
 import { useRouter } from 'vue-router'
+import { arrayToDate } from '@/api/Utils.ts'
 
 const { data: articles, isLoading, error } = useGetAllArticles()
 const router = useRouter()
-
-console.log(articles.value)
-
-const parseIsoString = (isoString?: string): Date | null => {
-  if (!isoString) return null
-  try {
-    return new Date(isoString)
-  } catch (e) {
-    console.error('Error parsing date string:', isoString, e)
-    return null
-  }
-}
 
 const latestArticles = computed(() => {
   if (!articles?.value) return []
@@ -31,8 +20,8 @@ const latestArticles = computed(() => {
   // Sort by date and get the 3 most recent articles
   return [...articles.value]
     .sort((a, b) => {
-      const dateA = parseIsoString(a.createdAt)?.getTime() || 0
-      const dateB = parseIsoString(b.createdAt)?.getTime() || 0
+      const dateA = arrayToDate(a.createdAt)?.getTime() || 0
+      const dateB = arrayToDate(b.createdAt)?.getTime() || 0
       return dateB - dateA
     })
     .slice(0, 3)
@@ -41,7 +30,7 @@ const latestArticles = computed(() => {
 const formatDate = (isoString?: string) => {
   if (!isoString) return ''
 
-  const date = parseIsoString(isoString)
+  const date = arrayToDate(isoString)
   if (!date || isNaN(date.getTime())) return ''
 
   try {
@@ -87,22 +76,22 @@ const goToAllNews = () => {
       <!-- Responsive button -->
       <div class="flex justify-center md:absolute md:right-0 md:top-0">
         <a
-          @click="goToAllNews"
           class="text-blue-600 font-medium hover:underline inline-flex items-center cursor-pointer whitespace-nowrap"
+          @click="goToAllNews"
         >
           Se alle nyheter
           <svg
-            xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5 ml-1"
             fill="none"
-            viewBox="0 0 24 24"
             stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
             <path
+              d="M9 5l7 7-7 7"
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M9 5l7 7-7 7"
             />
           </svg>
         </a>
@@ -128,8 +117,8 @@ const goToAllNews = () => {
       >
         <div
           v-if="article.imageUrl"
-          class="h-48 bg-cover bg-center"
           :style="`background-image: url('${article.imageUrl}')`"
+          class="h-48 bg-cover bg-center"
         ></div>
         <div v-else class="h-48 bg-gray-200"></div>
         <div class="p-6">
@@ -143,17 +132,17 @@ const goToAllNews = () => {
           >
             Les mer
             <svg
-              xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5 ml-1"
               fill="none"
-              viewBox="0 0 24 24"
               stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
+                d="M9 5l7 7-7 7"
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M9 5l7 7-7 7"
               />
             </svg>
           </router-link>

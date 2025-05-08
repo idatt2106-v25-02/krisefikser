@@ -1,7 +1,7 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import AdminLayout from '@/components/admin/AdminLayout.vue'
-import { ref, computed } from 'vue'
-import { Pencil, Trash2, Plus, Search, Image as ImageIcon } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { Image as ImageIcon, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next'
 
 // Import shadcn components
 import { Button } from '@/components/ui/button'
@@ -18,12 +18,13 @@ import { Textarea } from '@/components/ui/textarea'
 
 // Import API hooks
 import {
-  useGetAllArticles,
   useCreateArticle,
-  useUpdateArticle,
   useDeleteArticle,
+  useGetAllArticles,
+  useUpdateArticle,
 } from '@/api/generated/article/article'
 import type { ArticleRequest, ArticleResponse } from '@/api/generated/model'
+import { formatDate } from '../../api/Utils.ts'
 
 // State
 const showDialog = ref(false)
@@ -152,43 +153,6 @@ const openImageInNewTab = (url: string) => {
   link.rel = 'noopener noreferrer'
   link.click()
 }
-
-const parseIsoString = (isoString?: string): Date | null => {
-  if (!isoString) return null
-  try {
-    return new Date(isoString)
-  } catch (e) {
-    console.error('Error parsing date string:', isoString, e)
-    return null
-  }
-}
-
-// Format date
-const formatDate = (isoString?: string) => {
-  if (!isoString) return ''
-
-  const date = parseIsoString(isoString)
-  if (!date || isNaN(date.getTime())) return ''
-
-  try {
-    return date.toLocaleDateString('nb-NO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    // Fallback to English if Norwegian locale is not supported
-    return date.toLocaleDateString('en', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-}
 </script>
 
 <template>
@@ -197,8 +161,8 @@ const formatDate = (isoString?: string) => {
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Administrer artikler</h2>
         <Button
-          variant="default"
           class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
+          variant="default"
           @click="openDialog()"
         >
           <Plus class="h-4 w-4 mr-1" />
@@ -213,9 +177,9 @@ const formatDate = (isoString?: string) => {
             <Search class="h-4 w-4 text-gray-500" />
             <input
               v-model="searchQuery"
-              type="text"
-              placeholder="Søk artikler..."
               class="bg-transparent border-0 outline-none ml-2 text-gray-700 w-full"
+              placeholder="Søk artikler..."
+              type="text"
             />
           </div>
         </div>
@@ -233,20 +197,20 @@ const formatDate = (isoString?: string) => {
               <thead class="bg-gray-50">
                 <tr>
                   <th
-                    scope="col"
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    scope="col"
                   >
                     Tittel
                   </th>
                   <th
-                    scope="col"
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    scope="col"
                   >
                     Opprettet
                   </th>
                   <th
-                    scope="col"
                     class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    scope="col"
                   >
                     Handlinger
                   </th>
@@ -258,8 +222,8 @@ const formatDate = (isoString?: string) => {
                     <div class="flex items-center">
                       <img
                         v-if="article.imageUrl"
-                        :src="article.imageUrl"
                         :alt="article.title"
+                        :src="article.imageUrl"
                         class="h-10 w-10 rounded-full object-cover mr-3"
                       />
                       <div class="text-sm font-medium text-gray-900">{{ article.title }}</div>
@@ -271,17 +235,17 @@ const formatDate = (isoString?: string) => {
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div class="flex justify-center space-x-2">
                       <Button
-                        variant="ghost"
-                        size="icon"
                         class="text-blue-600 hover:text-blue-800"
+                        size="icon"
+                        variant="ghost"
                         @click="openDialog(article)"
                       >
                         <Pencil class="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="ghost"
-                        size="icon"
                         class="text-red-600 hover:text-red-800"
+                        size="icon"
+                        variant="ghost"
                         @click="deleteArticle(article.id)"
                       >
                         <Trash2 class="h-4 w-4" />
@@ -306,9 +270,9 @@ const formatDate = (isoString?: string) => {
             </DialogDescription>
           </DialogHeader>
 
-          <form @submit.prevent="handleSubmit" class="space-y-4">
+          <form class="space-y-4" @submit.prevent="handleSubmit">
             <div class="space-y-2">
-              <label for="title" class="text-sm font-medium text-gray-700">Tittel</label>
+              <label class="text-sm font-medium text-gray-700" for="title">Tittel</label>
               <Input
                 id="title"
                 v-model="articleForm.title"
@@ -318,7 +282,7 @@ const formatDate = (isoString?: string) => {
             </div>
 
             <div class="space-y-2">
-              <label for="imageUrl" class="text-sm font-medium text-gray-700">Bilde URL</label>
+              <label class="text-sm font-medium text-gray-700" for="imageUrl">Bilde URL</label>
               <div class="flex space-x-2">
                 <Input
                   id="imageUrl"
@@ -327,11 +291,11 @@ const formatDate = (isoString?: string) => {
                   required
                 />
                 <Button
+                  :disabled="!articleForm.imageUrl"
+                  class="flex-shrink-0"
                   type="button"
                   variant="outline"
-                  class="flex-shrink-0"
                   @click="openImageInNewTab(articleForm.imageUrl)"
-                  :disabled="!articleForm.imageUrl"
                 >
                   <ImageIcon class="h-4 w-4" />
                 </Button>
@@ -339,18 +303,18 @@ const formatDate = (isoString?: string) => {
             </div>
 
             <div class="space-y-2">
-              <label for="text" class="text-sm font-medium text-gray-700">Innhold</label>
+              <label class="text-sm font-medium text-gray-700" for="text">Innhold</label>
               <Textarea
                 id="text"
                 v-model="articleForm.text"
                 placeholder="Skriv inn artikkelinnhold"
-                rows="10"
                 required
+                rows="10"
               />
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" @click="closeDialog"> Avbryt </Button>
+              <Button type="button" variant="outline" @click="closeDialog"> Avbryt</Button>
               <Button type="submit" variant="default">
                 {{ isEditing ? 'Oppdater' : 'Opprett' }}
               </Button>
