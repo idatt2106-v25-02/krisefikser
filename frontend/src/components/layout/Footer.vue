@@ -23,7 +23,7 @@ export default defineComponent({
         <div>
           <div class="flex items-center mb-4">
             <img src="/favicon.ico" alt="Krisefikser.app" class="h-6 w-auto mr-2" />
-            <span class="text-xl font-bold">Krisefikser.no</span>
+            <span class="text-xl font-bold">Krisefikser.app</span>
           </div>
           <p class="text-blue-200 mb-4">Vi hjelper deg å være forberedt når krisen rammer – før, under og etter.</p>
         </div>
@@ -87,7 +87,7 @@ export default defineComponent({
       </div>
 
       <div class="border-t border-blue-800 mt-8 pt-8 text-center text-blue-300">
-        <p>&copy; 2025 Krisefikser.no. Alle rettigheter reservert.</p>
+        <p>&copy; 2025 Krisefikser.app. Alle rettigheter reservert.</p>
         <p class="mt-2">Et prosjekt utviklet ved NTNU</p>
       </div>
     </div>

@@ -16,7 +16,7 @@ export default defineComponent({
     <div class="container mx-auto px-4 py-16 md:py-24 relative z-10">
       <div class="max-w-3xl">
         <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Vær forberedt når krisen rammer</h1>
-        <p class="text-xl mb-8">Krisefikser.no hjelper deg å øke din egenberedskap og gir deg tilgang til viktig informasjon før, under og etter en krise.</p>
+        <p class="text-xl mb-8">Krisefikser.app hjelper deg å øke din egenberedskap og gir deg tilgang til viktig informasjon før, under og etter en krise.</p>
 
         <!-- Different button sets based on authentication status -->
         <div v-if="!authStore.isAuthenticated" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
