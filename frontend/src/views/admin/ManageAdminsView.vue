@@ -100,9 +100,6 @@ watch(
     if (error) {
       console.error('Error fetching households:', error)
     }
-    if (newData) {
-      console.log('Households data updated:', newData)
-    }
   },
   { immediate: true },
 )
@@ -150,7 +147,6 @@ const filteredHouseholds = computed(() => {
     return []
   }
   let result = [...householdsData.value]
-  console.log('Filtering households:', result)
 
   // Apply search filter
   if (searchQuery.value) {

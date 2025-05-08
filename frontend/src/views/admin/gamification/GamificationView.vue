@@ -14,6 +14,7 @@ const activities = ref([
   { id: '3', title: 'Førstehjelpskurs', category: 'Medisinsk', points: 200 },
 ])
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deleteItem = (id: string) => {
   // Implementation would connect to actual backend
 }

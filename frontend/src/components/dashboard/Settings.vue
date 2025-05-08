@@ -25,7 +25,7 @@ const {
 // Update user mutation
 const { mutate: updateUserProfile } = useUpdateUser({
   mutation: {
-    onSuccess: (data) => {
+    onSuccess: () => {
       refetchUser()
     },
     onError: (error) => {

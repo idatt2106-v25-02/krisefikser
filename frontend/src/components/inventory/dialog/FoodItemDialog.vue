@@ -44,11 +44,7 @@ const schema = toTypedSchema(
 )
 
 // Form handling
-const {
-  handleSubmit,
-  values: formValues,
-  errors: formErrors,
-} = useForm<FormValues>({
+const { handleSubmit } = useForm<FormValues>({
   validationSchema: schema,
   initialValues: {
     name: '',

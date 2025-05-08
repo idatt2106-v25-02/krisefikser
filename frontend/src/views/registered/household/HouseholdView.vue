@@ -332,7 +332,6 @@ const { mutate: createInvite } = useCreateInvite({
 const { mutate: addGuest, isPending: isAddingGuest } = useAddGuestToHousehold({
   mutation: {
     onSuccess: (response) => {
-      console.log('Add Guest onSuccess:', response)
       toast({
         title: 'Gjest lagt til',
         description: 'Gjesten har blitt lagt til i husstanden.',
@@ -523,8 +522,6 @@ function goToHouseholdLocation() {
 }
 
 const handleFormSubmit = (values: MemberFormValues) => {
-  console.log('handleFormSubmit called with mode:', memberMode.value, 'and values:', values)
-
   if (!household.value?.id) {
     console.error('Household ID is missing')
     toast({ title: 'Feil', description: 'Husstand ID mangler.', variant: 'destructive' })
@@ -559,11 +556,6 @@ const handleFormSubmit = (values: MemberFormValues) => {
       })
       return
     }
-    console.log('Attempting to add guest with data:', {
-      name: values.name,
-      icon: 'default_guest_icon.png',
-      consumptionMultiplier: values.consumptionFactor,
-    })
     addGuest({
       data: {
         name: values.name,

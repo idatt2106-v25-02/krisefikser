@@ -60,10 +60,7 @@ export const useNotificationStore = defineStore('notification', () => {
   })
 
   function addNotification(notification: NotificationResponse) {
-    console.log(
-      '[NotificationStore] Attempting to add notification:',
-      JSON.parse(JSON.stringify(notification)),
-    ) // DEBUG incoming notification
+    // DEBUG incoming notification
     // Avoid adding duplicates if WebSocket somehow sends multiple times
     const exists = notifications.value.some((n) => n.id === notification.id)
     if (!exists) {
@@ -72,8 +69,6 @@ export const useNotificationStore = defineStore('notification', () => {
       // if (notifications.value.length > 50) {
       //   notifications.value.pop();
       // }
-    } else {
-      console.log('[NotificationStore] Notification already exists, not adding:', notification.id)
     }
   }
 
@@ -108,7 +103,6 @@ export const useNotificationStore = defineStore('notification', () => {
     })
     if (actuallyMarked) {
       notifications.value = newNotifications
-      console.log('[NotificationStore] All marked as read (local)')
       // The backend call (Vue Query mutation) is handled in Navbar.vue
     }
   }

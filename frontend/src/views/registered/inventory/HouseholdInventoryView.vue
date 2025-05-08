@@ -238,12 +238,6 @@ const displayedCategories = computed<Category[]>(() => {
         let dateInputForProcessing: string | number | undefined = fi.expirationDate
         if (typeof fi.expirationDate === 'number') {
           dateInputForProcessing = fi.expirationDate * 1000
-          console.log(
-            'HouseholdInventoryView: Converted numeric timestamp to milliseconds:',
-            dateInputForProcessing,
-            'Item name:',
-            fi.name,
-          )
         }
 
         const processedExpiryDate = dateInputForProcessing
@@ -406,7 +400,6 @@ function navigateToHousehold() {
 }
 
 function openAddItemDialog(categoryId: string, categoryName: string): void {
-  console.log('openAddItemDialog called with:', categoryId, categoryName)
   selectedCategory.value = { id: categoryId, name: categoryName }
   isAddItemDialogOpen.value = true
 }
@@ -619,14 +612,8 @@ async function handleAddItem(newItem: InventoryItem): Promise<void> {
           icon: newItem.iconName ?? 'utensils',
         },
       }
-      console.log(
-        'HouseholdInventoryView: Attempting to parse date for payload. Input to new Date():',
-        newItem.expiryDate,
-      )
       if (newItem.expiryDate) {
-        const dateObject = new Date(newItem.expiryDate)
       }
-      console.log('mutating with payload:', payload)
       await createFoodItem.mutateAsync(payload)
     } else {
       await toggleChecklistItem.mutateAsync({
