@@ -71,7 +71,7 @@ public class UserService {
         .firstName(data.getFirstName()).lastName(data.getLastName())
         .notifications(data.isNotifications()).emailUpdates(data.isEmailUpdates())
         .locationSharing(data.isLocationSharing()).roles(roles).passwordRetries(0)
-        .lockedUntil(null).build();
+        .lockedUntil(null).emailVerified(roleType == RoleType.ADMIN || roleType == RoleType.SUPER_ADMIN).build();
 
     return userRepository.save(user);
   }

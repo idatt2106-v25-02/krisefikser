@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Map, BookOpen, Users, Home } from 'lucide-vue-next'
+import { Map, BookOpen, Users, Home, FileText } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const navigateToMap = () => {
   router.push('/admin/kart')
@@ -17,8 +19,16 @@ const navigateToScenarios = () => {
   router.push('/admin/scenarios')
 }
 
+const navigateToArticles = () => {
+  router.push('/admin/artikler')
+}
+
 const navigateToUsers = () => {
-  router.push('/admin/brukere')
+  if (authStore.isSuperAdmin) {
+    router.push('/admin/brukere');
+  } else {
+    router.push('/admin/brukere-admin');
+  }
 }
 </script>
 
@@ -70,6 +80,20 @@ const navigateToUsers = () => {
         >
           <BookOpen class="h-5 w-5" />
           <span class="ml-2">Scenarioer</span>
+        </Button>
+
+        <Button
+          @click="navigateToArticles"
+          variant="ghost"
+          :class="[
+            'flex items-center w-full px-4 py-3 text-left justify-start rounded-none',
+            router.currentRoute.value.path === '/admin/artikler'
+              ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
+              : 'text-gray-700',
+          ]"
+        >
+          <FileText class="h-5 w-5" />
+          <span class="ml-2">Artikler</span>
         </Button>
 
         <Button

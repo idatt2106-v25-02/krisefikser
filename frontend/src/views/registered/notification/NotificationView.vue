@@ -17,6 +17,7 @@ import {
 } from '@/api/generated/notification/notification'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { NotificationResponse } from '@/api/generated/model'
+import { NotificationResponseType } from '@/api/generated/model/notificationResponseType'
 import type { ErrorType } from '@/api/axios'
 import { useNotificationStore } from '@/stores/notificationStore'
 
@@ -28,6 +29,19 @@ const currentPage = ref(0)
 // Vue Query Client
 const queryClient = useQueryClient()
 const notificationStore = useNotificationStore()
+
+// Local state for optimistic updates
+const processingNotifications = ref(new Set<string>())
+const processingAllNotifications = ref(false)
+
+// Add type for paginated response
+interface PaginatedResponse<T> {
+  content: T[]
+  totalPages: number
+  totalElements: number
+  size: number
+  number: number
+}
 
 const formatDate = (dateInput: string | number[] | undefined): string => {
   if (!dateInput) {
@@ -81,7 +95,7 @@ const formatDate = (dateInput: string | number[] | undefined): string => {
 }
 
 // Fetch Unread Count
-const { data: unreadCountData } = useGetUnreadCount({
+const { data: unreadCountData, refetch: refetchUnreadCount } = useGetUnreadCount({
   query: {
     // Optional: Configure staleTime, refetchInterval, etc.
   },
@@ -90,7 +104,7 @@ const { data: unreadCountData } = useGetUnreadCount({
 // Fetch Notifications (paginated)
 const notificationParams = computed(() => ({
   pageable: {
-    page: 0,
+    page: currentPage.value,
     size: 5,
     sort: ['createdAt,desc'],
   },
@@ -104,26 +118,37 @@ const {
 } = useGetNotifications(notificationParams)
 
 // Mutations
-const { mutate: mutateReadNotification, isPending: isMarkingAsRead } = useReadNotification({
+const { mutate: mutateReadNotification } = useReadNotification({
   mutation: {
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
+    onSuccess: (_, variables) => {
+      refetchNotifications()
+      refetchUnreadCount()
+
+      if (variables.id) {
+        processingNotifications.value.delete(variables.id)
+      }
     },
-    onError: (error: ErrorType<unknown>) => {
-      console.error('Failed to mark notification as read:', error)
+    onError: (error: ErrorType<unknown>, variables) => {
+      if (variables.id) {
+        processingNotifications.value.delete(variables.id)
+      }
+      refetchNotifications()
+      refetchUnreadCount()
     },
   },
 })
 
-const { mutate: mutateReadAll, isPending: isMarkingAllAsRead } = useReadAll({
+const { mutate: mutateReadAll } = useReadAll({
   mutation: {
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread'] })
+      refetchNotifications()
+      refetchUnreadCount()
     },
     onError: (error: ErrorType<unknown>) => {
       console.error('Failed to mark all notifications as read:', error)
+      processingAllNotifications.value = false
+      refetchNotifications()
+      refetchUnreadCount()
     },
   },
 })
@@ -133,7 +158,19 @@ const notifications = computed(() => notificationsData.value?.content || [])
 const totalPages = computed(() => notificationsData.value?.totalPages || 0)
 
 const filteredNotifications = computed(() => {
-  const currentNotifications = notifications.value
+  let currentNotifications = notifications.value
+
+  // Apply "read" status for notifications in processing and from store
+  currentNotifications = currentNotifications.map((n) => {
+    if (
+      processingAllNotifications.value ||
+      (n.id && processingNotifications.value.has(n.id)) ||
+      (n.id && notificationStore.isNotificationRead(n.id))
+    ) {
+      return { ...n, read: true }
+    }
+    return n
+  })
 
   switch (activeFilter.value) {
     case 'unread':
@@ -149,82 +186,104 @@ const filteredNotifications = computed(() => {
   }
 })
 
-// Use dedicated unread count hook data
 const hasUnread = computed(() => {
-  return (unreadCountData.value ?? 0) > 0
+  if (processingAllNotifications.value) return false
+
+  const unreadCount = unreadCountData.value ?? 0
+  return unreadCount > 0
 })
 
-// --- Methods ---
+const isMarkingAsRead = (notificationId: string | undefined) => {
+  if (!notificationId) return false
+  return processingNotifications.value.has(notificationId)
+}
+
+const isMarkingAllAsRead = computed(() => {
+  return processingAllNotifications.value
+})
+
 const handleNotificationClick = (notification: NotificationResponse) => {
-  // Mark as read first
   if (notification.id && !notification.read) {
     markAsRead(notification.id)
   }
 
   console.log('Notification clicked:', notification)
-  //TODO: Add routing logic
-  // Add back specific routing if needed and if backend provides necessary IDs
-  // else if (notification.type === 'CRISIS' && notification.referenceId) {
-  //    router.push(...)
-  // }
 }
 
-// Call local mutation function
+// Call local mutation function with optimistic updates
 const markAsRead = (notificationId: string) => {
   if (!notificationId) {
     console.error('Notification ID missing')
     return
   }
-  // 1. Optimistic update for Pinia store (for unread count, potentially navbar items)
-  notificationStore.markNotificationAsRead(notificationId)
 
-  // 2. Optimistic update for Vue Query cache (for NotificationView.vue list)
-  const queryKey = ['/api/notifications', notificationParams.value]
-  // Assuming the cached data structure matches { content?: NotificationResponse[] } along with other pagination fields
-  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(
-    queryKey,
-  )
-
-  if (previousNotificationsData && previousNotificationsData.content) {
-    const updatedContent = previousNotificationsData.content.map((notif: NotificationResponse) =>
-      notif.id === notificationId ? { ...notif, read: true } : notif,
-    )
-    queryClient.setQueryData<{ content?: NotificationResponse[] }>(queryKey, {
-      ...previousNotificationsData,
-      content: updatedContent,
-    })
+  // Prevent duplicate processing
+  if (processingNotifications.value.has(notificationId)) {
+    return
   }
 
-  // 3. Actual mutation to backend
+  // Add to processing set for UI indication
+  processingNotifications.value.add(notificationId)
+
+  // Update local store
+  notificationStore.markNotificationAsRead(notificationId)
+
+  // Optimistically update the UI by updating the local query cache
+  const queryKey = ['/api/notifications', notificationParams.value]
+  queryClient.setQueryData<PaginatedResponse<NotificationResponse>>(queryKey, (oldData) => {
+    if (!oldData || !oldData.content) return oldData
+
+    return {
+      ...oldData,
+      content: oldData.content.map((n: NotificationResponse) =>
+        n.id === notificationId ? { ...n, read: true } : n,
+      ),
+    }
+  })
+
+  // Also optimistically update the unread count
+  const unreadCountKey = ['/api/notifications/unread']
+  queryClient.setQueryData<number | undefined>(unreadCountKey, (oldData) => {
+    if (oldData === undefined) return oldData
+    return Math.max(0, oldData - 1)
+  })
+
+  // Call the API to mark as read
   mutateReadNotification({ id: notificationId })
 }
 
-// Call local mutation function
 const markAllAsRead = () => {
-  // 1. Optimistic update for Pinia store
-  notificationStore.markAllNotificationsAsRead()
-
-  // 2. Optimistic update for Vue Query cache
-  const queryKey = ['/api/notifications', notificationParams.value]
-  const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(
-    queryKey,
-  )
-
-  if (previousNotificationsData && previousNotificationsData.content) {
-    const updatedContent = previousNotificationsData.content.map(
-      (notif: NotificationResponse) => ({ ...notif, read: true }), // Mark all as read
-    )
-    queryClient.setQueryData<{ content?: NotificationResponse[] }>(queryKey, {
-      ...previousNotificationsData,
-      content: updatedContent,
-    })
+  if (processingAllNotifications.value) {
+    return
   }
 
-  // 3. Actual mutation to backend
+  processingAllNotifications.value = true
+
+  // Update local store
+  notificationStore.markAllNotificationsAsRead()
+
+  // Optimistically update UI
+  const queryKey = ['/api/notifications', notificationParams.value]
+  queryClient.setQueryData<PaginatedResponse<NotificationResponse>>(queryKey, (oldData) => {
+    if (!oldData || !oldData.content) return oldData
+
+    return {
+      ...oldData,
+      content: oldData.content.map((n: NotificationResponse) => ({ ...n, read: true })),
+    }
+  })
+
+  // Also optimistically update the unread count
+  queryClient.setQueryData<number>(['/api/notifications/unread'], 0)
+
+  // Call the API
   mutateReadAll()
 }
 
-// Reset to first page when filter changes
+watch(currentPage, () => {
+  refetchNotifications()
+})
+
 watch(activeFilter, () => {
   currentPage.value = 0
 })
@@ -378,31 +437,58 @@ watch(activeFilter, () => {
                     notification.createdAt ? formatDate(notification.createdAt) : ''
                   }}</span>
                 </div>
-                <p class="text-sm text-gray-600 mt-1">
-                  {{ notification.message || 'Ingen melding' }}
-                </p>
+                <div class="text-gray-700 leading-relaxed prose max-w-none mb-6">
+                  {{ notification.message }}
+                </div>
 
-                <!-- Action button logic remains, potentially using notification.url or needing backend changes -->
-                <div class="mt-3">
-                  <a
+                <!-- Action button logic -->
+                <div class="mt-3 flex gap-2">
+                  <router-link
+                    v-if="notification.id"
+                    :to="{ name: 'notification-detail', params: { id: notification.id } }"
                     class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    @click.stop
                   >
                     <LinkIcon class="h-3 w-3 mr-1" />
                     <span>Vis detaljer</span>
-                  </a>
-                  <!-- Fallback/Alternative: Re-add specific links if backend provides referenceId/householdId -->
-                  <!--
-                  <router-link
-                    v-else-if="notification.type === 'CRISIS' && notification.referenceId"
-                    :to="`/kart?crisis=${notification.referenceId}`"
-                     ...
-                  >
-                    ...
                   </router-link>
-                  -->
+
+                  <!-- Dynamic action button based on notification type -->
+                  <router-link
+                    v-if="
+                      notification.type === NotificationResponseType.EVENT && notification.eventId
+                    "
+                    :to="{ name: 'event-detail', params: { id: notification.eventId } }"
+                    class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                    @click.stop
+                  >
+                    <LinkIcon class="h-3 w-3 mr-1" />
+                    <span>Gå til hendelse</span>
+                  </router-link>
+
+                  <router-link
+                    v-else-if="
+                      notification.type === NotificationResponseType.INVITE &&
+                      notification.householdId
+                    "
+                    :to="{ name: 'household', params: { id: notification.householdId } }"
+                    class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                    @click.stop
+                  >
+                    <LinkIcon class="h-3 w-3 mr-1" />
+                    <span>Gå til husstand</span>
+                  </router-link>
+
+                  <router-link
+                    v-else-if="
+                      notification.type === NotificationResponseType.INFO && notification.itemId
+                    "
+                    :to="{ name: 'notifications' }"
+                    class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                    @click.stop
+                  >
+                    <LinkIcon class="h-3 w-3 mr-1" />
+                    <span>Mer informasjon</span>
+                  </router-link>
                 </div>
               </div>
             </div>
@@ -412,12 +498,16 @@ watch(activeFilter, () => {
           <div class="px-4 py-2 bg-gray-50 border-t flex justify-end">
             <button
               v-if="!notification.read && notification.id"
-              :disabled="isMarkingAsRead"
+              :disabled="notification.id ? isMarkingAsRead(notification.id) : false"
               class="text-xs text-blue-600 hover:text-blue-800 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-              @click.stop="markAsRead(notification.id)"
+              @click.stop="notification.id && markAsRead(notification.id)"
             >
               <CheckIcon class="h-3 w-3 mr-1" />
-              {{ isMarkingAsRead ? 'Markerer...' : 'Marker som lest' }}
+              {{
+                notification.id && isMarkingAsRead(notification.id)
+                  ? 'Markerer...'
+                  : 'Marker som lest'
+              }}
             </button>
             <span v-else class="text-xs text-gray-500 flex items-center">
               <CheckIcon class="h-3 w-3 mr-1" />
@@ -426,21 +516,65 @@ watch(activeFilter, () => {
           </div>
         </div>
         <!-- Pagination Controls -->
-        <div v-if="totalPages > 1" class="flex justify-center items-center space-x-2 mt-6">
+        <div v-if="totalPages > 1" class="flex justify-center items-center space-x-4 mt-8">
           <button
             :disabled="currentPage === 0"
-            class="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="[
+              currentPage === 0
+                ? 'bg-gray-100 text-gray-400'
+                : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200',
+            ]"
             @click="currentPage--"
           >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
             Forrige
           </button>
-          <span>Side {{ currentPage + 1 }} av {{ totalPages }}</span>
+          <div class="flex items-center gap-1 text-sm">
+            <span class="font-medium text-gray-700">Side</span>
+            <span class="px-3 py-1 rounded-md bg-blue-50 text-blue-700 font-medium">
+              {{ currentPage + 1 }}
+            </span>
+            <span class="font-medium text-gray-700">av {{ totalPages }}</span>
+          </div>
           <button
             :disabled="currentPage >= totalPages - 1"
-            class="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="[
+              currentPage >= totalPages - 1
+                ? 'bg-gray-100 text-gray-400'
+                : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200',
+            ]"
             @click="currentPage++"
           >
             Neste
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 ml-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
           </button>
         </div>
       </div>

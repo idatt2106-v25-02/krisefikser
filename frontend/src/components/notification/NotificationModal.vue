@@ -2,17 +2,14 @@
   <Teleport to="body">
     <Transition name="modal-fade">
       <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
-        <div
-          class="absolute inset-0 bg-black bg-opacity-50"
-          @click="close"
-        ></div>
+        <div class="absolute inset-0 bg-black bg-opacity-50" @click="close"></div>
 
         <div
           class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden"
           :class="{
             'border-l-4 border-red-500': type === 'crisis',
             'border-l-4 border-yellow-500': type === 'expiry',
-            'border-l-4 border-blue-500': type === 'update'
+            'border-l-4 border-blue-500': type === 'update',
           }"
         >
           <!-- Header -->
@@ -21,7 +18,7 @@
             :class="{
               'bg-red-50': type === 'crisis',
               'bg-yellow-50': type === 'expiry',
-              'bg-blue-50': type === 'update'
+              'bg-blue-50': type === 'update',
             }"
           >
             <div class="flex items-center">
@@ -30,7 +27,7 @@
                 :class="{
                   'bg-red-100 text-red-600': type === 'crisis',
                   'bg-yellow-100 text-yellow-600': type === 'expiry',
-                  'bg-blue-100 text-blue-600': type === 'update'
+                  'bg-blue-100 text-blue-600': type === 'update',
                 }"
               >
                 <AlertTriangle v-if="type === 'crisis'" class="h-5 w-5" />
@@ -75,7 +72,10 @@
                   <div class="ml-3">
                     <h3 class="text-sm font-medium text-yellow-800">Påminnelse</h3>
                     <div class="mt-2 text-sm text-yellow-700">
-                      <p>Sjekk ditt beredskapslager og oppdater utløpte varer for å holde deg forberedt.</p>
+                      <p>
+                        Sjekk ditt beredskapslager og oppdater utløpte varer for å holde deg
+                        forberedt.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -99,7 +99,7 @@
               :class="{
                 'bg-red-600 hover:bg-red-700': type === 'crisis',
                 'bg-yellow-600 hover:bg-yellow-700': type === 'expiry',
-                'bg-blue-600 hover:bg-blue-700': type === 'update'
+                'bg-blue-600 hover:bg-blue-700': type === 'update',
               }"
             >
               {{ actionText }}
@@ -112,9 +112,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { AlertTriangle, Calendar, Bell, X } from 'lucide-vue-next';
+import { defineComponent, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { AlertTriangle, Bell, Calendar, X } from 'lucide-vue-next'
+import speechService from '@/services/tts/speechService.ts'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
 
 export default defineComponent({
   name: 'NotificationModal',
@@ -122,67 +124,81 @@ export default defineComponent({
     AlertTriangle,
     Calendar,
     Bell,
-    X
+    X,
   },
   props: {
     show: {
       type: Boolean,
-      default: false
+      default: false,
     },
     type: {
       type: String,
       default: 'update',
-      validator: (value: string) => ['crisis', 'expiry', 'update'].includes(value)
+      validator: (value: string) => ['crisis', 'expiry', 'update'].includes(value),
     },
     title: {
       type: String,
-      required: true
+      required: true,
     },
     message: {
       type: String,
-      required: true
+      required: true,
     },
     actionRoute: {
       type: String,
-      default: ''
+      default: '',
     },
     actionText: {
       type: String,
-      default: 'Se detaljer'
+      default: 'Se detaljer',
     },
     onClose: {
       type: Function,
-      default: () => {}
-    }
+      default: () => {},
+    },
   },
   setup(props, { emit }) {
-    const router = useRouter();
-    const isOpen = ref(props.show);
+    const router = useRouter()
+    const isOpen = ref(props.show)
 
-    watch(() => props.show, (value) => {
-      isOpen.value = value;
-    });
+    watch(
+      () => props.show,
+      (value) => {
+        isOpen.value = value
+        if (value) {
+          try {
+            const accessibilityStore = useAccessibilityStore()
+            if (accessibilityStore.ttsEnabled) {
+              const modalText = `${props.title}. ${props.message}`
+              speechService.speak(modalText)
+            }
+          } catch (error) {
+            console.warn('Could not access accessibility store:', error)
+          }
+        }
+      },
+    )
 
     const close = () => {
-      isOpen.value = false;
-      emit('update:show', false);
-      props.onClose();
-    };
+      isOpen.value = false
+      emit('update:show', false)
+      props.onClose()
+    }
 
     const handleAction = () => {
       if (props.actionRoute) {
-        router.push(props.actionRoute);
+        router.push(props.actionRoute)
       }
-      close();
-    };
+      close()
+    }
 
     return {
       isOpen,
       close,
-      handleAction
-    };
-  }
-});
+      handleAction,
+    }
+  },
+})
 </script>
 
 <style scoped>

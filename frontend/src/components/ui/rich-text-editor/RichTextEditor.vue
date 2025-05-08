@@ -1,8 +1,8 @@
 <!-- RichTextEditor.vue -->
-<script setup lang="ts">
+<script lang="ts" setup>
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { ref, watch, onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   modelValue: string
@@ -15,12 +15,14 @@ const emit = defineEmits<{
 
 const content = ref(props.modelValue)
 
-watch(() => props.modelValue, (newValue) => {
-  content.value = newValue
-})
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    content.value = newValue
+  },
+)
 
 watch(content, (newValue) => {
-  console.log('Editor content:', newValue)
   emit('update:modelValue', newValue)
 })
 
@@ -29,29 +31,37 @@ const editorOptions = {
   theme: 'snow',
   modules: {
     toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],       // toggled buttons
+      ['bold', 'italic', 'underline', 'strike'], // toggled buttons
       ['blockquote', 'code-block'],
 
-      [{ 'header': 1 }, { 'header': 2 }, { 'header': 3 }],  // custom button values
+      [{ header: 1 }, { header: 2 }, { header: 3 }], // custom button values
 
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],         // outdent/indent
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ indent: '-1' }, { indent: '+1' }], // outdent/indent
 
-      [{ 'size': ['small', false, 'large', 'huge'] }], // font size
-      [{ 'color': [] }, { 'background': [] }],         // dropdown with defaults
-      [{ 'align': [] }],
+      [{ size: ['small', false, 'large', 'huge'] }], // font size
+      [{ color: [] }, { background: [] }], // dropdown with defaults
+      [{ align: [] }],
 
-      ['clean']                                         // remove formatting button
-    ]
+      ['clean'], // remove formatting button
+    ],
   },
   formats: [
-    'bold', 'italic', 'underline', 'strike',
-    'blockquote', 'code-block',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'blockquote',
+    'code-block',
     'header',
-    'list', 'bullet', 'indent',
-    'size', 'color', 'background',
-    'align'
-  ]
+    'list',
+    'bullet',
+    'indent',
+    'size',
+    'color',
+    'background',
+    'align',
+  ],
 }
 
 // This ensures that when the component is mounted, any existing content
@@ -78,10 +88,8 @@ onMounted(() => {
       v-model:content="content"
       :options="editorOptions"
       :placeholder="placeholder"
-      contentType="html"
       class="h-64"
+      contentType="html"
     />
   </div>
 </template>
-
-

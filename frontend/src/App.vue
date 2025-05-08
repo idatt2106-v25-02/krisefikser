@@ -1,18 +1,24 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { RouterView } from 'vue-router'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import AppNavbar from '@/components/layout/Navbar.vue'
 import AppFooter from '@/components/layout/Footer.vue'
 import AccessibilityMenu from '@/components/textToSpeech/AccessibilityMenu.vue'
 import ReadPageButton from '@/components/textToSpeech/ReadPageButton.vue'
 import LocationTracker from '@/components/LocationTracker.vue'
+import CookieBanner from '@/components/CookieBanner.vue'
 import router from '@/router'
 import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
 import { Toaster } from '@/components/ui/sonner'
+import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { NotificationService } from '@/api/websocket/NotificationService.ts'
+import { webSocket } from '@/main.ts'
 
-// Get accessibility store and set up reactive state
+// Get an accessibility store and set up a reactive state
 const accessibilityStore = useAccessibilityStore()
 const ttsEnabled = ref(accessibilityStore.ttsEnabled)
+const authStore = useAuthStore()
+const notificationService = NotificationService.getInstance()
 
 // Watch for changes in TTS state
 watch(
@@ -22,7 +28,24 @@ watch(
   },
 )
 
-onMounted(() => {
+/// Use watchEffect to handle notification subscriptions
+// This will run both on initial render and whenever dependencies change
+watch(
+  () => authStore.currentUser,
+  (newUser, oldUser) => {
+    // Only subscribe if newly authenticated
+    if (newUser?.email && (!oldUser || newUser.email !== oldUser.email)) {
+      notificationService.subscribeToNotifications(newUser.email)
+    }
+    // Only unsubscribe if logged out
+    else if (!newUser?.email && oldUser?.email) {
+      notificationService.unsubscribeFromNotifications()
+    }
+  },
+  { immediate: true }, // Still run once on mount
+)
+
+onMounted(async () => {
   // Make all router-links and interactive elements focusable
   const makeElementsFocusable = () => {
     document.querySelectorAll('a, [to], .router-link, button').forEach((el) => {
@@ -42,28 +65,33 @@ onMounted(() => {
     })
   }
 })
+
+onUnmounted(() => {
+  webSocket.unsubscribeAll()
+})
 </script>
 
 <template>
   <div id="app">
     <LocationTracker />
+    <CookieBanner />
     <!-- TTS active indicator -->
     <div
       v-if="ttsEnabled"
       class="fixed top-4 right-4 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium z-50 flex items-center"
     >
       <svg
-        xmlns="http://www.w3.org/2000/svg"
         class="h-4 w-4 mr-1"
         fill="none"
-        viewBox="0 0 24 24"
         stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
       >
         <path
+          d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="2"
-          d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
         />
       </svg>
       Tekst-til-tale aktiv

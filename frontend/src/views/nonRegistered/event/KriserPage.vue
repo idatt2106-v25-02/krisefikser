@@ -138,6 +138,7 @@ export default defineComponent({
             <h1 class="text-3xl font-bold text-gray-900 mb-1">Kriser og hendelser</h1>
             <p class="text-gray-600 max-w-3xl">
               Oversikt over kommende, pågående og tidligere kriser. Hold deg oppdatert på situasjoner som kan påvirke ditt område.
+              Legg inn dine refleksjoner på avsluttede hendelser og se hva andre har skrevet.
             </p>
           </div>
           <div class="mt-4 md:mt-0">
@@ -183,11 +184,11 @@ export default defineComponent({
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
             <!-- Tab navigation -->
             <div class="border-b">
-              <div class="flex">
+              <div class="flex overflow-x-auto whitespace-nowrap scrollbar-hide">
                 <button
                   @click="activeTab = 'all'"
                   :class="[
-                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px',
+                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
                     activeTab === 'all'
                       ? 'border-blue-500 text-blue-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -198,7 +199,7 @@ export default defineComponent({
                 <button
                   @click="activeTab = 'ongoing'"
                   :class="[
-                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px',
+                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
                     activeTab === 'ongoing'
                       ? 'border-red-500 text-red-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -215,7 +216,7 @@ export default defineComponent({
                 <button
                   @click="activeTab = 'upcoming'"
                   :class="[
-                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px',
+                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
                     activeTab === 'upcoming'
                       ? 'border-blue-500 text-blue-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -226,7 +227,7 @@ export default defineComponent({
                 <button
                   @click="activeTab = 'finished'"
                   :class="[
-                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px',
+                    'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
                     activeTab === 'finished'
                       ? 'border-gray-500 text-gray-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -281,12 +282,22 @@ export default defineComponent({
                         <p v-else-if="event.status === 'ONGOING'">Startet: {{ formatDate(event.startTime) }}</p>
                         <p v-else-if="event.status === 'FINISHED'">Avsluttet: {{ formatDate(event.endTime) }}</p>
                       </div>
-                      <span class="text-blue-600 font-medium flex items-center">
-                        Se detaljer
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </span>
+                      <div class="flex items-center gap-2">
+                        <router-link
+                          v-if="event.status === 'FINISHED'"
+                          :to="{ name: 'my-reflections' }"
+                          class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                        >
+                          <BookText class="h-3.5 w-3.5 mr-1" />
+                          Legg til refleksjon
+                        </router-link>
+                        <span class="text-blue-600 font-medium flex items-center">
+                          Se detaljer
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </router-link>
@@ -485,5 +496,16 @@ export default defineComponent({
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 </style>
