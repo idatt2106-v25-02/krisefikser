@@ -342,6 +342,39 @@ public class AuthController {
   }
 
   /**
+   * Allows a superadmin to request a password reset for an admin user.
+   *
+   * @param request The request containing the admin's email address
+   * @return ResponseEntity containing the status of the reset request operation
+   */
+  @Operation(
+    summary = "Request password reset for admin user",
+    description = "Generates a password reset token and sends it to the admin user's email. Only accessible by superadmins."
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Password reset link sent successfully",
+      content = @Content(schema = @Schema(implementation = PasswordResetResponse.class))
+    ),
+    @ApiResponse(
+      responseCode = "403",
+      description = "Access denied - only superadmins can request admin password resets"
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Admin user not found"
+    )
+  })
+  @PostMapping("/admin/reset-password-link")
+  @PreAuthorize("hasRole('SUPER_ADMIN')")
+  public ResponseEntity<PasswordResetResponse> requestAdminPasswordReset(
+    @Validated @RequestBody RequestPasswordResetRequest request
+  ) {
+    return ResponseEntity.ok(authService.requestAdminPasswordReset(request));
+  }
+
+  /**
    * Exception handler for LockedException to return a 423 (Locked) status code
    *
    * @param ex The LockedException that was thrown

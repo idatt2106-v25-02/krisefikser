@@ -33,7 +33,7 @@ const handleTokenValidated = (valid: boolean) => {
       <template v-if="!isTokenValid">
         <TokenVerifier
           :token="token"
-          verify-endpoint="http://localhost:8080/api/auth/verify-password-reset"
+          verify-endpoint="/api/auth/verify-password-reset"
           success-message="Din passordtilbakestillingslenke er gyldig. Du kan nå sette et nytt passord."
           error-message="Lenken er ugyldig eller utløpt. Vennligst be om en ny passordtilbakestillingslenke."
           success-redirect-path="/reset-passord"

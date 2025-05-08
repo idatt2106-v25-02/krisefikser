@@ -6,10 +6,21 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { Mail, ArrowLeft, CheckCircle, ShieldCheck } from 'lucide-vue-next'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
+import { useRequestPasswordReset } from '@/api/generated/authentication/authentication'
+import { toast } from 'vue-sonner'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+
+// Define error type
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 // Schema for the email form
 const emailSchema = z.object({
@@ -26,15 +37,32 @@ const isSubmitted = ref(false)
 const isLoading = ref(false)
 const userEmail = ref('')
 
-const onSubmit = handleSubmit((values) => {
+const requestAdminPasswordResetMutation = useRequestPasswordReset()
+
+const onSubmit = handleSubmit(async (values) => {
   isLoading.value = true
 
-  // Simulate API call
-  setTimeout(() => {
+  try {
+    await requestAdminPasswordResetMutation.mutateAsync({
+      data: {
+        email: values.email
+      }
+    })
+
     userEmail.value = values.email
     isSubmitted.value = true
+    toast('Suksess', {
+      description: 'Passord-tilbakestillingslink er sendt til admin-brukeren'
+    })
+  } catch (error: unknown) {
+    console.error('Failed to request admin password reset:', error)
+    const apiError = error as ApiError
+    toast('Feil', {
+      description: apiError.response?.data?.message || 'Kunne ikke sende passord-tilbakestillingslink'
+    })
+  } finally {
     isLoading.value = false
-  }, 1500)
+  }
 })
 
 const goBack = () => {
