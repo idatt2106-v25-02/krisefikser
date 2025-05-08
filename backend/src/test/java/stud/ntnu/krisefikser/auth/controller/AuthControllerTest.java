@@ -313,7 +313,6 @@ class AuthControllerTest {
     @Test
     void completePasswordReset_WithValidToken_ShouldReturnSuccess() throws Exception {
         CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-            "test@example.com",
             "valid-token",
             "NewPassword123!"
         );
@@ -335,7 +334,6 @@ class AuthControllerTest {
     @Test
     void completePasswordReset_WithInvalidToken_ShouldReturnUnauthorized() throws Exception {
         CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-            "test@example.com",
             "invalid-token",
             "NewPassword123!"
         );
@@ -352,7 +350,6 @@ class AuthControllerTest {
     @Test
     void completePasswordReset_WithNonexistentEmail_ShouldReturnNotFound() throws Exception {
         CompletePasswordResetRequest request = new CompletePasswordResetRequest(
-            "nonexistent@example.com",
             "valid-token",
             "NewPassword123!"
         );

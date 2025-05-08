@@ -26,7 +26,7 @@ import HomeAddressView from '@/views/registered/household/HomeAddressView.vue'
 import NewHouseholdView from '@/views/registered/household/NewHousehold.vue'
 import HouseholdReflectionsPage from '@/views/registered/household/HouseholdReflectionsPage.vue';
 const PublicReflectionsPage = () => import('@/views/registered/reflections/PublicReflectionsPage.vue');
-
+import SendResetPasswordLinkView from '@/views/auth/password/SendResetPasswordLinkView.vue'
 // Non-Registered User views
 import JoinOrCreateHouseholdView from '@/views/nonRegistered/household/JoinOrCreateHouseholdView.vue'
 import MapView from '@/views/nonRegistered/map/MapView.vue'
@@ -36,7 +36,7 @@ import NewsView from '@/views/nonRegistered/news/NewsView.vue'
 import ArticleView from '@/views/nonRegistered/news/ArticleView.vue'
 import AboutUsView from '@/views/nonRegistered/static/AboutUsView.vue'
 import ForgotPasswordView from '@/views/auth/password/ForgotPasswordView.vue'
-
+import VerifyPasswordReset from '@/views/VerifyPasswordReset.vue'
 // Crisis Information views
 import BeforeCrisisView from '@/views/nonRegistered/info/BeforeCrisisView.vue'
 import DuringCrisisView from '@/views/nonRegistered/info/DuringCrisisView.vue'
@@ -80,13 +80,19 @@ const router = createRouter({
     {
       path: '/glemt-passord',
       name: 'glemt-passord',
-      component: ForgotPasswordView,
+      component: SendResetPasswordLinkView,
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/verifiser-passord-tilbakestilling',
+      name: 'verify-password-reset',
+      component: VerifyPasswordReset,
       meta: { requiresGuest: true }
     },
     {
       path: '/reset-passord',
       name: 'reset-password',
-      component: ResetPasswordView,
+      component: ForgotPasswordView,
       meta: { requiresGuest: true }
     },
 
@@ -183,6 +189,12 @@ const router = createRouter({
       name: 'public-reflections',
       component: PublicReflectionsPage,
       meta: { requiresAuth: false }
+    },
+    {
+      path: '/endre-passord',
+      name: 'reset-password',
+      component: ResetPasswordView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/adresse',

@@ -81,4 +81,33 @@ public class EmailVerificationService {
                "<p>If you did not create this account, you can safely ignore this email.</p>" +
                "</body></html>";
     }
+
+    /**
+     * Sends a password reset email to the specified user.
+     *
+     * @param user the user requesting the password reset
+     * @param resetLink the password reset link
+     * @param expirationHours the number of hours until the reset link expires
+     * @return a ResponseEntity containing the response from the email service
+     */
+    public ResponseEntity<String> sendPasswordResetEmail(User user, String resetLink, long expirationHours) {
+        String htmlContent = createPasswordResetEmailHtml(user.getFirstName(), resetLink, expirationHours);
+        
+        return emailService.sendEmail(
+            user.getEmail(),
+            "Reset your password",
+            htmlContent
+        );
+    }
+
+    private String createPasswordResetEmailHtml(String firstName, String resetLink, long expirationHours) {
+        return "<html><body>" +
+               "<h2>Reset Your Password</h2>" +
+               "<p>Hello " + firstName + ",</p>" +
+               "<p>We received a request to reset your password. Click the link below to reset it:</p>" +
+               "<p><a href='" + resetLink + "'>Reset Password</a></p>" +
+               "<p>This link will expire in " + expirationHours + " hours.</p>" +
+               "<p>If you did not request a password reset, you can safely ignore this email.</p>" +
+               "</body></html>";
+    }
 }
