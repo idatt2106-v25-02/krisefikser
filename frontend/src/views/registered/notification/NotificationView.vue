@@ -91,7 +91,7 @@ const { data: unreadCountData } = useGetUnreadCount({
 // Fetch Notifications (paginated)
 const notificationParams = computed(() => ({
   pageable: {
-    page: 0,
+    page: currentPage.value,
     size: 5,
     sort: ['createdAt,desc'],
   },
@@ -150,22 +150,16 @@ const filteredNotifications = computed(() => {
   }
 })
 
-// Use dedicated unread count hook data
 const hasUnread = computed(() => {
   return (unreadCountData.value ?? 0) > 0
 })
 
-// --- Methods ---
 const handleNotificationClick = (notification: NotificationResponse) => {
-  // Mark as read first
   if (notification.id && !notification.read) {
     markAsRead(notification.id)
   }
-  //TODO: Add routing logic
-  // Add back specific routing if needed and if backend provides necessary IDs
-  // else if (notification.type === 'CRISIS' && notification.referenceId) {
-  //    router.push(...)
-  // }
+
+  console.log('Notification clicked:', notification)
 }
 
 // Call local mutation function
@@ -174,12 +168,12 @@ const markAsRead = (notificationId: string) => {
     console.error('Notification ID missing')
     return
   }
-  // 1. Optimistic update for Pinia store (for unread count, potentially navbar items)
+
+  // Update local store
   notificationStore.markNotificationAsRead(notificationId)
 
-  // 2. Optimistic update for Vue Query cache (for NotificationView.vue list)
+  // Update the notifications data immediately
   const queryKey = ['/api/notifications', notificationParams.value]
-  // Assuming the cached data structure matches { content?: NotificationResponse[] } along with other pagination fields
   const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(
     queryKey,
   )
@@ -194,16 +188,20 @@ const markAsRead = (notificationId: string) => {
     })
   }
 
-  // 3. Actual mutation to backend
+  // Also update the unread count immediately
+  const unreadCountKey = ['/api/notifications/unread']
+  const currentUnreadCount = queryClient.getQueryData<number>(unreadCountKey)
+  if (typeof currentUnreadCount === 'number') {
+    queryClient.setQueryData<number>(unreadCountKey, Math.max(0, currentUnreadCount - 1))
+  }
+
+  // Call the API to mark as read
   mutateReadNotification({ id: notificationId })
 }
 
-// Call local mutation function
 const markAllAsRead = () => {
-  // 1. Optimistic update for Pinia store
   notificationStore.markAllNotificationsAsRead()
 
-  // 2. Optimistic update for Vue Query cache
   const queryKey = ['/api/notifications', notificationParams.value]
   const previousNotificationsData = queryClient.getQueryData<{ content?: NotificationResponse[] }>(
     queryKey,
@@ -219,11 +217,13 @@ const markAllAsRead = () => {
     })
   }
 
-  // 3. Actual mutation to backend
   mutateReadAll()
 }
 
-// Reset to first page when filter changes
+watch(currentPage, () => {
+  refetchNotifications()
+})
+
 watch(activeFilter, () => {
   currentPage.value = 0
 })
@@ -454,27 +454,27 @@ watch(activeFilter, () => {
         <!-- Pagination Controls -->
         <div v-if="totalPages > 1" class="flex justify-center items-center space-x-4 mt-8">
           <button
+            :disabled="currentPage === 0"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             :class="[
               currentPage === 0
                 ? 'bg-gray-100 text-gray-400'
                 : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200',
             ]"
-            :disabled="currentPage === 0"
-            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             @click="currentPage--"
           >
             <svg
+              xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4 mr-1"
               fill="none"
-              stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+              stroke="currentColor"
             >
               <path
-                d="M15 19l-7-7 7-7"
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
+                d="M15 19l-7-7 7-7"
               />
             </svg>
             Forrige
@@ -487,28 +487,28 @@ watch(activeFilter, () => {
             <span class="font-medium text-gray-700">av {{ totalPages }}</span>
           </div>
           <button
+            :disabled="currentPage >= totalPages - 1"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             :class="[
               currentPage >= totalPages - 1
                 ? 'bg-gray-100 text-gray-400'
                 : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-blue-600 border border-gray-200',
             ]"
-            :disabled="currentPage >= totalPages - 1"
-            class="inline-flex items-center px-4 py-2 text-sm font-medium transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             @click="currentPage++"
           >
             Neste
             <svg
+              xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4 ml-1"
               fill="none"
-              stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+              stroke="currentColor"
             >
               <path
-                d="M9 5l7 7-7 7"
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
+                d="M9 5l7 7-7 7"
               />
             </svg>
           </button>

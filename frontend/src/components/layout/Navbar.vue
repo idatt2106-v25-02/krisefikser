@@ -1,3 +1,6 @@
+// Add type declarations at the top of the file interface WebKitAudioContext extends AudioContext {}
+declare global { interface Window { webkitAudioContext?: new () => WebKitAudioContext; } }
+
 <script lang="ts">
 import {
   AlertTriangle,
@@ -25,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   useGetNotifications,
@@ -37,6 +40,7 @@ import type { NotificationResponse } from '@/api/generated/model'
 import { NotificationResponseType } from '@/api/generated/model/notificationResponseType'
 import { useNotificationStore } from '@/stores/notificationStore'
 import { useMe } from '@/api/generated/authentication/authentication'
+import NotificationDropdown from '@/components/notification/NotificationDropdown.vue'
 
 export default {
   name: 'AppNavbar',
@@ -62,6 +66,7 @@ export default {
     Info,
     RefreshCw,
     ArrowRight,
+    NotificationDropdown,
   },
   setup() {
     const authStore = useAuthStore()
@@ -71,6 +76,11 @@ export default {
     const isMenuOpen = ref(false)
     const showMobileNotifications = ref(false)
     const audioPlayerRef = ref<HTMLAudioElement | null>(null)
+    const playedNotificationIds = ref(new Set<string>())
+
+    // New refs for audio functionality
+    const audioInitialized = ref(false)
+    const audioContext = ref<AudioContext | null>(null)
 
     // Get current user data to check notification settings
     const { data: currentUser } = useMe({
@@ -143,7 +153,7 @@ export default {
     } = useGetNotifications(notificationParams, {
       query: {
         enabled: computed(() => authStore.isAuthenticated),
-        staleTime: 1000 * 60 * 1,
+        staleTime: 1000 * 60,
       },
     })
 
@@ -190,17 +200,113 @@ export default {
 
     const displayUnreadCount = computed(() => fetchedUnreadCountData.value ?? 0)
 
+    // New function to initialize audio
+    const initializeAudio = () => {
+      if (audioInitialized.value) return
+
+      try {
+        // Create audio context using the standard API
+        audioContext.value = new AudioContext()
+
+        // Check if the audio element exists
+        if (audioPlayerRef.value) {
+          // Set volume to a reasonable level
+          audioPlayerRef.value.volume = 0.5
+
+          // Try to play a silent sound to unblock autoplay
+          audioPlayerRef.value.muted = true
+          const playPromise = audioPlayerRef.value.play()
+
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                audioPlayerRef.value!.pause()
+                audioPlayerRef.value!.currentTime = 0
+                audioPlayerRef.value!.muted = false
+                audioInitialized.value = true
+              })
+              .catch((error) => {
+                console.warn('Audio initialization failed:', error)
+              })
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize audio:', error)
+      }
+    }
+
+    // New function to play notification sound
+    const playNotificationSound = () => {
+      if (!audioPlayerRef.value) {
+        console.warn('Audio player not initialized yet')
+        return
+      }
+
+      // If audio wasn't initialized yet, try to initialize it now
+      if (!audioInitialized.value) {
+        initializeAudio()
+      }
+
+      // Reset to beginning
+      audioPlayerRef.value.currentTime = 0
+      audioPlayerRef.value.muted = false
+
+      // Play the sound
+      const playPromise = audioPlayerRef.value.play()
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => console.log('Notification sound played successfully'))
+          .catch((error) => {
+            console.error('Failed to play notification sound:', error)
+            audioInitialized.value = false
+          })
+      }
+
+      // Vibrate if supported (works on mobile)
+      if (navigator.vibrate) {
+        navigator.vibrate(200)
+      }
+    }
+
+    // Function to test notification sound manually
+    const testSound = () => {
+      playNotificationSound()
+    }
+
+    // Updated watcher for notification sound
     watch(displayUnreadCount, (newCount, oldCount) => {
       if (newCount !== undefined && oldCount !== undefined && newCount > oldCount) {
-        if (audioPlayerRef.value) {
-          audioPlayerRef.value.play().catch((error) => {
-            console.warn('Audio play was prevented. User interaction might be required.', error)
-          })
-        }
-        if (navigator.vibrate) {
-          navigator.vibrate(200)
+        // Get the latest notification that hasn't had its sound played yet
+        const latestNotification = displayedNotifications.value.find(
+          (n) => n.id && !playedNotificationIds.value.has(n.id),
+        )
+
+        if (latestNotification?.id) {
+          playNotificationSound()
+
+          // Mark this notification as having had its sound played
+          if (latestNotification.id) {
+            playedNotificationIds.value.add(latestNotification.id)
+          }
         }
       }
+    })
+
+    // Initialize audio on first user interaction
+    onMounted(() => {
+      // Initialize audio on any user interaction with the page
+      const initOnInteraction = () => {
+        initializeAudio()
+        // Remove the event listeners after first interaction
+        document.removeEventListener('click', initOnInteraction)
+        document.removeEventListener('touchstart', initOnInteraction)
+        document.removeEventListener('keydown', initOnInteraction)
+      }
+
+      document.addEventListener('click', initOnInteraction)
+      document.addEventListener('touchstart', initOnInteraction)
+      document.addEventListener('keydown', initOnInteraction)
     })
 
     const handleNotificationClick = (notification: NotificationResponse) => {
@@ -239,7 +345,7 @@ export default {
           }
           break
         default:
-          console.warn('No specific routing for this notification type:', notification.type)
+          console.log('No specific routing for this notification type:', notification.type)
       }
 
       showMobileNotifications.value = false
@@ -373,18 +479,37 @@ export default {
       filteredNavItems,
       isActive,
       shouldShowNotifications,
+      testSound,
     }
   },
 }
 </script>
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
-    <audio ref="audioPlayerRef" preload="auto" src="/sounds/notification.mp3"></audio>
+    <!-- Updated audio element with multiple sources for better compatibility -->
+    <audio ref="audioPlayerRef" preload="auto">
+      <source src="/sounds/notification.mp3" type="audio/mpeg" />
+      <!-- Uncomment if you have a WAV version -->
+      <!-- <source src="/sounds/notification.wav" type="audio/wav"> -->
+    </audio>
+
+    <!-- Test button (uncomment during development and remove in production) -->
+    <!--
+    <div class="fixed bottom-4 right-4 z-50">
+      <button
+        @click="testSound"
+        class="bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg hover:bg-blue-700"
+      >
+        Test Notification Sound
+      </button>
+    </div>
+    -->
+
     <div class="container mx-auto px-4 py-4">
       <div class="flex justify-between items-center">
         <div class="flex items-center">
-          <router-link class="flex items-center" to="/">
-            <img alt="Krisefikser.app" class="h-5 w-auto mr-2" src="/favicon.ico" />
+          <router-link to="/" class="flex items-center">
+            <img src="/favicon.ico" alt="Krisefikser.app" class="h-5 w-auto mr-2" />
             <span class="text-lg font-bold text-blue-700">Krisefikser.app</span>
           </router-link>
         </div>
@@ -393,11 +518,11 @@ export default {
           <router-link
             v-for="item in filteredNavItems"
             :key="item.label"
+            :to="item.to"
             :class="[
               'flex items-center transition text-sm',
               isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
             ]"
-            :to="item.to"
           >
             <component :is="item.icon" class="h-4 w-4 mr-1" />
             <span>{{ item.label }}</span>
@@ -405,125 +530,31 @@ export default {
 
           <template v-if="!authStore.isAuthenticated">
             <router-link
-              class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2"
               to="/logg-inn"
+              class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-2"
             >
               Logg inn
             </router-link>
           </template>
           <template v-else>
             <div class="flex items-center space-x-2">
-              <!-- Notifications - Only show if enabled in settings -->
-              <DropdownMenu v-if="shouldShowNotifications">
-                <DropdownMenuTrigger>
-                  <button
-                    aria-label="Varsler"
-                    class="relative flex items-center justify-center p-2 rounded-full transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 group"
-                  >
-                    <BellIcon
-                      class="h-5 w-5 text-gray-700 group-hover:text-blue-600 transition-colors duration-150"
-                    />
-                    <span
-                      v-if="unreadCountData && unreadCountData > 0"
-                      class="absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 px-1 flex items-center justify-center text-xs font-bold bg-red-500 text-white rounded-full shadow-lg border-2 border-white z-10 animate-pulse"
-                      style="font-variant-numeric: tabular-nums"
-                    >
-                      {{ unreadCountData }}
-                    </span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" class="w-80 max-h-96 overflow-y-auto">
-                  <div class="p-2 flex justify-between items-center border-b">
-                    <h3 class="text-sm font-semibold">Varsler</h3>
-                    <button
-                      v-if="notifications.length > 0 && unreadCountData > 0"
-                      :disabled="isMarkingAllAsRead"
-                      class="text-xs text-blue-600 hover:underline"
-                      @click="markAllAsRead"
-                    >
-                      {{ isMarkingAllAsRead ? 'Behandler...' : 'Merk alle som lest' }}
-                    </button>
-                  </div>
-                  <div v-if="isLoadingNotifications" class="p-4 text-center text-sm text-gray-500">
-                    Laster varsler...
-                  </div>
-                  <div v-else-if="notificationsError" class="p-4 text-center text-sm text-red-500">
-                    Kunne ikke laste varsler.
-                  </div>
-                  <div
-                    v-else-if="notifications.length === 0"
-                    class="p-4 text-center text-sm text-gray-500"
-                  >
-                    Ingen nye varsler.
-                  </div>
-                  <DropdownMenuItem
-                    v-for="notification in notifications"
-                    :key="notification.id"
-                    :class="[
-                      'hover:bg-gray-100 cursor-pointer border-b last:border-b-0 border-gray-200',
-                      !notification.read
-                        ? 'bg-blue-50 border-l-4 border-blue-500'
-                        : 'border-l-4 border-transparent',
-                    ]"
-                    @click="() => handleNotificationClick(notification)"
-                  >
-                    <div class="flex items-start p-3 w-full">
-                      <div
-                        :class="[
-                          'mr-3 p-1.5 rounded-full flex-shrink-0',
-                          getIconBgClass(notification.type),
-                        ]"
-                      >
-                        <Calendar
-                          v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER"
-                          :class="['h-4 w-4', getIconColorClass(notification.type)]"
-                        />
-                        <AlertTriangle
-                          v-else-if="notification.type === NotificationResponseType.EVENT"
-                          :class="['h-4 w-4', getIconColorClass(notification.type)]"
-                        />
-                        <UserIcon
-                          v-else-if="notification.type === NotificationResponseType.INVITE"
-                          :class="['h-4 w-4', getIconColorClass(notification.type)]"
-                        />
-                        <Bell
-                          v-else-if="notification.type === NotificationResponseType.INFO"
-                          :class="['h-4 w-4', getIconColorClass(notification.type)]"
-                        />
-                        <Info v-else :class="['h-4 w-4', getIconColorClass(notification.type)]" />
-                      </div>
-                      <div class="flex-grow overflow-hidden">
-                        <div class="flex justify-between w-full items-center">
-                          <span
-                            :title="notification.title"
-                            class="font-semibold text-sm text-gray-800 truncate pr-2"
-                            >{{ notification.title }}</span
-                          >
-                          <span
-                            :class="[
-                              'text-xs ml-1 flex-shrink-0',
-                              !notification.read ? 'text-blue-600 font-bold' : 'text-gray-500',
-                            ]"
-                          >
-                            {{ formatDate(notification.createdAt) }}
-                          </span>
-                        </div>
-                        <p class="text-xs text-gray-600 mt-1 whitespace-normal break-words">
-                          {{ notification.message }}
-                        </p>
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                  <div class="p-2 border-t mt-1">
-                    <router-link
-                      class="text-sm text-blue-600 hover:underline w-full text-center block"
-                      to="/varsler"
-                    >
-                      Se alle varsler
-                    </router-link>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <!-- Replace the old notification dropdown with the new component -->
+              <NotificationDropdown
+                :notifications="notifications"
+                :unread-count="unreadCountData"
+                :is-loading="isLoadingNotifications"
+                :error="
+                  notificationsError instanceof Error
+                    ? notificationsError
+                    : notificationsError
+                      ? String(notificationsError)
+                      : null
+                "
+                :is-marking-all-as-read="isMarkingAllAsRead"
+                :should-show-notifications="shouldShowNotifications"
+                @mark-all-as-read="markAllAsRead"
+                @notification-click="handleNotificationClick"
+              />
 
               <!-- User Profile -->
               <DropdownMenu>
@@ -561,7 +592,7 @@ export default {
                       <span>Mine Refleksjoner</span>
                     </DropdownMenuItem>
                   </router-link>
-                  <DropdownMenuItem variant="destructive" @select="authStore.logout">
+                  <DropdownMenuItem @select="authStore.logout" variant="destructive">
                     <LogOut class="h-4 w-4 mr-2" />
                     <span>Logg ut</span>
                   </DropdownMenuItem>
@@ -572,7 +603,7 @@ export default {
         </div>
 
         <div class="md:hidden">
-          <button class="text-gray-700 focus:outline-none" @click="isMenuOpen = !isMenuOpen">
+          <button @click="isMenuOpen = !isMenuOpen" class="text-gray-700 focus:outline-none">
             <MenuIcon v-if="!isMenuOpen" class="h-6 w-6" />
             <X v-else class="h-6 w-6" />
           </button>
@@ -585,13 +616,13 @@ export default {
         <router-link
           v-for="item in filteredNavItems"
           :key="item.label"
+          :to="item.to"
           :class="[
             'flex items-center px-3 py-2 rounded',
             isActive(item.to)
               ? 'text-blue-600 font-medium bg-blue-50 text-sm'
               : 'text-gray-700 hover:bg-gray-200 text-sm',
           ]"
-          :to="item.to"
         >
           <component :is="item.icon" class="h-4 w-4 mr-2" />
           <span>{{ item.label }}</span>
@@ -628,11 +659,11 @@ export default {
           <div class="p-2 border-b border-gray-100 flex justify-between items-center">
             <h3 class="font-medium text-gray-900">Varsler</h3>
             <button
+              @click="() => refetchNotifications()"
               :disabled="isFetchingNotifications"
               class="text-blue-600 hover:text-blue-800 disabled:opacity-50"
-              @click="() => refetchNotifications()"
             >
-              <RefreshCw :class="{ 'animate-spin': isFetchingNotifications }" class="h-4 w-4" />
+              <RefreshCw class="h-4 w-4" :class="{ 'animate-spin': isFetchingNotifications }" />
             </button>
           </div>
           <div class="max-h-96 overflow-y-auto">
@@ -649,14 +680,14 @@ export default {
             <div
               v-for="notification in notifications"
               :key="notification.id"
-              :class="{ 'bg-blue-50': !notification.read }"
-              class="p-3 hover:bg-blue-50 border-b border-gray-100 cursor-pointer"
               @click="handleNotificationClick(notification)"
+              class="p-3 hover:bg-blue-50 border-b border-gray-100 cursor-pointer"
+              :class="{ 'bg-blue-50': !notification.read }"
             >
               <div class="flex items-start gap-2">
                 <div
-                  :class="getIconBgClass(notification.type)"
                   class="rounded-full p-2 flex-shrink-0"
+                  :class="getIconBgClass(notification.type)"
                 >
                   <Calendar
                     v-if="notification.type === NotificationResponseType.EXPIRY_REMINDER"
@@ -691,17 +722,17 @@ export default {
             class="p-2 border-t border-gray-100"
           >
             <button
+              @click="markAllAsRead"
               :disabled="isMarkingAllAsRead"
               class="text-sm text-blue-600 hover:text-blue-800 w-full text-center disabled:opacity-50 mb-2"
-              @click="markAllAsRead"
             >
               {{ isMarkingAllAsRead ? 'Markerer...' : 'Marker alle som lest' }}
             </button>
           </div>
           <div class="p-2 border-t border-gray-100">
             <router-link
-              class="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center"
               to="/varsler"
+              class="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center"
               @click="showMobileNotifications = false"
             >
               <span>Se alle varsler</span>
@@ -712,8 +743,8 @@ export default {
 
         <template v-if="!authStore.isAuthenticated">
           <router-link
-            class="flex items-center px-3 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700"
             to="/logg-inn"
+            class="flex items-center px-3 py-2 mt-2 rounded bg-blue-600 text-white hover:bg-blue-700"
           >
             <LogIn class="h-5 w-5 mr-2" />
             <span>Logg inn</span>
@@ -753,7 +784,7 @@ export default {
                     <span>Mine Refleksjoner</span>
                   </DropdownMenuItem>
                 </router-link>
-                <DropdownMenuItem variant="destructive" @select="authStore.logout">
+                <DropdownMenuItem @select="authStore.logout" variant="destructive">
                   <LogOut class="h-4 w-4 mr-2" />
                   <span>Logg ut</span>
                 </DropdownMenuItem>
