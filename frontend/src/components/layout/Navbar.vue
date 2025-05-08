@@ -543,7 +543,13 @@ export default {
                 :notifications="notifications"
                 :unread-count="unreadCountData"
                 :is-loading="isLoadingNotifications"
-                :error="notificationsError"
+                :error="
+                  notificationsError instanceof Error
+                    ? notificationsError
+                    : notificationsError
+                      ? String(notificationsError)
+                      : null
+                "
                 :is-marking-all-as-read="isMarkingAllAsRead"
                 :should-show-notifications="shouldShowNotifications"
                 @mark-all-as-read="markAllAsRead"
