@@ -101,7 +101,26 @@ public class AuthService {
   public RegisterResponse registerAdmin(RegisterRequest request) {
     // Validate email has permission to register as admin
     // TODO: Implement email validation logic, if fails, throw org.springframework.security.access.AccessDeniedException
-    return registerWithRole(request, RoleType.ADMIN);
+    User user = userService.createUser(new CreateUser(
+        request.getEmail(),
+        request.getPassword(),
+        request.getFirstName(),
+        request.getLastName(),
+        true,  // enabled
+        true,  // emailVerified
+        true), // accountNonLocked
+        RoleType.ADMIN);
+
+    UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+
+    String accessToken = tokenService.generateAccessToken(userDetails);
+    String refreshToken = tokenService.generateRefreshToken(userDetails);
+
+    refreshTokenRepository.save(RefreshToken.builder().token(refreshToken).user(user).build());
+
+    return new RegisterResponse(
+        accessToken,
+        refreshToken);
   }
 
   private RegisterResponse registerWithRole(RegisterRequest registerRequest, RoleType roleType) {

@@ -141,7 +141,6 @@ const onSubmit = handleSubmit(async (values) => {
       ...registrationData,
       email: userEmail.value,
       turnstileToken: captchaToken.value,
-      inviteToken: token.value,
     })
     toast('Suksess', {
       description: 'Admin-kontoen din er opprettet og du er nå logget inn',

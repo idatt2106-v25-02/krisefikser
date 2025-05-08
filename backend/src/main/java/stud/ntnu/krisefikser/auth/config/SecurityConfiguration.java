@@ -62,7 +62,7 @@ public class SecurityConfiguration {
             .requestMatchers(HttpMethod.GET, "/api/map-point-types", "/api/map-point-types/**")
             .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
-            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refresh",
+            .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/register/admin", "/api/auth/refresh",
                 "/api/auth/request-password-reset", "/api/auth/complete-password-reset")
             .permitAll()
             .requestMatchers(HttpMethod.POST, "/api/email/**", "/api/auth/verify-email", "/api/auth/verify-password-reset", "/api/auth/invite/admin").permitAll()
