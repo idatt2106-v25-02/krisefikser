@@ -64,20 +64,12 @@ const goBackToNews = () => {
         </button>
       </div>
 
-    <div v-else-if="article" class="space-y-6">
-      <img
-        v-if="article.imageUrl"
-        :src="article.imageUrl"
-        alt=""
-        class="w-full h-[400px] object-cover rounded-lg"
-      />
-      <div class="text-sm text-gray-500">{{ formatDate(article.createdAt) }}</div>
-      <h1 class="text-4xl font-bold text-gray-800">{{ article.title }}</h1>
-      <div class="prose prose-lg max-w-none text-gray-600">
-        <p>{{ article.text }}</p>
+      <!-- Loading state -->
+      <div v-if="isLoading" class="bg-white rounded-lg shadow-lg p-8 flex items-center justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
 
-      <!-- Error state with better visual cues -->
+      <!-- Error state -->
       <div v-else-if="error" class="bg-white rounded-lg shadow-lg p-8 border-l-4 border-red-500">
         <div class="flex items-start">
           <div class="flex-shrink-0 mt-0.5">
@@ -92,7 +84,7 @@ const goBackToNews = () => {
         </div>
       </div>
 
-      <!-- Article Content with enhanced styling -->
+      <!-- Article Content -->
       <div v-else-if="article" class="bg-white rounded-lg shadow-lg p-8 relative">
         <!-- Decorative element in top corner -->
         <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/70 rounded-bl-full -mt-2 -mr-2 overflow-hidden z-0">
@@ -110,16 +102,16 @@ const goBackToNews = () => {
 
           <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">{{ article.title }}</h1>
 
-          <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-            <p>{{ article.text }}</p>
-          </div>
-
-          <div v-if="article.imageUrl" class="mt-8">
+          <div v-if="article.imageUrl" class="mb-8">
             <img
               :src="article.imageUrl"
               alt="Artikkelillustrasjon"
-              class="rounded-lg w-full h-auto shadow-md"
+              class="rounded-lg w-full h-[400px] object-cover shadow-md"
             />
+          </div>
+
+          <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
+            <p>{{ article.text }}</p>
           </div>
         </div>
       </div>
