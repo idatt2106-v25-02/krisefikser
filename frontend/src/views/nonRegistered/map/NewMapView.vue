@@ -16,19 +16,21 @@ const { initMap, addMarkers, onMapCreated, clearMarkers } = useMap()
 const renderNewMapPoints = async () => {
   clearMarkers()
 
-  const stopDataLoadWatcher = watch(
+  // Shelter and other map points (points added through admin dashboard)
+  const stopMapPointWatcher = watch(
     [mapPointsData, mapPointTypesData],
     ([newMapPoints, newMapPointTypes]) => {
       if (newMapPoints && newMapPointTypes) {
         console.log('Map points size', newMapPoints.length)
-        const mapPoints = loadMapPoints(newMapPoints, newMapPointTypes)
-        addMarkers(mapPoints)
-        stopDataLoadWatcher()
+        const mapMarkers = loadMapPoints(newMapPoints, newMapPointTypes)
+        addMarkers(mapMarkers)
+        stopMapPointWatcher()
       }
     },
     { immediate: true },
   )
 
+  // User location marker
   const userMarker = await createUserMarker()
   addMarkers([userMarker])
 }

@@ -1,4 +1,4 @@
-import type { MarkerComponent } from '.'
+import { MarkerType, type MarkerComponent } from '.'
 
 export async function createUserMarker(): Promise<MarkerComponent> {
   const markerPosition = await new Promise<{ latitude: number; longitude: number }>(
@@ -29,5 +29,6 @@ export async function createUserMarker(): Promise<MarkerComponent> {
     longitude: markerPosition.longitude,
     iconUrl: '/icons/map/user.svg',
     popupContent: 'User Location',
+    type: MarkerType.User,
   }
 }

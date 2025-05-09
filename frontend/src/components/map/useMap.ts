@@ -28,9 +28,14 @@ function addTileLayer(map: L.Map) {
   }
 }
 
+interface MarkerInstance {
+  marker: L.Marker
+  markerComponent: MarkerComponent
+}
+
 export const useMap = () => {
   const map = ref<L.Map | null>(null)
-  const markers = ref<L.Marker[]>([])
+  const markers = ref<MarkerInstance[]>([])
   const mapCreatedCallbacks = ref<MapCreatedCallback[]>([])
 
   const initMap = (elementId: string = 'map') => {
@@ -71,7 +76,7 @@ export const useMap = () => {
         .addTo(map.value as L.Map)
         .bindPopup(markerComponent.popupContent)
 
-      markers.value.push(marker)
+      markers.value.push({ marker, markerComponent })
     })
   }
 
