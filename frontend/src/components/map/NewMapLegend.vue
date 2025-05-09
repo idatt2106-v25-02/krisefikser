@@ -1,11 +1,11 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ref } from 'vue'
 import { type FilterOptions } from '@/components/map/useMap'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, ChevronUp, Home, User, MapPin } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, Home, User } from 'lucide-vue-next'
 
 const filterOptions = ref<FilterOptions>({
   eventEnabled: true,
@@ -19,10 +19,6 @@ const filterOptions = ref<FilterOptions>({
 
 const isExpanded = ref(true)
 const isLegendExpanded = ref(true)
-const userLocationAvailable = ref(true)
-const showUserLocation = ref(true)
-const hasActiveHousehold = ref(true)
-const isAddingMeetingPoint = ref(false)
 const userInCrisisZone = ref(false)
 
 const toggleExpanded = () => {
@@ -31,14 +27,6 @@ const toggleExpanded = () => {
 
 const toggleLegendExpanded = () => {
   isLegendExpanded.value = !isLegendExpanded.value
-}
-
-const toggleUserLocation = () => {
-  showUserLocation.value = !showUserLocation.value
-}
-
-const toggleMeetingPointCreation = () => {
-  isAddingMeetingPoint.value = !isAddingMeetingPoint.value
 }
 
 type FilterItem = {
@@ -56,14 +44,11 @@ const filterItems: FilterItem[] = [
   { key: 'otherEnabled', label: 'Andre' },
 ]
 
-console.log(filterOptions.value)
-
 const props = defineProps<{
   filterMarkers: (options: FilterOptions) => void
 }>()
 
 const handleToggle = (option: keyof FilterOptions, value: boolean) => {
-  console.log(filterOptions.value)
   filterOptions.value[option] = value
   props.filterMarkers(filterOptions.value)
 }
@@ -73,30 +58,30 @@ const handleToggle = (option: keyof FilterOptions, value: boolean) => {
   <div class="absolute top-5 right-5 z-10 flex flex-col gap-2.5">
     <!-- Filter Card -->
     <Card
-      class="w-64 transition-all duration-300"
       :class="{
         'card-expanded': isExpanded,
         'card-collapsed': !isExpanded,
         'gap-0': !isExpanded,
         'gap-6': isExpanded,
       }"
+      class="w-64 transition-all duration-300"
     >
       <CardHeader class="flex items-center justify-between h-0">
         <CardTitle class="text-md">Kartfilter</CardTitle>
         <Button
-          variant="ghost"
-          size="sm"
-          class="h-8 w-8 p-0"
-          @click="toggleExpanded"
           aria-label="Vis/skjul kartfilter"
+          class="h-8 w-8 p-0"
+          size="sm"
+          variant="ghost"
+          @click="toggleExpanded"
         >
           <ChevronUp v-if="isExpanded" class="h-4 w-4" />
           <ChevronDown v-else class="h-4 w-4" />
         </Button>
       </CardHeader>
       <div
-        class="content-wrapper"
         :class="{ 'content-expanded': isExpanded, 'content-collapsed': !isExpanded }"
+        class="content-wrapper"
       >
         <CardContent class="flex flex-col gap-4 pt-2">
           <div
@@ -117,30 +102,30 @@ const handleToggle = (option: keyof FilterOptions, value: boolean) => {
 
     <!-- Legend Card -->
     <Card
-      class="w-64 transition-all duration-300"
       :class="{
         'card-expanded': isLegendExpanded,
         'card-collapsed': !isLegendExpanded,
         'gap-0': !isLegendExpanded,
         'gap-6': isLegendExpanded,
       }"
+      class="w-64 transition-all duration-300"
     >
       <CardHeader class="flex items-center justify-between h-0">
         <CardTitle class="text-md">Tegnforklaring</CardTitle>
         <Button
-          variant="ghost"
-          size="sm"
-          class="h-8 w-8 p-0"
-          @click="toggleLegendExpanded"
           aria-label="Vis/skjul tegnforklaring"
+          class="h-8 w-8 p-0"
+          size="sm"
+          variant="ghost"
+          @click="toggleLegendExpanded"
         >
           <ChevronUp v-if="isLegendExpanded" class="h-4 w-4" />
           <ChevronDown v-else class="h-4 w-4" />
         </Button>
       </CardHeader>
       <div
-        class="content-wrapper"
         :class="{ 'content-expanded': isLegendExpanded, 'content-collapsed': !isLegendExpanded }"
+        class="content-wrapper"
       >
         <CardContent class="flex flex-col gap-4 pt-2">
           <!-- Location Section -->
@@ -187,28 +172,6 @@ const handleToggle = (option: keyof FilterOptions, value: boolean) => {
         </CardContent>
       </div>
     </Card>
-
-    <!-- Action Buttons -->
-    <Button
-      v-if="userLocationAvailable"
-      variant="secondary"
-      class="w-full"
-      @click="toggleUserLocation"
-    >
-      <User class="h-4 w-4 mr-2" />
-      {{ showUserLocation ? 'Skjul min posisjon' : 'Vis min posisjon' }}
-    </Button>
-
-    <Button
-      v-if="hasActiveHousehold"
-      variant="default"
-      :disabled="isAddingMeetingPoint"
-      class="w-full"
-      @click="toggleMeetingPointCreation"
-    >
-      <MapPin class="h-4 w-4 mr-2" />
-      {{ isAddingMeetingPoint ? 'Klikk på kartet' : 'Legg til møtepunkt' }}
-    </Button>
 
     <!-- Crisis Warning -->
     <div
