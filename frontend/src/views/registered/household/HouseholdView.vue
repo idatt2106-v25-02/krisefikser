@@ -267,7 +267,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
           <div class="lg:col-span-4 space-y-6">
             <!-- Meeting Places Section -->
             <HouseholdMeetingPlaces
-              :meeting-places="household.meetingPlaces ?? []"
+              :household-id="household.id"
               :household-latitude="household.latitude"
               :household-longitude="household.longitude"
               @meeting-place-selected="handleMeetingPlaceSelected"
