@@ -18,6 +18,7 @@ const filterOptions = ref<FilterOptions>({
 })
 
 const isExpanded = ref(true)
+const isLegendExpanded = ref(true)
 const userLocationAvailable = ref(true)
 const showUserLocation = ref(true)
 const hasActiveHousehold = ref(true)
@@ -26,6 +27,10 @@ const userInCrisisZone = ref(false)
 
 const toggleExpanded = () => {
   isExpanded.value = !isExpanded.value
+}
+
+const toggleLegendExpanded = () => {
+  isLegendExpanded.value = !isLegendExpanded.value
 }
 
 const toggleUserLocation = () => {
@@ -111,51 +116,76 @@ const handleToggle = (option: keyof FilterOptions, value: boolean) => {
     </Card>
 
     <!-- Legend Card -->
-    <Card class="w-64">
-      <CardHeader>
-        <div class="flex items-center justify-between">
-          <CardTitle class="text-lg">Tegnforklaring</CardTitle>
-        </div>
+    <Card
+      class="w-64 transition-all duration-300"
+      :class="{
+        'card-expanded': isLegendExpanded,
+        'card-collapsed': !isLegendExpanded,
+        'gap-0': !isLegendExpanded,
+        'gap-6': isLegendExpanded,
+      }"
+    >
+      <CardHeader class="flex items-center justify-between h-0">
+        <CardTitle class="text-md">Tegnforklaring</CardTitle>
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-8 w-8 p-0"
+          @click="toggleLegendExpanded"
+          aria-label="Vis/skjul tegnforklaring"
+        >
+          <ChevronUp v-if="isLegendExpanded" class="h-4 w-4" />
+          <ChevronDown v-else class="h-4 w-4" />
+        </Button>
       </CardHeader>
-      <CardContent class="flex flex-col gap-4">
-        <!-- Location Section -->
-        <div>
-          <h3 class="text-sm font-semibold mb-2">Lokasjon:</h3>
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center">
-              <div class="w-5 h-5 mr-2.5 bg-blue-500 rounded-full flex items-center justify-center">
-                <User class="h-3 w-3 text-white" />
+      <div
+        class="content-wrapper"
+        :class="{ 'content-expanded': isLegendExpanded, 'content-collapsed': !isLegendExpanded }"
+      >
+        <CardContent class="flex flex-col gap-4 pt-2">
+          <!-- Location Section -->
+          <div>
+            <h3 class="text-sm font-semibold mb-2">Lokasjon:</h3>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center">
+                <div
+                  class="w-5 h-5 mr-2.5 bg-blue-500 rounded-full flex items-center justify-center"
+                >
+                  <User class="h-3 w-3 text-white" />
+                </div>
+                <span class="text-sm">Min posisjon</span>
               </div>
-              <span class="text-sm">Min posisjon</span>
-            </div>
-            <div class="flex items-center">
-              <div class="w-5 h-5 mr-2.5 bg-red-500 rounded-full flex items-center justify-center">
-                <Home class="h-3 w-3 text-white" />
+              <div class="flex items-center">
+                <div
+                  class="w-5 h-5 mr-2.5 bg-red-500 rounded-full flex items-center justify-center"
+                >
+                  <Home class="h-3 w-3 text-white" />
+                </div>
+                <span class="text-sm">Hjem</span>
               </div>
-              <span class="text-sm">Hjem</span>
             </div>
           </div>
-        </div>
 
-        <!-- Events Section -->
-        <div>
-          <h3 class="text-sm font-semibold mb-2">Hendelser:</h3>
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center">
-              <div class="w-5 h-5 mr-2.5 bg-[#4CAF50] rounded-full opacity-60"></div>
-              <span class="text-sm">Grønt nivå (Informasjon)</span>
-            </div>
-            <div class="flex items-center">
-              <div class="w-5 h-5 mr-2.5 bg-[#FFC107] rounded-full opacity-60"></div>
-              <span class="text-sm">Gult nivå (Advarsel)</span>
-            </div>
-            <div class="flex items-center">
-              <div class="w-5 h-5 mr-2.5 bg-[#F44336] rounded-full opacity-60"></div>
-              <span class="text-sm">Rødt nivå (Fare)</span>
+          <!-- Events Section -->
+          <div>
+            <h3 class="text-sm font-semibold mb-2">Hendelser:</h3>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center">
+                <div class="w-5 h-5 mr-2.5 bg-[#4CAF50] rounded-full opacity-60"></div>
+                <span class="text-sm">Grønt nivå (Informasjon)</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-5 h-5 mr-2.5 bg-[#FFC107] rounded-full opacity-60"></div>
+                <span class="text-sm">Gult nivå (Advarsel)</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-5 h-5 mr-2.5 bg-[#F44336] rounded-full opacity-60"></div>
+                <span class="text-sm">Rødt nivå (Fare)</span>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
+        </CardContent>
+      </div>
     </Card>
 
     <!-- Action Buttons -->
