@@ -118,7 +118,7 @@ public class EmailVerificationService {
       variables.put("name", user.getFirstName());
       variables.put("link", verificationLink);
 
-      String htmlContent = emailTemplateService.loadAndReplace("admin-invite.html", variables);
+      String htmlContent = emailTemplateService.loadAndReplace("admin-login-verification.html", variables);
 
       return emailService.sendEmail(
           user.getEmail(),
