@@ -433,7 +433,7 @@ function handleChangeActiveHousehold(householdId: string) {
       <DialogHeader>
         <DialogTitle>Legg til medlem</DialogTitle>
         <DialogDescription>
-          Velg om du vil invitere en bruker via e-post eller legge til et medlem uten konto.
+          Velg om du vil invitere en bruker via nettsiden eller legge til et medlem uten konto.
         </DialogDescription>
       </DialogHeader>
 
@@ -443,7 +443,7 @@ function handleChangeActiveHousehold(householdId: string) {
             :variant="memberMode === 'invite' ? 'default' : 'outline'"
             @click="handleModeChange('invite')"
           >
-            Inviter via e-post
+            Invitere via nettsiden
           </Button>
           <Button
             :variant="memberMode === 'add' ? 'default' : 'outline'"
