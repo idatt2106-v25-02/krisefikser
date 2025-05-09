@@ -16,6 +16,23 @@ const { data: events } = useGetAllEvents()
 
 // Form states
 const activeTab = ref<AdminTab>('map-point-types')
+const selectMode = ref(false)
+const mapCoordinates = ref<{ lat: number; lng: number } | null>(null)
+
+const handleMapClick = (lat: number, lng: number) => {
+  if (selectMode.value) {
+    mapCoordinates.value = { lat, lng }
+  }
+}
+
+const handleSelectModeChange = (isActive: boolean) => {
+  selectMode.value = isActive
+}
+
+// Watch for coordinate changes to reset after they've been used
+const onMapCoordinatesEmitted = () => {
+  mapCoordinates.value = null
+}
 </script>
 
 <template>
@@ -33,24 +50,39 @@ const activeTab = ref<AdminTab>('map-point-types')
               { id: 'events', label: 'Hendelser' },
             ]"
             :key="tab.id"
-            @click="activeTab = tab.id as AdminTab"
             :class="[
               'px-4 py-2 rounded-lg',
               activeTab === tab.id
                 ? 'bg-primary text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
             ]"
+            @click="activeTab = tab.id as AdminTab"
           >
             {{ tab.label }}
           </button>
         </div>
 
         <MapPointTypesManager v-if="activeTab === 'map-point-types'" />
-        <MapPointsManager v-if="activeTab === 'map-points'" />
-        <EventsManager v-if="activeTab === 'events'" />
+        <MapPointsManager
+          v-if="activeTab === 'map-points'"
+          :map-coordinates="mapCoordinates"
+          @map-selection-mode-change="handleSelectModeChange"
+          @map-coordinates-handled="onMapCoordinatesEmitted"
+        />
+        <EventsManager
+          v-if="activeTab === 'events'"
+          :map-coordinates="mapCoordinates"
+          @map-selection-mode-change="handleSelectModeChange"
+          @map-coordinates-handled="onMapCoordinatesEmitted"
+        />
       </div>
 
-      <AdminMapContainer :map-points="mapPoints" :events="events" />
+      <AdminMapContainer
+        :events="events"
+        :map-points="mapPoints"
+        :select-mode="selectMode"
+        @map-click="handleMapClick"
+      />
     </div>
   </AdminLayout>
 </template>

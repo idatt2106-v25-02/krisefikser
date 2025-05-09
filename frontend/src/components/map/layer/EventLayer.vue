@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import L from 'leaflet'
 import type { EventResponse } from '@/api/generated/model'
 import {
@@ -241,6 +241,12 @@ function initializeWebsocket() {
 onMounted(() => {
   initializeEvents()
   initializeWebsocket()
+})
+
+onUnmounted(() => {
+  webSocket.unsubscribe('/topic/events')
+  webSocket.unsubscribe('/topic/events/new')
+  webSocket.unsubscribe('/topic/events/delete')
 })
 
 watch(
