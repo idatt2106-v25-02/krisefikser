@@ -240,12 +240,12 @@ const router = createRouter({
     {
       path: '/kart',
       name: 'map',
-      component: MapView,
+      component: NewMapView,
     },
     {
-      path: '/kart/test',
-      name: 'map-test',
-      component: NewMapView,
+      path: '/kart/old',
+      name: 'map-old',
+      component: MapView,
     },
     {
       path: '/registrer',

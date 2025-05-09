@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { onUnmounted, ref, watch } from 'vue'
-import MapComponent from '@/components/map/MapComponent.vue'
 import MapPointLayer from '@/components/map/layer/MapPointLayer.vue'
 import EventLayer from '@/components/map/layer/EventLayer.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
 import type { EventResponse as Event, MapPointResponse as MapPoint } from '@/api/generated/model'
 import L from 'leaflet'
+import NewMapComponent from '@/components/map/NewMapComponent.vue'
 
 const props = defineProps<{
   mapPoints: MapPoint[] | undefined
@@ -47,23 +47,6 @@ onUnmounted(() => {
 
 <template>
   <div class="flex-1 relative">
-    <MapComponent ref="mapRef" @map-created="onMapCreated" />
-
-    <MapPointLayer
-      v-if="mapInstance && mapPoints"
-      :map="mapInstance as L.Map"
-      :map-points="mapPoints"
-    />
-
-    <EventLayer v-if="mapInstance && events" :events="events" :map="mapInstance as L.Map" />
-
-    <MapLegend
-      :has-active-household="false"
-      :is-adding-meeting-point="false"
-      :show-user-location="false"
-      :user-in-crisis-zone="false"
-      :user-location-available="false"
-      @toggle-user-location="() => {}"
-    />
+    <NewMapComponent :show-legend="false" />
   </div>
 </template>
