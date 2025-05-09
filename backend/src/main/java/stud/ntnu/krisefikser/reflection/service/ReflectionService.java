@@ -56,7 +56,9 @@ public class ReflectionService {
         .content(request.getContent())
         .author(currentUser)
         .visibility(request.getVisibility())
-        .event(eventService.getEventEntityById(request.getEventId()))
+        .event(
+            request.getEventId() != null ? eventService.getEventEntityById(request.getEventId()) :
+                null)
         .build();
 
     // Set household if visibility is HOUSEHOLD
@@ -125,7 +127,9 @@ public class ReflectionService {
     reflection.setTitle(request.getTitle());
     reflection.setContent(request.getContent());
     reflection.setVisibility(request.getVisibility());
-    reflection.setEvent(eventService.getEventEntityById(request.getEventId()));
+    reflection.setEvent(
+        request.getEventId() != null ? eventService.getEventEntityById(request.getEventId()) :
+            null);
 
     // Update household if visibility is HOUSEHOLD
     if (request.getVisibility() == VisibilityType.HOUSEHOLD) {
