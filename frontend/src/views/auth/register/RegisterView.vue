@@ -11,6 +11,8 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
 import { useRouter } from 'vue-router'
+import { createPasswordConfirmationSchema, type ApiError } from '@/utils/validation/passwordSchemas'
+import { showSuccessToast, showErrorToast } from '@/utils/error/errorHandling'
 
 // Declare the global turnstile object
 declare const turnstile: {
@@ -36,45 +38,39 @@ declare const turnstile: {
 const router = useRouter()
 
 // Schema for the registration form
-const rawSchema = z
-  .object({
-    firstName: z
-      .string({ required_error: 'Fornavn er påkrevd' })
-      .min(2, 'Fornavn må være minst 2 tegn'),
-    lastName: z
-      .string({ required_error: 'Etternavn er påkrevd' })
-      .min(2, 'Etternavn må være minst 2 tegn'),
-    email: z
-      .string({ required_error: 'E-post er påkrevd' })
-      .email('Ugyldig e-post')
-      .min(5, 'E-post må være minst 5 tegn'),
-    householdCode: z
-      .string()
-      .refine((val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)), {
-        message: 'Husholdningskode må være nøyaktig 5 bokstaver (ingen tall)',
-      })
-      .optional(),
-    password: z
-      .string({ required_error: 'Passord er påkrevd' })
-      .min(8, 'Passord må være minst 8 tegn')
-      .max(50, 'Passord kan være maks 50 tegn')
-      .regex(/[A-Z]/, 'Må inneholde minst én stor bokstav')
-      .regex(/[a-z]/, 'Må inneholde minst én liten bokstav')
-      .regex(/[0-9]/, 'Må inneholde minst ett tall')
-      .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
-    confirmPassword: z.string({ required_error: 'Bekreft passord er påkrevd' }),
-    acceptedPrivacyPolicy: z.literal(true, {
-      errorMap: () => ({ message: 'Du må godta personvernerklæringen' }),
-    }),
-    //turnstileToken: z.string().min(1, 'Vennligst fullfør CAPTCHA-verifiseringen')
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passordene stemmer ikke overens',
-    path: ['confirmPassword'],
-  })
+const passwordFields = createPasswordConfirmationSchema()
+
+// Define the schema shape explicitly
+const schemaShape = {
+  firstName: z
+    .string({ required_error: 'Fornavn er påkrevd' })
+    .min(2, 'Fornavn må være minst 2 tegn'),
+  lastName: z
+    .string({ required_error: 'Etternavn er påkrevd' })
+    .min(2, 'Etternavn må være minst 2 tegn'),
+  email: z
+    .string({ required_error: 'E-post er påkrevd' })
+    .email('Ugyldig e-post')
+    .min(5, 'E-post må være minst 5 tegn'),
+  householdCode: z
+    .string()
+    .refine((val) => val === '' || (val.length === 5 && /^[a-zA-Z]+$/.test(val)), {
+      message: 'Husholdningskode må være nøyaktig 5 bokstaver (ingen tall)',
+    })
+    .optional(),
+  password: passwordFields.password,
+  confirmPassword: passwordFields.confirmPassword,
+  acceptedPrivacyPolicy: z.literal(true, {
+    errorMap: () => ({ message: 'Du må godta personvernerklæringen' }),
+  }),
+}
+
+const rawSchema = z.object(schemaShape)
+
+type RegistrationFormValues = z.infer<typeof rawSchema>
 
 // Set up consts for submit button deactivation
-const { handleSubmit, meta, setFieldError } = useForm({
+const { handleSubmit, meta, setFieldError } = useForm<RegistrationFormValues>({
   validationSchema: toTypedSchema(rawSchema),
 })
 
@@ -86,20 +82,12 @@ const isLoading = ref(false)
 const emailInputRef = ref<HTMLInputElement | null>(null)
 
 // Function to parse error messages and provide specific user feedback
-const getErrorMessage = (error: {
-  response?: { data?: { message?: string }; status?: number }
-}) => {
-  // Default message
-  const message = 'Kunne ikke registrere. Vennligst prøv igjen.'
+const handleRegistrationError = (error: unknown) => {
+  // Reset the captcha on failed registration
+  resetTurnstile()
 
-  // Extract error message from response if available
-  const errorMessage = error?.response?.data?.message || ''
-
-  if (error?.response?.status === 429) {
-    return 'For mange forsøk. Vennligst vent litt før du prøver igjen.'
-  }
-
-  if (error?.response?.status === 409) {
+  const apiError = error as ApiError
+  if (apiError.response?.status === 409) {
     // Set error directly on the email field
     setFieldError(
       'email',
@@ -109,14 +97,9 @@ const getErrorMessage = (error: {
     nextTick(() => {
       emailInputRef.value?.focus()
     })
-    return 'E-postadressen er allerede registrert.'
   }
 
-  if (error?.response?.status === 500) {
-    return 'Det oppstod en serverfeil. Vennligst prøv igjen senere.'
-  }
-
-  return errorMessage || message
+  showErrorToast('Registreringsfeil', error)
 }
 
 // Reset Turnstile function to rerender captcha
@@ -128,7 +111,7 @@ function resetTurnstile() {
   }
 }
 
-const onSubmit = handleSubmit(async (values) => {
+const onSubmit = handleSubmit(async (values: RegistrationFormValues) => {
   if (isLoading.value) return
 
   isLoading.value = true
@@ -138,16 +121,10 @@ const onSubmit = handleSubmit(async (values) => {
       ...registrationData,
       turnstileToken: captchaToken.value,
     })
-    toast('Suksess')
+    showSuccessToast('Suksess')
     await router.push('/bekreft-e-post')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    // Reset the captcha on failed registration
-    resetTurnstile()
-
-    toast('Registreringsfeil', {
-      description: getErrorMessage(error),
-    })
+  } catch (error: unknown) {
+    handleRegistrationError(error)
   } finally {
     isLoading.value = false
   }

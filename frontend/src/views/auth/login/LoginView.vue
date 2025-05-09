@@ -1,175 +1,18 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import * as z from 'zod'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { computed } from 'vue'
 import { Mail, AlertCircle } from 'lucide-vue-next'
-import { useRoute, useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
+import { useRoute } from 'vue-router'
 
-// UI components
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useLoginForm } from '@/utils/auth/useLoginForm'
 
-// === Store logic ===
-const authStore = useAuthStore()
 const route = useRoute()
-const router = useRouter()
-
-// Get redirect path from route query if available
 const redirectPath = computed(() => (route.query.redirect as string) || '/dashboard')
-
-// === Schema logic ===
-const formSchema = computed(() =>
-  toTypedSchema(
-    z.object({
-      identifier: z.string().email('Ugyldig e-post').min(5, 'E-post er for kort'),
-      password: z.string().min(1, 'Passord er påkrevd'),
-    }),
-  ),
-)
-
-// === Form logic ===
-const { handleSubmit, meta, resetForm, setFieldError } = useForm({
-  validationSchema: formSchema,
-})
-
-// Loading state
-const isLoading = ref(false)
-// Track login attempts to allow resubmission
-const hasAttemptedLogin = ref(false)
-// Form level error message
-const formError = ref('')
-
-// Define error type for reuse
-type ApiError = {
-  response?: { data?: { message?: string }; status?: number }
-}
-
-// Function to provide specific error messages based on error responses
-const getLoginErrorMessage = (error: ApiError) => {
-  const message = 'Kunne ikke logge inn. Vennligst prøv igjen.'
-
-  const errorMessage = error?.response?.data?.message || ''
-  const statusCode = error?.response?.status
-
-  // Check for specific error types and provide user-friendly messages
-  if (
-    errorMessage.includes('Bad credentials') ||
-    errorMessage.includes('incorrect password') ||
-    errorMessage.includes('wrong password') ||
-    statusCode === 401
-  ) {
-    return 'Feil e-post eller passord. Vennligst prøv igjen.'
-  }
-
-  if (statusCode === 404) {
-    return 'E-postadressen er ikke registrert. Vennligst registrer deg eller sjekk om du har skrevet riktig e-post.'
-  }
-
-  if (errorMessage.includes('locked')) {
-    // Extract timestamp if available
-    const lockTimeMatch = errorMessage.match(/locked until (.+)/i)
-    if (lockTimeMatch && lockTimeMatch[1]) {
-      try {
-        // Parse the datetime from the error message
-        const lockTime = new Date(lockTimeMatch[1])
-        const now = new Date()
-
-        // Calculate minutes remaining
-        const minutesRemaining = Math.ceil((lockTime.getTime() - now.getTime()) / 60000)
-
-        if (minutesRemaining > 0) {
-          return `Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen om ${minutesRemaining} minutt${minutesRemaining === 1 ? '' : 'er'}.`
-        }
-      } catch (_e) {
-        // If parsing fails, just use the generic message
-        console.error('Error parsing lock time:', _e)
-        return 'Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen senere.'
-      }
-    }
-    return 'Kontoen er låst på grunn av for mange innloggingsforsøk. Vennligst prøv igjen senere.'
-  }
-
-  if (errorMessage.includes('disabled')) {
-    return 'Kontoen er deaktivert. Vennligst kontakt administrator for hjelp.'
-  }
-
-  if (statusCode === 429) {
-    return 'For mange innloggingsforsøk. Vennligst vent litt før du prøver igjen.'
-  }
-
-  return errorMessage || message
-}
-
-// Submit handler
-const onSubmit = handleSubmit(async (values) => {
-  if (isLoading.value) return
-
-  isLoading.value = true
-  hasAttemptedLogin.value = true
-  // Clear any previous errors
-  formError.value = ''
-
-  try {
-    // Map identifier to email for backend compatibility
-    const loginData = {
-      email: values.identifier,
-      password: values.password,
-    }
-    try {
-      await authStore.login(loginData)
-      toast('Suksess', {
-        description: 'Du er nå logget inn',
-      })
-    } catch (error: unknown) {
-      const errorMessage = getLoginErrorMessage(error as ApiError)
-      formError.value = errorMessage
-
-      // Set field-specific errors when appropriate
-      if (errorMessage.includes('Feil e-post eller passord')) {
-        setFieldError('password', 'Feil passord')
-      }
-
-      if (errorMessage.includes('ikke registrert')) {
-        setFieldError('identifier', 'E-postadressen er ikke registrert')
-      }
-
-      toast('Innloggingsfeil', {
-        description: errorMessage,
-      })
-    }
-
-    // Redirect to the intended page after successful login
-    await router.push(redirectPath.value)
-  } catch (error: unknown) {
-    const errorMessage = getLoginErrorMessage(error as ApiError)
-    formError.value = errorMessage
-
-    toast('Innloggingsfeil', {
-      description: errorMessage,
-    })
-
-    // Clear password field but maintain identifier
-    resetForm({
-      values: {
-        identifier: values.identifier,
-        password: '',
-      },
-      touched: { identifier: true, password: false },
-      errors: {}, // Clear all validation errors
-    })
-
-    // Re-enable the form for submission
-    hasAttemptedLogin.value = false
-  } finally {
-    isLoading.value = false
-  }
-})
+const { isLoading, hasAttemptedLogin, formError, meta, onSubmit } = useLoginForm(redirectPath.value)
 </script>
 
 <template>

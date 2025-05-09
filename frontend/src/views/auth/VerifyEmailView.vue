@@ -23,11 +23,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-// Ingen spesifikk logikk trengs for denne visningen foreløpig
-</script>
-
-<style scoped>
-/* Ingen spesifikke stiler trengs utover Tailwind */
-</style>
