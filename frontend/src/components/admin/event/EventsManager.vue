@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { EventResponse as Event } from '@/api/generated/model'
 import {
   EventResponseLevel as EventLevel,
@@ -71,9 +71,14 @@ const editingEvent = ref<Event | null>(null)
 const isDialogOpen = ref(false)
 const isMapSelectionMode = ref(false)
 
+const props = defineProps<{
+  mapCoordinates?: { lat: number; lng: number } | null
+}>()
+
 const emit = defineEmits<{
   (e: 'map-click', lat: number, lng: number): void
   (e: 'map-selection-mode-change', isActive: boolean): void
+  (e: 'map-coordinates-handled'): void
 }>()
 
 function _handleMapClick(lat: number, lng: number) {
@@ -204,6 +209,18 @@ function resetNewEvent() {
     status: EventStatus.UPCOMING,
   }
 }
+
+// Watch for incoming map coordinates
+watch(
+  () => props.mapCoordinates,
+  (coordinates) => {
+    if (coordinates && isMapSelectionMode.value) {
+      _handleMapClick(coordinates.lat, coordinates.lng)
+      emit('map-coordinates-handled')
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
