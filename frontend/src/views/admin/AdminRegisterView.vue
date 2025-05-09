@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { onMounted, ref, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { User, Mail } from 'lucide-vue-next'
+import { Mail, User } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import { toast } from 'vue-sonner'
 import { useRoute, useRouter } from 'vue-router'
 import { verifyAdminInviteToken } from '@/api/generated/authentication/authentication'
+import { Button } from '@/components/ui/button'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 // Declare the global turnstile object
 declare const turnstile: {
@@ -29,11 +33,6 @@ declare const turnstile: {
   getResponse: (widgetId?: string) => string
   remove: (widgetId?: string) => void
 }
-
-import { Button } from '@/components/ui/button'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import PasswordInput from '@/components/auth/PasswordInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -170,13 +169,13 @@ onMounted(() => {
     },
     'error-callback': () => {
       toast('Error', {
-        description: 'Captcha token error',
+        description: 'Captcha token feil',
       })
       captchaToken.value = ''
     },
     'expired-callback': () => {
       toast('Warning', {
-        description: 'Captcha token expired',
+        description: 'Captcha token har utløpt',
       })
       captchaToken.value = ''
     },

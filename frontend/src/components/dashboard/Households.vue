@@ -15,14 +15,12 @@ import {
 } from '@/api/generated/household-invite-controller/household-invite-controller'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-// Import Button component
 import { Button } from '@/components/ui/button'
 
 const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
-// Leave household mutation
 const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
@@ -33,7 +31,6 @@ const { mutate: leaveHousehold } = useLeaveHousehold({
   },
 })
 
-// Set active household mutation
 const { mutate: setActiveHousehold } = useSetActiveHousehold({
   mutation: {
     onSuccess: () => {
@@ -252,27 +249,6 @@ const router = useRouter()
         </svg>
         Opprett ny husstand
       </router-link>
-
-      <button
-        class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
-        @click="showJoinModal = true"
-      >
-        <svg
-          class="h-4 w-4 mr-1"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-          />
-        </svg>
-        Bli med i husstand
-      </button>
     </div>
   </div>
 
