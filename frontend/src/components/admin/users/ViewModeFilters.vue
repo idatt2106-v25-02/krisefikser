@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { Users, UserCog, Home } from 'lucide-vue-next'
 
-const props = defineProps<{
+defineProps<{
   viewMode: string
 }>()
 

@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 const authStore = useAuthStore()
 
-const props = defineProps<{
+defineProps<{
   users: UserResponse[]
   isLoading: boolean
 }>()
