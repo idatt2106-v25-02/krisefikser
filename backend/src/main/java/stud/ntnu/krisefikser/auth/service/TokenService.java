@@ -201,12 +201,6 @@ public class TokenService {
     }
   }
 
-  /**
-   * Extracts all claims from the token.
-   *
-   * @param token the JWT token
-   * @return the claims extracted from the token
-   */
   private Claims getAllClaims(String token) {
     return Jwts.parser()
         .verifyWith(secretKey)

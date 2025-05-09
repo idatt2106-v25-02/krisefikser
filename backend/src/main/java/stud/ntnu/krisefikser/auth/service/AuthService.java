@@ -120,7 +120,7 @@ public class AuthService {
    */
   public RegisterResponse registerAdmin(RegisterRequest request) {
     if (!isValidAdminInviteToken(request.getEmail())) {
-      throw new RuntimeException("Invalid admin invite token");
+      throw new InvalidCredentialsException("Invalid admin invite token");
     }
 
     User user = userService.createUser(new CreateUser(
@@ -128,10 +128,10 @@ public class AuthService {
         request.getPassword(),
         request.getFirstName(),
         request.getLastName(),
-        true,  // notifications
-        true,  // emailUpdates
-        true,  // locationSharing
-        List.of(RoleType.USER, RoleType.ADMIN)  // Multiple roles
+        true,
+        true,
+        true,
+        List.of(RoleType.USER, RoleType.ADMIN)
     ));
 
     // Set email as verified for admins
@@ -174,8 +174,9 @@ public class AuthService {
     }
 
     if (user.getRoles().stream()
-        .anyMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
-        user.getRoles().stream().noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
+        .anyMatch(role -> role.getName().equals(RoleType.ADMIN))
+        && user.getRoles().stream()
+        .noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       log.info("Admin login attempt for user: {}", user.getEmail());
 
       // Generate verification token for admin login
@@ -197,7 +198,7 @@ public class AuthService {
       // Reset password retries on successful login
       if (user.getPasswordRetries() > 0) {
         user.setPasswordRetries(0);
-        user.setLockedUntil(LocalDateTime.now().minusMinutes(1)); // Set to past time
+        user.setLockedUntil(LocalDateTime.now().minusMinutes(1));
         userRepository.save(user);
       }
     } catch (Exception e) {
@@ -436,8 +437,9 @@ public class AuthService {
 
     User user = userService.getUserByEmail(email);
     if (user == null || user.getRoles().stream()
-        .noneMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
-        user.getRoles().stream().noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
+        .noneMatch(role -> role.getName().equals(RoleType.ADMIN))
+        && user.getRoles().stream()
+        .noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       throw new InvalidTokenException();
     }
 
