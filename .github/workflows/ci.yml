@@ -59,6 +59,8 @@ jobs:
           rm -rf ~/.pnpm-store
           rm -rf ~/.cache/Cypress
           rm -rf ~/.cache/pnpm
+          rm -rf frontend/cypress.config.d.ts
+          rm -rf frontend/vitest.config.d.ts
 
       - name: Set up Node.js
         uses: actions/setup-node@v3.9.1
