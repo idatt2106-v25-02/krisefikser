@@ -381,14 +381,14 @@ class AuthControllerTest {
     String inviteToken = "valid-invite-token";
     when(authService.generateAdminInviteToken(anyString())).thenReturn(inviteToken);
     when(emailAdminService.sendAdminInvitation(anyString(), anyString()))
-        .thenReturn(ResponseEntity.ok("Admin invitation sent successfully"));
+        .thenReturn(ResponseEntity.ok("Admin invitation sent successfully."));
 
     mockMvc.perform(post("/api/auth/invite/admin")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(adminInviteRequest)))
         .andExpect(status().isOk())
-        .andExpect(content().string("Admin invitation sent successfully"));
+        .andExpect(content().string("Admin invitation sent successfully."));
 
     verify(authService).generateAdminInviteToken(adminInviteRequest.getEmail());
     verify(emailAdminService).sendAdminInvitation(eq(adminInviteRequest.getEmail()), anyString());

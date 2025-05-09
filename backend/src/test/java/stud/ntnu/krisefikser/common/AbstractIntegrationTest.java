@@ -14,7 +14,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,6 +28,7 @@ import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.auth.service.TurnstileService;
+import stud.ntnu.krisefikser.email.service.EmailService;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdRequest;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
@@ -59,6 +62,9 @@ public abstract class AbstractIntegrationTest {
 
   @MockitoBean
   private TurnstileService turnstileService;
+
+  @MockitoBean
+  private EmailService emailService;
 
   private String accessToken;
 
@@ -97,6 +103,11 @@ public abstract class AbstractIntegrationTest {
 
       // Make turnstileService.verify returns true
       Mockito.when(turnstileService.verify(ArgumentMatchers.anyString())).thenReturn(true);
+
+      Mockito.when(emailService.sendEmail(ArgumentMatchers.anyString(),
+              ArgumentMatchers.anyString(),
+              ArgumentMatchers.anyString()))
+          .thenReturn(new ResponseEntity<>("Mock email sent successfully", HttpStatus.OK));
 
       // Create User
       RegisterRequest request = new RegisterRequest(

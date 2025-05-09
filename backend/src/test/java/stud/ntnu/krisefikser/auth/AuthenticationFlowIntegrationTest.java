@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.auth;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -14,7 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,6 +28,7 @@ import stud.ntnu.krisefikser.auth.dto.LoginResponse;
 import stud.ntnu.krisefikser.auth.dto.RefreshRequest;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
 import stud.ntnu.krisefikser.auth.service.TurnstileService;
+import stud.ntnu.krisefikser.email.service.EmailService;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
@@ -40,16 +44,22 @@ class AuthenticationFlowIntegrationTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  @Autowired // Use real repository
+  @Autowired
   private UserRepository userRepository;
 
-  @MockitoBean // Keep mocking external service
+  @MockitoBean
   private TurnstileService turnstileService;
+
+  @MockitoBean
+  private EmailService emailService;
 
   @BeforeEach
   void setUp() {
     // Mock Turnstile verification to always return true for the test token
     when(turnstileService.verify(any())).thenReturn(true);
+
+    when(emailService.sendEmail(anyString(), anyString(), anyString()))
+        .thenReturn(new ResponseEntity<>("Mock email sent successfully", HttpStatus.OK));
   }
 
   @Test
