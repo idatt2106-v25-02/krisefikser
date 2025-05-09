@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue'
+import NewMapLegend from '@/components/map/NewMapLegend.vue'
 
 // Components and composables
 import {
@@ -30,7 +31,7 @@ const { data: eventPointsData, isLoading: isLoadingEventPoints } = useGetAllEven
 
 const authStore = useAuthStore()
 
-const { initMap, addMarkers, clearMarkers } = useMap()
+const { initMap, addMarkers, clearMarkers, filterMarkers } = useMap()
 
 const isDataLoading = computed(() => {
   return (
@@ -128,13 +129,5 @@ onMounted(() => {
 
 <template>
   <div id="map" class="w-full h-full z-[1] overflow-hidden"></div>
-  <MapLegend
-        :user-location-available="userLocationAvailable"
-        :show-user-location="showUserLocation"
-        :user-in-crisis-zone="userInCrisisZone"
-        :is-adding-meeting-point="isAddingMeetingPoint"
-        :has-active-household="!!activeHousehold?.id"
-        @toggle-user-location="toggleUserLocation"
-        @toggle-meeting-point-creation="toggleMeetingPointCreation"
-      />
+  <NewMapLegend :filter-markers="filterMarkers" />
 </template>

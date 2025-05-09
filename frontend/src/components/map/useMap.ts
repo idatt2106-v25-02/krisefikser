@@ -121,13 +121,13 @@ export const useMap = () => {
 
     markers.value.forEach((marker) => {
       if (isFiltered(marker.markerComponent as MarkerComponent, options)) {
-        marker.leafletMarker?.remove()
-        marker.leafletMarker = null
-      } else {
-        marker.leafletMarker = createMarker(
+        marker.leafletMarker ??= createMarker(
           marker.markerComponent as MarkerComponent,
           map.value as L.Map,
         )
+      } else {
+        marker.leafletMarker?.remove()
+        marker.leafletMarker = null
       }
     })
   }
