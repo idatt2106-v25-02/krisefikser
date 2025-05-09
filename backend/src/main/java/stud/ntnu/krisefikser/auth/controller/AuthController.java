@@ -36,6 +36,7 @@ import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
 import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
+import stud.ntnu.krisefikser.auth.dto.VerifyAdminTokenResponse;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.config.FrontendConfig;
@@ -307,18 +308,16 @@ public class AuthController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Token verified successfully",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation =
-              Map.class))),
+              VerifyAdminTokenResponse.class))),
       @ApiResponse(responseCode = "400", description = "Invalid or expired token")
   })
   @GetMapping("/verify-admin-invite")
   @PermitAll
-  public ResponseEntity<Map<String, String>> verifyAdminInviteToken(@RequestParam String token) {
-    try {
-      String email = authService.verifyAdminInviteToken(token);
-      return ResponseEntity.ok(Map.of("email", email));
-    } catch (RuntimeException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
+  public ResponseEntity<VerifyAdminTokenResponse> verifyAdminInviteToken(
+      @RequestParam String token) {
+    String email = authService.verifyAdminInviteToken(token);
+    VerifyAdminTokenResponse response = new VerifyAdminTokenResponse(email);
+    return ResponseEntity.ok(response);
   }
 
   /**
