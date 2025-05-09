@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * Invite details
+ */
 export interface CreateHouseholdInviteRequest {
   householdId: string
   invitedUserId?: string
