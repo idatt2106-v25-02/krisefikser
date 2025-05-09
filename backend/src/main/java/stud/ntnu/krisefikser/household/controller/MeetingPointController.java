@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,6 @@ import stud.ntnu.krisefikser.household.service.MeetingPointService;
 /**
  * REST controller for managing meeting points within households. Provides endpoints for creating,
  * updating, deleting, and retrieving meeting points.
- *
- * @since 1.0
  */
 @RestController
 @RequestMapping("/api/households/{householdId}/meeting-points")
@@ -51,7 +50,7 @@ public class MeetingPointController {
   @PostMapping
   public ResponseEntity<MeetingPointResponse> createMeetingPoint(
       @Parameter(description = "Household ID") @PathVariable UUID householdId,
-      @Parameter(description = "Meeting point data") @RequestBody MeetingPointRequest request) {
+      @Parameter(description = "Meeting point data") @RequestBody @Valid MeetingPointRequest request) {
     return ResponseEntity.status(201)
         .body(meetingPointService.createMeetingPoint(householdId, request));
   }
@@ -91,7 +90,7 @@ public class MeetingPointController {
   public ResponseEntity<MeetingPointResponse> updateMeetingPoint(
       @Parameter(description = "Household ID") @PathVariable UUID householdId,
       @Parameter(description = "Meeting point ID") @PathVariable UUID id,
-      @Parameter(description = "Meeting point data") @RequestBody MeetingPointRequest request) {
+      @Parameter(description = "Meeting point data") @RequestBody @Valid MeetingPointRequest request) {
     return ResponseEntity.ok(meetingPointService.updateMeetingPoint(id, request));
   }
 

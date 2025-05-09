@@ -16,5 +16,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class AdminInviteRequest {
-    String email;
+
+  String email;
 } 

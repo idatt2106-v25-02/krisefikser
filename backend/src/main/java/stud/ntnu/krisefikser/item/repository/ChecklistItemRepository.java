@@ -9,9 +9,9 @@ import stud.ntnu.krisefikser.item.entity.ChecklistItem;
 /**
  * Repository interface for {@link ChecklistItem} entity operations.
  *
- * <p>This repository provides basic CRUD operations for checklist items through Spring Data JPA.
- * It extends JpaRepository to enable standard database operations and uses UUID as the primary key
- * type for checklist items.</p>
+ * <p>This repository provides basic CRUD operations for checklist items through
+ * Spring Data JPA. It extends JpaRepository to enable standard database operations and uses UUID as
+ * the primary key type for checklist items.</p>
  */
 public interface ChecklistItemRepository extends JpaRepository<ChecklistItem, UUID> {
 
@@ -22,4 +22,11 @@ public interface ChecklistItemRepository extends JpaRepository<ChecklistItem, UU
    * @return a list of checklist items associated with the specified household
    */
   List<ChecklistItem> findByHousehold(Household activeHousehold);
+
+  /**
+   * Deletes all checklist items associated with a specific household.
+   *
+   * @param household the household whose checklist items should be deleted
+   */
+  void deleteByHousehold(Household household);
 }

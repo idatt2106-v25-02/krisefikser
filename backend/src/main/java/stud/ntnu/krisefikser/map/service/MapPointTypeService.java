@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.map.dto.MapPointTypeRequest;
 import stud.ntnu.krisefikser.map.dto.MapPointTypeResponse;
 import stud.ntnu.krisefikser.map.dto.UpdateMapPointTypeRequest;
@@ -43,6 +44,7 @@ public class MapPointTypeService {
    *                            MapPointType
    * @return The created MapPointType
    */
+  @Transactional
   public MapPointTypeResponse createMapPointType(MapPointTypeRequest mapPointTypeRequest) {
     MapPointType mapPointType = MapPointType.builder()
         .title(mapPointTypeRequest.getTitle())
@@ -62,6 +64,7 @@ public class MapPointTypeService {
    * @return The updated MapPointType
    * @throws EntityNotFoundException If no MapPointType with the specified ID exists
    */
+  @Transactional
   public MapPointTypeResponse updateMapPointType(Long id,
       UpdateMapPointTypeRequest mapPointTypeRequest) {
 
@@ -93,6 +96,7 @@ public class MapPointTypeService {
    * @param id The ID of the MapPointType to delete
    * @throws EntityNotFoundException If no MapPointType with the specified ID exists
    */
+  @Transactional
   public void deleteMapPointType(Long id) {
     if (!mapPointTypeRepository.existsById(id)) {
       throw new EntityNotFoundException("MapPointType not found with id: " + id);

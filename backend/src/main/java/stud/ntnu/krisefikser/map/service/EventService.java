@@ -59,14 +59,25 @@ public class EventService {
    * Retrieves an event by its ID.
    *
    * @param id The ID of the event to retrieve
-   * @return The event with the specified ID
+   * @return The event-response with the specified ID
    * @throws EntityNotFoundException If no event with the specified ID exists
    */
   public EventResponse getEventById(Long id) {
     Event event = eventRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Event not found with id: " + id));
-
     return event.toResponse();
+  }
+
+  /**
+   * Retrieves an event by its ID.
+   *
+   * @param id The ID of the event to retrieve
+   * @return The event with the specified ID
+   * @throws EntityNotFoundException If no event with the specified ID exists
+   */
+  public Event getEventEntityById(Long id) {
+    return eventRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Event not found with id: " + id));
   }
 
   /**
@@ -81,7 +92,7 @@ public class EventService {
    */
   @Transactional
   public EventResponse createEvent(EventRequest eventRequest) {
-    Event event = Event.builder()
+    Event event = eventRepository.save(Event.builder()
         .title(eventRequest.getTitle())
         .description(eventRequest.getDescription())
         .radius(eventRequest.getRadius())
@@ -91,7 +102,7 @@ public class EventService {
         .startTime(eventRequest.getStartTime())
         .endTime(eventRequest.getEndTime())
         .status(eventRequest.getStatus())
-        .build();
+        .build());
 
     eventWebSocketService.notifyEventCreation(event.toResponse());
     notificationService.createNotificationsForAll(
@@ -101,7 +112,7 @@ public class EventService {
             .message(event.getDescription())
             .event(event)
             .build());
-    return eventRepository.save(event).toResponse();
+    return event.toResponse();
   }
 
   /**

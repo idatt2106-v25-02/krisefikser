@@ -36,8 +36,8 @@ public class FoodItemService {
   /**
    * Creates a new food item associated with the active household.
    *
-   * <p>The method creates a new food item using the provided details and associates it
-   * with the currently active household. The item is then persisted to the database.</p>
+   * <p>The method creates a new food item using the provided details and associates
+   * it with the currently active household. The item is then persisted to the database.</p>
    *
    * @param createRequest the request object containing food item details
    * @return a response object containing the created food item's details
@@ -61,8 +61,8 @@ public class FoodItemService {
   /**
    * Retrieves all food items associated with the active household.
    *
-   * <p>This method fetches all food items that belong to the currently active household
-   * and converts them to response DTOs.</p>
+   * <p>This method fetches all food items that belong to the currently active
+   * household and converts them to response DTOs.</p>
    *
    * @return a list of food item response DTOs
    * @throws RuntimeException if no active household exists
@@ -85,6 +85,7 @@ public class FoodItemService {
    * @return a response object containing the updated food item's details
    * @throws RuntimeException if the item is not found
    */
+  @Transactional
   public FoodItemResponse updateFoodItem(String id, CreateFoodItemRequest putRequest) {
     FoodItem item = foodItemRepository.findById(UUID.fromString(id))
         .orElseThrow(() -> new RuntimeException("Item not found"));

@@ -1,29 +1,30 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
 import router from '@/router'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { watchEffect } from 'vue'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 // Import API hooks
 import {
   useGetAllUserHouseholds,
   useGetActiveHousehold,
   useLeaveHousehold,
   useDeleteHousehold,
-} from '@/api/generated/household/household.ts'
+} from '@/api/generated/household/household'
 import {
   useAcceptInvite,
   useDeclineInvite,
   useGetPendingInvitesForHousehold,
   useGetPendingInvitesForUser,
-} from '@/api/generated/household-invite-controller/household-invite-controller.ts'
+} from '@/api/generated/household-invite-controller/household-invite-controller'
 
 // Import components
-import HouseholdHeader from './components/HouseholdHeader.vue'
-import HouseholdMembers from './components/HouseholdMembers.vue'
-import HouseholdEmergencySuppliesCard from './components/HouseholdEmergencySuppliesCard.vue'
-import HouseholdMeetingPlaces from './components/HouseholdMeetingPlaces.vue'
-import HouseholdActions from './components/HouseholdActions.vue'
-import HouseholdDialogs from './components/HouseholdDialogs.vue'
+import HouseholdHeader from '@/components/household/HouseholdHeader.vue'
+import HouseholdMembers from '@/components/household/HouseholdMembers.vue'
+import HouseholdEmergencySuppliesCard from '@/components/household/HouseholdEmergencySuppliesCard.vue'
+import HouseholdMeetingPlaces from '@/components/household/HouseholdMeetingPlaces.vue'
+import HouseholdActions from '@/components/household/HouseholdActions.vue'
+import HouseholdDialogs from '@/components/household/HouseholdDialogs.vue'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 
 // Types
@@ -117,7 +118,7 @@ watchEffect(() => {
 const { mutate: leaveHousehold } = useLeaveHousehold({
   mutation: {
     onSuccess: () => {
-      router.push('/husstand')
+      refetchHousehold()
     },
   },
 })
@@ -125,7 +126,7 @@ const { mutate: leaveHousehold } = useLeaveHousehold({
 const { mutate: deleteHousehold } = useDeleteHousehold({
   mutation: {
     onSuccess: () => {
-      router.push('/husstand')
+      refetchHousehold()
     },
   },
 })
@@ -145,7 +146,7 @@ const { mutate: declineInvite } = useDeclineInvite({
 
 // Fetch pending invites for this household
 const householdId = computed(() => household.value?.id ?? '')
-const { data: householdPendingInvites } =
+const { data: householdPendingInvites, refetch: refetchHouseholdPendingInvites } =
   useGetPendingInvitesForHousehold(householdId, {
     query: {
       enabled: computed(() => !!householdId.value),
@@ -165,27 +166,39 @@ interface MeetingPlace {
   targetDays: number
 }
 
+// Add these with other refs
+const showLeaveDialog = ref(false)
+const showDeleteDialog = ref(false)
+
+// Replace the handleLeaveHousehold function
 function handleLeaveHousehold() {
   if (!household.value) return
-  if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
-    leaveHousehold({
-      data: {
-        householdId: household.value.id ?? '',
-      },
-    })
-  }
+  showLeaveDialog.value = true
 }
 
+// Replace the handleDeleteHousehold function
 function handleDeleteHousehold() {
   if (!household.value) return
-  if (
-    confirm('Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres.') &&
-    household.value.id
-  ) {
-    deleteHousehold({
-      id: household.value.id,
-    })
-  }
+  showDeleteDialog.value = true
+}
+
+// Add these new functions
+function confirmLeaveHousehold() {
+  if (!household.value) return
+  leaveHousehold({
+    data: {
+      householdId: household.value.id ?? '',
+    },
+  })
+  showLeaveDialog.value = false
+}
+
+function confirmDeleteHousehold() {
+  if (!household.value?.id) return
+  deleteHousehold({
+    id: household.value.id,
+  })
+  showDeleteDialog.value = false
 }
 
 function handleMeetingPlaceSelected(place: MeetingPlace) {
@@ -267,7 +280,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
           <div class="lg:col-span-4 space-y-6">
             <!-- Meeting Places Section -->
             <HouseholdMeetingPlaces
-              :meeting-places="household.meetingPlaces ?? []"
+              :household-id="household.id"
               :household-latitude="household.latitude"
               :household-longitude="household.longitude"
               @meeting-place-selected="handleMeetingPlaceSelected"
@@ -275,6 +288,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
 
             <!-- Household Actions -->
             <HouseholdActions
+              :is-owner="household.owner.id === authStore.currentUser?.id"
               @leave="handleLeaveHousehold"
               @delete="handleDeleteHousehold"
             />
@@ -286,6 +300,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
                 .map(invite => ({
                   id: invite.id ?? '',
                   status: 'PENDING',
+                  invitedEmail: invite.invitedEmail,
                   household: invite.household ? {
                     name: invite.household.name ?? ''
                   } : undefined,
@@ -299,6 +314,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
                 .map(invite => ({
                   id: invite.id ?? '',
                   status: 'DECLINED',
+                  invitedEmail: invite.invitedEmail,
                   household: invite.household ? {
                     name: invite.household.name ?? ''
                   } : undefined,
@@ -318,13 +334,38 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
           v-model:is-meeting-map-dialog-open="isMeetingMapDialogOpen"
           v-model:is-change-household-dialog-open="isChangeHouseholdDialogOpen"
           v-model:is-preparedness-info-dialog-open="isPreparednessInfoDialogOpen"
+          class="max-w-[1250px] w-[95vw]"
           @household-updated="refetchHousehold"
-          @member-added="refetchHousehold"
+          @member-added="() => {
+            refetchHousehold()
+            refetchHouseholdPendingInvites()
+          }"
           @active-household-changed="() => {
             refetchHousehold()
             refetchAllHouseholds()
           }"
           @meeting-place-selected="handleMeetingPlaceSelected"
+        />
+
+        <!-- Leave Household Confirmation -->
+        <ConfirmationDialog
+          :is-open="showLeaveDialog"
+          title="Forlate husstand"
+          description="Er du sikker på at du vil forlate denne husstanden?"
+          confirm-text="Forlat"
+          @confirm="confirmLeaveHousehold"
+          @cancel="showLeaveDialog = false"
+        />
+
+        <!-- Delete Household Confirmation -->
+        <ConfirmationDialog
+          :is-open="showDeleteDialog"
+          title="Slett husstand"
+          description="Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres."
+          confirm-text="Slett"
+          variant="destructive"
+          @confirm="confirmDeleteHousehold"
+          @cancel="showDeleteDialog = false"
         />
       </div>
 
@@ -334,10 +375,3 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
     </div>
   </div>
 </template>
-
-<style scoped>
-:deep(.meeting-map-dialog) {
-  max-width: 1250px;
-  width: 95vw;
-}
-</style>

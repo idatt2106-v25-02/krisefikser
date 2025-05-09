@@ -5,75 +5,60 @@ import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
 import { useRouter } from 'vue-router'
 import { KeyRound } from 'lucide-vue-next'
+import { useUpdatePassword } from '@/api/generated/authentication/authentication'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
-import { toast } from 'vue-sonner'
-
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
-
-// Define error type for API responses
-type ApiError = {
-  response?: {
-    data?: {
-      message?: string
-    }
-    status?: number
-  }
-}
+import { createPasswordConfirmationSchema } from '@/utils/validation/passwordSchemas'
+import { showSuccessToast, showErrorToast } from '@/utils/error/errorHandling'
 
 // Schema for the update password form with password requirements
-const updatePasswordSchema = z
-  .object({
-    oldPassword: z.string().min(1, 'Nåværende passord er påkrevd'),
-    password: z
-      .string()
-      .min(8, 'Passord må være minst 8 tegn')
-      .max(50, 'Passord kan være maks 50 tegn')
-      .regex(/[A-Z]/, 'Må inneholde minst én stor bokstav')
-      .regex(/[a-z]/, 'Må inneholde minst én liten bokstav')
-      .regex(/[0-9]/, 'Må inneholde minst ett tall')
-      .regex(/[^A-Za-z0-9]/, 'Må inneholde minst ett spesialtegn'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passordene stemmer ikke overens",
-    path: ['confirmPassword'],
-  })
+const passwordFields = createPasswordConfirmationSchema()
+const updatePasswordSchema = z.object({
+  oldPassword: z.string().min(1, 'Nåværende passord er påkrevd'),
+  password: passwordFields.password,
+  confirmPassword: passwordFields.confirmPassword,
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passordene stemmer ikke overens",
+  path: ['confirmPassword'],
+})
+
+type UpdatePasswordFormValues = z.infer<typeof updatePasswordSchema>
 
 // Set up form validation
-const { handleSubmit, meta } = useForm({
+const { handleSubmit, meta } = useForm<UpdatePasswordFormValues>({
   validationSchema: toTypedSchema(updatePasswordSchema),
 })
 
 // Track form states
 const isLoading = ref(false)
 const isSuccessful = ref(false)
-const errorMessage = ref('')
+const errorMessage = ref<string>('')
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const onSubmit = handleSubmit(async (values) => {
+// Get the update password mutation
+const { mutateAsync: updatePasswordMutation } = useUpdatePassword()
+
+const onSubmit = handleSubmit(async (values: UpdatePasswordFormValues) => {
   isLoading.value = true
   errorMessage.value = ''
 
   try {
-    await authStore.updatePassword(values.oldPassword, values.password)
-    isSuccessful.value = true
-    // Show success toast
-    toast('Passord oppdatert', {
-      description: 'Du vil bli logget ut for å sikre din konto.',
+    await updatePasswordMutation({
+      data: {
+        oldPassword: values.oldPassword,
+        password: values.password,
+      },
     })
-    // Log out the user after successful password update
+    isSuccessful.value = true
+    showSuccessToast('Passord oppdatert', 'Du vil bli logget ut for å sikre din konto.')
     authStore.logout()
   } catch (error: unknown) {
-    const apiError = error as ApiError
-    errorMessage.value = apiError.response?.data?.message || 'En feil oppstod ved oppdatering av passord'
-    // Show error toast
-    toast('Feil ved oppdatering av passord', {
-      description: apiError.response?.data?.message || 'En feil oppstod ved oppdatering av passord',
-    })
+    const message = showErrorToast('Feil ved oppdatering av passord', error)
+    errorMessage.value = message
   } finally {
     isLoading.value = false
   }

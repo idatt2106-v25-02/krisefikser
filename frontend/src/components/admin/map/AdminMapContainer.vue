@@ -1,15 +1,16 @@
-<script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+<script lang="ts" setup>
+import { onUnmounted, ref, watch } from 'vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import MapPointLayer from '@/components/map/layer/MapPointLayer.vue'
 import EventLayer from '@/components/map/layer/EventLayer.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
-import type { MapPointResponse as MapPoint, EventResponse as Event } from '@/api/generated/model'
+import type { EventResponse as Event, MapPointResponse as MapPoint } from '@/api/generated/model'
 import L from 'leaflet'
 
-defineProps<{
+const props = defineProps<{
   mapPoints: MapPoint[] | undefined
   events: Event[] | undefined
+  selectMode?: boolean
 }>()
 
 const emit = defineEmits<(e: 'map-click', lat: number, lng: number) => void>()
@@ -24,6 +25,18 @@ function onMapCreated(map: L.Map) {
     emit('map-click', lat, lng)
   })
 }
+
+// Watch for changes in select mode and update cursor
+watch(
+  () => props.selectMode,
+  (isActive) => {
+    if (mapInstance.value) {
+      const container = mapInstance.value.getContainer()
+      container.style.cursor = isActive ? 'crosshair' : ''
+    }
+  },
+  { immediate: true },
+)
 
 onUnmounted(() => {
   if (mapInstance.value) {
@@ -42,14 +55,14 @@ onUnmounted(() => {
       :map-points="mapPoints"
     />
 
-    <EventLayer v-if="mapInstance && events" :map="mapInstance as L.Map" :events="events" />
+    <EventLayer v-if="mapInstance && events" :events="events" :map="mapInstance as L.Map" />
 
     <MapLegend
-      :user-location-available="false"
+      :has-active-household="false"
+      :is-adding-meeting-point="false"
       :show-user-location="false"
       :user-in-crisis-zone="false"
-      :is-adding-meeting-point="false"
-      :has-active-household="false"
+      :user-location-available="false"
       @toggle-user-location="() => {}"
     />
   </div>

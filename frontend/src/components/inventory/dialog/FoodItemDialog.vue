@@ -111,7 +111,7 @@ async function handleFormSubmit() {
         <FormItem>
           <FormLabel class="text-gray-700">Utløpsdato</FormLabel>
           <FormControl>
-            <Input type="date" v-bind="field" />
+            <Input type="date" v-bind="field" :min="new Date().toISOString().split('T')[0]" />
           </FormControl>
           <small v-if="errors.length" class="text-red-500">{{ errors[0] }}</small>
         </FormItem>

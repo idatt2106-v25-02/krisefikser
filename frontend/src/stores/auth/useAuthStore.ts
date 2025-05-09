@@ -6,8 +6,7 @@ import {
   useMe,
   useRegister,
   useRegisterAdmin,
-  useUpdatePassword,
-} from '@/api/generated/authentication/authentication.ts'
+} from '@/api/generated/authentication/authentication'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
 import axios from 'axios'
 
@@ -53,9 +52,6 @@ export const useAuthStore = defineStore('auth', () => {
     return currentUser.value?.roles?.includes('SUPER_ADMIN') || false
   })
 
-  // Get the update password mutation
-  const { mutateAsync: updatePasswordMutation } = useUpdatePassword()
-
   // Function to update tokens in both store and localStorage
   function updateTokens(newAccessToken: string, newRefreshToken: string) {
     accessToken.value = newAccessToken
@@ -91,14 +87,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function register(data: RegisterRequest) {
     try {
-      const response = await registerMutation({ data })
-
-      /*if (response.accessToken) {
-        updateTokens(response.accessToken, response.refreshToken ?? '')
-        await refetchUser()
-      }*/
-
-      return response
+      await registerMutation({ data })
     } catch (error) {
       console.error('Registration failed:', error)
       throw error
@@ -107,12 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function registerAdmin(data: RegisterRequest) {
     try {
-      const response = await registerAdminMutation({ data })
-      if (response.accessToken) {
-        updateTokens(response.accessToken, response.refreshToken ?? '')
-        await refetchUser()
-      }
-      return response
+      await registerAdminMutation({ data })
     } catch (error) {
       console.error('Admin registration failed:', error)
       throw error
@@ -139,21 +123,6 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('Token refresh failed:', error)
       logout()
-      throw error
-    }
-  }
-
-  async function updatePassword(oldPassword: string, newPassword: string) {
-    try {
-      const response = await updatePasswordMutation({
-        data: {
-          oldPassword,
-          password: newPassword,
-        },
-      })
-      return response
-    } catch (error) {
-      console.error('Password update failed:', error)
       throw error
     }
   }
@@ -192,7 +161,6 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     refreshTokens,
     updateTokens,
-    updatePassword,
 
     // Expose for debugging
     refetchUser,

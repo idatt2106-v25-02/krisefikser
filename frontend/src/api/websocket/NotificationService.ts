@@ -1,9 +1,9 @@
 // frontend/src/api/websocket/NotificationService.ts
 import { useNotificationStore } from '@/stores/notificationStore'
 import type { NotificationResponse } from '@/api/generated/model/notificationResponse'
-import { webSocket } from '@/main.ts'
-import speechService from '@/services/tts/speechService.ts'
-import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
+import { webSocket } from '@/main'
+import speechService from '@/services/tts/speechService'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore'
 
 export class NotificationService {
   private static instance: NotificationService
@@ -45,7 +45,7 @@ export class NotificationService {
         (notification) => {
           // Add notification to store
           this.notificationStore.addNotification(notification)
-          
+
           // Speak the notification if TTS is enabled
           try {
             const accessibilityStore = useAccessibilityStore()

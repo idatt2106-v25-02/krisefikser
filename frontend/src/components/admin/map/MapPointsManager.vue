@@ -1,19 +1,24 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
+<script lang="ts" setup>
+// ... existing imports ...
+import { computed, ref, watch } from 'vue'
 import type {
   MapPointResponse as MapPoint,
   MapPointTypeResponse as MapPointType,
 } from '@/api/generated/model'
 import {
   useCreateMapPoint,
+  useDeleteMapPoint,
   useGetAllMapPoints,
   useUpdateMapPoint,
-  useDeleteMapPoint,
-} from '@/api/generated/map-point/map-point.ts'
-import { useGetAllEvents } from '@/api/generated/event/event.ts'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+} from '@/api/generated/map-point/map-point'
+import { useGetAllEvents } from '@/api/generated/event/event'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import MapPointForm from './MapPointForm.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+
+const props = defineProps<{
+  mapCoordinates?: { lat: number; lng: number } | null
+}>()
 
 const authStore = useAuthStore()
 const { data: mapPoints, refetch: refetchMapPoints } = useGetAllMapPoints()
@@ -57,6 +62,7 @@ const { mutate: deleteMapPoint } = useDeleteMapPoint({
 const emit = defineEmits<{
   (e: 'map-click', lat: number, lng: number): void
   (e: 'map-selection-mode-change', isActive: boolean): void
+  (e: 'map-coordinates-handled'): void
 }>()
 
 function _handleMapClick(lat: number, lng: number) {
@@ -152,6 +158,18 @@ function handleDialogCancel() {
 function getMapPointTypeTitle(type: MapPointType | undefined): string {
   return type?.title || 'Ukjent type'
 }
+
+// Watch for incoming map coordinates
+watch(
+  () => props.mapCoordinates,
+  (coordinates) => {
+    if (coordinates && isMapSelectionMode.value) {
+      _handleMapClick(coordinates.lat, coordinates.lng)
+      emit('map-coordinates-handled')
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -160,7 +178,6 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
     <MapPointForm
       v-model="newMapPoint"
       title="Legg til nytt kartpunkt"
-      @submit="handleAddMapPoint"
       @cancel="
         newMapPoint = {
           latitude: 63.4305,
@@ -168,6 +185,7 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
           type: undefined,
         }
       "
+      @submit="handleAddMapPoint"
       @start-map-selection="handleStartMapSelection"
     />
 
@@ -183,13 +201,13 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
             </p>
           </div>
           <div class="flex space-x-2">
-            <button @click="handleEditClick(point)" class="text-primary hover:text-primary/80">
+            <button class="text-primary hover:text-primary/80" @click="handleEditClick(point)">
               Rediger
             </button>
             <button
               v-if="point?.id"
-              @click="handleDeleteMapPoint(point.id)"
               class="text-red-500 hover:text-red-600"
+              @click="handleDeleteMapPoint(point.id)"
             >
               Slett
             </button>
@@ -208,8 +226,8 @@ function getMapPointTypeTitle(type: MapPointType | undefined): string {
           v-if="editingMapPoint"
           v-model="editingMapPoint"
           title=""
-          @submit="handleUpdateMapPoint"
           @cancel="handleDialogCancel"
+          @submit="handleUpdateMapPoint"
           @start-map-selection="handleStartMapSelection"
         />
       </DialogContent>

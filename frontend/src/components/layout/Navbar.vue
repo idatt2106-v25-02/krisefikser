@@ -1,6 +1,3 @@
-// Add type declarations at the top of the file interface WebKitAudioContext extends AudioContext {}
-declare global { interface Window { webkitAudioContext?: new () => WebKitAudioContext; } }
-
 <script lang="ts">
 import {
   AlertTriangle,
@@ -21,7 +18,7 @@ import {
   User as UserIcon,
   X,
 } from 'lucide-vue-next'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -486,24 +483,9 @@ export default {
 </script>
 <template>
   <nav class="bg-white shadow-sm sticky top-0 z-50">
-    <!-- Updated audio element with multiple sources for better compatibility -->
     <audio ref="audioPlayerRef" preload="auto">
       <source src="/sounds/notification.mp3" type="audio/mpeg" />
-      <!-- Uncomment if you have a WAV version -->
-      <!-- <source src="/sounds/notification.wav" type="audio/wav"> -->
     </audio>
-
-    <!-- Test button (uncomment during development and remove in production) -->
-    <!--
-    <div class="fixed bottom-4 right-4 z-50">
-      <button
-        @click="testSound"
-        class="bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg hover:bg-blue-700"
-      >
-        Test Notification Sound
-      </button>
-    </div>
-    -->
 
     <div class="container mx-auto px-4 py-4">
       <div class="flex justify-between items-center">
@@ -514,7 +496,7 @@ export default {
           </router-link>
         </div>
 
-        <div class="hidden md:flex items-center space-x-8">
+        <div class="hidden lg:flex items-center space-x-8">
           <router-link
             v-for="item in filteredNavItems"
             :key="item.label"
@@ -602,7 +584,7 @@ export default {
           </template>
         </div>
 
-        <div class="md:hidden">
+        <div class="lg:hidden">
           <button @click="isMenuOpen = !isMenuOpen" class="text-gray-700 focus:outline-none">
             <MenuIcon v-if="!isMenuOpen" class="h-6 w-6" />
             <X v-else class="h-6 w-6" />
@@ -611,7 +593,7 @@ export default {
       </div>
     </div>
 
-    <div v-if="isMenuOpen" class="md:hidden bg-gray-50">
+    <div v-if="isMenuOpen" class="lg:hidden bg-gray-50">
       <div class="container mx-auto px-4 pt-2 pb-3 space-y-1">
         <router-link
           v-for="item in filteredNavItems"

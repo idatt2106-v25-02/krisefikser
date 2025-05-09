@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -70,11 +69,10 @@ public class DataSeeder implements CommandLineRunner {
   private final RefreshTokenRepository refreshTokenRepository;
   private final Faker faker = new Faker();
   private final Random random = new Random();
-  @Autowired
-  private PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
   @Override
-  public void run(String... args) throws Exception {
+  public void run(String... args) {
     boolean reseedDatabase = Arrays.asList(args).contains("--reseed");
 
     if (reseedDatabase) {
@@ -456,7 +454,7 @@ public class DataSeeder implements CommandLineRunner {
 
     // Add a test super admin user
     User superAdminUser = User.builder()
-        .email("super.admin@example.com")
+        .email("admin@krisefikser.app")
         .password(passwordEncoder.encode("admin123"))
         .firstName("Super")
         .lastName("Admin")

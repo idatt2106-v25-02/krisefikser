@@ -1,10 +1,10 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ref, watch } from 'vue'
 import type {
   MapPointResponse as MapPoint,
   MapPointTypeResponse as MapPointType,
 } from '@/api/generated/model'
-import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type.ts'
+import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 
 const props = defineProps<{
   modelValue: Partial<MapPoint>
@@ -12,7 +12,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: Partial<MapPoint>): void
   (e: 'submit'): void
   (e: 'cancel'): void
   (e: 'start-map-selection'): void
@@ -26,14 +25,6 @@ watch(
   () => props.modelValue,
   (newValue) => {
     localValue.value = { ...newValue }
-  },
-  { deep: true },
-)
-
-watch(
-  localValue,
-  (newValue) => {
-    emit('update:modelValue', newValue)
   },
   { deep: true },
 )
@@ -70,36 +61,36 @@ function handleStartMapSelection() {
       <div class="flex space-x-2">
         <input
           v-model="localValue.latitude"
-          type="number"
-          step="0.0001"
           class="w-1/2 px-3 py-2 border rounded-lg"
           placeholder="Breddegrad"
           readonly
+          step="0.0001"
+          type="number"
         />
         <input
           v-model="localValue.longitude"
-          type="number"
-          step="0.0001"
           class="w-1/2 px-3 py-2 border rounded-lg"
           placeholder="Lengdegrad"
           readonly
+          step="0.0001"
+          type="number"
         />
       </div>
       <button
-        @click="handleStartMapSelection"
         class="w-full mt-2 px-4 py-2 bg-primary/10 text-primary border border-primary rounded-lg hover:bg-primary/20"
+        @click="handleStartMapSelection"
       >
         Velg plassering på kartet
       </button>
     </div>
 
     <div class="flex justify-end space-x-2">
-      <button @click="handleCancel" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+      <button class="px-4 py-2 text-gray-600 hover:text-gray-800" @click="handleCancel">
         Avbryt
       </button>
       <button
-        @click="handleSubmit"
         class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+        @click="handleSubmit"
       >
         Lagre
       </button>

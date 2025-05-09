@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
+import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
@@ -47,6 +49,9 @@ class UserServiceTest {
 
   @Mock
   private Authentication authentication;
+
+  @Mock
+  private RoleRepository roleRepository;
 
   @InjectMocks
   private UserService userService;
@@ -74,9 +79,30 @@ class UserServiceTest {
         "User",
         true,
         true,
-        true);
+        true,
+        List.of(RoleType.USER)
+    );
 
     SecurityContextHolder.setContext(securityContext);
+  }
+
+  @Test
+  void createUser_Success() {
+    // Arrange
+    Role userRole = new Role();
+    userRole.setName(RoleType.USER);
+    when(roleRepository.findByName(RoleType.USER)).thenReturn(Optional.of(userRole));
+    when(userRepository.existsByEmail(any())).thenReturn(false);
+    when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
+    when(userRepository.save(any())).thenReturn(testUser);
+
+    // Act
+    User createdUser = userService.createUser(testUserDto);
+
+    // Assert
+    assertNotNull(createdUser);
+    assertEquals(testUserDto.getEmail(), createdUser.getEmail());
+    verify(userRepository).save(any(User.class));
   }
 
   @Test

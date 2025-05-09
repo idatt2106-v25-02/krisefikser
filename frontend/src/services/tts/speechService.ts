@@ -33,7 +33,7 @@ class SpeechService {
   private updateVoices(): void {
     // We'll use a function to dynamically import the store
     const getStore = async () => {
-      const module = await import('../../stores/tts/accessibilityStore.ts');
+      const module = await import('../../stores/tts/accessibilityStore');
       return module.useAccessibilityStore();
     };
 
@@ -62,7 +62,7 @@ class SpeechService {
 
     // We'll use a function to dynamically import the store
     const getStore = async () => {
-      const module = await import('../../stores/tts/accessibilityStore.ts');
+      const module = await import('../../stores/tts/accessibilityStore');
       return module.useAccessibilityStore();
     };
 

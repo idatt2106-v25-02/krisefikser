@@ -108,7 +108,7 @@ const goBack = () => {
             <CheckIcon class="h-4 w-4 mr-1" /> Lest
           </span>
         </div>
-        <div class="text-gray-700 leading-relaxed prose max-w-none mb-6">
+        <div class="text-gray-700 leading-relaxed prose max-w-none mb-6 leading-[1.6]">
           {{ notification.message }}
         </div>
         <div class="flex gap-3">
@@ -123,7 +123,7 @@ const goBack = () => {
           </button>
 
           <!-- Dynamic action buttons based on notification type -->
-          <button 
+          <button
             v-if="notification.type === NotificationResponseType.EVENT && notification.eventId"
             @click="router.push({ name: 'event-detail', params: { id: notification.eventId }})"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center"
@@ -132,7 +132,7 @@ const goBack = () => {
             Gå til hendelse
           </button>
 
-          <button 
+          <button
             v-else-if="notification.type === NotificationResponseType.INVITE && notification.householdId"
             @click="router.push({ name: 'household', params: { id: notification.householdId }})"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center"
@@ -141,7 +141,7 @@ const goBack = () => {
             Gå til husstand
           </button>
 
-          <button 
+          <button
             v-else-if="notification.type === NotificationResponseType.INFO && notification.itemId"
             @click="router.push({ name: 'notifications' })"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition flex items-center"
@@ -158,9 +158,3 @@ const goBack = () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.prose {
-  line-height: 1.6;
-}
-</style>

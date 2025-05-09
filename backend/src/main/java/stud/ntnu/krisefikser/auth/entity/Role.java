@@ -8,13 +8,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Entity class representing a role in the system. This class is used to define the different
  */
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "roles")
 public class Role {
 

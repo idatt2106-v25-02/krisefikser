@@ -2,11 +2,11 @@ package stud.ntnu.krisefikser.auth.service;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import stud.ntnu.krisefikser.auth.config.TurnstileProperties;
 import stud.ntnu.krisefikser.auth.dto.TurnstileResponse;
 
 /**
@@ -21,6 +21,7 @@ import stud.ntnu.krisefikser.auth.dto.TurnstileResponse;
  * @see <a href="https://developers.cloudflare.com/turnstile/">Turnstile Documentation</a>
  */
 @Service
+@AllArgsConstructor
 public class TurnstileService {
 
   /**
@@ -34,25 +35,12 @@ public class TurnstileService {
    * RestTemplate instance for making HTTP requests to the Turnstile API. Injected through
    * constructor to allow for better testability.
    */
-  @Autowired
   private final RestTemplate restTemplate;
 
   /**
-   * The secret key for Turnstile verification, injected from application properties. This key is
-   * used to authenticate requests to the Turnstile API. In test environment, it defaults to
-   * "test-secret-key".
+   * Properties for Turnstile configuration, including the secret key.
    */
-  @Value("${turnstile.secret:test-secret-key}")
-  private String secretKey;
-
-  /**
-   * Constructs a new TurnstileService with the specified RestTemplate.
-   *
-   * @param restTemplate the RestTemplate to use for making HTTP requests
-   */
-  public TurnstileService(RestTemplate restTemplate) {
-    this.restTemplate = restTemplate;
-  }
+  private final TurnstileProperties turnstileProperties;
 
   /**
    * Verifies a Turnstile token with Cloudflare's verification service.
@@ -75,7 +63,7 @@ public class TurnstileService {
     }
 
     Map<String, String> body = new HashMap<>();
-    body.put("secret", secretKey);
+    body.put("secret", turnstileProperties.getSecret());
     body.put("response", token);
 
     try {

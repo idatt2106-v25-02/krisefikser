@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +40,7 @@ import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
 import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
+import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
@@ -48,6 +50,7 @@ import stud.ntnu.krisefikser.email.service.EmailAdminService;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
+import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
 import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
@@ -114,10 +117,13 @@ class AuthControllerTest {
   }
 
   @Test
-  void register_WithValidTurnstileToken_ShouldReturnOkWithTokens() throws Exception {
-    RegisterResponse response = new RegisterResponse("access-token", "refresh-token");
+  void register_WithValidTurnstileToken_ShouldReturnOkWithTokens()
+      throws Exception {
+    RegisterResponse response = new RegisterResponse(
+        "User registered successfully. Verification email sent.", true);
     when(turnstileService.verify(any(String.class))).thenReturn(true);
-    when(authService.register(any(RegisterRequest.class))).thenReturn(response);
+    when(authService.registerAndSendVerificationEmail(any(RegisterRequest.class))).thenReturn(
+        response);
     when(userRepository.findByEmail(anyString())).thenReturn(java.util.Optional.of(testUser));
 
     mockMvc.perform(post("/api/auth/register")
@@ -125,25 +131,24 @@ class AuthControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(registerRequest)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.accessToken").value("access-token"))
-        .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+        .andExpect(
+            jsonPath("$.message").value("User registered successfully. Verification email sent."))
+        .andExpect(jsonPath("$.success").value(true));
   }
 
-  /*
-   *
-   * @Test
-   * void register_WithExistingEmail_ShouldReturnConflict() throws Exception {
-   * when(turnstileService.verify(any(String.class))).thenReturn(true);
-   * when(authService.register(any(RegisterRequest.class)))
-   * .thenThrow(new EmailAlreadyExistsException("Email already exists"));
-   *
-   * mockMvc.perform(post("/api/auth/register")
-   * .with(SecurityMockMvcRequestPostProcessors.csrf())
-   * .contentType(MediaType.APPLICATION_JSON)
-   * .content(objectMapper.writeValueAsString(registerRequest)))
-   * .andExpect(status().isConflict());
-   * }
-   */
+
+  @Test
+  void register_WithExistingEmail_ShouldReturnConflict() throws Exception {
+    when(turnstileService.verify(any(String.class))).thenReturn(true);
+    when(authService.registerAndSendVerificationEmail(any(RegisterRequest.class)))
+        .thenThrow(new EmailAlreadyExistsException("Email already exists"));
+
+    mockMvc.perform(post("/api/auth/register")
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isConflict());
+  }
 
   @Test
   @WithMockUser
@@ -376,14 +381,14 @@ class AuthControllerTest {
     String inviteToken = "valid-invite-token";
     when(authService.generateAdminInviteToken(anyString())).thenReturn(inviteToken);
     when(emailAdminService.sendAdminInvitation(anyString(), anyString()))
-        .thenReturn(ResponseEntity.ok("Admin invitation sent successfully"));
+        .thenReturn(ResponseEntity.ok("Admin invitation sent successfully."));
 
     mockMvc.perform(post("/api/auth/invite/admin")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(adminInviteRequest)))
         .andExpect(status().isOk())
-        .andExpect(content().string("Admin invitation sent successfully"));
+        .andExpect(content().string("Admin invitation sent successfully."));
 
     verify(authService).generateAdminInviteToken(adminInviteRequest.getEmail());
     verify(emailAdminService).sendAdminInvitation(eq(adminInviteRequest.getEmail()), anyString());
@@ -414,20 +419,21 @@ class AuthControllerTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  void verifyAdminInvite_WithInvalidToken_ShouldReturnBadRequest() throws Exception {
+  void verifyAdminInvite_WithInvalidToken_ShouldReturnUnauthorized() throws Exception {
     when(authService.verifyAdminInviteToken(anyString()))
-        .thenThrow(new RuntimeException("Invalid token"));
+        .thenThrow(new InvalidTokenException());
 
     mockMvc.perform(get("/api/auth/verify-admin-invite")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .param("token", "invalid-token"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isUnauthorized());
   }
 
   @Test
   @WithMockUser(roles = "ADMIN")
   void registerAdmin_WithValidData_ShouldReturnOk() throws Exception {
-    RegisterResponse response = new RegisterResponse("access-token", "refresh-token");
+    RegisterResponse response = new RegisterResponse(
+        "User registered successfully. Verification email sent.", true);
     when(authService.registerAdmin(any(RegisterRequest.class))).thenReturn(response);
 
     mockMvc.perform(post("/api/auth/register/admin")
@@ -435,17 +441,31 @@ class AuthControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(registerRequest)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.accessToken").value("access-token"))
-        .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+        .andExpect(
+            jsonPath("$.message").value("User registered successfully. Verification email sent."))
+        .andExpect(jsonPath("$.success").value(true));
   }
 
-    /*@Test
-    @WithMockUser(roles = "USER")
-    void registerAdmin_WithoutAdminRole_ShouldReturnForbidden() throws Exception {
-        mockMvc.perform(post("/api/auth/register/admin")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
-            .andExpect(status().isForbidden());
-    }*/
+  @Test
+  void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
+    // Arrange
+    when(turnstileService.verify(any())).thenReturn(false);
+    when(authService.registerAndSendVerificationEmail(any(RegisterRequest.class)))
+        .thenThrow(new TurnstileVerificationException());
+
+    RegisterRequest registerRequest = new RegisterRequest(
+        "newuser@example.com",
+        "password123",
+        "New",
+        "User",
+        "invalid-turnstile-token"
+    );
+
+    // Act & Assert
+    mockMvc.perform(post("/api/auth/register")
+            .with(SecurityMockMvcRequestPostProcessors.csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(registerRequest)))
+        .andExpect(status().isBadRequest());
+  }
 }

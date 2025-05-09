@@ -3,6 +3,7 @@ package stud.ntnu.krisefikser.household.service;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
@@ -14,18 +15,19 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.repository.GuestRepository;
+import stud.ntnu.krisefikser.household.repository.HouseholdInviteRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 /**
- * Service class for managing households in the system. Provides methods for
- * household-related
+ * Service class for managing households in the system. Provides methods for household-related
  * operations such as creating, joining, leaving, and deleting households.
  *
  * @since 1.0
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HouseholdService {
@@ -35,6 +37,7 @@ public class HouseholdService {
   private final UserService userService;
   private final ChecklistItemService checklistItemService;
   private final GuestRepository guestRepository;
+  private final HouseholdInviteRepository inviteRepository;
 
   /**
    * Retrieves all households that the current user is a member of.
@@ -79,10 +82,12 @@ public class HouseholdService {
           household.getPostalCode(),
           household.getCity(),
           household.getOwner().toDtoWithLocation(), // Include owner's location
-          members.stream().map(HouseholdMember::toDtoWithLocation).toList(), // Include members' location
+          members.stream().map(HouseholdMember::toDtoWithLocation).toList(),
+          // Include members' location
           guests.stream()
-              .<GuestResponse>map(guest -> new GuestResponse(guest.getId(), guest.getName(), guest.getIcon(),
-                  guest.getConsumptionMultiplier()))
+              .map(
+                  guest -> new GuestResponse(guest.getId(), guest.getName(), guest.getIcon(),
+                      guest.getConsumptionMultiplier()))
               .toList(),
           household.getCreatedAt(),
           true);
@@ -99,8 +104,9 @@ public class HouseholdService {
           household.getOwner().toDto(), // Don't include owner's location
           members.stream().map(HouseholdMember::toDto).toList(), // Don't include members' location
           guests.stream()
-              .<GuestResponse>map(guest -> new GuestResponse(guest.getId(), guest.getName(), guest.getIcon(),
-                  guest.getConsumptionMultiplier()))
+              .map(
+                  guest -> new GuestResponse(guest.getId(), guest.getName(), guest.getIcon(),
+                      guest.getConsumptionMultiplier()))
               .toList(),
           household.getCreatedAt(),
           false);
@@ -129,6 +135,8 @@ public class HouseholdService {
       throw new IllegalArgumentException("Failed to join household");
     }
 
+    userService.updateActiveHousehold(household);
+
     return toHouseholdResponse(household);
   }
 
@@ -155,8 +163,7 @@ public class HouseholdService {
   }
 
   /**
-   * Leaves the specified household. The user must be a member of the household to
-   * leave it.
+   * Leaves the specified household. The user must be a member of the household to leave it.
    *
    * @param householdId The ID of the household to leave
    */
@@ -179,17 +186,12 @@ public class HouseholdService {
     householdMemberService.removeMember(household, currentUser);
   }
 
-  public List<User> getHouseholdOwners() {
-    return householdRepo.findAll().stream().map(Household::getOwner).toList();
-  }
-
   private boolean isOwner(User user, Household household) {
     return household.getOwner().getId().equals(user.getId());
   }
 
   /**
-   * Sets the active household for the current user to null if the user is leaving
-   * the household. If
+   * Sets the active household for the current user to null if the user is leaving the household. If
    * the user is member of another household, a random one is set as active.
    *
    * @param household The household being left
@@ -204,6 +206,10 @@ public class HouseholdService {
 
       userService.updateActiveHousehold(newHousehold);
     }
+  }
+
+  public List<User> getHouseholdOwners() {
+    return householdRepo.findAll().stream().map(Household::getOwner).toList();
   }
 
   /**
@@ -222,15 +228,26 @@ public class HouseholdService {
       throw new IllegalArgumentException("Only the owner can delete a household");
     }
 
-    // Set a new active household for each member and remove them from the household
-    // as members
-    List<HouseholdMember> members = householdMemberService.getMembers(id);
-    for (HouseholdMember member : members) {
-      setNewActiveHousehold(member.getUser(), household);
-      householdMemberService.removeMember(household, member.getUser());
-    }
+    // For each user who has this household as their active household
+    if (household.getActiveUsers() != null && !household.getActiveUsers().isEmpty()) {
+      for (User user : household.getActiveUsers()) {
+        // Find another household the user belongs to (if any)
+        List<HouseholdMember> userMemberships = householdMemberService.getHouseholdsByUser(user);
+        HouseholdMember alternativeHouseholdMember = userMemberships.stream()
+            .filter(member -> !member.getHousehold().getId().equals(id))
+            .findFirst()
+            .orElse(null);
 
-    householdRepo.deleteById(id);
+        // If user has another household, set it as active
+        // Otherwise, set active household to null
+        Household newActiveHousehold = (alternativeHouseholdMember != null)
+            ? alternativeHouseholdMember.getHousehold()
+            : null;
+
+        user.setActiveHousehold(newActiveHousehold);
+      }
+    }
+    householdRepo.delete(household);
   }
 
   /**
@@ -257,8 +274,7 @@ public class HouseholdService {
   }
 
   /**
-   * Sets the water amount for the active household of the current user. Throws an
-   * exception if the
+   * Sets the water amount for the active household of the current user. Throws an exception if the
    * user does not have an active household.
    *
    * @param liters the new water amount
@@ -371,13 +387,21 @@ public class HouseholdService {
         userService.updateActiveHousehold(null);
       }
     }
+
+    // Delete all invites associated with this household
+    Household household = householdRepo.findById(id)
+        .orElseThrow(HouseholdNotFoundException::new);
+    inviteRepository.deleteAll(inviteRepository.findByHousehold(household));
+
+    // Delete all checklist items associated with this household
+    checklistItemService.deleteAllByHousehold(household);
+
     // Delete the household (cascade will handle household members)
     householdRepo.deleteById(id);
   }
 
   /**
-   * Adds a guest to the active household. A guest is a user who does not have a
-   * user account.
+   * Adds a guest to the active household. A guest is a user who does not have a user account.
    *
    * @param guest The guest to be added
    * @return The updated household response

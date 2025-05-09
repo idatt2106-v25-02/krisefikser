@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -116,16 +117,25 @@ public class UserController {
     return ResponseEntity.ok().build();
   }
 
-  @Operation(summary = "Update user location", description = "Updates the current user's location coordinates if location sharing is enabled")
+  /**
+   * Updates the current user's location.
+   *
+   * @param locationRequest the request containing the new location coordinates
+   * @return the updated user information
+   */
+  @Operation(summary = "Update user location", description = "Updates the current user's location"
+      + " coordinates if location sharing is enabled")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully updated user location", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully updated user location",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
+              UserResponse.class))),
       @ApiResponse(responseCode = "400", description = "Location sharing is disabled"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
   @PutMapping("/location")
   public ResponseEntity<UserResponse> updateCurrentUserLocation(
-      @Parameter(description = "Location coordinates") @RequestBody UserLocationRequest locationRequest) {
+      @Parameter(description = "Location coordinates") @RequestBody @Valid UserLocationRequest locationRequest) {
     User currentUser = userService.getCurrentUser();
 
     // Check if location sharing is enabled before attempting to update
@@ -133,7 +143,8 @@ public class UserController {
       return ResponseEntity.badRequest().build();
     }
 
-    User updatedUser = userService.updateUserLocation(currentUser.getId(), locationRequest.getLatitude(),
+    User updatedUser = userService.updateUserLocation(currentUser.getId(),
+        locationRequest.getLatitude(),
         locationRequest.getLongitude());
     // Use regular toDto that doesn't include location data in the response
     return ResponseEntity.ok(updatedUser.toDto());

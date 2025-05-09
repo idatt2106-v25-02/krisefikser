@@ -16,8 +16,8 @@ import stud.ntnu.krisefikser.user.service.UserService;
 /**
  * Service responsible for managing checklist items in the emergency preparedness system.
  *
- * <p>This service provides functionality for retrieving and toggling the completion status
- * of checklist items. It interacts with the {@link ChecklistItemRepository} for data access
+ * <p>This service provides functionality for retrieving and toggling the completion status of
+ * checklist items. It interacts with the {@link ChecklistItemRepository} for data access
  * operations.</p>
  */
 @Service
@@ -33,8 +33,9 @@ public class ChecklistItemService {
   /**
    * Toggles the checked status of a checklist item.
    *
-   * <p>This method finds the checklist item by ID and inverts its current checked status.
-   * If the item is currently checked, it will be unchecked, and vice versa.</p>
+   * <p>This method finds the checklist item by ID and inverts its current checked status. If the
+   * item
+   * is currently checked, it will be unchecked, and vice versa.</p>
    *
    * @param id the unique identifier of the checklist item to toggle
    * @return a response DTO containing the updated checklist item details
@@ -72,8 +73,8 @@ public class ChecklistItemService {
   /**
    * Creates default checklist items for a household based on emergency preparedness guidelines.
    *
-   * <p>This method creates a set of recommended checklist items organized by category
-   * for the specified household, based on official emergency preparedness guidelines.</p>
+   * <p>This method creates a set of recommended checklist items organized by category for the
+   * specified household, based on official emergency preparedness guidelines.</p>
    *
    * @param household the household to create checklist items for
    */
@@ -218,9 +219,18 @@ public class ChecklistItemService {
                 "Ha en avtale på plass om hvor du kan overnatte hvis du ikke kan bo hjemme.")
             .icon("hotel")
             .type(ChecklistCategory.OTHER)
-            .build()
-    );
+            .build());
 
     checklistItemRepository.saveAll(defaultItems);
+  }
+
+  /**
+   * Deletes all checklist items associated with a specific household.
+   *
+   * @param household the household whose checklist items should be deleted
+   */
+  @Transactional
+  public void deleteAllByHousehold(Household household) {
+    checklistItemRepository.deleteByHousehold(household);
   }
 }

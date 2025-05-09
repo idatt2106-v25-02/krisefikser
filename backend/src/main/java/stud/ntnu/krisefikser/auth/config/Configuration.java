@@ -21,7 +21,7 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
  * manager.
  */
 @org.springframework.context.annotation.Configuration
-@EnableConfigurationProperties({JwtProperties.class})
+@EnableConfigurationProperties({JwtProperties.class, TurnstileProperties.class})
 @RequiredArgsConstructor
 public class Configuration {
 
