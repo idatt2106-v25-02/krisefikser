@@ -63,7 +63,7 @@ public class TurnstileService {
     }
 
     Map<String, String> body = new HashMap<>();
-    body.put("secret", turnstileProperties.getTurnstileSecretKey());
+    body.put("secret", turnstileProperties.getSecret());
     body.put("response", token);
 
     try {

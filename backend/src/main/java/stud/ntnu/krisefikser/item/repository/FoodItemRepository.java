@@ -27,12 +27,14 @@ public interface FoodItemRepository extends JpaRepository<FoodItem, UUID> {
    * Finds all food items that have an expiration date falling within the specified range.
    *
    * <p>This method is typically used to find items that are expiring soon or have already expired,
-   * based on the provided start and end dates (inclusive of start, exclusive of end if typical for 'between' queries, though Instant comparison is direct).</p>
+   * based on the provided start and end dates (inclusive of start, exclusive of end if typical for
+   * 'between' queries, though Instant comparison is direct).</p>
    *
    * @param startDate the inclusive start of the expiration date range (e.g., Instant.now()).
-   * @param endDate the exclusive end of the expiration date range (e.g., Instant.now().plus(7, ChronoUnit.DAYS)).
-   * @return a list of {@link FoodItem} entities whose expiration dates fall within the specified range.
-   *         Returns an empty list if no items match the criteria.
+   * @param endDate   the exclusive end of the expiration date range (e.g., Instant.now().plus(7,
+   *                  ChronoUnit.DAYS)).
+   * @return a list of {@link FoodItem} entities whose expiration dates fall within the specified
+   * range. Returns an empty list if no items match the criteria.
    */
   List<FoodItem> findAllByExpirationDateBetween(Instant startDate, Instant endDate);
 }

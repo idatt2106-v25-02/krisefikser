@@ -292,7 +292,9 @@ public class AuthController {
     String inviteToken = authService.generateAdminInviteToken(request.getEmail());
     String inviteLink = frontendConfig.getUrl() + "/admin/registrer?token=" + inviteToken;
 
-    return emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
+    emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
+
+    return ResponseEntity.ok("Admin invitation sent successfully.");
   }
 
   /**

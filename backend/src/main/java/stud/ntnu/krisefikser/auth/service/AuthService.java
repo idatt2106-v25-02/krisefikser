@@ -1,6 +1,5 @@
 package stud.ntnu.krisefikser.auth.service;
 
-import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -10,13 +9,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.auth.config.JwtProperties;
 import stud.ntnu.krisefikser.auth.dto.CompletePasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
@@ -40,6 +39,7 @@ import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.exception.TwoFactorAuthRequiredException;
 import stud.ntnu.krisefikser.auth.repository.PasswordResetTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.config.FrontendConfig;
 import stud.ntnu.krisefikser.email.entity.VerificationToken;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
@@ -70,19 +70,7 @@ public class AuthService {
   private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final JwtProperties jwtProperties;
   private final Map<String, AdminInviteToken> adminInviteTokens = new ConcurrentHashMap<>();
-  @Value("${frontend.url}")
-  private String frontendUrl;
-
-  /**
-   * Checks if an email has a valid admin invite token.
-   *
-   * @param email The email to check
-   * @return true if the email has a valid invite token, false otherwise
-   */
-  public boolean isValidAdminInviteToken(String email) {
-    return adminInviteTokens.values().stream()
-        .anyMatch(token -> token.email.equals(email) && !token.isExpired());
-  }
+  private final FrontendConfig frontendConfig;
 
   /**
    * Registers a new user and sends verification email.
@@ -90,7 +78,7 @@ public class AuthService {
    * @param registerRequest The registration request containing user details.
    * @return A response containing the access and refresh tokens.
    */
-  @Transactional
+  @Transactional(rollbackFor = Exception.class)
   public RegisterResponse registerAndSendVerificationEmail(RegisterRequest registerRequest) {
     validateTurnstileToken(registerRequest.getTurnstileToken());
 
@@ -105,11 +93,19 @@ public class AuthService {
         List.of(RoleType.USER)
     ));
 
-    // Send verification email
+    // Send verification email, should throw if error occurs, which will be caught by the
+    // transaction
     VerificationToken token = emailVerificationService.createVerificationToken(user);
     emailVerificationService.sendVerificationEmail(user, token);
 
     return new RegisterResponse("User registered successfully. Verification email sent.", true);
+  }
+
+  private void validateTurnstileToken(String turnstileToken) throws TurnstileVerificationException {
+    boolean isHuman = turnstileService.verify(turnstileToken);
+    if (!isHuman) {
+      throw new TurnstileVerificationException();
+    }
   }
 
   /**
@@ -118,6 +114,7 @@ public class AuthService {
    * @param request The registration request containing admin user details.
    * @return A response containing the access and refresh tokens.
    */
+  @Transactional
   public RegisterResponse registerAdmin(RegisterRequest request) {
     if (!isValidAdminInviteToken(request.getEmail())) {
       throw new InvalidCredentialsException("Invalid admin invite token");
@@ -141,11 +138,15 @@ public class AuthService {
     return new RegisterResponse("Admin user registered successfully.", true);
   }
 
-  private void validateTurnstileToken(String turnstileToken) throws TurnstileVerificationException {
-    boolean isHuman = turnstileService.verify(turnstileToken);
-    if (!isHuman) {
-      throw new TurnstileVerificationException();
-    }
+  /**
+   * Checks if an email has a valid admin invite token.
+   *
+   * @param email The email to check
+   * @return true if the email has a valid invite token, false otherwise
+   */
+  public boolean isValidAdminInviteToken(String email) {
+    return adminInviteTokens.values().stream()
+        .anyMatch(token -> token.email.equals(email) && !token.isExpired());
   }
 
   /**
@@ -154,6 +155,7 @@ public class AuthService {
    * @param loginRequest The login request containing user credentials.
    * @return A response containing the access and refresh tokens.
    */
+  @Transactional
   public LoginResponse login(LoginRequest loginRequest) {
     User user = userService.getUserByEmail(loginRequest.getEmail());
     if (user == null) {
@@ -181,7 +183,7 @@ public class AuthService {
 
       // Generate verification token for admin login
       String token = tokenService.generateResetPasswordToken(user.getEmail());
-      String verificationLink = frontendUrl + "/verify-admin-login?token=" + token;
+      String verificationLink = frontendConfig.getUrl() + "/verify-admin-login?token=" + token;
 
       // Send verification email
       emailVerificationService.sendAdminLoginVerificationEmail(user, verificationLink);
@@ -233,12 +235,13 @@ public class AuthService {
    * @param refreshRequest The request containing the refresh token.
    * @return A response containing the new access and refresh tokens.
    */
+  @Transactional
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
-    RefreshToken existingToken = refreshTokenRepository.findByToken(
-        refreshRequest.getRefreshToken()).orElseThrow(
-        RefreshTokenDoesNotExistException::new);
+    if (!tokenService.isRefreshToken(refreshRequest.getRefreshToken())) {
+      throw new InvalidTokenException();
+    }
 
-    String email = tokenService.extractEmail(existingToken.getToken());
+    String email = tokenService.extractEmail(refreshRequest.getRefreshToken());
     if (email == null) {
       throw new InvalidTokenException();
     }
@@ -246,6 +249,14 @@ public class AuthService {
     log.info("Refreshing token");
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+    if (!tokenService.isValid(refreshRequest.getRefreshToken(), userDetails)) {
+      throw new InvalidTokenException();
+    }
+
+    RefreshToken existingToken = refreshTokenRepository.findByToken(
+        refreshRequest.getRefreshToken()).orElseThrow(
+        RefreshTokenDoesNotExistException::new);
 
     User user = userService.getUserByEmail(email);
 
@@ -293,6 +304,7 @@ public class AuthService {
    * @param updatePasswordRequest The request containing the new password.
    * @return UpdatePasswordResponse containing the status of the update.
    */
+  @Transactional
   public UpdatePasswordResponse updatePassword(UpdatePasswordRequest updatePasswordRequest) {
     User user = userService.getCurrentUser();
 
@@ -314,6 +326,7 @@ public class AuthService {
    * @param request The request containing the user's email.
    * @return A response indicating the success of the operation.
    */
+  @Transactional
   public PasswordResetResponse requestPasswordReset(
       RequestPasswordResetRequest request) {
     User user = userService.getUserByEmail(request.getEmail());
@@ -335,7 +348,8 @@ public class AuthService {
 
     // Send password reset email
     String resetLink =
-        frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(
+        frontendConfig.getUrl() + "/verifiser-passord-tilbakestilling?token="
+            + java.net.URLEncoder.encode(
             token, java.nio.charset.StandardCharsets.UTF_8);
     long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
 
@@ -357,6 +371,7 @@ public class AuthService {
    * @param request The request containing the token and new password.
    * @return A response indicating the success of the operation.
    */
+  @Transactional
   public PasswordResetResponse completePasswordReset(CompletePasswordResetRequest request) {
     if (request.getToken() == null) {
       throw new InvalidCredentialsException("Token is required");
@@ -429,6 +444,7 @@ public class AuthService {
    * @return A LoginResponse containing the access and refresh tokens if verification is successful
    * @throws InvalidTokenException if the token is invalid or expired
    */
+  @Transactional
   public LoginResponse verifyAdminLogin(String token) {
     String email = tokenService.extractEmail(token);
     if (email == null) {
@@ -459,6 +475,7 @@ public class AuthService {
    * @param request The request containing the admin's email address
    * @return A response indicating the success of the operation
    */
+  @Transactional
   public PasswordResetResponse requestAdminPasswordReset(RequestPasswordResetRequest request) {
     User user = userService.getUserByEmail(request.getEmail());
     if (user == null) {
@@ -490,7 +507,8 @@ public class AuthService {
 
     // Send email
     String resetLink =
-        frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(
+        frontendConfig.getUrl() + "/verifiser-passord-tilbakestilling?token="
+            + java.net.URLEncoder.encode(
             token, java.nio.charset.StandardCharsets.UTF_8);
     emailVerificationService.sendPasswordResetEmail(user, resetLink, expirationHours);
 

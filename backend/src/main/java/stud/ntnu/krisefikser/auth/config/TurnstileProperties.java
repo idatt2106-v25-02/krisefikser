@@ -15,5 +15,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @AllArgsConstructor
 public class TurnstileProperties {
 
-  private final String turnstileSecretKey;
+  private final String secret;
 }
