@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -131,7 +130,7 @@ public class MapPointController {
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<MapPointResponse> createMapPoint(
-      @Parameter(description = "Map point to create") @RequestBody @Valid MapPointRequest mapPoint) {
+      @Parameter(description = "Map point to create") @RequestBody MapPointRequest mapPoint) {
     MapPointResponse createdPoint = mapPointService.createMapPoint(mapPoint);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdPoint);
   }
@@ -170,7 +169,7 @@ public class MapPointController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<MapPointResponse> updateMapPoint(
       @Parameter(description = "ID of the map point to update") @PathVariable Long id,
-      @Parameter(description = "Updated map point details") @RequestBody @Valid
+      @Parameter(description = "Updated map point details") @RequestBody
       UpdateMapPointRequest mapPoint) {
     return ResponseEntity.ok(mapPointService.updateMapPoint(id, mapPoint));
   }

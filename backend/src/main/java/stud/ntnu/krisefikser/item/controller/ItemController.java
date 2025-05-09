@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -92,7 +91,7 @@ public class ItemController {
       @ApiResponse(responseCode = "400", description = "Invalid input data")
   })
   public ResponseEntity<FoodItemResponse> createFoodItem(
-      @Parameter(description = "Food item data") @RequestBody @Valid CreateFoodItemRequest createRequest) {
+      @Parameter(description = "Food item data") @RequestBody CreateFoodItemRequest createRequest) {
     FoodItemResponse createdItem = foodItemService.createFoodItem(createRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdItem);
   }
@@ -189,7 +188,7 @@ public class ItemController {
   })
   @PutMapping("/food/{id}")
   public ResponseEntity<FoodItemResponse> updateFoodItem(@PathVariable String id,
-      @RequestBody @Valid CreateFoodItemRequest putRequest) {
+      @RequestBody CreateFoodItemRequest putRequest) {
     FoodItemResponse updatedItem = foodItemService.updateFoodItem(id, putRequest);
     return ResponseEntity.ok(updatedItem);
   }
