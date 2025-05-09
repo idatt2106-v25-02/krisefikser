@@ -141,18 +141,18 @@ onMounted(() => {
     callback: (token: string) => {
       captchaToken.value = token
       toast('Success', {
-        description: 'Captcha token received',
+        description: 'Captcha token hentet',
       })
     },
     'error-callback': () => {
       toast('Error', {
-        description: 'Captcha token error',
+        description: 'Captcha token feil',
       })
       captchaToken.value = ''
     },
     'expired-callback': () => {
       toast('Warning', {
-        description: 'Captcha token expired',
+        description: 'Captcha token har utløpt',
       })
       captchaToken.value = ''
     },
