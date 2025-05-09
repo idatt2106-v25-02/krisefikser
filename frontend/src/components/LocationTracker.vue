@@ -35,10 +35,11 @@ const updateLocation = async () => {
           clearTimeout(timeoutId)
           reject(err)
         },
-        { timeout: 10000, maximumAge: 0 }
+        { timeout: 10000, maximumAge: 0 },
       )
     })
 
+    // Send location update to server
     await updateLocationMutation.mutateAsync({
       data: {
         latitude: position.coords.latitude,

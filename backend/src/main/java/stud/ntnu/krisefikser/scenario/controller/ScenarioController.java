@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +28,9 @@ import stud.ntnu.krisefikser.scenario.service.ScenarioService;
  * REST controller for managing emergency scenarios within the crisis management system.
  *
  * <p>This controller provides endpoints for creating, retrieving, updating, and deleting
- * scenarios.
- * Scenarios are informational resources containing guidance for different types of emergency
- * situations. Write operations (create, update, delete) are restricted to users with ADMIN role,
- * while read operations are accessible to all authenticated users.
+ * scenarios. Scenarios are informational resources containing guidance for different types of
+ * emergency situations. Write operations (create, update, delete) are restricted to users with
+ * ADMIN role, while read operations are accessible to all authenticated users.
  * </p>
  *
  * @author Krisefikser Development Team
@@ -77,7 +75,7 @@ public class ScenarioController {
       @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
   public ResponseEntity<ScenarioResponse> createScenario(
-      @Parameter(description = "Scenario data") @Valid @RequestBody CreateScenarioRequest createRequest) {
+      @Parameter(description = "Scenario data") @RequestBody CreateScenarioRequest createRequest) {
     ScenarioResponse createdScenario = scenarioService.createScenario(createRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdScenario);
   }
@@ -108,7 +106,7 @@ public class ScenarioController {
   })
   public ResponseEntity<ScenarioResponse> updateScenario(
       @Parameter(description = "ID of the scenario to update") @PathVariable("id") UUID id,
-      @Parameter(description = "Updated scenario data") @Valid @RequestBody CreateScenarioRequest updateRequest) {
+      @Parameter(description = "Updated scenario data") @RequestBody CreateScenarioRequest updateRequest) {
     ScenarioResponse updatedScenario = scenarioService.updateScenario(id, updateRequest);
     return ResponseEntity.ok(updatedScenario);
   }

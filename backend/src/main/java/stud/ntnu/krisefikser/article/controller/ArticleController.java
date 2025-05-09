@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -95,7 +94,7 @@ public class ArticleController {
   @PostMapping
   @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   public ResponseEntity<ArticleResponse> createArticle(
-      @Parameter(description = "Article to create") @RequestBody @Valid ArticleRequest articleRequest) {
+      @Parameter(description = "Article to create") @RequestBody ArticleRequest articleRequest) {
     return new ResponseEntity<>(articleService.createArticle(articleRequest), HttpStatus.CREATED);
   }
 
@@ -120,7 +119,7 @@ public class ArticleController {
   public ResponseEntity<ArticleResponse> updateArticle(
       @Parameter(description = "ID of the article to update") @PathVariable Long id,
       @Parameter(description = "Updated article details")
-      @RequestBody @Valid ArticleRequest articleRequest
+      @RequestBody ArticleRequest articleRequest
   ) {
     return ResponseEntity.ok(articleService.updateArticle(id, articleRequest));
   }

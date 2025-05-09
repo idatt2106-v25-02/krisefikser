@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -104,7 +103,7 @@ public class EventController {
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<EventResponse> createEvent(
-      @Parameter(description = "Event to create") @RequestBody @Valid EventRequest event) {
+      @Parameter(description = "Event to create") @RequestBody EventRequest event) {
     return ResponseEntity.ok(eventService.createEvent(event));
   }
 
@@ -128,7 +127,7 @@ public class EventController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<EventResponse> updateEvent(
       @Parameter(description = "ID of the event to update") @PathVariable Long id,
-      @Parameter(description = "Updated event details") @RequestBody @Valid UpdateEventRequest event) {
+      @Parameter(description = "Updated event details") @RequestBody UpdateEventRequest event) {
     return ResponseEntity.ok(eventService.updateEvent(id, event));
   }
 

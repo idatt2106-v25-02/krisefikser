@@ -75,6 +75,8 @@ public class SecurityConfiguration {
                 "/api/auth/admin/reset-password-link").permitAll()
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/reflections/public", "/api/reflections/event/**")
+            .permitAll()
             .anyRequest().authenticated())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
