@@ -125,9 +125,13 @@ onMounted(() => {
     watch(isDataLoading, renderNewMapPoints)
   })
 })
+
+const props = defineProps<{
+  showLegend: boolean
+}>()
 </script>
 
 <template>
   <div id="map" class="w-full h-full z-[1] overflow-hidden"></div>
-  <NewMapLegend :filter-markers="filterMarkers" />
+  <NewMapLegend :filter-markers="filterMarkers" v-if="props.showLegend" />
 </template>

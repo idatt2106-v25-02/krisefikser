@@ -5,7 +5,7 @@ import NewMapComponent from '@/components/map/NewMapComponent.vue'
 <template>
   <div class="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
     <div class="relative flex-grow overflow-hidden">
-      <NewMapComponent />
+      <NewMapComponent :show-legend="true" />
     </div>
   </div>
 </template>
