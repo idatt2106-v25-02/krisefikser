@@ -1,7 +1,7 @@
 import type { MapPointResponse, MapPointTypeResponse } from '@/api/generated/model'
 import { MarkerType, type MarkerComponent } from '.'
 
-function loadMapPoints(
+function mapPointsToMarkers(
   mapPointsData: MapPointResponse[],
   mapPointTypesData: MapPointTypeResponse,
 ): MarkerComponent[] {
@@ -73,4 +73,4 @@ function getGoogleMapsUrl(lat: number, lng: number) {
   return lat && lng ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` : null
 }
 
-export default loadMapPoints
+export default mapPointsToMarkers

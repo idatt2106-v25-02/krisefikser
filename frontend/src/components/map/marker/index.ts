@@ -1,6 +1,10 @@
 import { createUserMarker } from './user'
 import { createEventMarkers } from './event'
+import { createHouseholdMarker } from './household'
+import { createHouseholdMemberMarker } from './householdMember'
+import { createMeetingPointMarker } from './meetingPoint'
 import type { CircleMarkerOptions, MarkerOptions } from 'leaflet'
+import mapPointsToMarkers from './mapPoints'
 
 interface MarkerComponent {
   latitude: number
@@ -35,4 +39,13 @@ const MARKER_ICONS = {
 }
 
 export type { MarkerComponent }
-export { MarkerType, createUserMarker, createEventMarkers, MARKER_ICONS }
+export {
+  MarkerType,
+  createUserMarker,
+  createEventMarkers,
+  MARKER_ICONS,
+  createHouseholdMarker,
+  createHouseholdMemberMarker,
+  createMeetingPointMarker,
+  mapPointsToMarkers,
+}
