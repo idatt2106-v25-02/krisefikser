@@ -23,6 +23,8 @@ const updateLocation = async () => {
       navigator.geolocation.getCurrentPosition(resolve, reject)
     })
 
+    console.log('position', position.coords.latitude, position.coords.longitude)
+
     // Send location update to server
     await updateLocationMutation.mutateAsync({
       data: {

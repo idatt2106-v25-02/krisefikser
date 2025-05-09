@@ -32,6 +32,7 @@ import SendResetPasswordLinkView from '@/views/auth/password/SendResetPasswordLi
 // Non-Registered User views
 import JoinOrCreateHouseholdView from '@/views/nonRegistered/household/JoinOrCreateHouseholdView.vue'
 import MapView from '@/views/nonRegistered/map/MapView.vue'
+import NewMapView from '@/views/nonRegistered/map/NewMapView.vue'
 import RegisterView from '@/views/auth/register/RegisterView.vue'
 import PrivacyPolicyView from '@/views/nonRegistered/static/PrivacyPolicyView.vue'
 import NewsView from '@/views/nonRegistered/news/NewsView.vue'
@@ -240,6 +241,11 @@ const router = createRouter({
       path: '/kart',
       name: 'map',
       component: MapView,
+    },
+    {
+      path: '/kart/test',
+      name: 'map-test',
+      component: NewMapView,
     },
     {
       path: '/registrer',

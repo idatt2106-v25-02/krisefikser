@@ -75,7 +75,7 @@ public class User {
   private boolean emailUpdates = true;
 
   @Column(nullable = false)
-  private boolean locationSharing = false;
+  private boolean locationSharing = true;
 
   @Column
   private Double latitude;
@@ -146,9 +146,9 @@ public class User {
   }
 
   /**
-   * Converts the User entity to a UserResponse DTO including location data.
-   * This should only be used in contexts where sharing location is appropriate,
-   * such as when getting the active household.
+   * Converts the User entity to a UserResponse DTO including location data. This should only be
+   * used in contexts where sharing location is appropriate, such as when getting the active
+   * household.
    *
    * @return a UserResponse DTO containing user information including location
    * data.

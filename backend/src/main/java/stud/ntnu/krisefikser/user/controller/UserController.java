@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +33,7 @@ import stud.ntnu.krisefikser.user.service.UserService;
  *
  * @since 1.0
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -114,36 +116,36 @@ public class UserController {
     return ResponseEntity.ok().build();
   }
 
-  /**
-   * Updates the current user's location.
-   *
-   * @param locationRequest the request containing the new location coordinates
-   * @return the updated user information
-   */
-  @Operation(summary = "Update user location", description = "Updates the current user's location"
-      + " coordinates if location sharing is enabled")
+  @Operation(summary = "Update user location",
+      description = "Updates the current user's location coordinates if location sharing is enabled")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Successfully updated user location",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
-              UserResponse.class))),
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = UserResponse.class))),
       @ApiResponse(responseCode = "400", description = "Location sharing is disabled"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
       @ApiResponse(responseCode = "404", description = "User not found")
   })
   @PutMapping("/location")
   public ResponseEntity<UserResponse> updateCurrentUserLocation(
-      @Parameter(description = "Location coordinates") @RequestBody UserLocationRequest locationRequest) {
+      @Parameter(description = "Location coordinates") @RequestBody
+      UserLocationRequest locationRequest) {
+    log.info("0");
     User currentUser = userService.getCurrentUser();
+    log.info("1");
 
     // Check if location sharing is enabled before attempting to update
     if (!currentUser.isLocationSharing()) {
       return ResponseEntity.badRequest().build();
     }
 
-    User updatedUser = userService.updateUserLocation(currentUser.getId(),
-        locationRequest.getLatitude(),
-        locationRequest.getLongitude());
+    log.info("2");
+
+    User updatedUser =
+        userService.updateUserLocation(currentUser.getId(), locationRequest.getLatitude(),
+            locationRequest.getLongitude());
     // Use regular toDto that doesn't include location data in the response
+    log.info("Updated user: {}", updatedUser);
     return ResponseEntity.ok(updatedUser.toDto());
   }
 }
