@@ -63,6 +63,7 @@
     "@types/sockjs-client": "^1.5.4",
     "@types/vue": "^2.0.0",
     "@vitejs/plugin-vue": "^5.2.3",
+    "@vitest/coverage-v8": "3.1.2",
     "@vitest/eslint-plugin": "^1.1.39",
     "@vue/compiler-sfc": "^3.5.13",
     "@vue/eslint-config-prettier": "^10.2.0",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points.ts'
+import { useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
 import { AlertCircle, Map as MapIcon } from 'lucide-vue-next'
 import Dialog from '@/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue'

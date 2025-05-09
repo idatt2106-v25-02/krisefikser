@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import NonRegisteredHomeView from '@/views/nonRegistered/HomeView.vue'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 // Auth views
 import LoginView from '@/views/auth/login/LoginView.vue'
@@ -27,7 +27,7 @@ import HouseholdDetailsView from '@/views/registered/household/HouseholdView.vue
 import HouseholdInventoryView from '@/views/registered/inventory/HouseholdInventoryView.vue'
 import HomeAddressView from '@/views/registered/household/HomeAddressView.vue'
 import NewHouseholdView from '@/views/registered/household/NewHousehold.vue'
-import HouseholdReflectionsPage from '@/views/registered/household/HouseholdReflectionsPage.vue'
+import HouseholdReflectionsPage from '@/views/registered/household/HouseholdReflectionsView.vue'
 import SendResetPasswordLinkView from '@/views/auth/password/SendResetPasswordLinkView.vue'
 // Non-Registered User views
 import JoinOrCreateHouseholdView from '@/views/nonRegistered/household/JoinOrCreateHouseholdView.vue'
