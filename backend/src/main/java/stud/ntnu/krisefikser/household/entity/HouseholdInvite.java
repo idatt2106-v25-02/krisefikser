@@ -9,8 +9,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,6 +24,7 @@ import lombok.Setter;
 import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.map.repository.EventRepository;
 import stud.ntnu.krisefikser.map.service.EventWebSocketService;
+import stud.ntnu.krisefikser.notification.entity.Notification;
 import stud.ntnu.krisefikser.user.entity.User;
 
 /**
@@ -57,7 +62,6 @@ public class HouseholdInvite {
   @JoinColumn(name = "invited_user_id")
   private User invitedUser;
 
-  @Column(nullable = true)
   private String invitedEmail;
 
   @ManyToOne(optional = false)
@@ -71,8 +75,17 @@ public class HouseholdInvite {
   @Enumerated(EnumType.STRING)
   private InviteStatus status;
 
-  @Column(nullable = true)
   private LocalDateTime respondedAt;
+
+  @OneToMany(mappedBy = "invite")
+  private Set<Notification> notifications = new HashSet<>();
+
+  @PreRemove
+  private void preRemove() {
+    if (notifications != null && !notifications.isEmpty()) {
+      notifications.forEach(notification -> notification.setEvent(null));
+    }
+  }
 
   /**
    * An enum describing the status of an invitation.

@@ -40,6 +40,7 @@ public class HouseholdMember {
   @ManyToOne(optional = false)
   @JoinColumn(name = "user_id")
   private User user;
+
   @ManyToOne(optional = false)
   @JoinColumn(name = "household_id")
   private Household household;
@@ -56,8 +57,8 @@ public class HouseholdMember {
   }
 
   /**
-   * Converts to HouseholdMemberResponse including user location data. This should only be used when
-   * getting active household details.
+   * Converts to HouseholdMemberResponse including user location data.
+   * This should only be used when getting active household details.
    *
    * @return HouseholdMemberResponse with user location data
    */

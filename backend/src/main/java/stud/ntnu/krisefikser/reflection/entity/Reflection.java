@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import stud.ntnu.krisefikser.household.entity.Household;
+import stud.ntnu.krisefikser.map.entity.Event;
 import stud.ntnu.krisefikser.reflection.enums.VisibilityType;
 import stud.ntnu.krisefikser.user.entity.User;
 
@@ -70,17 +71,19 @@ public class Reflection {
   private VisibilityType visibility;
 
   /**
-   * The household associated with the reflection. Only relevant when visibility is HOUSEHOLD.
+   * The household associated with the reflection. Only relevant when visibility
+   * is HOUSEHOLD.
    */
   @ManyToOne
   @JoinColumn(name = "household_id")
   private Household household;
 
   /**
-   * The ID of the event this reflection is associated with. Optional.
+   * The event this reflection is associated with. Optional.
    */
-  @Column(name = "event_id")
-  private Long eventId;
+  @ManyToOne
+  @JoinColumn(name = "event_id")
+  private Event event;
 
   /**
    * Date and time when the reflection was created.

@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +22,10 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import stud.ntnu.krisefikser.item.entity.ChecklistItem;
+import stud.ntnu.krisefikser.item.entity.FoodItem;
+import stud.ntnu.krisefikser.notification.entity.Notification;
+import stud.ntnu.krisefikser.reflection.entity.Reflection;
 import stud.ntnu.krisefikser.user.entity.User;
 
 /**
@@ -73,9 +78,40 @@ public class Household {
   @UpdateTimestamp
   private LocalDateTime updatedAt;
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
   private Set<HouseholdMember> members = new HashSet<>();
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
   private Set<Guest> guests = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
+  private Set<MeetingPoint> meetingPoints = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
+  private Set<HouseholdInvite> invites = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
+  private Set<ChecklistItem> checklistItems = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
+  private Set<FoodItem> foodItems = new HashSet<>();
+
+  @OneToMany(mappedBy = "household")
+  private Set<Notification> notifications = new HashSet<>();
+
+  @OneToMany(mappedBy = "household")
+  private Set<Reflection> reflections = new HashSet<>();
+
+  @OneToMany(mappedBy = "activeHousehold")
+  private Set<User> activeUsers = new HashSet<>();
+
+  @PreRemove
+  private void preRemove() {
+    if (notifications != null && !notifications.isEmpty()) {
+      notifications.forEach(notification -> notification.setEvent(null));
+    }
+    if (reflections != null && !reflections.isEmpty()) {
+      reflections.forEach(reflection -> reflection.setEvent(null));
+    }
+  }
 }

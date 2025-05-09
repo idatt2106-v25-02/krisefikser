@@ -7,7 +7,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +19,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.item.dto.FoodItemResponse;
+import stud.ntnu.krisefikser.notification.entity.Notification;
 
 /**
  * Entity representing a food item stored by a household for emergency preparedness.
@@ -64,6 +69,16 @@ public class FoodItem {
    * Date and time when the food item expires.
    */
   private Instant expirationDate;
+
+  @OneToMany(mappedBy = "item")
+  private Set<Notification> notifications = new HashSet<>();
+
+  @PreRemove
+  private void preRemove() {
+    if (notifications != null && !notifications.isEmpty()) {
+      notifications.forEach(notification -> notification.setEvent(null));
+    }
+  }
 
   /**
    * Converts this entity to a response DTO.
