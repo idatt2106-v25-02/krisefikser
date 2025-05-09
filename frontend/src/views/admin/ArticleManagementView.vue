@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { Image as ImageIcon, Pencil, Plus, Trash2 } from 'lucide-vue-next'
 
 import { Button } from '@/components/ui/button'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,8 @@ const showDialog = ref(false)
 const isEditing = ref(false)
 const searchQuery = ref('')
 const selectedArticle = ref<ArticleResponse | null>(null)
+const showDeleteDialog = ref(false)
+const articleToDelete = ref<number | null>(null)
 
 const articleForm = ref<ArticleRequest>({
   title: '',
@@ -146,9 +149,16 @@ const handleSubmit = () => {
 
 // Delete article
 const deleteArticle = (id: number) => {
-  if (confirm('Er du sikker på at du vil slette denne artikkelen?')) {
-    deleteArticleMutation({ id })
-  }
+  articleToDelete.value = id
+  showDeleteDialog.value = true
+}
+
+// Add this new function
+const handleDeleteArticle = () => {
+  if (!articleToDelete.value) return
+  deleteArticleMutation({ id: articleToDelete.value })
+  showDeleteDialog.value = false
+  articleToDelete.value = null
 }
 
 // Open image in new tab
@@ -289,6 +299,17 @@ const openImageInNewTab = (url: string) => {
           </form>
         </DialogContent>
       </Dialog>
+
+      <!-- Delete Article Confirmation -->
+      <ConfirmationDialog
+        :is-open="showDeleteDialog"
+        title="Slett artikkel"
+        description="Er du sikker på at du vil slette denne artikkelen?"
+        confirm-text="Slett"
+        variant="destructive"
+        @confirm="handleDeleteArticle"
+        @cancel="showDeleteDialog = false"
+      />
     </div>
   </AdminLayout>
 </template>

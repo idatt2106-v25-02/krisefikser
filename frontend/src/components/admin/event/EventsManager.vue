@@ -15,8 +15,10 @@ import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import EventForm from './EventForm.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
+const router = useRouter()
 // Use staleTime to prevent too frequent refetches
 const { data: events, refetch: refetchEvents } = useGetAllEvents({
   query: {
@@ -112,7 +114,7 @@ async function handleAddEvent() {
   }
 
   try {
-    await createEventMutation.mutateAsync({
+    const response = await createEventMutation.mutateAsync({
       data: {
         title: newEvent.value.title,
         description: newEvent.value.description,
@@ -126,6 +128,7 @@ async function handleAddEvent() {
       },
     })
 
+    // Reset form
     newEvent.value = {
       title: '',
       description: '',
@@ -136,6 +139,11 @@ async function handleAddEvent() {
       startTime: new Date().toISOString(),
       endTime: undefined,
       status: EventStatus.UPCOMING,
+    }
+
+    // Route to the new event's detail page
+    if (response.id) {
+      router.push(`/kriser/${response.id}`)
     }
   } catch (error) {
     console.error('Error creating event:', error)

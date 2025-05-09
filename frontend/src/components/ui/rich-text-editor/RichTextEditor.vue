@@ -83,7 +83,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="rich-text-editor">
+  <div class="rich-text-editor h-64 max-h-96 overflow-y-auto">
     <QuillEditor
       v-model:content="content"
       :options="editorOptions"

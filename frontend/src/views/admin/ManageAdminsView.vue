@@ -6,7 +6,14 @@ import { ShieldCheck } from 'lucide-vue-next'
 
 // Import shadcn components
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 // Import our components
@@ -189,9 +196,7 @@ const closeDialogs = () => {
         class="fixed bottom-4 right-4 w-96 bg-green-50 border-green-400 text-green-800 shadow-lg z-50"
       >
         <AlertTitle>Invitasjon sendt!</AlertTitle>
-        <AlertDescription>
-          Brukeren har blitt invitert til å bli admin.
-        </AlertDescription>
+        <AlertDescription> Brukeren har blitt invitert til å bli admin. </AlertDescription>
       </Alert>
 
       <PageHeader title="Brukere og admins">
@@ -224,7 +229,12 @@ const closeDialogs = () => {
             :users="filteredUsers"
             :is-loading="isLoadingUsers"
             @delete="deleteUserMutation({ userId: $event })"
-            @invite="(id) => { selectedUserId = id; showInviteDialog = true }"
+            @invite="
+              (id) => {
+                selectedUserId = id
+                showInviteDialog = true
+              }
+            "
           />
         </div>
 
