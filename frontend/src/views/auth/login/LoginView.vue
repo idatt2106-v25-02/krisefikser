@@ -99,6 +99,10 @@ const getLoginErrorMessage = (error: ApiError) => {
     return 'Kontoen er deaktivert. Vennligst kontakt administrator for hjelp.'
   }
 
+  if (statusCode === 428 || errorMessage.includes('Two-factor authentication is required')) {
+    return 'To-faktor autentisering er påkrevd for admin-innlogging. Vennligst sjekk e-posten din for verifiseringskode.'
+  }
+
   if (statusCode === 429) {
     return 'For mange innloggingsforsøk. Vennligst vent litt før du prøver igjen.'
   }
