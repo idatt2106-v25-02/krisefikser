@@ -128,4 +128,13 @@ onMounted(() => {
 
 <template>
   <div id="map" class="w-full h-full z-[1] overflow-hidden"></div>
+  <MapLegend
+        :user-location-available="userLocationAvailable"
+        :show-user-location="showUserLocation"
+        :user-in-crisis-zone="userInCrisisZone"
+        :is-adding-meeting-point="isAddingMeetingPoint"
+        :has-active-household="!!activeHousehold?.id"
+        @toggle-user-location="toggleUserLocation"
+        @toggle-meeting-point-creation="toggleMeetingPointCreation"
+      />
 </template>
