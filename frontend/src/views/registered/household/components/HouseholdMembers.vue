@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { UserMinus } from 'lucide-vue-next'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
@@ -12,11 +12,11 @@ import {
 import { useToast } from '@/components/ui/toast/use-toast'
 import { useQueryClient } from '@tanstack/vue-query'
 import {
+  getGetActiveHouseholdQueryKey,
   useLeaveHousehold,
   useRemoveGuestFromHousehold,
-  getGetActiveHouseholdQueryKey,
 } from '@/api/generated/household/household.ts'
-import type { HouseholdMemberResponse, GuestResponse } from '@/api/generated/model'
+import type { GuestResponse, HouseholdMemberResponse } from '@/api/generated/model'
 
 const props = defineProps<{
   householdId: string
@@ -36,7 +36,7 @@ const memberGuestTab = ref<'alle' | 'medlemmer' | 'gjester'>('alle')
 const isRemovingGuest = ref(false)
 const showRemoveMemberDialog = ref(false)
 const showRemoveGuestDialog = ref(false)
-const memberToRemove = ref<string | undefined>(null)
+const memberToRemove = ref<string | undefined | null>(null)
 const guestToRemove = ref<string | null>(null)
 
 const filteredPeople = computed(() => {
@@ -133,7 +133,12 @@ function confirmRemoveGuest() {
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
     <div class="flex justify-between items-center mb-5">
       <h2 class="text-xl font-semibold text-gray-800">Medlemmer og gjester</h2>
-      <Button variant="outline" size="sm" @click="$emit('addMember')" class="flex items-center gap-1">
+      <Button
+        variant="outline"
+        size="sm"
+        @click="$emit('addMember')"
+        class="flex items-center gap-1"
+      >
         <span class="text-md">+</span>
         <span>Legg til</span>
       </Button>
@@ -163,7 +168,9 @@ function confirmRemoveGuest() {
       </Button>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2">
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2"
+    >
       <div
         v-for="person in filteredPeople"
         :key="person.type === 'member' ? person.data.user?.id : person.data.id"
@@ -203,11 +210,7 @@ function confirmRemoveGuest() {
               </span>
             </div>
 
-            <DropdownMenu
-              v-if="
-                person.type === 'member' && person.data.user?.id !== currentUserId
-              "
-            >
+            <DropdownMenu v-if="person.type === 'member' && person.data.user?.id !== currentUserId">
               <DropdownMenuTrigger as-child>
                 <Button variant="ghost" size="icon" class="h-8 w-8">
                   <span class="sr-only">Medlemsalternativer</span>
@@ -281,9 +284,7 @@ function confirmRemoveGuest() {
                 {{ person.data.user?.email ?? '' }}
               </div>
             </template>
-            <template v-else>
-              Forbruksfaktor: {{ person.data.consumptionMultiplier }}
-            </template>
+            <template v-else> Forbruksfaktor: {{ person.data.consumptionMultiplier }} </template>
           </div>
         </div>
       </div>
