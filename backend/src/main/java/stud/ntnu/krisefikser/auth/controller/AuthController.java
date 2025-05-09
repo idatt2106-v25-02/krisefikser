@@ -111,7 +111,6 @@ public class AuthController {
           content = @Content(mediaType = "application/json"))
   })
   @PostMapping("/register/admin")
-  @PreAuthorize("hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
   public ResponseEntity<RegisterResponse> registerAdmin(
       @Parameter(description = "Registration details including Turnstile token", required = true)
       @RequestBody RegisterRequest request) {
