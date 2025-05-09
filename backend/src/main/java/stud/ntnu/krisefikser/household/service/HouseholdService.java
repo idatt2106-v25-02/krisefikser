@@ -14,15 +14,14 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.repository.GuestRepository;
-import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdInviteRepository;
+import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
 
 /**
- * Service class for managing households in the system. Provides methods for
- * household-related
+ * Service class for managing households in the system. Provides methods for household-related
  * operations such as creating, joining, leaving, and deleting households.
  *
  * @since 1.0
@@ -81,10 +80,12 @@ public class HouseholdService {
           household.getPostalCode(),
           household.getCity(),
           household.getOwner().toDtoWithLocation(), // Include owner's location
-          members.stream().map(HouseholdMember::toDtoWithLocation).toList(), // Include members' location
+          members.stream().map(HouseholdMember::toDtoWithLocation).toList(),
+          // Include members' location
           guests.stream()
-              .<GuestResponse>map(guest -> new GuestResponse(guest.getId(), guest.getName(), guest.getIcon(),
-                  guest.getConsumptionMultiplier()))
+              .map(
+                  guest -> new GuestResponse(guest.getId(), guest.getName(), guest.getIcon(),
+                      guest.getConsumptionMultiplier()))
               .toList(),
           household.getCreatedAt(),
           true);
@@ -101,8 +102,9 @@ public class HouseholdService {
           household.getOwner().toDto(), // Don't include owner's location
           members.stream().map(HouseholdMember::toDto).toList(), // Don't include members' location
           guests.stream()
-              .<GuestResponse>map(guest -> new GuestResponse(guest.getId(), guest.getName(), guest.getIcon(),
-                  guest.getConsumptionMultiplier()))
+              .map(
+                  guest -> new GuestResponse(guest.getId(), guest.getName(), guest.getIcon(),
+                      guest.getConsumptionMultiplier()))
               .toList(),
           household.getCreatedAt(),
           false);
@@ -131,6 +133,8 @@ public class HouseholdService {
       throw new IllegalArgumentException("Failed to join household");
     }
 
+    userService.updateActiveHousehold(household);
+
     return toHouseholdResponse(household);
   }
 
@@ -157,8 +161,7 @@ public class HouseholdService {
   }
 
   /**
-   * Leaves the specified household. The user must be a member of the household to
-   * leave it.
+   * Leaves the specified household. The user must be a member of the household to leave it.
    *
    * @param householdId The ID of the household to leave
    */
@@ -181,17 +184,12 @@ public class HouseholdService {
     householdMemberService.removeMember(household, currentUser);
   }
 
-  public List<User> getHouseholdOwners() {
-    return householdRepo.findAll().stream().map(Household::getOwner).toList();
-  }
-
   private boolean isOwner(User user, Household household) {
     return household.getOwner().getId().equals(user.getId());
   }
 
   /**
-   * Sets the active household for the current user to null if the user is leaving
-   * the household. If
+   * Sets the active household for the current user to null if the user is leaving the household. If
    * the user is member of another household, a random one is set as active.
    *
    * @param household The household being left
@@ -206,6 +204,10 @@ public class HouseholdService {
 
       userService.updateActiveHousehold(newHousehold);
     }
+  }
+
+  public List<User> getHouseholdOwners() {
+    return householdRepo.findAll().stream().map(Household::getOwner).toList();
   }
 
   /**
@@ -265,8 +267,7 @@ public class HouseholdService {
   }
 
   /**
-   * Sets the water amount for the active household of the current user. Throws an
-   * exception if the
+   * Sets the water amount for the active household of the current user. Throws an exception if the
    * user does not have an active household.
    *
    * @param liters the new water amount
@@ -393,8 +394,7 @@ public class HouseholdService {
   }
 
   /**
-   * Adds a guest to the active household. A guest is a user who does not have a
-   * user account.
+   * Adds a guest to the active household. A guest is a user who does not have a user account.
    *
    * @param guest The guest to be added
    * @return The updated household response

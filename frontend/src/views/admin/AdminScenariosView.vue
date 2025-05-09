@@ -114,7 +114,6 @@ const getContentPreview = (content: string) => {
         </Button>
       </div>
 
-      <!-- Scrollable grid with fixed height cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[750px] overflow-y-auto pr-2">
         <div
           v-for="scenario in scenarios"
@@ -147,7 +146,6 @@ const getContentPreview = (content: string) => {
           </div>
         </div>
 
-        <!-- Add new scenario card -->
         <div
           class="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center p-8 cursor-pointer h-[180px]"
           @click="openAddForm"
@@ -159,7 +157,6 @@ const getContentPreview = (content: string) => {
         </div>
       </div>
 
-      <!-- Form Dialog -->
       <div v-if="showForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-auto">
           <div class="flex justify-between items-center p-4 border-b">
@@ -184,19 +181,3 @@ const getContentPreview = (content: string) => {
     </div>
   </AdminLayout>
 </template>
-
-<style scoped>
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>
