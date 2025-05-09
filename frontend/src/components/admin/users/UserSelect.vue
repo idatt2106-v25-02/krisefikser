@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Search } from 'lucide-vue-next';
-import { useGetAllUsers } from '@/api/generated/user/user.ts';
+import { useGetAllUsers } from '@/api/generated/user/user';
 import type { UserResponse } from '@/api/generated/model';
 
 // Import shadcn components

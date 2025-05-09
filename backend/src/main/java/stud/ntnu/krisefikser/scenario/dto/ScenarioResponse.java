@@ -10,10 +10,8 @@ import lombok.NoArgsConstructor;
 /**
  * Data Transfer Object representing a scenario in API responses.
  *
- * <p>
- * This class encapsulates the essential properties of a scenario
- * that should be exposed to API clients, hiding internal implementation
- * details.
+ * <p>This class encapsulates the essential properties of a scenario that should be exposed to API
+ * clients, hiding internal implementation details.
  * </p>
  */
 @Data
@@ -22,21 +20,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ScenarioResponse {
 
-    /**
-     * Unique identifier of the scenario.
-     */
-    @NotNull
-    private UUID id;
+  /**
+   * Unique identifier of the scenario.
+   */
+  @NotNull
+  private UUID id;
 
-    /**
-     * Title of the scenario.
-     */
-    @NotNull
-    private String title;
+  /**
+   * Title of the scenario.
+   */
+  @NotNull
+  private String title;
 
-    /**
-     * Content of the scenario in Markdown format.
-     */
-    @NotNull
-    private String content;
+  /**
+   * Content of the scenario in Markdown format.
+   */
+  @NotNull
+  private String content;
 }

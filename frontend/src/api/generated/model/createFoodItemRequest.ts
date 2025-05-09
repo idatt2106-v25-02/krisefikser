@@ -12,6 +12,7 @@
 export interface CreateFoodItemRequest {
   name: string
   icon: string
-  kcal: number
+  /** @minimum 0 */
+  kcal?: number
   expirationDate?: string
 }

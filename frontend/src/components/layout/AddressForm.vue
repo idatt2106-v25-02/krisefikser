@@ -244,58 +244,53 @@ const buttonColorClass = computed(() => {
             </FormItem>
           </FormField>
 
-          <div class="grid grid-cols-2 gap-4">
-            <FormField v-slot="{ field, meta }" name="postalCode">
-              <FormItem>
-                <FormLabel>Postnummer</FormLabel>
-                <FormControl>
-                  <div class="relative">
-                    <div
-                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
-                    >
-                      <Mail class="h-5 w-5 text-gray-400" />
-                    </div>
-                    <Input
-                      id="postalCode"
-                      class="pl-10"
-                      placeholder="0000"
-                      v-bind="field"
-                      @input="onPostalCodeInput"
-                      @keypress="onPostalCodeKeyPressStrict"
-                    />
+          <!-- Remove the grid div wrapper and place each field in its own container -->
+          <FormField v-slot="{ field, meta }" name="postalCode">
+            <FormItem>
+              <FormLabel>Postnummer</FormLabel>
+              <FormControl>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Mail class="h-5 w-5 text-gray-400" />
                   </div>
-                </FormControl>
-                <FormMessage v-slot="{ message }">
-                  <p v-if="meta.touched && field.value">{{ message }}</p>
-                </FormMessage>
-              </FormItem>
-            </FormField>
+                  <Input
+                    id="postalCode"
+                    class="pl-10"
+                    placeholder="0000"
+                    v-bind="field"
+                    @input="onPostalCodeInput"
+                    @keypress="onPostalCodeKeyPressStrict"
+                  />
+                </div>
+              </FormControl>
+              <FormMessage v-slot="{ message }">
+                <p v-if="meta.touched && field.value">{{ message }}</p>
+              </FormMessage>
+            </FormItem>
+          </FormField>
 
-            <FormField v-slot="{ field, meta }" name="city">
-              <FormItem>
-                <FormLabel>By/sted</FormLabel>
-                <FormControl>
-                  <div class="relative">
-                    <div
-                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
-                    >
-                      <Building class="h-5 w-5 text-gray-400" />
-                    </div>
-                    <Input
-                      id="city"
-                      class="pl-10"
-                      placeholder="Skriv inn by/sted"
-                      v-bind="field"
-                      @keypress="onOnlyLetters"
-                    />
+          <FormField v-slot="{ field, meta }" name="city">
+            <FormItem>
+              <FormLabel>By/sted</FormLabel>
+              <FormControl>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Building class="h-5 w-5 text-gray-400" />
                   </div>
-                </FormControl>
-                <FormMessage v-slot="{ message }">
-                  <p v-if="meta.touched && field.value">{{ message }}</p>
-                </FormMessage>
-              </FormItem>
-            </FormField>
-          </div>
+                  <Input
+                    id="city"
+                    class="pl-10"
+                    placeholder="Skriv inn by/sted"
+                    v-bind="field"
+                    @keypress="onOnlyLetters"
+                  />
+                </div>
+              </FormControl>
+              <FormMessage v-slot="{ message }">
+                <p v-if="meta.touched && field.value">{{ message }}</p>
+              </FormMessage>
+            </FormItem>
+          </FormField>
         </form>
       </CardContent>
 

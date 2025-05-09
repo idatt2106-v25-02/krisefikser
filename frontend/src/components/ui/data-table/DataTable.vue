@@ -24,7 +24,7 @@ defineProps<Props>()
 
     <!-- Data table -->
     <div v-else class="relative">
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto max-h-[calc(100vh-300px)] sm:max-h-[calc(100vh-250px)] overflow-y-auto scrollbar-thin scrollbar-track-gray-200 scrollbar-thumb-gray-400 hover:scrollbar-thumb-gray-500 scrollbar-track-rounded-md scrollbar-thumb-rounded-md">
         <div class="min-w-full inline-block align-middle">
           <div class="overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
@@ -64,37 +64,3 @@ defineProps<Props>()
     </div>
   </div>
 </template>
-
-<style scoped>
-.overflow-x-auto {
-  max-height: calc(100vh - 300px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e0 #edf2f7;
-}
-
-.overflow-x-auto::-webkit-scrollbar {
-  width: 8px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: #edf2f7;
-  border-radius: 4px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: #cbd5e0;
-  border-radius: 4px;
-  border: 2px solid #edf2f7;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background-color: #a0aec0;
-}
-
-@media (max-width: 640px) {
-  .overflow-x-auto {
-    max-height: calc(100vh - 250px);
-  }
-}
-</style>

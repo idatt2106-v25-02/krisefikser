@@ -10,15 +10,16 @@ import {
   useDeleteEvent,
   useGetAllEvents,
   useUpdateEvent,
-} from '@/api/generated/event/event.ts'
-import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+} from '@/api/generated/event/event'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import EventForm from './EventForm.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const currentStartTime = new Date().toISOString()
 // Use staleTime to prevent too frequent refetches
 const { data: events, refetch: refetchEvents } = useGetAllEvents({
   query: {
@@ -65,7 +66,7 @@ const newEvent = ref({
   latitude: 63.4305,
   longitude: 10.3951,
   level: EventLevel.GREEN,
-  startTime: new Date().toISOString(),
+  startTime: currentStartTime,
   endTime: undefined,
   status: EventStatus.UPCOMING,
 })
@@ -136,7 +137,7 @@ async function handleAddEvent() {
       latitude: 63.4305,
       longitude: 10.3951,
       level: EventLevel.GREEN,
-      startTime: new Date().toISOString(),
+      startTime: currentStartTime,
       endTime: undefined,
       status: EventStatus.UPCOMING,
     }
@@ -212,7 +213,7 @@ function resetNewEvent() {
     latitude: 63.4305,
     longitude: 10.3951,
     level: EventLevel.GREEN,
-    startTime: new Date().toISOString(),
+    startTime: currentStartTime,
     endTime: undefined,
     status: EventStatus.UPCOMING,
   }

@@ -9,7 +9,7 @@ export default {
 import { computed } from 'vue'
 import { useGetAllArticles } from '@/api/generated/article/article'
 import { useRouter } from 'vue-router'
-import { arrayToDate } from '@/api/Utils.ts'
+import { arrayToDate } from '@/api/Utils'
 
 const { data: articles, isLoading, error } = useGetAllArticles()
 const router = useRouter()

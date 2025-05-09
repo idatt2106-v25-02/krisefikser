@@ -12,4 +12,13 @@ public class InvalidTokenException extends RuntimeException {
   public InvalidTokenException() {
     super("Invalid token");
   }
+
+  /**
+   * Constructs a new InvalidTokenException with the specified detail message and cause.
+   *
+   * @param message the detail message
+   */
+  public InvalidTokenException(String message) {
+    super(message);
+  }
 }

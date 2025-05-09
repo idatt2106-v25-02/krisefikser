@@ -11,11 +11,11 @@ import jakarta.annotation.security.PermitAll;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,14 +35,12 @@ import stud.ntnu.krisefikser.auth.dto.RegisterResponse;
 import stud.ntnu.krisefikser.auth.dto.RequestPasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordRequest;
 import stud.ntnu.krisefikser.auth.dto.UpdatePasswordResponse;
+import stud.ntnu.krisefikser.auth.dto.VerifyAdminTokenResponse;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.service.AuthService;
-import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.config.FrontendConfig;
 import stud.ntnu.krisefikser.email.service.EmailAdminService;
-import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
-import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 /**
  * REST controller for managing authentication-related operations. Provides endpoints for user
@@ -51,14 +49,11 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Authentication", description = "Authentication management APIs")
-@Validated
 public class AuthController {
 
-  private final UserRepository userRepository;
-  private final EmailVerificationService emailVerificationService;
   private final AuthService authService;
-  private final TurnstileService turnstileService;
   private final EmailAdminService emailAdminService;
   private final FrontendConfig frontendConfig;
 
@@ -297,7 +292,9 @@ public class AuthController {
     String inviteToken = authService.generateAdminInviteToken(request.getEmail());
     String inviteLink = frontendConfig.getUrl() + "/admin/registrer?token=" + inviteToken;
 
-    return emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
+    emailAdminService.sendAdminInvitation(request.getEmail(), inviteLink);
+
+    return ResponseEntity.ok("Admin invitation sent successfully.");
   }
 
   /**
@@ -306,17 +303,37 @@ public class AuthController {
    * @param token The invitation token to verify
    * @return ResponseEntity containing the email address if token is valid
    */
+  @Operation(summary = "Verify admin invitation token",
+      description = "Verifies an admin invitation token and returns the associated email address")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Token verified successfully",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
+              VerifyAdminTokenResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid or expired token")
+  })
   @GetMapping("/verify-admin-invite")
   @PermitAll
-  public ResponseEntity<Map<String, String>> verifyAdminInviteToken(@RequestParam String token) {
-    try {
-      String email = authService.verifyAdminInviteToken(token);
-      return ResponseEntity.ok(Map.of("email", email));
-    } catch (RuntimeException e) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
+  public ResponseEntity<VerifyAdminTokenResponse> verifyAdminInviteToken(
+      @RequestParam String token) {
+    String email = authService.verifyAdminInviteToken(token);
+    VerifyAdminTokenResponse response = new VerifyAdminTokenResponse(email);
+    return ResponseEntity.ok(response);
   }
 
+  /**
+   * Verifies an admin login token and returns the associated user details.
+   *
+   * @param token The login token to verify
+   * @return ResponseEntity containing the user details if token is valid
+   */
+  @Operation(summary = "Verify admin login token",
+      description = "Verifies an admin login token and returns the associated user details")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Token verified successfully",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
+              LoginResponse.class))),
+      @ApiResponse(responseCode = "400", description = "Invalid or expired token")
+  })
   @PostMapping("/verify-admin-login")
   public ResponseEntity<LoginResponse> verifyAdminLogin(@RequestParam String token) {
     try {
@@ -334,34 +351,35 @@ public class AuthController {
    * @return ResponseEntity containing the status of the reset request operation
    */
   @Operation(
-    summary = "Request password reset for admin user",
-    description = "Generates a password reset token and sends it to the admin user's email. Only accessible by superadmins."
+      summary = "Request password reset for admin user",
+      description = "Generates a password reset token and sends it to the admin user's email. "
+          + "Only accessible by superadmins."
   )
   @ApiResponses(value = {
-    @ApiResponse(
-      responseCode = "200",
-      description = "Password reset link sent successfully",
-      content = @Content(schema = @Schema(implementation = PasswordResetResponse.class))
-    ),
-    @ApiResponse(
-      responseCode = "403",
-      description = "Access denied - only superadmins can request admin password resets"
-    ),
-    @ApiResponse(
-      responseCode = "404",
-      description = "Admin user not found"
-    )
+      @ApiResponse(
+          responseCode = "200",
+          description = "Password reset link sent successfully",
+          content = @Content(schema = @Schema(implementation = PasswordResetResponse.class))
+      ),
+      @ApiResponse(
+          responseCode = "403",
+          description = "Access denied - only superadmins can request admin password resets"
+      ),
+      @ApiResponse(
+          responseCode = "404",
+          description = "Admin user not found"
+      )
   })
   @PostMapping("/admin/reset-password-link")
   @PreAuthorize("hasRole('SUPER_ADMIN')")
   public ResponseEntity<PasswordResetResponse> requestAdminPasswordReset(
-    @Validated @RequestBody RequestPasswordResetRequest request
+      @RequestBody RequestPasswordResetRequest request
   ) {
     return ResponseEntity.ok(authService.requestAdminPasswordReset(request));
   }
 
   /**
-   * Exception handler for LockedException to return a 423 (Locked) status code
+   * Exception handler for LockedException to return a 423 (Locked) status code.
    *
    * @param ex The LockedException that was thrown
    * @return ResponseEntity with error details and 423 status code

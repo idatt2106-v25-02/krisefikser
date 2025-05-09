@@ -381,14 +381,14 @@ class AuthControllerTest {
     String inviteToken = "valid-invite-token";
     when(authService.generateAdminInviteToken(anyString())).thenReturn(inviteToken);
     when(emailAdminService.sendAdminInvitation(anyString(), anyString()))
-        .thenReturn(ResponseEntity.ok("Admin invitation sent successfully"));
+        .thenReturn(ResponseEntity.ok("Admin invitation sent successfully."));
 
     mockMvc.perform(post("/api/auth/invite/admin")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(adminInviteRequest)))
         .andExpect(status().isOk())
-        .andExpect(content().string("Admin invitation sent successfully"));
+        .andExpect(content().string("Admin invitation sent successfully."));
 
     verify(authService).generateAdminInviteToken(adminInviteRequest.getEmail());
     verify(emailAdminService).sendAdminInvitation(eq(adminInviteRequest.getEmail()), anyString());
@@ -419,14 +419,14 @@ class AuthControllerTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  void verifyAdminInvite_WithInvalidToken_ShouldReturnBadRequest() throws Exception {
+  void verifyAdminInvite_WithInvalidToken_ShouldReturnUnauthorized() throws Exception {
     when(authService.verifyAdminInviteToken(anyString()))
-        .thenThrow(new RuntimeException("Invalid token"));
+        .thenThrow(new InvalidTokenException());
 
     mockMvc.perform(get("/api/auth/verify-admin-invite")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .param("token", "invalid-token"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -445,6 +445,7 @@ class AuthControllerTest {
             jsonPath("$.message").value("User registered successfully. Verification email sent."))
         .andExpect(jsonPath("$.success").value(true));
   }
+
   @Test
   void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
     // Arrange

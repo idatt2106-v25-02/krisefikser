@@ -296,13 +296,11 @@ defineExpose({
         <p>Estimert tid: 28 min (til fots)</p>
       </div>
     </div>
+
+    <div class="relative">
+      <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex items-center justify-center">
+        Møtepunkt
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.meeting-place-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-</style>

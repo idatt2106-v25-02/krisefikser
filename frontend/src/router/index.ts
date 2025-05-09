@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import NonRegisteredHomeView from '@/views/nonRegistered/HomeView.vue'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 // Auth views
 import LoginView from '@/views/auth/login/LoginView.vue'
@@ -27,11 +27,12 @@ import HouseholdDetailsView from '@/views/registered/household/HouseholdView.vue
 import HouseholdInventoryView from '@/views/registered/inventory/HouseholdInventoryView.vue'
 import HomeAddressView from '@/views/registered/household/HomeAddressView.vue'
 import NewHouseholdView from '@/views/registered/household/NewHousehold.vue'
-import HouseholdReflectionsPage from '@/views/registered/household/HouseholdReflectionsPage.vue'
+import HouseholdReflectionsPage from '@/views/registered/household/HouseholdReflectionsView.vue'
 import SendResetPasswordLinkView from '@/views/auth/password/SendResetPasswordLinkView.vue'
 // Non-Registered User views
 import JoinOrCreateHouseholdView from '@/views/nonRegistered/household/JoinOrCreateHouseholdView.vue'
 import MapView from '@/views/nonRegistered/map/MapView.vue'
+import NewMapView from '@/views/nonRegistered/map/NewMapView.vue'
 import RegisterView from '@/views/auth/register/RegisterView.vue'
 import PrivacyPolicyView from '@/views/nonRegistered/static/PrivacyPolicyView.vue'
 import NewsView from '@/views/nonRegistered/news/NewsView.vue'
@@ -48,7 +49,7 @@ import ScenariosListView from '@/views/nonRegistered/scenario/ScenariosListView.
 import ScenarioDetailView from '@/views/nonRegistered/scenario/ScenarioDetailView.vue'
 import KriserPage from '@/views/nonRegistered/event/KriserPage.vue'
 import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue'
-import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue'
+import MyReflectionsPage from '@/views/registered/reflections/MyReflectionsPage.vue'
 import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue'
 import NotificationsView from '@/views/registered/notification/NotificationView.vue'
 import NotificationDetailView from '@/views/registered/notification/NotificationDetailView.vue'
@@ -239,6 +240,11 @@ const router = createRouter({
     {
       path: '/kart',
       name: 'map',
+      component: NewMapView,
+    },
+    {
+      path: '/kart/old',
+      name: 'map-old',
       component: MapView,
     },
     {

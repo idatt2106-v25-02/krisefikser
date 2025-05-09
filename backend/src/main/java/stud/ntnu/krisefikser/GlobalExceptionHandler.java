@@ -25,12 +25,14 @@ import stud.ntnu.krisefikser.auth.exception.InvalidCredentialsException;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
 import stud.ntnu.krisefikser.auth.exception.RefreshTokenDoesNotExistException;
 import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
+import stud.ntnu.krisefikser.auth.exception.TwoFactorAuthRequiredException;
 import stud.ntnu.krisefikser.common.ProblemDetailUtils;
+import stud.ntnu.krisefikser.email.exception.EmailSendingException;
+import stud.ntnu.krisefikser.email.exception.EmailTemplateException;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.user.exception.EmailAlreadyExistsException;
 import stud.ntnu.krisefikser.user.exception.UnauthorizedAccessException;
 import stud.ntnu.krisefikser.user.exception.UserNotFoundException;
-import stud.ntnu.krisefikser.auth.exception.TwoFactorAuthRequiredException;
 
 /**
  * Global exception handler for the Krisefikser application.
@@ -256,7 +258,7 @@ public class GlobalExceptionHandler {
    * Handles access denied exceptions thrown by Spring Security.
    *
    * @param exception the access denied exception
-   * @return a problem detail with FORBIDDEN status and an access denied message
+   * @return a problem detail with FORBIDDEN status and access denied message
    */
   @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
   public ProblemDetail handleAccessDeniedException(
@@ -407,8 +409,8 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles exceptions thrown when an invalid property reference is made, such as referencing
-   * a non-existent property in a query or request.
+   * Handles exceptions thrown when an invalid property reference is made, such as referencing a
+   * non-existent property in a query or request.
    *
    * @param exception the property reference exception
    * @return a problem detail with BAD_REQUEST status and the exception message
@@ -420,8 +422,8 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles exceptions thrown when the HTTP message is not readable.
-   * This typically occurs due to issues such as malformed JSON in the request body.
+   * Handles exceptions thrown when the HTTP message is not readable. This typically occurs due to
+   * issues such as malformed JSON in the request body.
    *
    * @param exception the HttpMessageNotReadableException that occurred
    * @return a problem detail with BAD_REQUEST status and the exception message
@@ -431,6 +433,34 @@ public class GlobalExceptionHandler {
       HttpMessageNotReadableException exception) {
     log.error("HttpMessageNotReadableException: {}", exception.getMessage());
     return ProblemDetailUtils.createProblemDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+  }
+
+  /**
+   * Handles exceptions thrown when an email sending operation fails.
+   *
+   * @param exception the email sending exception
+   * @return a problem detail with SERVICE_UNAVAILABLE status and a message indicating email sending
+   * failure
+   */
+  @ExceptionHandler(EmailSendingException.class)
+  public ProblemDetail handleEmailSendingException(EmailSendingException exception) {
+    log.error("Email sending error: {}", exception.getMessage());
+    return ProblemDetailUtils.createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE,
+        "Failed to send email");
+  }
+
+  /**
+   * Handles exceptions thrown when an email template cannot be processed.
+   *
+   * @param exception the email template exception
+   * @return a problem detail with INTERNAL_SERVER_ERROR status and a message indicating template
+   * processing failure
+   */
+  @ExceptionHandler(EmailTemplateException.class)
+  public ProblemDetail handleEmailTemplateException(EmailTemplateException exception) {
+    log.error("Email template error: {}", exception.getMessage());
+    return ProblemDetailUtils.createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to process email template");
   }
 
   // ===== General exceptions =====

@@ -1,4 +1,3 @@
-<!-- ScenariosSection.vue -->
 <script setup lang="ts">
 import { ref } from 'vue';
 import {
@@ -8,29 +7,25 @@ import {
   X
 } from 'lucide-vue-next';
 
-// Import components
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import AdminLayout from '@/components/admin/AdminLayout.vue';
 import ScenarioForm from '@/components/admin/scenario/ScenarioForm.vue';
 
-// Import scenario API hooks
 import {
   useGetAllScenarios,
   useCreateScenario,
   useUpdateScenario,
   useDeleteScenario
-} from '@/api/generated/scenario/scenario.ts';
+} from '@/api/generated/scenario/scenario';
 
 interface Scenario {
   id: string;
   title: string;
   content: string;
 }
-// Fetch all scenarios
 const { data: scenarios, refetch } = useGetAllScenarios();
 
-// State for the form dialog
 const showForm = ref(false);
 const isEditing = ref(false);
 const currentScenario = ref({
@@ -99,11 +94,9 @@ const handleDeleteScenario = () => {
   scenarioToDelete.value = null;
 };
 
-// Get a preview of content
 const getContentPreview = (content: string) => {
   if (!content) return '';
 
-  // Clean up any HTML tags
   const cleanContent = content.replace(/<[^>]*>/g, '');
 
   return cleanContent.length > 120

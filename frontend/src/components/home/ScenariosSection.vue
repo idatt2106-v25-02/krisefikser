@@ -144,12 +144,12 @@ onMounted(() => {
       <div
         v-for="scenario in latestScenarios"
         :key="scenario.id"
-        class="bg-white p-6 rounded-lg shadow-md transition hover:shadow-lg cursor-pointer"
+        class="bg-white p-6 rounded-lg shadow-md transition-shadow hover:shadow-lg cursor-pointer"
         @click="goToScenario(scenario.id)"
       >
         <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ scenario.title }}</h3>
         <div
-          class="text-gray-600 mb-4 line-clamp-4 scenario-preview"
+          class="text-gray-600 mb-4 line-clamp-4 scenario-preview [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold [&_h1]:my-2 [&_h2]:my-2 [&_h3]:my-2 [&_p]:my-2 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_.ql-color-red]:!text-red-500 [&_.ql-color-blue]:!text-blue-500 [&_.ql-color-green]:!text-green-500 [&_.ql-color-orange]:!text-orange-500 [&_.ql-color-purple]:!text-purple-500 [&_.ql-background-yellow]:!bg-yellow-200 [&_.ql-align-center]:!text-center [&_.ql-align-right]:!text-right overflow-hidden"
           v-html="processPreviewContent(scenario.content, 120)"
         ></div>
         <!-- Using same arrow style as in the info section -->
@@ -167,48 +167,3 @@ onMounted(() => {
     </div>
   </section>
 </template>
-
-<style scoped>
-.line-clamp-4 {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-:deep(.scenario-preview) {
-  /* Allow text formatting in preview */
-  overflow: hidden;
-}
-
-:deep(.scenario-preview h1),
-:deep(.scenario-preview h2),
-:deep(.scenario-preview h3) {
-  font-weight: bold;
-  margin: 0.5em 0;
-}
-
-:deep(.scenario-preview p) {
-  margin: 0.5em 0;
-}
-
-:deep(.scenario-preview strong) {
-  font-weight: bold;
-}
-
-:deep(.scenario-preview em) {
-  font-style: italic;
-}
-
-:deep(.scenario-preview u) {
-  text-decoration: underline;
-}
-
-/* Ensure colors and formatting renders in the preview */
-:deep(.scenario-preview .ql-color-red) { color: red !important; }
-:deep(.scenario-preview .ql-color-blue) { color: blue !important; }
-:deep(.scenario-preview .ql-color-green) { color: green !important; }
-:deep(.scenario-preview .ql-color-orange) { color: orange !important; }
-:deep(.scenario-preview .ql-color-purple) { color: purple !important; }
-:deep(.scenario-preview .ql-background-yellow) { background-color: yellow !important; }
-</style>

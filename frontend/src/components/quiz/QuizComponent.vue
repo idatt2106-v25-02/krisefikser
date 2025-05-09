@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import type { PropType } from 'vue';
 import { CheckCircle, XCircle, Info, ChevronLeft, Trophy, Award, ThumbsUp } from 'lucide-vue-next';
-import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts';
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore';
 
 // Define interfaces for type safety
 interface Question {

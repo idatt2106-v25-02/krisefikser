@@ -28,6 +28,10 @@ import type { ErrorType, BodyType } from '../../axios'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
+/**
+ * Creates a new invitation to join a household
+ * @summary Create household invite
+ */
 export const createInvite = (
   createHouseholdInviteRequest: MaybeRef<CreateHouseholdInviteRequest>,
   options?: SecondParameter<typeof customInstance>,
@@ -48,7 +52,7 @@ export const createInvite = (
 }
 
 export const getCreateInviteMutationOptions = <
-  TError = ErrorType<unknown>,
+  TError = ErrorType<HouseholdInviteResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -85,9 +89,12 @@ export const getCreateInviteMutationOptions = <
 
 export type CreateInviteMutationResult = NonNullable<Awaited<ReturnType<typeof createInvite>>>
 export type CreateInviteMutationBody = BodyType<CreateHouseholdInviteRequest>
-export type CreateInviteMutationError = ErrorType<unknown>
+export type CreateInviteMutationError = ErrorType<HouseholdInviteResponse>
 
-export const useCreateInvite = <TError = ErrorType<unknown>, TContext = unknown>(
+/**
+ * @summary Create household invite
+ */
+export const useCreateInvite = <TError = ErrorType<HouseholdInviteResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createInvite>>,
@@ -108,6 +115,10 @@ export const useCreateInvite = <TError = ErrorType<unknown>, TContext = unknown>
 
   return useMutation(mutationOptions, queryClient)
 }
+/**
+ * Declines an invitation to join a household
+ * @summary Decline household invite
+ */
 export const declineInvite = (
   inviteId: MaybeRef<string>,
   options?: SecondParameter<typeof customInstance>,
@@ -126,7 +137,7 @@ export const declineInvite = (
 }
 
 export const getDeclineInviteMutationOptions = <
-  TError = ErrorType<unknown>,
+  TError = ErrorType<HouseholdInviteResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -163,9 +174,12 @@ export const getDeclineInviteMutationOptions = <
 
 export type DeclineInviteMutationResult = NonNullable<Awaited<ReturnType<typeof declineInvite>>>
 
-export type DeclineInviteMutationError = ErrorType<unknown>
+export type DeclineInviteMutationError = ErrorType<HouseholdInviteResponse>
 
-export const useDeclineInvite = <TError = ErrorType<unknown>, TContext = unknown>(
+/**
+ * @summary Decline household invite
+ */
+export const useDeclineInvite = <TError = ErrorType<HouseholdInviteResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof declineInvite>>,
@@ -186,6 +200,10 @@ export const useDeclineInvite = <TError = ErrorType<unknown>, TContext = unknown
 
   return useMutation(mutationOptions, queryClient)
 }
+/**
+ * Cancels a previously sent household invitation
+ * @summary Cancel household invite
+ */
 export const cancelInvite = (
   inviteId: MaybeRef<string>,
   options?: SecondParameter<typeof customInstance>,
@@ -204,7 +222,7 @@ export const cancelInvite = (
 }
 
 export const getCancelInviteMutationOptions = <
-  TError = ErrorType<unknown>,
+  TError = ErrorType<HouseholdInviteResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -241,9 +259,12 @@ export const getCancelInviteMutationOptions = <
 
 export type CancelInviteMutationResult = NonNullable<Awaited<ReturnType<typeof cancelInvite>>>
 
-export type CancelInviteMutationError = ErrorType<unknown>
+export type CancelInviteMutationError = ErrorType<HouseholdInviteResponse>
 
-export const useCancelInvite = <TError = ErrorType<unknown>, TContext = unknown>(
+/**
+ * @summary Cancel household invite
+ */
+export const useCancelInvite = <TError = ErrorType<HouseholdInviteResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof cancelInvite>>,
@@ -264,6 +285,10 @@ export const useCancelInvite = <TError = ErrorType<unknown>, TContext = unknown>
 
   return useMutation(mutationOptions, queryClient)
 }
+/**
+ * Accepts an invitation to join a household
+ * @summary Accept household invite
+ */
 export const acceptInvite = (
   inviteId: MaybeRef<string>,
   options?: SecondParameter<typeof customInstance>,
@@ -282,7 +307,7 @@ export const acceptInvite = (
 }
 
 export const getAcceptInviteMutationOptions = <
-  TError = ErrorType<unknown>,
+  TError = ErrorType<HouseholdInviteResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -319,9 +344,12 @@ export const getAcceptInviteMutationOptions = <
 
 export type AcceptInviteMutationResult = NonNullable<Awaited<ReturnType<typeof acceptInvite>>>
 
-export type AcceptInviteMutationError = ErrorType<unknown>
+export type AcceptInviteMutationError = ErrorType<HouseholdInviteResponse>
 
-export const useAcceptInvite = <TError = ErrorType<unknown>, TContext = unknown>(
+/**
+ * @summary Accept household invite
+ */
+export const useAcceptInvite = <TError = ErrorType<HouseholdInviteResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof acceptInvite>>,
@@ -342,6 +370,10 @@ export const useAcceptInvite = <TError = ErrorType<unknown>, TContext = unknown>
 
   return useMutation(mutationOptions, queryClient)
 }
+/**
+ * Retrieves all pending household invitations for the authenticated user
+ * @summary Get pending invites for current user
+ */
 export const getPendingInvitesForUser = (
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal,
@@ -385,6 +417,10 @@ export type GetPendingInvitesForUserQueryResult = NonNullable<
 >
 export type GetPendingInvitesForUserQueryError = ErrorType<unknown>
 
+/**
+ * @summary Get pending invites for current user
+ */
+
 export function useGetPendingInvitesForUser<
   TData = Awaited<ReturnType<typeof getPendingInvitesForUser>>,
   TError = ErrorType<unknown>,
@@ -408,6 +444,10 @@ export function useGetPendingInvitesForUser<
   return query
 }
 
+/**
+ * Retrieves all invitations (pending, accepted, declined) for a specific household
+ * @summary Get all invites for household (Admin only)
+ */
 export const getAllInvitesForHousehold = (
   householdId: MaybeRef<string>,
   options?: SecondParameter<typeof customInstance>,
@@ -431,7 +471,7 @@ export const getGetAllInvitesForHouseholdQueryKey = (householdId: MaybeRef<strin
 
 export const getGetAllInvitesForHouseholdQueryOptions = <
   TData = Awaited<ReturnType<typeof getAllInvitesForHousehold>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<HouseholdInviteResponse[]>,
 >(
   householdId: MaybeRef<string>,
   options?: {
@@ -460,11 +500,15 @@ export const getGetAllInvitesForHouseholdQueryOptions = <
 export type GetAllInvitesForHouseholdQueryResult = NonNullable<
   Awaited<ReturnType<typeof getAllInvitesForHousehold>>
 >
-export type GetAllInvitesForHouseholdQueryError = ErrorType<unknown>
+export type GetAllInvitesForHouseholdQueryError = ErrorType<HouseholdInviteResponse[]>
+
+/**
+ * @summary Get all invites for household (Admin only)
+ */
 
 export function useGetAllInvitesForHousehold<
   TData = Awaited<ReturnType<typeof getAllInvitesForHousehold>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<HouseholdInviteResponse[]>,
 >(
   householdId: MaybeRef<string>,
   options?: {
@@ -486,6 +530,10 @@ export function useGetAllInvitesForHousehold<
   return query
 }
 
+/**
+ * Retrieves all pending invitations for a specific household
+ * @summary Get pending invites for household
+ */
 export const getPendingInvitesForHousehold = (
   householdId: MaybeRef<string>,
   options?: SecondParameter<typeof customInstance>,
@@ -517,7 +565,7 @@ export const getGetPendingInvitesForHouseholdQueryKey = (householdId: MaybeRef<s
 
 export const getGetPendingInvitesForHouseholdQueryOptions = <
   TData = Awaited<ReturnType<typeof getPendingInvitesForHousehold>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<HouseholdInviteResponse[]>,
 >(
   householdId: MaybeRef<string>,
   options?: {
@@ -546,11 +594,15 @@ export const getGetPendingInvitesForHouseholdQueryOptions = <
 export type GetPendingInvitesForHouseholdQueryResult = NonNullable<
   Awaited<ReturnType<typeof getPendingInvitesForHousehold>>
 >
-export type GetPendingInvitesForHouseholdQueryError = ErrorType<unknown>
+export type GetPendingInvitesForHouseholdQueryError = ErrorType<HouseholdInviteResponse[]>
+
+/**
+ * @summary Get pending invites for household
+ */
 
 export function useGetPendingInvitesForHousehold<
   TData = Awaited<ReturnType<typeof getPendingInvitesForHousehold>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<HouseholdInviteResponse[]>,
 >(
   householdId: MaybeRef<string>,
   options?: {

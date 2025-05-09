@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.LockedException;
@@ -41,6 +40,7 @@ import stud.ntnu.krisefikser.auth.exception.TurnstileVerificationException;
 import stud.ntnu.krisefikser.auth.exception.TwoFactorAuthRequiredException;
 import stud.ntnu.krisefikser.auth.repository.PasswordResetTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
+import stud.ntnu.krisefikser.config.FrontendConfig;
 import stud.ntnu.krisefikser.email.entity.VerificationToken;
 import stud.ntnu.krisefikser.email.service.EmailVerificationService;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
@@ -71,19 +71,7 @@ public class AuthService {
   private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final JwtProperties jwtProperties;
   private final Map<String, AdminInviteToken> adminInviteTokens = new ConcurrentHashMap<>();
-  @Value("${frontend.url}")
-  private String frontendUrl;
-
-  /**
-   * Checks if an email has a valid admin invite token.
-   *
-   * @param email The email to check
-   * @return true if the email has a valid invite token, false otherwise
-   */
-  public boolean isValidAdminInviteToken(String email) {
-    return adminInviteTokens.values().stream()
-        .anyMatch(token -> token.email.equals(email) && !token.isExpired());
-  }
+  private final FrontendConfig frontendConfig;
 
   /**
    * Registers a new user and sends verification email.
@@ -106,40 +94,12 @@ public class AuthService {
         List.of(RoleType.USER)
     ));
 
-    // Send verification email
+    // Send verification email, should throw if error occurs, which will be caught by the
+    // transaction
     VerificationToken token = emailVerificationService.createVerificationToken(user);
     emailVerificationService.sendVerificationEmail(user, token);
 
     return new RegisterResponse("User registered successfully. Verification email sent.", true);
-  }
-
-  /**
-   * Registers a new admin user with both USER and ADMIN roles.
-   *
-   * @param request The registration request containing admin user details.
-   * @return A response containing the access and refresh tokens.
-   */
-  public RegisterResponse registerAdmin(RegisterRequest request) {
-    if (!isValidAdminInviteToken(request.getEmail())) {
-      throw new RuntimeException("Invalid admin invite token");
-    }
-
-    User user = userService.createUser(new CreateUser(
-        request.getEmail(),
-        request.getPassword(),
-        request.getFirstName(),
-        request.getLastName(),
-        true,  // notifications
-        true,  // emailUpdates
-        true,  // locationSharing
-        List.of(RoleType.USER, RoleType.ADMIN)  // Multiple roles
-    ));
-
-    // Set email as verified for admins
-    user.setEmailVerified(true);
-    userRepository.save(user);
-
-    return new RegisterResponse("Admin user registered successfully.", true);
   }
 
   private void validateTurnstileToken(String turnstileToken) throws TurnstileVerificationException {
@@ -150,11 +110,53 @@ public class AuthService {
   }
 
   /**
+   * Registers a new admin user with both USER and ADMIN roles.
+   *
+   * @param request The registration request containing admin user details.
+   * @return A response containing the access and refresh tokens.
+   */
+  @Transactional
+  public RegisterResponse registerAdmin(RegisterRequest request) {
+    if (!isValidAdminInviteToken(request.getEmail())) {
+      throw new InvalidCredentialsException("Invalid admin invite token");
+    }
+
+    User user = userService.createUser(new CreateUser(
+        request.getEmail(),
+        request.getPassword(),
+        request.getFirstName(),
+        request.getLastName(),
+        true,
+        true,
+        true,
+        List.of(RoleType.USER, RoleType.ADMIN)
+    ));
+
+    // Set email as verified for admins
+    user.setEmailVerified(true);
+    userRepository.save(user);
+
+    return new RegisterResponse("Admin user registered successfully.", true);
+  }
+
+  /**
+   * Checks if an email has a valid admin invite token.
+   *
+   * @param email The email to check
+   * @return true if the email has a valid invite token, false otherwise
+   */
+  public boolean isValidAdminInviteToken(String email) {
+    return adminInviteTokens.values().stream()
+        .anyMatch(token -> token.email.equals(email) && !token.isExpired());
+  }
+
+  /**
    * Authenticates a user and generates access and refresh tokens.
    *
    * @param loginRequest The login request containing user credentials.
    * @return A response containing the access and refresh tokens.
    */
+  @Transactional
   public LoginResponse login(LoginRequest loginRequest) {
     User user = userService.getUserByEmail(loginRequest.getEmail());
     if (user == null) {
@@ -175,13 +177,14 @@ public class AuthService {
     }
 
     if (user.getRoles().stream()
-        .anyMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
-        user.getRoles().stream().noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
+        .anyMatch(role -> role.getName().equals(RoleType.ADMIN))
+        && user.getRoles().stream()
+        .noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       log.info("Admin login attempt for user: {}", user.getEmail());
 
       // Generate verification token for admin login
       String token = tokenService.generateResetPasswordToken(user.getEmail());
-      String verificationLink = frontendUrl + "/verify-admin-login?token=" + token;
+      String verificationLink = frontendConfig.getUrl() + "/verify-admin-login?token=" + token;
 
       // Send verification email
       emailVerificationService.sendAdminLoginVerificationEmail(user, verificationLink);
@@ -198,7 +201,7 @@ public class AuthService {
       // Reset password retries on successful login
       if (user.getPasswordRetries() > 0) {
         user.setPasswordRetries(0);
-        user.setLockedUntil(LocalDateTime.now().minusMinutes(1)); // Set to past time
+        user.setLockedUntil(LocalDateTime.now().minusMinutes(1));
         userRepository.save(user);
       }
     } catch (Exception e) {
@@ -233,12 +236,13 @@ public class AuthService {
    * @param refreshRequest The request containing the refresh token.
    * @return A response containing the new access and refresh tokens.
    */
+  @Transactional
   public RefreshResponse refresh(RefreshRequest refreshRequest) {
-    RefreshToken existingToken = refreshTokenRepository.findByToken(
-        refreshRequest.getRefreshToken()).orElseThrow(
-        RefreshTokenDoesNotExistException::new);
+    if (!tokenService.isRefreshToken(refreshRequest.getRefreshToken())) {
+      throw new InvalidTokenException();
+    }
 
-    String email = tokenService.extractEmail(existingToken.getToken());
+    String email = tokenService.extractEmail(refreshRequest.getRefreshToken());
     if (email == null) {
       throw new InvalidTokenException();
     }
@@ -246,6 +250,14 @@ public class AuthService {
     log.info("Refreshing token");
 
     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+    if (!tokenService.isValid(refreshRequest.getRefreshToken(), userDetails)) {
+      throw new InvalidTokenException();
+    }
+
+    RefreshToken existingToken = refreshTokenRepository.findByToken(
+        refreshRequest.getRefreshToken()).orElseThrow(
+        RefreshTokenDoesNotExistException::new);
 
     User user = userService.getUserByEmail(email);
 
@@ -293,10 +305,11 @@ public class AuthService {
    * @param updatePasswordRequest The request containing the new password.
    * @return UpdatePasswordResponse containing the status of the update.
    */
+  @Transactional
   public UpdatePasswordResponse updatePassword(UpdatePasswordRequest updatePasswordRequest) {
     User user = userService.getCurrentUser();
     log.info("Starting password update process for user: {}", user.getEmail());
-    
+
     // Verify current password
     if (!passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword())) {
       log.warn("Password update failed - incorrect current password for user: {}", user.getEmail());
@@ -309,7 +322,8 @@ public class AuthService {
 
     // Generate reset token for security
     log.info("Generating reset token for user: {}", user.getEmail());
-    String token = tokenService.generateResetPasswordToken(user.getEmail());
+    String token = tokenService
+        .generateResetPasswordToken(user.getEmail());
     long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
 
     // Save token
@@ -323,15 +337,17 @@ public class AuthService {
     log.info("Reset token saved for user: {}", user.getEmail());
 
     // Send notification email with reset link
-    String resetLink = frontendUrl + "/verifiser-passord-tilbakestilling?token=" + 
-        java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
+    String resetLink = frontendConfig.getUrl() + "/verifiser-passord-tilbakestilling?token="
+        + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
     log.info("Sending password change notification email to: {}", user.getEmail());
-    ResponseEntity<String> emailResponse = emailVerificationService.sendPasswordChangeNotification(user, resetLink, expirationHours);
-    
+    ResponseEntity<String> emailResponse = emailVerificationService.sendPasswordChangeNotification(
+        user, resetLink, expirationHours);
+
     if (emailResponse.getStatusCode().is2xxSuccessful()) {
       log.info("Password change notification email sent successfully to: {}", user.getEmail());
     } else {
-      log.error("Failed to send password change notification email to: {}. Status: {}, Response: {}", 
+      log.error(
+          "Failed to send password change notification email to: {}. Status: {}, Response: {}",
           user.getEmail(), emailResponse.getStatusCode(), emailResponse.getBody());
     }
 
@@ -344,6 +360,7 @@ public class AuthService {
    * @param request The request containing the user's email.
    * @return A response indicating the success of the operation.
    */
+  @Transactional
   public PasswordResetResponse requestPasswordReset(
       RequestPasswordResetRequest request) {
     User user = userService.getUserByEmail(request.getEmail());
@@ -365,7 +382,8 @@ public class AuthService {
 
     // Send password reset email
     String resetLink =
-        frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(
+        frontendConfig.getUrl() + "/verifiser-passord-tilbakestilling?token="
+            + java.net.URLEncoder.encode(
             token, java.nio.charset.StandardCharsets.UTF_8);
     long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
 
@@ -387,6 +405,7 @@ public class AuthService {
    * @param request The request containing the token and new password.
    * @return A response indicating the success of the operation.
    */
+  @Transactional
   public PasswordResetResponse completePasswordReset(CompletePasswordResetRequest request) {
     if (request.getToken() == null) {
       throw new InvalidCredentialsException("Token is required");
@@ -441,12 +460,12 @@ public class AuthService {
     AdminInviteToken inviteToken = adminInviteTokens.get(token);
 
     if (inviteToken == null) {
-      throw new RuntimeException("Invalid token");
+      throw new InvalidTokenException("Invalid token");
     }
 
     if (inviteToken.isExpired()) {
       adminInviteTokens.remove(token);
-      throw new RuntimeException("Token has expired");
+      throw new InvalidTokenException("Token has expired");
     }
 
     return inviteToken.email;
@@ -459,6 +478,7 @@ public class AuthService {
    * @return A LoginResponse containing the access and refresh tokens if verification is successful
    * @throws InvalidTokenException if the token is invalid or expired
    */
+  @Transactional
   public LoginResponse verifyAdminLogin(String token) {
     String email = tokenService.extractEmail(token);
     if (email == null) {
@@ -467,8 +487,9 @@ public class AuthService {
 
     User user = userService.getUserByEmail(email);
     if (user == null || user.getRoles().stream()
-        .noneMatch(role -> role.getName().equals(RoleType.ADMIN)) &&
-        user.getRoles().stream().noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
+        .noneMatch(role -> role.getName().equals(RoleType.ADMIN))
+        && user.getRoles().stream()
+        .noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
       throw new InvalidTokenException();
     }
 
@@ -488,6 +509,7 @@ public class AuthService {
    * @param request The request containing the admin's email address
    * @return A response indicating the success of the operation
    */
+  @Transactional
   public PasswordResetResponse requestAdminPasswordReset(RequestPasswordResetRequest request) {
     User user = userService.getUserByEmail(request.getEmail());
     if (user == null) {
@@ -505,7 +527,8 @@ public class AuthService {
     }
 
     // Generate reset token
-    String token = tokenService.generateResetPasswordToken(user.getEmail());
+    String token = tokenService
+        .generateResetPasswordToken(user.getEmail());
     long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
 
     // Save token
@@ -519,7 +542,8 @@ public class AuthService {
 
     // Send email
     String resetLink =
-        frontendUrl + "/verifiser-passord-tilbakestilling?token=" + java.net.URLEncoder.encode(
+        frontendConfig.getUrl() + "/verifiser-passord-tilbakestilling?token="
+            + java.net.URLEncoder.encode(
             token, java.nio.charset.StandardCharsets.UTF_8);
     emailVerificationService.sendPasswordResetEmail(user, resetLink, expirationHours);
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AddressForm from '@/components/layout/AddressForm.vue'
-import { useCreateHousehold } from '@/api/generated/household/household.ts'
+import { useCreateHousehold } from '@/api/generated/household/household'
 import type { CreateHouseholdRequest, HouseholdResponse } from '@/api/generated/model'
 import router from '@/router'
 

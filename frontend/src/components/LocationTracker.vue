@@ -1,26 +1,42 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useUpdateCurrentUserLocation } from '@/api/generated/user/user'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 const authStore = useAuthStore()
+const intervalId = ref<number | null>(null)
 const updateLocationMutation = useUpdateCurrentUserLocation({
   mutation: {
     throwOnError: false,
   },
 })
-let intervalId: number | null = null
 
 const updateLocation = async () => {
-  // Only update location if user is authenticated
   if (!authStore.isAuthenticated) {
+    if (intervalId.value) {
+      clearInterval(intervalId.value)
+      intervalId.value = null
+    }
     return
   }
 
   try {
-    // Request location from browser
     const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject)
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Geolocation timeout'))
+      }, 10000)
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          clearTimeout(timeoutId)
+          resolve(pos)
+        },
+        (err) => {
+          clearTimeout(timeoutId)
+          reject(err)
+        },
+        { timeout: 10000, maximumAge: 0 },
+      )
     })
 
     // Send location update to server
@@ -36,20 +52,16 @@ const updateLocation = async () => {
 }
 
 onMounted(() => {
-  // Only start tracking if user is authenticated
   if (authStore.isAuthenticated) {
-    // Request initial location permission and update
     updateLocation()
-
-    // Set up interval for periodic updates (every 15 seconds)
-    intervalId = window.setInterval(updateLocation, 15000)
+    intervalId.value = window.setInterval(updateLocation, 15000)
   }
 })
 
 onUnmounted(() => {
-  // Clean up interval when component is unmounted
-  if (intervalId !== null) {
-    clearInterval(intervalId)
+  if (intervalId.value !== null) {
+    clearInterval(intervalId.value)
+    intervalId.value = null
   }
 })
 </script>

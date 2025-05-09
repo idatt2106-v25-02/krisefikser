@@ -14,7 +14,7 @@ import {
   useGetPendingInvitesForUser,
 } from '@/api/generated/household-invite-controller/household-invite-controller'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { Button } from '@/components/ui/button'
 
 const emit = defineEmits<{

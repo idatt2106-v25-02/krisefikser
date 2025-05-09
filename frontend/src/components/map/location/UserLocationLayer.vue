@@ -14,8 +14,7 @@ const props = defineProps<{
 }>()
 
 const userLocationIcon = L.icon({
-  iconUrl:
-    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQiIGhlaWdodD0iNDQiIHZpZXdCb3g9IjAgMCA0NCA0NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiByeD0iMjIiIGZpbGw9IiMyNTYzRUIiIGZpbGwtb3BhY2l0eT0iMC4yNSIvPgo8cmVjdCB4PSIxMyIgeT0iMTMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjkiIGZpbGw9IiMyNTYzRUIiLz4KPHJlY3QgeD0iMTMiIHk9IjEzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSI5IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMiLz4KPC9zdmc+Cg==',
+  iconUrl: '/icons/map/user.svg',
   iconSize: [32, 32],
   iconAnchor: [16, 16],
   popupAnchor: [0, -16],

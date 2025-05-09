@@ -4,7 +4,7 @@ import type {
   MapPointResponse as MapPoint,
   MapPointTypeResponse as MapPointType,
 } from '@/api/generated/model'
-import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type.ts'
+import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 
 const props = defineProps<{
   modelValue: Partial<MapPoint>
@@ -15,6 +15,7 @@ const emit = defineEmits<{
   (e: 'submit'): void
   (e: 'cancel'): void
   (e: 'start-map-selection'): void
+  (e: 'update:modelValue', value: Partial<MapPoint>): void
 }>()
 
 const { data: mapPointTypes } = useGetAllMapPointTypes<MapPointType[]>()
@@ -24,12 +25,17 @@ const localValue = ref<Partial<MapPoint>>({ ...props.modelValue })
 watch(
   () => props.modelValue,
   (newValue) => {
-    localValue.value = { ...newValue }
+    localValue.value = {
+      ...localValue.value,
+      latitude: newValue.latitude,
+      longitude: newValue.longitude,
+    }
   },
   { deep: true },
 )
 
 function handleSubmit() {
+  emit('update:modelValue', JSON.parse(JSON.stringify(localValue.value)))
   emit('submit')
 }
 

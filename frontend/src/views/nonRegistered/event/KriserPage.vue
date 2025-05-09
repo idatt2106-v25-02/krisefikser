@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
-import { useGetAllEvents } from '@/api/generated/event/event.ts';
-import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts';
+import { useGetAllEvents } from '@/api/generated/event/event';
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario';
 import type { EventResponse, ScenarioResponse } from '@/api/generated/model';
 import { EventResponseStatus } from '@/api/generated/model';
 import { Button as BaseButton} from '@/components/ui/button';
@@ -321,7 +321,7 @@ export default defineComponent({
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <router-link to="/nyheter" class="block p-4 border rounded-lg hover:shadow-sm transition">
                   <h3 class="font-medium text-gray-800 mb-1">Ny opplæringsplan for kriseberedskap</h3>
-                  <p class="text-sm text-gray-600 mb-2 line-clamp-2">Myndighetene har lansert en ny opplæringsplan for hvordan innbyggere kan forberede seg på kriser.</p>
+                  <p class="text-sm text-gray-600 mb-2 line-clamp-2 overflow-hidden">Myndighetene har lansert en ny opplæringsplan for hvordan innbyggere kan forberede seg på kriser.</p>
                   <p class="text-xs text-gray-500">23. april 2025</p>
                 </router-link>
 
@@ -448,7 +448,7 @@ export default defineComponent({
                   class="block p-4 hover:bg-gray-50 transition-colors"
                 >
                   <h3 class="font-medium text-gray-800 mb-1">{{ scenario.title }}</h3>
-                  <p class="text-sm text-gray-600 line-clamp-2" v-if="scenario.content">{{ stripHtml(scenario.content) }}</p>
+                  <p class="text-sm text-gray-600 line-clamp-2 overflow-hidden" v-if="scenario.content">{{ stripHtml(scenario.content) }}</p>
                 </router-link>
                 <div v-if="scenarios.length === 0 && !isLoadingScenarios && !scenariosError" class="p-4 text-center text-gray-500">
                   Ingen scenarioer funnet.
@@ -464,48 +464,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Custom scrollbar styling */
-.overflow-y-auto {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(59, 130, 246, 0.5) rgba(219, 234, 254, 0.7);
-}
-
-.overflow-y-auto::-webkit-scrollbar {
-  width: 8px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: rgba(219, 234, 254, 0.7);
-  border-radius: 10px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(59, 130, 246, 0.5);
-  border-radius: 10px;
-  border: 2px solid rgba(219, 234, 254, 0.7);
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(59, 130, 246, 0.7);
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-</style>

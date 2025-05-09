@@ -1,5 +1,5 @@
 // src/services/focusManager.ts
-import speechService from './speechService.ts';
+import speechService from './speechService';
 
 class FocusManager {
   private focusableSelector = 'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])';

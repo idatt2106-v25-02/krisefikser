@@ -11,6 +11,6 @@
  */
 export interface CreateGuestRequest {
   name: string
-  icon: string
-  consumptionMultiplier: number
+  icon?: string
+  consumptionMultiplier?: number
 }

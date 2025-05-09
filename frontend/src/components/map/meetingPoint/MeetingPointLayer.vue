@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onUnmounted } from 'vue'
 import L from 'leaflet'
-import { useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points.ts'
+import { useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
 import type { MeetingPointResponse } from '@/api/generated/model'
 
 const props = defineProps<{
@@ -20,7 +20,7 @@ const { data: meetingPointsData, isLoading } = useGetMeetingPoints(props.househo
 // Create marker icon
 const createMarkerIcon = () => {
   return L.divIcon({
-    className: 'meeting-point-marker',
+    className: 'meeting-point-marker filter drop-shadow',
     html: `
       <div class="relative">
         <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
@@ -97,9 +97,3 @@ onUnmounted(() => {
     Laster møtepunkter...
   </div>
 </template>
-
-<style scoped>
-.meeting-point-marker {
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
-}
-</style>

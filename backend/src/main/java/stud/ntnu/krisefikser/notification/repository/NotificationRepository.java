@@ -9,11 +9,8 @@ import stud.ntnu.krisefikser.notification.entity.Notification;
 import stud.ntnu.krisefikser.user.entity.User;
 
 /**
- * Repository interface for Notification entities.
- * Provides CRUD operations and custom query methods for notifications.
- * Extends JpaRepository for basic JPA operations.
- *
- * @since 1.0
+ * Repository interface for Notification entities. Provides CRUD operations and custom query methods
+ * for notifications. Extends JpaRepository for basic JPA operations.
  */
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
@@ -37,7 +34,8 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   /**
    * Counts all notifications by user and read status.
    *
-   * @param read the read status for the notifications to count (corresponding to the 'isRead' field)
+   * @param read the read status for the notifications to count (corresponding to the 'isRead'
+   *             field)
    * @param user the user whose notifications to count
    * @return a {@link Long} representing the count
    */
