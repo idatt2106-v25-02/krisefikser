@@ -56,9 +56,6 @@ jobs:
         run: |
           rm -rf frontend/node_modules
           rm -rf frontend/dist
-          rm -rf frontend/.pnpm-store
-          rm -rf frontend/.cache/Cypress
-          rm -rf frontend/.cache/pnpm
 
       - name: Set up Node.js
         uses: actions/setup-node@v3.9.1
@@ -82,10 +79,7 @@ jobs:
       - name: Run lint
         run: |
           cd frontend
-          rm -rf frontend/.eslintcache
-          rm -rf frontend/node_modules/.cache
-          rm -rf frontend/.tsbuildinfo
-          m -rf frontend/cypress.config.d.ts
+          rm -rf frontend/cypress.config.d.ts
           rm -rf frontend/vitest.config.d.ts
           pnpm run lint --no-cache
 
