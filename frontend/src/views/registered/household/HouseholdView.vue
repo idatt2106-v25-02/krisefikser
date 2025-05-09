@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import router from '@/router'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import { watchEffect } from 'vue'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 // Import API hooks
 import {
   useGetAllUserHouseholds,
@@ -165,27 +166,39 @@ interface MeetingPlace {
   targetDays: number
 }
 
+// Add these with other refs
+const showLeaveDialog = ref(false)
+const showDeleteDialog = ref(false)
+
+// Replace the handleLeaveHousehold function
 function handleLeaveHousehold() {
   if (!household.value) return
-  if (confirm('Er du sikker på at du vil forlate denne husstanden?')) {
-    leaveHousehold({
-      data: {
-        householdId: household.value.id ?? '',
-      },
-    })
-  }
+  showLeaveDialog.value = true
 }
 
+// Replace the handleDeleteHousehold function
 function handleDeleteHousehold() {
   if (!household.value) return
-  if (
-    confirm('Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres.') &&
-    household.value.id
-  ) {
-    deleteHousehold({
-      id: household.value.id,
-    })
-  }
+  showDeleteDialog.value = true
+}
+
+// Add these new functions
+function confirmLeaveHousehold() {
+  if (!household.value) return
+  leaveHousehold({
+    data: {
+      householdId: household.value.id ?? '',
+    },
+  })
+  showLeaveDialog.value = false
+}
+
+function confirmDeleteHousehold() {
+  if (!household.value?.id) return
+  deleteHousehold({
+    id: household.value.id,
+  })
+  showDeleteDialog.value = false
 }
 
 function handleMeetingPlaceSelected(place: MeetingPlace) {
@@ -332,6 +345,27 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
             refetchAllHouseholds()
           }"
           @meeting-place-selected="handleMeetingPlaceSelected"
+        />
+
+        <!-- Leave Household Confirmation -->
+        <ConfirmationDialog
+          :is-open="showLeaveDialog"
+          title="Forlate husstand"
+          description="Er du sikker på at du vil forlate denne husstanden?"
+          confirm-text="Forlat"
+          @confirm="confirmLeaveHousehold"
+          @cancel="showLeaveDialog = false"
+        />
+
+        <!-- Delete Household Confirmation -->
+        <ConfirmationDialog
+          :is-open="showDeleteDialog"
+          title="Slett husstand"
+          description="Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres."
+          confirm-text="Slett"
+          variant="destructive"
+          @confirm="confirmDeleteHousehold"
+          @cancel="showDeleteDialog = false"
         />
       </div>
 

@@ -8,6 +8,7 @@ import {
 } from 'lucide-vue-next';
 
 import { Button } from '@/components/ui/button';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import AdminLayout from '@/components/admin/AdminLayout.vue';
 import ScenarioForm from '@/components/admin/scenario/ScenarioForm.vue';
 
@@ -32,6 +33,10 @@ const currentScenario = ref({
   title: '',
   content: ''
 });
+
+// Add this with other refs
+const showDeleteDialog = ref(false);
+const scenarioToDelete = ref<string | null>(null);
 
 const openAddForm = () => {
   currentScenario.value = {
@@ -77,9 +82,16 @@ const saveScenario = (scenarioData: Scenario) => {
 };
 
 const deleteItem = (id: string) => {
-  if (confirm('Er du sikker på at du vil slette dette scenarioet?')) {
-    deleteScenario({ id });
-  }
+  scenarioToDelete.value = id;
+  showDeleteDialog.value = true;
+};
+
+// Add this new function
+const handleDeleteScenario = () => {
+  if (!scenarioToDelete.value) return;
+  deleteScenario({ id: scenarioToDelete.value });
+  showDeleteDialog.value = false;
+  scenarioToDelete.value = null;
 };
 
 const getContentPreview = (content: string) => {
@@ -171,6 +183,17 @@ const getContentPreview = (content: string) => {
           </div>
         </div>
       </div>
+
+      <!-- Delete Scenario Confirmation -->
+      <ConfirmationDialog
+        :is-open="showDeleteDialog"
+        title="Slett scenario"
+        description="Er du sikker på at du vil slette dette scenarioet?"
+        confirm-text="Slett"
+        variant="destructive"
+        @confirm="handleDeleteScenario"
+        @cancel="showDeleteDialog = false"
+      />
     </div>
   </AdminLayout>
 </template>

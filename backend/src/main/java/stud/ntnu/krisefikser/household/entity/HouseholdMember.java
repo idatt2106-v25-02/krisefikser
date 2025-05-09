@@ -29,8 +29,8 @@ import stud.ntnu.krisefikser.user.entity.User;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "household_id" }) })
-@ToString(exclude = { "user", "household" })
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "household_id"})})
+@ToString(exclude = {"user", "household"})
 public class HouseholdMember {
 
   @Id
@@ -40,6 +40,7 @@ public class HouseholdMember {
   @ManyToOne(optional = false)
   @JoinColumn(name = "user_id")
   private User user;
+
   @ManyToOne(optional = false)
   @JoinColumn(name = "household_id")
   private Household household;
@@ -52,7 +53,7 @@ public class HouseholdMember {
   /**
    * Converts to HouseholdMemberResponse including user location data.
    * This should only be used when getting active household details.
-   * 
+   *
    * @return HouseholdMemberResponse with user location data
    */
   public HouseholdMemberResponse toDtoWithLocation() {

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, computed,  watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { useQueryClient } from '@tanstack/vue-query';
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useQueryClient } from '@tanstack/vue-query'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import {
   useGetPublicReflections,
   useDeleteReflection,
   getGetPublicReflectionsQueryKey
-} from '@/api/generated/reflection/reflection.ts';
-import { useGetEventById } from '@/api/generated/event/event.ts';
+} from '@/api/generated/reflection/reflection';
+import { useGetEventById } from '@/api/generated/event/event';
 import type { ReflectionResponse } from '@/api/generated/model';
 import { ReflectionResponseVisibility } from '@/api/generated/model';
 import { Button } from '@/components/ui/button';
@@ -22,29 +22,29 @@ const { data: publicReflections, isLoading, error } = useGetPublicReflections<Re
   query: {
     enabled: true,
     refetchOnWindowFocus: true,
-  }
-});
+  },
+})
 
 const deleteReflectionMutation = useDeleteReflection({
   mutation: {
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getGetPublicReflectionsQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetPublicReflectionsQueryKey() })
     },
     onError: (err: Error | unknown) => {
-      console.error("Feil ved sletting av refleksjon:", err);
-      alert("Kunne ikke slette refleksjon: " + (err instanceof Error ? err.message : 'Ukjent feil'));
-    }
-  }
-});
+      console.error('Feil ved sletting av refleksjon:', err)
+      alert('Kunne ikke slette refleksjon: ' + (err instanceof Error ? err.message : 'Ukjent feil'))
+    },
+  },
+})
 
 const errorMessage = computed(() => {
-  const e = error.value as Error | null;
-  if (e instanceof Error) return e.message;
-  return e ? 'En ukjent feil oppstod.' : '';
-});
+  const e = error.value as Error | null
+  if (e instanceof Error) return e.message
+  return e ? 'En ukjent feil oppstod.' : ''
+})
 
 const formatDate = (dateInput?: string | number[] | null) => {
-  if (!dateInput) return 'Ukjent dato';
+  if (!dateInput) return 'Ukjent dato'
 
   if (Array.isArray(dateInput)) {
     const [year, month, day, hour, minute, second, nanosecond] = dateInput;
@@ -57,7 +57,7 @@ const formatDate = (dateInput?: string | number[] | null) => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
+    })
   }
 
   const date = new Date(dateInput);
@@ -68,87 +68,113 @@ const formatDate = (dateInput?: string | number[] | null) => {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  });
-};
+  })
+}
 
 const mapReflectionVisibility = (visibility?: ReflectionResponseVisibility): string => {
-  if (!visibility) return 'Ukjent';
+  if (!visibility) return 'Ukjent'
   switch (visibility) {
-    case ReflectionResponseVisibility.PUBLIC: return 'Offentlig';
-    case ReflectionResponseVisibility.HOUSEHOLD: return 'Husstand';
-    case ReflectionResponseVisibility.PRIVATE: return 'Privat';
-    default: return 'Ukjent';
+    case ReflectionResponseVisibility.PUBLIC:
+      return 'Offentlig'
+    case ReflectionResponseVisibility.HOUSEHOLD:
+      return 'Husstand'
+    case ReflectionResponseVisibility.PRIVATE:
+      return 'Privat'
+    default:
+      return 'Ukjent'
   }
-};
+}
 
 const stripHtml = (html?: string) => {
-  if (!html) return '';
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  return doc.body.textContent || "";
-};
+  if (!html) return ''
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  return doc.body.textContent || ''
+}
 
 const canManageReflection = (reflection: ReflectionResponse) => {
-  if (!authStore.currentUser) return false;
-  return authStore.isAdmin || authStore.currentUser.id === reflection.authorId;
-};
+  if (!authStore.currentUser) return false // If user not logged in, cannot manage
+  return authStore.isAdmin || authStore.currentUser.id === reflection.authorId
+}
 
 const viewReflection = (id: string) => {
-  router.push(`/refleksjon/${id}`);
-};
+  router.push(`/refleksjon/${id}`)
+}
 
-const confirmDeleteReflection = async (id: string) => {
+const showDeleteDialog = ref(false)
+const reflectionToDelete = ref<string | null>(null)
+
+const confirmDeleteReflection = (id: string) => {
   if (!authStore.isAuthenticated) {
-    alert("Du må være logget inn for å slette refleksjoner.");
-    return;
+    alert('Du må være logget inn for å slette refleksjoner.')
+    return
   }
-  if (window.confirm('Er du sikker på at du vil slette denne refleksjonen? Handlingen kan ikke angres.')) {
-     await deleteReflectionMutation.mutateAsync({ id });
+  reflectionToDelete.value = id
+  showDeleteDialog.value = true
+}
+
+const handleDeleteReflection = async () => {
+  if (!reflectionToDelete.value) return
+  try {
+    await deleteReflectionMutation.mutateAsync({ id: reflectionToDelete.value })
+    showDeleteDialog.value = false
+    reflectionToDelete.value = null
+  } catch (error) {
+    console.error('Error deleting reflection:', error)
   }
-};
+}
 
 const navigateToMyReflections = () => {
-  router.push('/mine-refleksjoner');
-};
+  router.push('/mine-refleksjoner')
+}
 
-const eventTitles = ref<Record<string, string>>({});
+// Fetch event titles for associated events
+const eventTitles = ref<Record<string, string>>({})
 const eventIdsToFetch = computed(() => {
-  const ids = new Set<number>();
-  (publicReflections.value || []).forEach((reflection: ReflectionResponse) => {
+  const ids = new Set<number>()
+  ;(publicReflections.value || []).forEach((reflection: ReflectionResponse) => {
     if (reflection.eventId) {
-      ids.add(reflection.eventId);
+      ids.add(reflection.eventId)
     }
-  });
-  return Array.from(ids);
-});
+  })
+  return Array.from(ids)
+})
 
-watch(eventIdsToFetch, (newIds) => {
-  newIds.forEach(id => {
-    if (!eventTitles.value[id]) {
-      const eventIdRef = ref(id);
-      const { data: eventData, error: eventError } = useGetEventById(eventIdRef, {
-        query: {
-          enabled: computed(() => !!eventIdRef.value),
-        }
-      });
+watch(
+  eventIdsToFetch,
+  (newIds) => {
+    newIds.forEach((id) => {
+      if (!eventTitles.value[id]) {
+        const eventIdRef = ref(id)
+        const { data: eventData, error: eventError } = useGetEventById(eventIdRef, {
+          query: {
+            enabled: computed(() => !!eventIdRef.value),
+          },
+        })
 
-      watch(eventData, (newEventData) => {
-        if (newEventData?.title) {
-          eventTitles.value = {
-            ...eventTitles.value,
-            [id]: newEventData.title,
-          };
-        }
-      }, { immediate: true });
+        watch(
+          eventData,
+          (newEventData) => {
+            if (newEventData?.title) {
+              eventTitles.value = {
+                ...eventTitles.value,
+                [id]: newEventData.title,
+              }
+            }
+          },
+          { immediate: true },
+        )
 
-      watch(eventError, (err) => {
-        if (err) {
-          console.error(`Kunne ikke hente hendelsesnavn for ID ${id}:`, err);
-          eventTitles.value = { ...eventTitles.value, [id]: 'Hendelse utilgjengelig' };
-        }
-      });
-    }
-  });
-}, { deep: true, immediate: true });
+        watch(eventError, (err) => {
+          if (err) {
+            console.error(`Kunne ikke hente hendelsesnavn for ID ${id}:`, err)
+            eventTitles.value = { ...eventTitles.value, [id]: 'Hendelse utilgjengelig' }
+          }
+        })
+      }
+    })
+  },
+  { deep: true, immediate: true },
+)
 
 </script>
 
@@ -170,7 +196,11 @@ watch(eventIdsToFetch, (newIds) => {
         </div>
       </div>
 
-      <div v-if="isLoading" class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex justify-center">
+      <!-- Loading state with improved animation -->
+      <div
+        v-if="isLoading"
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex justify-center"
+      >
         <div class="flex flex-col items-center">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
           <p class="text-gray-600">Laster refleksjoner...</p>
@@ -181,20 +211,31 @@ watch(eventIdsToFetch, (newIds) => {
         <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
           <div class="flex">
             <div class="flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-red-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </div>
             <div class="ml-3">
-              <p class="text-sm text-red-700">
-                Kunne ikke laste refleksjoner: {{ errorMessage }}
-              </p>
+              <p class="text-sm text-red-700">Kunne ikke laste refleksjoner: {{ errorMessage }}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-else-if="publicReflections && publicReflections.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Reflection cards -->
+      <div
+        v-else-if="publicReflections && publicReflections.length > 0"
+        class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
         <div
           v-for="reflection in publicReflections"
           :key="reflection.id"
@@ -202,18 +243,19 @@ watch(eventIdsToFetch, (newIds) => {
         >
           <div class="h-1 w-full bg-indigo-500"></div>
 
-          <div class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-indigo-50/70">
+          <!-- Decorative corner -->
+          <div
+            class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-indigo-50/70"
+          >
             <div class="absolute top-2.5 right-2.5">
               <Globe class="h-6 w-6 text-indigo-600" />
+              <!-- Globe icon for public -->
             </div>
           </div>
 
           <div class="p-4 relative z-10 flex-grow flex flex-col">
             <h3 class="text-lg font-semibold mb-1 pr-10">{{ reflection.title }}</h3>
             <div class="flex flex-wrap gap-1.5 mb-3 text-xs">
-              <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">
-                {{ reflection.authorName }}
-              </span>
               <span class="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-medium">
                 {{ mapReflectionVisibility(reflection.visibility) }}
               </span>
@@ -223,25 +265,54 @@ watch(eventIdsToFetch, (newIds) => {
             </div>
 
             <div v-if="reflection.eventId && eventTitles[reflection.eventId]" class="mb-2">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs">
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs"
+              >
                 <router-link :to="`/kriser/${reflection.eventId}`" class="hover:underline">
                   {{ eventTitles[reflection.eventId] }}
                 </router-link>
               </span>
             </div>
             <div v-else-if="reflection.eventId" class="mb-2 text-sm text-gray-500 italic">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs">
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs"
+              >
                 Laster hendelsesnavn...
               </span>
             </div>
 
-            <p v-if="reflection.content" class="text-sm text-gray-600 flex-grow mb-3 line-clamp-3 overflow-hidden" v-html="stripHtml(reflection.content)"></p>
+            <p
+              v-if="reflection.content"
+              class="text-sm text-gray-600 flex-grow mb-3 line-clamp-3"
+              v-html="stripHtml(reflection.content)"
+            ></p>
 
             <div class="mt-auto pt-3 border-t flex justify-end space-x-2">
-              <Button size="sm" variant="outline" @click="viewReflection(reflection.id!)" class="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              <Button
+                size="sm"
+                variant="outline"
+                @click="viewReflection(reflection.id!)"
+                class="flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
                 </svg>
                 Se detaljer
               </Button>
@@ -252,8 +323,19 @@ watch(eventIdsToFetch, (newIds) => {
                 @click="confirmDeleteReflection(reflection.id!)"
                 class="flex items-center"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
                 Slett
               </Button>
@@ -265,12 +347,34 @@ watch(eventIdsToFetch, (newIds) => {
       <div v-else-if="!isLoading && !error" class="bg-white rounded-lg shadow-md p-8 text-center">
         <Globe class="mx-auto h-12 w-12 text-gray-400" />
         <h3 class="mt-2 text-xl font-medium text-gray-900">Ingen offentlige refleksjoner</h3>
-        <p class="mt-1 text-base text-gray-500">Det er ingen offentlige refleksjoner tilgjengelig for øyeblikket.</p>
+        <p class="mt-1 text-base text-gray-500">
+          Det er ingen offentlige refleksjoner tilgjengelig for øyeblikket.
+        </p>
         <Button class="mt-6" @click="navigateToMyReflections">
           <BookOpen class="h-4 w-4 mr-2" />
           Mine refleksjoner
         </Button>
       </div>
+
+      <!-- Delete Reflection Confirmation -->
+      <ConfirmationDialog
+        :is-open="showDeleteDialog"
+        title="Slett refleksjon"
+        description="Er du sikker på at du vil slette denne refleksjonen? Handlingen kan ikke angres."
+        confirm-text="Slett"
+        variant="destructive"
+        @confirm="handleDeleteReflection"
+        @cancel="showDeleteDialog = false"
+      />
     </div>
   </div>
 </template>
+
+<style scoped>
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+</style>
