@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser.reflection.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,6 +16,10 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
+import stud.ntnu.krisefikser.map.entity.Event;
+import stud.ntnu.krisefikser.map.entity.EventLevel;
+import stud.ntnu.krisefikser.map.entity.EventStatus;
+import stud.ntnu.krisefikser.map.repository.EventRepository;
 import stud.ntnu.krisefikser.reflection.entity.Reflection;
 import stud.ntnu.krisefikser.reflection.enums.VisibilityType;
 import stud.ntnu.krisefikser.user.entity.User;
@@ -24,7 +29,6 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 @Import(RepositoryTestConfig.class)
 class ReflectionRepositoryTest {
 
-  private final Long testEventId = 123L;
   @Autowired
   private ReflectionRepository reflectionRepository;
   @Autowired
@@ -33,11 +37,15 @@ class ReflectionRepositoryTest {
   private HouseholdRepository householdRepository;
   @Autowired
   private HouseholdMemberRepository householdMemberRepository;
+  @Autowired
+  private EventRepository eventRepository;
+
   private User user1;
   private User user2;
   private User user3;
   private Household household1;
   private Household household2;
+  private Event testEvent;
 
   @BeforeEach
   void setUp() {
@@ -46,6 +54,7 @@ class ReflectionRepositoryTest {
     householdMemberRepository.deleteAll();
     householdRepository.deleteAll();
     userRepository.deleteAll();
+    eventRepository.deleteAll();
 
     // Create test users
     user1 = userRepository.save(User.builder()
@@ -97,6 +106,19 @@ class ReflectionRepositoryTest {
         .user(user2)
         .build());
 
+    // Create test event
+    testEvent = eventRepository.save(Event.builder()
+        .title("Test Event")
+        .description("Test Event Description")
+        .radius(10.0)
+        .latitude(10.0)
+        .longitude(10.0)
+        .level(EventLevel.RED)
+        .startTime(ZonedDateTime.now())
+        .endTime(ZonedDateTime.now().plusHours(2))
+        .status(EventStatus.ONGOING)
+        .build());
+
     // Create reflections with different visibilities
     reflectionRepository.save(Reflection.builder()
         .title("Public Reflection")
@@ -124,7 +146,7 @@ class ReflectionRepositoryTest {
         .title("Event Reflection")
         .content("Event content")
         .author(user2)
-        .eventId(testEventId)
+        .event(testEvent)
         .visibility(VisibilityType.PUBLIC)
         .build());
   }
@@ -244,7 +266,7 @@ class ReflectionRepositoryTest {
   @Test
   void findByEventId_ShouldReturnRelatedReflections() {
     // Act
-    List<Reflection> result = reflectionRepository.findByEventId(testEventId);
+    List<Reflection> result = reflectionRepository.findByEventId(testEvent.getId());
 
     // Assert
     assertThat(result).hasSize(1);
@@ -253,8 +275,21 @@ class ReflectionRepositoryTest {
 
   @Test
   void findByEventId_ShouldReturnEmptyList_WhenNoReflectionsExist() {
+    // Create an event with no reflections
+    Event unusedEvent = eventRepository.save(Event.builder()
+        .title("Unused Event")
+        .description("No reflections for this event")
+        .radius(5.0)
+        .latitude(20.0)
+        .longitude(20.0)
+        .level(EventLevel.RED)
+        .startTime(ZonedDateTime.now())
+        .endTime(ZonedDateTime.now().plusHours(1))
+        .status(EventStatus.ONGOING)
+        .build());
+
     // Act
-    List<Reflection> result = reflectionRepository.findByEventId(999L);
+    List<Reflection> result = reflectionRepository.findByEventId(unusedEvent.getId());
 
     // Assert
     assertThat(result).isEmpty();
