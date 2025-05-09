@@ -79,8 +79,8 @@ jobs:
       - name: Run lint
         run: |
           cd frontend
-          rm -rf frontend/cypress.config.d.ts
-          rm -rf frontend/vitest.config.d.ts
+          rm cypress.config.d.ts
+          rm vitest.config.d.ts
           pnpm run lint --no-cache
 
       - name: Run tests
