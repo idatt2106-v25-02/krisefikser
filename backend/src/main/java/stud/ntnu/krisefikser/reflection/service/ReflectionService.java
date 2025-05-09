@@ -354,7 +354,7 @@ public class ReflectionService {
         .householdId(reflection.getHousehold() != null ? reflection.getHousehold().getId() : null)
         .householdName(
             reflection.getHousehold() != null ? reflection.getHousehold().getName() : null)
-        .eventId(reflection.getEvent().getId())
+        .eventId(reflection.getEvent() != null ? reflection.getEvent().getId() : null)
         .createdAt(reflection.getCreatedAt())
         .updatedAt(reflection.getUpdatedAt())
         .build();

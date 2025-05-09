@@ -14,8 +14,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +39,7 @@ class ReflectionFlowIntegrationTest extends AbstractIntegrationTest {
   @Autowired
   private ReflectionRepository reflectionRepository;
 
-  @SpyBean
+  @MockitoSpyBean
   private TurnstileService turnstileService;
 
   @BeforeEach
