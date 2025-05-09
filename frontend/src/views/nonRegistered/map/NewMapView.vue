@@ -4,6 +4,7 @@ import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { createUserMarker } from '@/components/map/marker'
 import { createHouseholdMarker } from '@/components/map/marker/household'
+import { createHouseholdMemberMarker } from '@/components/map/marker/householdMember'
 import loadMapPoints from '@/components/map/marker/mapPoints'
 import NewMapComponent from '@/components/map/NewMapComponent.vue'
 import { useMap } from '@/components/map/useMap'
@@ -29,15 +30,23 @@ const renderNewMapPoints = async () => {
     addMarkers(mapMarkers)
   }
 
-  // Active household marker
+  // Household realted markers
   if (activeHousehold.value) {
+    // Household marker
     const householdMarker = await createHouseholdMarker(activeHousehold.value)
     addMarkers([householdMarker])
+
+    // Householdmembers markers
+    const householdMembers = activeHousehold.value.members
+    const householdMembersMarkers = householdMembers
+      .map((member) => createHouseholdMemberMarker(member))
+      .filter((marker) => marker !== null)
+    addMarkers(householdMembersMarkers)
   }
 
   // User location marker
-  const userMarker = await createUserMarker()
-  addMarkers([userMarker])
+  // const userMarker = await createUserMarker()
+  // addMarkers([userMarker])
 }
 
 onMapCreated(async (_mapInstance: LeafletMap) => {

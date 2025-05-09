@@ -3,7 +3,8 @@ import { createUserMarker } from './user'
 interface MarkerComponent {
   latitude: number
   longitude: number
-  iconUrl: string
+  iconUrl?: string
+  iconDiv?: string
   popupContent: string
   options?: L.MarkerOptions
   type: MarkerType

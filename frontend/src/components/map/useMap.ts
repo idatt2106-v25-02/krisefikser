@@ -65,12 +65,17 @@ export const useMap = () => {
 
     markerComponents.forEach((markerComponent) => {
       const marker = L.marker([markerComponent.latitude, markerComponent.longitude], {
-        icon: L.icon({
-          iconUrl: markerComponent.iconUrl,
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-          popupAnchor: [0, -32],
-        }),
+        icon: markerComponent.iconUrl
+          ? L.icon({
+              iconUrl: markerComponent.iconUrl,
+              iconSize: [32, 32],
+              iconAnchor: [16, 32],
+              popupAnchor: [0, -32],
+            })
+          : L.divIcon({
+              className: 'marker-icon',
+              html: markerComponent.iconDiv,
+            }),
         ...markerComponent.options,
       })
         .addTo(map.value as L.Map)
