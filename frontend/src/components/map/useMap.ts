@@ -6,8 +6,6 @@ import type { MarkerComponent } from './marker'
 const TRONDHEIM_CENTER: [number, number] = [63.4305, 10.3951]
 const INITIAL_ZOOM = 13
 
-type MapCreatedCallback = (map: L.Map) => void
-
 function addTileLayer(map: L.Map) {
   if (import.meta.env.VITE_MAPBOX_ACCESS_TOKEN) {
     L.tileLayer(
@@ -36,9 +34,8 @@ interface MarkerInstance {
 export const useMap = () => {
   const map = ref<L.Map | null>(null)
   const markers = ref<MarkerInstance[]>([])
-  const mapCreatedCallbacks = ref<MapCreatedCallback[]>([])
 
-  const initMap = (elementId: string = 'map') => {
+  const initMap = (elementId: string = 'map', callback?: () => void) => {
     if (map.value) {
       console.warn('Map is already initialized.')
       return
@@ -47,15 +44,7 @@ export const useMap = () => {
     map.value = L.map(elementId, { zoomControl: false }).setView(TRONDHEIM_CENTER, INITIAL_ZOOM)
     addTileLayer(map.value as L.Map)
     setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER, INITIAL_ZOOM)
-    mapCreatedCallbacks.value.forEach((callback) => callback(map.value as L.Map))
-  }
-
-  const onMapCreated = (callback: MapCreatedCallback) => {
-    if (map.value) {
-      callback(map.value as L.Map)
-    } else {
-      mapCreatedCallbacks.value.push(callback)
-    }
+    callback?.()
   }
 
   const addMarkers = (markerComponents: MarkerComponent[]) => {
@@ -107,5 +96,5 @@ export const useMap = () => {
     markers.value = []
   }
 
-  return { map, initMap, markers, addMarkers, onMapCreated, clearMarkers }
+  return { map, initMap, markers, addMarkers, clearMarkers }
 }

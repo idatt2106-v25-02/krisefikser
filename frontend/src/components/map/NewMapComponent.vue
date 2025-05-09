@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue'
 
-// Third-party libraries
-import type { Map as LeafletMap } from 'leaflet'
-
 // Components and composables
 import {
   createEventMarkers,
@@ -33,7 +30,7 @@ const { data: eventPointsData, isLoading: isLoadingEventPoints } = useGetAllEven
 
 const authStore = useAuthStore()
 
-const { initMap, addMarkers, onMapCreated, clearMarkers } = useMap()
+const { initMap, addMarkers, clearMarkers } = useMap()
 
 const isDataLoading = computed(() => {
   return (
@@ -115,10 +112,6 @@ const renderNewMapPoints = async () => {
   })
 }
 
-onMapCreated(async (_mapInstance: LeafletMap) => {
-  watch(isDataLoading, renderNewMapPoints)
-})
-
 // Don't forget to unsubscribe on component unmount
 onUnmounted(() => {
   webSocket.unsubscribe('/topic/events')
@@ -127,7 +120,9 @@ onUnmounted(() => {
 })
 
 onMounted(() => {
-  initMap()
+  initMap('map', () => {
+    watch(isDataLoading, renderNewMapPoints)
+  })
 })
 </script>
 
