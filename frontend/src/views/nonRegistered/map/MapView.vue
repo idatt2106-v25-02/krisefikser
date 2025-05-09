@@ -9,10 +9,10 @@ import HouseholdMembersLayer from '@/components/map/location/HouseholdMembersLay
 import MeetingPointLayer from '@/components/map/meetingPoint/MeetingPointLayer.vue'
 import MeetingPointForm from '@/components/map/meetingPoint/MeetingPointForm.vue'
 import MapLegend from '@/components/map/MapLegend.vue'
-import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
-import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type.ts'
-import { useGetAllEvents } from '@/api/generated/event/event.ts'
-import { useGetActiveHousehold } from '@/api/generated/household/household.ts'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
+import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
+import { useGetAllEvents } from '@/api/generated/event/event'
+import { useGetActiveHousehold } from '@/api/generated/household/household'
 import type {
   MapPointResponse as MapPoint,
   MapPointTypeResponse as MapPointType,
@@ -142,7 +142,7 @@ function onMapCreated(map: L.Map) {
 function toggleUserLocation(show: boolean) {
   if (show) {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
+      navigator.geolocation.watchPosition(
         (position) => {
           showUserLocation.value = true
           if (userLocationRef.value) {
@@ -150,11 +150,17 @@ function toggleUserLocation(show: boolean) {
             userLocationRef.value.toggleUserLocation(true)
           }
         },
-        () => {
+        (e) => {
+          console.error('Error getting user location:', e)
           locationError.value =
             'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
           showLocationError.value = true
           showUserLocation.value = false
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         },
       )
     } else {
@@ -200,27 +206,51 @@ function toggleMeetingPointCreation() {
 
 // Initialize location on mount
 onMounted(() => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        showUserLocation.value = true
-        if (userLocationRef.value) {
-          userLocationRef.value.setInitialPosition(position)
-          userLocationRef.value.toggleUserLocation(true)
-        }
-      },
-      () => {
-        locationError.value =
-          'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
-        showLocationError.value = true
-        showUserLocation.value = false
-      },
-    )
-  } else {
+  if (!navigator.geolocation) {
     locationError.value = 'Din nettleser støtter ikke geolokasjon'
     showLocationError.value = true
     showUserLocation.value = false
+    return
   }
+
+  navigator.permissions
+    .query({ name: 'geolocation' })
+    .then((result) => {
+      if (result.state === 'granted') {
+        setTimeout(() => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              showUserLocation.value = true
+              if (userLocationRef.value) {
+                userLocationRef.value.setInitialPosition(position)
+                userLocationRef.value.toggleUserLocation(true)
+              }
+            },
+            (e) => {
+              console.error('Error getting user location:', e)
+              locationError.value =
+                'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
+              showLocationError.value = true
+              showUserLocation.value = false
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 0,
+            }
+          )
+        }, 1000)
+      } else {
+        locationError.value = 'Kunne ikke få tilgang til posisjonen din. Vennligst sjekk at du har gitt tillatelse til å bruke posisjon.'
+        showLocationError.value = true
+        showUserLocation.value = false
+      }
+    })
+    .catch(() => {
+      locationError.value = 'Kunne ikke sjekke posisjonstillatelser'
+      showLocationError.value = true
+      showUserLocation.value = false
+    })
 })
 </script>
 

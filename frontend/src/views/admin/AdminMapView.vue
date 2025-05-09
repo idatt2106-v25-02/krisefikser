@@ -5,8 +5,8 @@ import MapPointsManager from '@/components/admin/map/MapPointsManager.vue'
 import EventsManager from '@/components/admin/event/EventsManager.vue'
 import AdminMapContainer from '@/components/admin/map/AdminMapContainer.vue'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
-import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
-import { useGetAllEvents } from '@/api/generated/event/event.ts'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
+import { useGetAllEvents } from '@/api/generated/event/event'
 
 type AdminTab = 'map-point-types' | 'map-points' | 'events'
 

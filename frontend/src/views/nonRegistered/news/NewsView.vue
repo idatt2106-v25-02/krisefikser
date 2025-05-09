@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGetAllArticles } from '@/api/generated/article/article'
 import { AlertTriangle, ArrowRight, Calendar, Newspaper } from 'lucide-vue-next'
-import { arrayToDate } from '@/api/Utils.ts'
+import { arrayToDate } from '@/api/Utils'
 
 const router = useRouter()
 const { data: articles, isLoading, error } = useGetAllArticles()

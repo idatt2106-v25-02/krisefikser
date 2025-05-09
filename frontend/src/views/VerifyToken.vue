@@ -99,14 +99,3 @@
     </footer>
   </div>
 </template>
-
-<style scoped>
-/* Tailwind CSS is handling the styling. This block can be removed or used for highly specific styles not easily achievable with utility classes. */
-/* For example:
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-.min-h-screen {
-  font-family: 'Inter', sans-serif;
-}
-*/
-</style>

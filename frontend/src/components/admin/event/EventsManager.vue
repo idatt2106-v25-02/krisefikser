@@ -10,9 +10,9 @@ import {
   useDeleteEvent,
   useGetAllEvents,
   useUpdateEvent,
-} from '@/api/generated/event/event.ts'
-import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+} from '@/api/generated/event/event'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import EventForm from './EventForm.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useRouter } from 'vue-router'

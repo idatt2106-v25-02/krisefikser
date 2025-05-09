@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import { getIconNames } from '@/utils/icons.ts'
+import { getIconNames } from '@/utils/icons'
 
 interface Props {
   modelValue: string | undefined

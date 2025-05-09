@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { useGetScenarioById } from '@/api/generated/scenario/scenario.ts'
+import { useGetScenarioById } from '@/api/generated/scenario/scenario'
 import { computed, onMounted } from 'vue'
 
 import {

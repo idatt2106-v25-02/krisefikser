@@ -5,11 +5,11 @@ import StatsCard from '@/components/admin/dashboard/StatsCard.vue'
 import RecentEventsCard from '@/components/admin/dashboard/RecentEventsCard.vue'
 import QuickActions from '@/components/admin/dashboard/QuickActions.vue'
 
-import { useGetAllEvents } from '@/api/generated/event/event.ts'
-import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
-import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts'
-import { useGetAllArticles } from '@/api/generated/article/article.ts'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useGetAllEvents } from '@/api/generated/event/event'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario'
+import { useGetAllArticles } from '@/api/generated/article/article'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
 const { data: mapPointsData } = useGetAllMapPoints()

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import PageLayout from '@/components/layout/PageLayout.vue'
 import { User } from 'lucide-vue-next'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import { useMe } from '@/api/generated/authentication/authentication.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
+import { useMe } from '@/api/generated/authentication/authentication'
 
 // Import new components
 import PersonalInfo from '@/components/dashboard/PersonalInfo.vue'

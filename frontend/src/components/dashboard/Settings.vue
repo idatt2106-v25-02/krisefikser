@@ -5,7 +5,7 @@ import Switch from '@/components/ui/switch/Switch.vue'
 import { useMe } from '@/api/generated/authentication/authentication'
 import { useUpdateUser } from '@/api/generated/user/user'
 import type { CreateUser } from '@/api/generated/model'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 // Get auth store
 const authStore = useAuthStore()

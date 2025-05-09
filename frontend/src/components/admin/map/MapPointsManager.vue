@@ -10,9 +10,9 @@ import {
   useDeleteMapPoint,
   useGetAllMapPoints,
   useUpdateMapPoint,
-} from '@/api/generated/map-point/map-point.ts'
-import { useGetAllEvents } from '@/api/generated/event/event.ts'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+} from '@/api/generated/map-point/map-point'
+import { useGetAllEvents } from '@/api/generated/event/event'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import MapPointForm from './MapPointForm.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 

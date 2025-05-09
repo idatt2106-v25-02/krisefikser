@@ -61,32 +61,15 @@ jobs:
         uses: actions/setup-node@v3.9.1
         with:
           node-version: "22"
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
           version: "10.8.0"
 
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4.2.3
-        with:
-          path: |
-            ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-            frontend/node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('frontend/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
       - name: Install dependencies
         run: |
           cd frontend
-          pnpm install --frozen-lockfile
+          pnpm install --force --no-cache
 
       - name: Build frontend
         run: |
@@ -96,7 +79,9 @@ jobs:
       - name: Run lint
         run: |
           cd frontend
-          pnpm run lint
+          rm cypress.config.d.ts
+          rm vitest.config.d.ts
+          pnpm run lint --no-cache
 
       - name: Run tests
         run: |

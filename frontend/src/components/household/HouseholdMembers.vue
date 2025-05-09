@@ -15,8 +15,8 @@ import {
   getGetActiveHouseholdQueryKey,
   useLeaveHousehold,
   useRemoveGuestFromHousehold,
-} from '@/api/generated/household/household.ts'
-import type { GuestResponse, HouseholdMemberResponse } from '@/api/generated/model'
+} from '@/api/generated/household/household'
+import type { HouseholdMemberResponse, GuestResponse } from '@/api/generated/model'
 
 const props = defineProps<{
   householdId: string

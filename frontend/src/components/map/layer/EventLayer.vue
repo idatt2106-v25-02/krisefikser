@@ -6,7 +6,7 @@ import {
   EventResponseLevel as EventLevel,
   EventResponseStatus as EventStatus,
 } from '@/api/generated/model'
-import { webSocket } from '@/main.ts'
+import { webSocket } from '@/main'
 import { formatDate } from '@/utils/date-formatter'
 
 // Define props
