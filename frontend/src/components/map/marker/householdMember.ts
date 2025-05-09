@@ -20,7 +20,6 @@ export function createHouseholdMemberMarker(
 export function createHouseholdMemberIconDiv(member: HouseholdMemberResponse): string {
   const initials =
     (member.user.firstName?.charAt(0) ?? '') + (member.user.lastName?.charAt(0) ?? '')
-  console.log(initials)
 
   const SIZE = 36
 
