@@ -75,5 +75,14 @@ export const useMap = () => {
     })
   }
 
-  return { map, initMap, markers, addMarkers, onMapCreated }
+  const clearMarkers = () => {
+    if (map.value) {
+      markers.value.forEach((marker) => {
+        map.value?.removeLayer(marker as unknown as L.Layer)
+      })
+    }
+    markers.value = []
+  }
+
+  return { map, initMap, markers, addMarkers, onMapCreated, clearMarkers }
 }
