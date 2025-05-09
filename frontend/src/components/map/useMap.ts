@@ -1,9 +1,31 @@
 import { ref } from 'vue'
 import L from 'leaflet'
+import { setupCustomControls } from './controls'
+import type { MarkerComponent } from './marker'
 
 const TRONDHEIM_CENTER: [number, number] = [63.4305, 10.3951]
 
 type MapCreatedCallback = (map: L.Map) => void
+
+function addTileLayer(map: L.Map) {
+  if (import.meta.env.VITE_MAPBOX_ACCESS_TOKEN) {
+    L.tileLayer(
+      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+      {
+        id: 'mapbox/streets-v12',
+        accessToken: import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
+        tileSize: 512,
+        zoomOffset: -1,
+      } as L.TileLayerOptions & { accessToken: string },
+    ).addTo(map)
+  } else {
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map)
+  }
+}
 
 export const useMap = () => {
   const map = ref<L.Map | null>(null)
@@ -12,11 +34,13 @@ export const useMap = () => {
 
   const initMap = (elementId: string = 'map') => {
     if (map.value) {
-      console.warn('Map is already initialized.');
+      console.warn('Map is already initialized.')
       return
     }
 
     map.value = L.map(elementId).setView(TRONDHEIM_CENTER, 13)
+    addTileLayer(map.value as L.Map)
+    setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER)
     mapCreatedCallbacks.value.forEach((callback) => callback(map.value as L.Map))
   }
 
@@ -28,25 +52,22 @@ export const useMap = () => {
     }
   }
 
-  const addMarker = (
-    latitude: number,
-    longitude: number,
-    iconUrl: string,
-    popupContent: string,
-    options?: L.MarkerOptions,
-  ) => {
+  const addMarker = (markerComponent: MarkerComponent) => {
     if (!map.value) {
       throw new Error('Map is not initialized')
     }
 
-    const marker = L.marker([latitude, longitude], {
+    const marker = L.marker([markerComponent.latitude, markerComponent.longitude], {
       icon: L.icon({
-        iconUrl: iconUrl,
+        iconUrl: markerComponent.iconUrl,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32],
       }),
-      ...options,
+      ...markerComponent.options,
     })
       .addTo(map.value as L.Map)
-      .bindPopup(popupContent)
+      .bindPopup(markerComponent.popupContent)
 
     markers.value.push(marker)
   }
