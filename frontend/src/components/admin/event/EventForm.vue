@@ -6,6 +6,7 @@ import {
   EventResponseLevel as EventLevel,
   EventResponseStatus as EventStatus,
 } from '@/api/generated/model'
+import router from '@/router'
 
 const props = defineProps<{
   modelValue: Partial<Event>
@@ -39,9 +40,9 @@ watch(
 // Don't watch localValue changes to avoid two-way binding loops
 
 function handleSubmit() {
-  // Only emit the update when form is submitted
   emit('update:modelValue', JSON.parse(JSON.stringify(localValue.value)))
   emit('submit')
+  router.push({ name: 'event-detail' })
 }
 
 function handleCancel() {
