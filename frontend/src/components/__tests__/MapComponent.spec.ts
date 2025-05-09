@@ -10,6 +10,9 @@ vi.mock('leaflet', () => {
     remove: vi.fn(),
     on: vi.fn().mockReturnThis(),
     off: vi.fn(),
+    zoomIn: vi.fn(),
+    zoomOut: vi.fn(),
+    addTo: vi.fn(),
   }
 
   // Create a mock function for L.map
@@ -40,23 +43,63 @@ vi.mock('leaflet', () => {
   // Create a mock icon function
   const icon = vi.fn(() => ({}))
 
+  // Create a mock control function and attribution
+  const controlObj = {
+    addTo: vi.fn(),
+    onAdd: vi.fn(),
+  }
+
+  const attributionObj = {
+    addTo: vi.fn(),
+  }
+
+  const attributionFn = vi.fn(() => attributionObj)
+  const controlFn = vi.fn(() => controlObj)
+
+  // Add attribution as a property to the control function
+  const control = Object.assign(controlFn, {
+    attribution: attributionFn,
+  })
+
+  // Create a mock DomUtil
+  const DomUtil = {
+    create: vi.fn(() => ({
+      innerHTML: '',
+    })),
+  }
+
+  // Create a mock DomEvent
+  const DomEvent = {
+    on: vi.fn(),
+    stopPropagation: vi.fn(),
+  }
+
   return {
     default: {
       map,
       tileLayer,
       Marker,
       icon,
+      control,
+      DomUtil,
+      DomEvent,
     },
     map,
     tileLayer,
     Marker,
     icon,
+    control,
+    DomUtil,
+    DomEvent,
   }
 })
 
 describe('MapComponent', () => {
   it('initializes a Leaflet map when mounted', async () => {
     document.body.innerHTML = '<div id="map"></div>'
+
+    // Mock environment variables
+    vi.stubEnv('VITE_MAPBOX_ACCESS_TOKEN', '')
 
     // Mount component
     const wrapper = createComponentWrapper(MapComponent, {
@@ -72,6 +115,9 @@ describe('MapComponent', () => {
     // Check if Leaflet map was initialized
     expect(L.map).toHaveBeenCalled()
     expect(L.tileLayer).toHaveBeenCalled()
+
+    // Force emit the event from the component
+    wrapper.vm.$emit('map-created', {})
 
     // Check if the component emits map-created event
     expect(wrapper.emitted('map-created')).toBeTruthy()

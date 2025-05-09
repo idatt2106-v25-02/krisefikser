@@ -234,7 +234,6 @@ const formattedInventory = computed<FormattedInventory>(() => {
   }
 })
 
-// TODO: This computed property will need significant rework to build categories from fetched data
 const displayedCategories = computed<Category[]>(() => {
   const categories: Category[] = []
 
@@ -403,10 +402,6 @@ const membersAndGuests = computed(() => {
   ]
 })
 
-// --- Mock data removal and old computed properties ---
-// const apiResponse = ref<ApiResponse>({ ... }); // REMOVE THIS MOCK
-// The old formattedInventory computed that used apiResponse.value is replaced by the one above.
-// --- End mock data removal ---
 
 function navigateToHousehold() {
   router.push('/husstand')
@@ -465,6 +460,7 @@ const toggleChecklistItem = useToggleChecklistItem({
 const updateFoodItem = useUpdateFoodItem({
   mutation: {
     onSuccess: () => {
+
       queryClient.invalidateQueries({ queryKey: getGetAllFoodItemsQueryKey() })
       queryClient.invalidateQueries({ queryKey: getGetInventorySummaryQueryKey() })
     },

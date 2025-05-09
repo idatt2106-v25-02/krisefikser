@@ -67,16 +67,16 @@ public class Event {
    */
   public EventResponse toResponse() {
     return EventResponse.builder()
-        .id(this.id)
-        .title(this.title)
-        .description(this.description)
-        .radius(this.radius)
-        .latitude(this.latitude)
-        .longitude(this.longitude)
-        .level(this.level)
-        .startTime(this.startTime)
-        .endTime(this.endTime)
-        .status(this.status)
+        .id(id)
+        .title(title)
+        .description(description)
+        .radius(radius)
+        .latitude(latitude)
+        .longitude(longitude)
+        .level(level)
+        .startTime(startTime)
+        .endTime(endTime)
+        .status(status)
         .build();
   }
 }

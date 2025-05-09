@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ExternalLink, Trash } from 'lucide-vue-next'
 
+defineProps<{
+  isOwner: boolean
+}>()
+
 defineEmits<{
   (e: 'leave'): void
   (e: 'delete'): void
@@ -12,6 +16,7 @@ defineEmits<{
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Husstandshandlinger</h2>
     <div class="space-y-3">
       <button
+        v-if="!isOwner"
         @click="$emit('leave')"
         class="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-gray-50"
       >

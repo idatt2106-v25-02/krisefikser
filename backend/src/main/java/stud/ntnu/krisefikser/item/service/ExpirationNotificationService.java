@@ -1,10 +1,5 @@
 package stud.ntnu.krisefikser.item.service;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,12 +13,23 @@ import stud.ntnu.krisefikser.notification.entity.NotificationType;
 import stud.ntnu.krisefikser.notification.service.NotificationService;
 import stud.ntnu.krisefikser.user.entity.User;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+
 /**
- * Service responsible for periodically checking for expiring food items and notifying users.
+ * Service responsible for periodically checking for expiring food items and
+ * notifying users.
  *
- * <p>This service contains a scheduled task that runs daily to identify food items
- * in households that are nearing their expiration date. For each such item, it notifies
- * members of the household, provided their notification preferences are enabled.</p>
+ * <p>
+ * This service contains a scheduled task that runs daily to identify food items
+ * in households that are nearing their expiration date. For each such item, it
+ * notifies
+ * members of the household, provided their notification preferences are
+ * enabled.
+ * </p>
  *
  * @see FoodItemRepository
  * @see HouseholdMemberService
@@ -34,32 +40,40 @@ import stud.ntnu.krisefikser.user.entity.User;
 @Slf4j
 public class ExpirationNotificationService {
 
-  private static final DateTimeFormatter NORWEGIAN_DATE_FORMATTER =
-      DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault());
+  private static final DateTimeFormatter NORWEGIAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+          .withZone(ZoneId.systemDefault());
   private final FoodItemRepository foodItemRepository;
   private final HouseholdMemberService householdMemberService;
   private final NotificationService notificationService;
 
   /**
-   * Periodically checks for food items nearing their expiration date and sends notifications.
+   * Periodically checks for food items nearing their expiration date and sends
+   * notifications.
    *
-   * <p>This method is scheduled. It queries for {@link FoodItem} entities that will expire
-   * within the next 7 days. For each expiring item, it retrieves the members of the associated
-   * household. If a household member has notifications enabled ({@link User#isNotifications()}),
-   * a notification of type {@link NotificationType#EXPIRY_REMINDER} is created and sent via the
-   * {@link NotificationService}.</p>
+   * <p>
+   * This method is scheduled. It queries for {@link FoodItem} entities that will
+   * expire
+   * within the next 7 days. For each expiring item, it retrieves the members of
+   * the associated
+   * household. If a household member has notifications enabled
+   * ({@link User#isNotifications()}),
+   * a notification of type {@link NotificationType#EXPIRY_REMINDER} is created
+   * and sent via the
+   * {@link NotificationService}.
+   * </p>
    *
-   * <p>Logs are generated for the process, including the number of items found,
-   * notifications sent, and any errors encountered during notification dispatch.</p>
+   * <p>
+   * Logs are generated for the process, including the number of items found,
+   * notifications sent, and any errors encountered during notification dispatch.
+   * </p>
    */
-  @Scheduled(cron = "0 */5 * * * ?")
+  @Scheduled(cron = "0 0 9 * * *")
   public void checkForExpiredItemsAndNotifyUsers() {
     log.info("Starting daily check for expiring food items...");
     Instant now = Instant.now();
     Instant sevenDaysFromNow = now.plus(7, ChronoUnit.DAYS);
 
-    List<FoodItem> expiringItems =
-        foodItemRepository.findAllByExpirationDateBetween(now, sevenDaysFromNow);
+    List<FoodItem> expiringItems = foodItemRepository.findAllByExpirationDateBetween(now, sevenDaysFromNow);
 
     if (expiringItems.isEmpty()) {
       log.info("No food items expiring within the next 7 days.");
@@ -74,13 +88,12 @@ public class ExpirationNotificationService {
         continue;
       }
 
-      List<HouseholdMember> members =
-          householdMemberService.getMembers(item.getHousehold().getId());
+      List<HouseholdMember> members = householdMemberService.getMembers(item.getHousehold().getId());
       if (members.isEmpty()) {
         log.warn(
-            "Household with ID {} for item '{}' has no members. Skipping.",
-            item.getHousehold().getId(),
-            item.getName());
+                "Household with ID {} for item '{}' has no members. Skipping.",
+                item.getHousehold().getId(),
+                item.getName());
         continue;
       }
 
@@ -91,41 +104,39 @@ public class ExpirationNotificationService {
             Instant expiryInstant = item.getExpirationDate();
             String userFriendlyExpirationDate = NORWEGIAN_DATE_FORMATTER.format(expiryInstant);
 
-            Notification notification =
-                Notification.builder()
+            Notification notification = Notification.builder()
                     .user(user)
                     .type(NotificationType.EXPIRY_REMINDER)
                     .title("Vare utløper snart!")
                     .message(
-                        String.format(
-                            "%s utløper den %s.",
-                            item.getName(),
-                            userFriendlyExpirationDate
-                        ))
+                            String.format(
+                                    "%s utløper den %s.",
+                                    item.getName(),
+                                    userFriendlyExpirationDate))
                     .isRead(false)
                     .item(item)
                     .build();
             notificationService.createNotification(notification);
             log.info(
-                "Sent expiry notification for item '{}' to user '{}'",
-                item.getName(),
-                user.getEmail());
+                    "Sent expiry notification for item '{}' to user '{}'",
+                    item.getName(),
+                    user.getEmail());
           } catch (Exception e) {
             log.error(
-                "Failed to send expiry notification for item '{}' to user '{}': {}",
-                item.getName(),
-                user.getEmail(),
-                e.getMessage(),
-                e);
+                    "Failed to send expiry notification for item '{}' to user '{}': {}",
+                    item.getName(),
+                    user.getEmail(),
+                    e.getMessage(),
+                    e);
           }
         } else {
           log.info(
-              "User '{}' has notifications disabled. Skipping expiry alert for item '{}'.",
-              user.getEmail(),
-              item.getName());
+                  "User '{}' has notifications disabled. Skipping expiry alert for item '{}'.",
+                  user.getEmail(),
+                  item.getName());
         }
       }
     }
     log.info("Finished daily check for expiring food items.");
   }
-} 
+}

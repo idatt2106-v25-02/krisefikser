@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 // Auth views
 import LoginView from '@/views/auth/login/LoginView.vue'
 import ResetPasswordView from '@/views/auth/password/ResetPasswordView.vue'
-import VerifyEmailView from "@/views/auth/VerifyEmailView.vue"
+import VerifyEmailView from '@/views/auth/VerifyEmailView.vue'
 
 // Error views
 import NotFoundView from '@/views/errors/NotFoundView.vue'
@@ -27,8 +27,7 @@ import HouseholdDetailsView from '@/views/registered/household/HouseholdView.vue
 import HouseholdInventoryView from '@/views/registered/inventory/HouseholdInventoryView.vue'
 import HomeAddressView from '@/views/registered/household/HomeAddressView.vue'
 import NewHouseholdView from '@/views/registered/household/NewHousehold.vue'
-import HouseholdReflectionsPage from '@/views/registered/household/HouseholdReflectionsPage.vue';
-const PublicReflectionsPage = () => import('@/views/registered/reflections/PublicReflectionsPage.vue');
+import HouseholdReflectionsPage from '@/views/registered/household/HouseholdReflectionsPage.vue'
 import SendResetPasswordLinkView from '@/views/auth/password/SendResetPasswordLinkView.vue'
 // Non-Registered User views
 import JoinOrCreateHouseholdView from '@/views/nonRegistered/household/JoinOrCreateHouseholdView.vue'
@@ -47,13 +46,16 @@ import AfterCrisisView from '@/views/nonRegistered/info/AfterCrisisView.vue'
 
 import ScenariosListView from '@/views/nonRegistered/scenario/ScenariosListView.vue'
 import ScenarioDetailView from '@/views/nonRegistered/scenario/ScenarioDetailView.vue'
-import KriserPage from '@/views/nonRegistered/event/KriserPage.vue';
-import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue';
-import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue';
-import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue';
+import KriserPage from '@/views/nonRegistered/event/KriserPage.vue'
+import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue'
+import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue'
+import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue'
 import NotificationsView from '@/views/registered/notification/NotificationView.vue'
 import NotificationDetailView from '@/views/registered/notification/NotificationDetailView.vue'
 import VerifyToken from '@/views/VerifyToken.vue'
+
+const PublicReflectionsPage = () =>
+  import('@/views/registered/reflections/PublicReflectionsPage.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -73,32 +75,32 @@ const router = createRouter({
       path: '/kriser/:id',
       name: 'event-detail',
       component: EventDetailPage,
-      props: true
+      props: true,
     },
     // Auth routes
     {
       path: '/logg-inn',
       name: 'login',
       component: LoginView,
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true },
     },
     {
       path: '/glemt-passord',
       name: 'forgot-password',
       component: SendResetPasswordLinkView,
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true },
     },
     {
       path: '/verifiser-passord-tilbakestilling',
       name: 'verify-password-reset',
       component: VerifyPasswordReset,
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true },
     },
     {
       path: '/reset-passord',
       name: 'reset-password',
       component: ForgotPasswordView,
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true },
     },
 
     // Admin routes
@@ -106,186 +108,185 @@ const router = createRouter({
       path: '/admin',
       name: 'admin-dashboard',
       component: AdminDashboardView,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
     {
       path: '/admin/registrer',
       name: 'admin-register',
       component: AdminRegisterView,
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true },
     },
     {
       path: '/admin/kart',
       name: 'admin-map',
       component: AdminMapView,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
     {
       path: '/admin/reset-passord-link',
       name: 'admin-reset-passord-link',
       component: AdminResetPasswordLink,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
     {
       path: '/admin/scenarios',
       name: 'admin-scenarios',
       component: AdminScenariosView,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
     {
       path: '/admin/brukere',
       name: 'admin-users',
       component: ManageAdminsView,
-      meta: { requiresAuth: true, requiresSuperAdmin: true }
+      meta: { requiresAuth: true, requiresSuperAdmin: true },
     },
     {
       path: '/admin/artikler',
       name: 'admin-articles',
       component: ArticleManagementView,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
     {
       path: '/admin/invite',
       name: 'admin-invite',
       component: AdminInviteView,
-      meta: { requiresAuth: true, requiresSuperAdmin: true }
+      meta: { requiresAuth: true, requiresSuperAdmin: true },
     },
     {
       path: '/verify',
       name: 'verify',
       component: VerifyToken,
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true },
     },
     {
       path: '/verify-admin-login',
       name: 'verify-admin-login',
       component: VerifyAdminLoginView,
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true },
     },
     {
       path: '/admin/brukere-admin',
       name: 'admin-users-admin',
       component: ManageAdminsView,
-      meta: { requiresAuth: true, requiresAdmin: true }
+      meta: { requiresAuth: true, requiresAdmin: true },
     },
     // Registered User routes
     {
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/mine-refleksjoner',
       name: 'my-reflections',
       component: MyReflectionsPage,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/refleksjon/:id',
       name: 'reflection-detail',
       component: ReflectionDetailView,
       props: true,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/husstand',
       name: 'household',
       component: HouseholdDetailsView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/husstand/refleksjoner',
       name: 'HouseholdReflections',
       component: HouseholdReflectionsPage,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/husstand/beredskapslager',
       name: 'household-emergency-stock',
       component: HouseholdInventoryView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/husstand/opprett',
       name: 'new-household',
       component: NewHouseholdView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/refleksjoner/offentlige',
       name: 'public-reflections',
       component: PublicReflectionsPage,
-      meta: { requiresAuth: false }
     },
     {
       path: '/endre-passord',
       name: 'change-password',
       component: ResetPasswordView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/adresse',
       name: 'home-address',
-      component: HomeAddressView
+      component: HomeAddressView,
     },
     // Non-Registered User routes
     {
       path: '/bli-med-eller-opprett-husstand',
       name: 'join-create-household',
-      component: JoinOrCreateHouseholdView
+      component: JoinOrCreateHouseholdView,
     },
     {
       path: '/kart',
       name: 'map',
-      component: MapView
+      component: MapView,
     },
     {
       path: '/registrer',
       name: 'register',
-      component: RegisterView
+      component: RegisterView,
     },
     {
       path: '/bekreft-e-post',
       name: 'verify-email',
-      component: VerifyEmailView
+      component: VerifyEmailView,
     },
     {
       path: '/personvern',
       name: 'privacy-policy',
-      component: PrivacyPolicyView
+      component: PrivacyPolicyView,
     },
     {
       path: '/nyheter',
       name: 'news',
-      component: NewsView
+      component: NewsView,
     },
     {
       path: '/artikkel/:id',
       name: 'article',
-      component: ArticleView
+      component: ArticleView,
     },
     {
       path: '/om-oss',
       name: 'about-us',
-      component: AboutUsView
+      component: AboutUsView,
     },
 
     // Crisis Information routes
     {
       path: '/info/for-krisen',
       name: 'before-crisis',
-      component: BeforeCrisisView
+      component: BeforeCrisisView,
     },
     {
       path: '/info/under-krisen',
       name: 'during-crisis',
-      component: DuringCrisisView
+      component: DuringCrisisView,
     },
     {
       path: '/info/etter-krisen',
       name: 'after-crisis',
-      component: AfterCrisisView
+      component: AfterCrisisView,
     },
     {
       path: '/varsler',
@@ -303,24 +304,24 @@ const router = createRouter({
     {
       path: '/scenarioer',
       name: 'scenarios-list',
-      component: ScenariosListView
+      component: ScenariosListView,
     },
     {
       path: '/scenario/:id',
       name: 'scenario-detail',
       component: ScenarioDetailView,
-      props: true
+      props: true,
     },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: NotFoundView
-    }
+      component: NotFoundView,
+    },
   ],
   scrollBehavior() {
     // always scroll to top
     return { top: 0, behavior: 'smooth' }
-  }
+  },
 })
 
 // Navigation guards
