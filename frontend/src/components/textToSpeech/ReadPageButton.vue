@@ -81,10 +81,9 @@ onUnmounted(() => {
       @click="readPageContent"
       @touchstart="handleTouchStart"
       @touchend="handleTouchEnd"
-      class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group relative transition-all min-h-[48px] min-w-[48px] flex items-center justify-center"
-      :class="{ 'animate-pulse': isReading }"
-      :aria-label="isReading ? 'Stopp lesing (Ctrl + Shift + X)' : 'Les innholdet på siden (Ctrl + Shift + X)'"
-    >
+      class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group relative transition-all min-h-[48px] min-w-[48px] flex items-center justify-center sm:bottom-20 sm:right-4 bottom-20 right-4"
+      :class="{ 'animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]': isReading }"
+      :aria-label="isReading ? 'Stopp lesing (Ctrl + Shift + X)' : 'Les innholdet på siden (Ctrl + Shift + X)'">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
       </svg>
@@ -95,26 +94,3 @@ onUnmounted(() => {
     </button>
   </div>
 </template>
-
-<style scoped>
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* Mobile-specific styles */
-@media (max-width: 640px) {
-  .fixed {
-    bottom: 5rem !important;
-    right: 1rem !important;
-  }
-}
-</style>

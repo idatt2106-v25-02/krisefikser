@@ -1,6 +1,11 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal-fade">
+    <Transition
+      enter-active-class="transition-opacity duration-300 ease-in-out"
+      leave-active-class="transition-opacity duration-300 ease-in-out"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
       <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black bg-opacity-50" @click="close"></div>
 
@@ -200,15 +205,3 @@ export default defineComponent({
   },
 })
 </script>
-
-<style scoped>
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-  opacity: 0;
-}
-</style>

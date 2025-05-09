@@ -321,6 +321,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
           v-model:is-meeting-map-dialog-open="isMeetingMapDialogOpen"
           v-model:is-change-household-dialog-open="isChangeHouseholdDialogOpen"
           v-model:is-preparedness-info-dialog-open="isPreparednessInfoDialogOpen"
+          class="max-w-[1250px] w-[95vw]"
           @household-updated="refetchHousehold"
           @member-added="() => {
             refetchHousehold()
@@ -340,10 +341,3 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
     </div>
   </div>
 </template>
-
-<style scoped>
-:deep(.meeting-map-dialog) {
-  max-width: 1250px;
-  width: 95vw;
-}
-</style>

@@ -235,7 +235,7 @@ watch(eventIdsToFetch, (newIds) => {
               </span>
             </div>
 
-            <p v-if="reflection.content" class="text-sm text-gray-600 flex-grow mb-3 line-clamp-3" v-html="stripHtml(reflection.content)"></p>
+            <p v-if="reflection.content" class="text-sm text-gray-600 flex-grow mb-3 line-clamp-3 overflow-hidden" v-html="stripHtml(reflection.content)"></p>
 
             <div class="mt-auto pt-3 border-t flex justify-end space-x-2">
               <Button size="sm" variant="outline" @click="viewReflection(reflection.id!)" class="flex items-center">
@@ -274,12 +274,3 @@ watch(eventIdsToFetch, (newIds) => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-</style>

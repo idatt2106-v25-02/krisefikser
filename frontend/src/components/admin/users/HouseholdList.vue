@@ -71,10 +71,3 @@ const toggleExpand = (id: string) => {
     </table>
   </div>
 </template>
-
-<style scoped>
-/* Custom blue-25 background (not in Tailwind by default) */
-.bg-blue-25 {
-  background-color: #f7fbff;
-}
-</style>

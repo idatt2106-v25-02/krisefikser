@@ -96,7 +96,7 @@ defineExpose({
         </div>
       </div>
       <!-- Meeting Places Map Dialog -->
-      <Dialog v-model:open="isMapDialogOpen" class="meeting-map-dialog">
+      <Dialog v-model:open="isMapDialogOpen" class="max-w-[1250px] w-[95vw]">
         <DialogContent class="sm:max-w-5xl h-auto">
           <DialogHeader>
             <DialogTitle>Møteplasser ved krise</DialogTitle>
@@ -134,10 +134,3 @@ defineExpose({
     </template>
   </div>
 </template>
-
-<style scoped>
-:deep(.meeting-map-dialog) {
-  max-width: 1250px;
-  width: 95vw;
-}
-</style>

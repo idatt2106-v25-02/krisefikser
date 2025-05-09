@@ -138,12 +138,13 @@ function toggleLegend() {
     </Button>
     <div
       v-if="userInCrisisZone"
-      class="bg-[#F44336] text-white p-2.5 rounded-md font-bold text-center animate-blink"
+      class="bg-[#F44336] text-white p-2.5 rounded-md font-bold text-center animate-[blink_1s_infinite]"
     >
       ⚠️ Advarsel: Du er i en krisesone!
     </div>
   </div>
 </template>
+
 <style scoped>
 @keyframes fade {
   0% {
@@ -164,18 +165,8 @@ function toggleLegend() {
 }
 
 @keyframes blink {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-.animate-blink {
-  animation: blink 1s infinite;
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 </style>
