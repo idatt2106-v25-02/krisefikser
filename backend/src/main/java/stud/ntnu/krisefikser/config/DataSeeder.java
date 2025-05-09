@@ -456,7 +456,7 @@ public class DataSeeder implements CommandLineRunner {
 
     // Add a test super admin user
     User superAdminUser = User.builder()
-        .email("super.admin@example.com")
+        .email("admin@krisefikser.app")
         .password(passwordEncoder.encode("admin123"))
         .firstName("Super")
         .lastName("Admin")

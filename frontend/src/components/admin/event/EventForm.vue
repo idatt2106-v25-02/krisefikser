@@ -17,6 +17,7 @@ const emit = defineEmits<{
   (e: 'submit'): void
   (e: 'cancel'): void
   (e: 'start-map-selection'): void
+  (e: 'event-created', eventId: string): void
 }>()
 
 // Create a local copy that doesn't update the original
@@ -39,7 +40,6 @@ watch(
 // Don't watch localValue changes to avoid two-way binding loops
 
 function handleSubmit() {
-  // Only emit the update when form is submitted
   emit('update:modelValue', JSON.parse(JSON.stringify(localValue.value)))
   emit('submit')
 }
