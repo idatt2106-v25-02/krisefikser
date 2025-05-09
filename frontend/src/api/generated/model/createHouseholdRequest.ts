@@ -11,8 +11,8 @@
  */
 export interface CreateHouseholdRequest {
   name: string
-  latitude: number
-  longitude: number
+  latitude?: number
+  longitude?: number
   address: string
   city: string
   postalCode: string

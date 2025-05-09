@@ -35,9 +35,9 @@ import type {
   UpdatePasswordRequest,
   UpdatePasswordResponse,
   UserResponse,
-  VerifyAdminInviteToken400,
   VerifyAdminInviteTokenParams,
   VerifyAdminLoginParams,
+  VerifyAdminTokenResponse,
   VerifyEmailParams,
 } from '.././model'
 
@@ -1029,7 +1029,7 @@ export const verifyAdminInviteToken = (
 ) => {
   params = unref(params)
 
-  return customInstance<string>(
+  return customInstance<VerifyAdminTokenResponse>(
     {
       url: `http://localhost:8080/api/auth/verify-admin-invite`,
       method: 'GET',
@@ -1055,7 +1055,7 @@ export const getVerifyAdminInviteTokenQueryKey = (
 
 export const getVerifyAdminInviteTokenQueryOptions = <
   TData = Awaited<ReturnType<typeof verifyAdminInviteToken>>,
-  TError = ErrorType<VerifyAdminInviteToken400>,
+  TError = ErrorType<VerifyAdminTokenResponse>,
 >(
   params: MaybeRef<VerifyAdminInviteTokenParams>,
   options?: {
@@ -1082,7 +1082,7 @@ export const getVerifyAdminInviteTokenQueryOptions = <
 export type VerifyAdminInviteTokenQueryResult = NonNullable<
   Awaited<ReturnType<typeof verifyAdminInviteToken>>
 >
-export type VerifyAdminInviteTokenQueryError = ErrorType<VerifyAdminInviteToken400>
+export type VerifyAdminInviteTokenQueryError = ErrorType<VerifyAdminTokenResponse>
 
 /**
  * @summary Verify admin invitation token
@@ -1090,7 +1090,7 @@ export type VerifyAdminInviteTokenQueryError = ErrorType<VerifyAdminInviteToken4
 
 export function useVerifyAdminInviteToken<
   TData = Awaited<ReturnType<typeof verifyAdminInviteToken>>,
-  TError = ErrorType<VerifyAdminInviteToken400>,
+  TError = ErrorType<VerifyAdminTokenResponse>,
 >(
   params: MaybeRef<VerifyAdminInviteTokenParams>,
   options?: {
