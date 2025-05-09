@@ -38,6 +38,7 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 @Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
+//@Import(TestDataConfig.class)
 public abstract class AbstractIntegrationTest {
 
   private static final String TEST_USER_EMAIL = "valid.email@example.com";
@@ -101,6 +102,8 @@ public abstract class AbstractIntegrationTest {
       // Delete previous test data
       databaseCleanupService.clearDatabase();
 
+      ensureRolesExist();
+
       // Make turnstileService.verify returns true
       Mockito.when(turnstileService.verify(ArgumentMatchers.anyString())).thenReturn(true);
 
@@ -118,12 +121,35 @@ public abstract class AbstractIntegrationTest {
           "turnstile-token");
 
       // Register the user
-      mockMvc.perform(
-              post("/api/auth/register")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andExpect(status().isOk())
-          .andReturn();
+      MvcResult result = null;
+      try {
+        result = mockMvc.perform(
+                post("/api/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+            .andReturn();
+
+        int status = result.getResponse().getStatus();
+        String responseBody = result.getResponse().getContentAsString();
+
+        log.error("Registration response status: {}", status);
+        log.error("Registration response body: {}", responseBody);
+
+        if (status != 200) {
+          throw new AssertionError(
+              "Expected status 200 but was " + status + ". Response: " + responseBody);
+        }
+      } catch (Exception e) {
+        log.error("Exception during registration", e);
+        if (result != null) {
+          try {
+            log.error("Response body: {}", result.getResponse().getContentAsString());
+          } catch (Exception ex) {
+            log.error("Could not read response body", ex);
+          }
+        }
+        throw e;
+      }
 
       // Fetch the user from the database
       this.testUser = userRepository.findByEmail(TEST_USER_EMAIL)
@@ -191,6 +217,21 @@ public abstract class AbstractIntegrationTest {
     } catch (Exception e) {
       log.error("Failed to set up test user", e);
       throw e;
+    }
+  }
+
+  @Transactional
+  public void ensureRolesExist() {
+    log.info("Ensuring roles exist in the database...");
+
+    // Check if roles need to be created
+    if (roleRepository.count() == 0) {
+      log.info("Creating roles: USER, ADMIN, SUPER_ADMIN");
+      roleRepository.save(Role.builder().name(RoleType.USER).build());
+      roleRepository.save(Role.builder().name(RoleType.ADMIN).build());
+      roleRepository.save(Role.builder().name(RoleType.SUPER_ADMIN).build());
+    } else {
+      log.info("Roles already exist in database, count: {}", roleRepository.count());
     }
   }
 

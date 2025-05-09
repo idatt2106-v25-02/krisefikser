@@ -419,14 +419,14 @@ class AuthControllerTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  void verifyAdminInvite_WithInvalidToken_ShouldReturnBadRequest() throws Exception {
+  void verifyAdminInvite_WithInvalidToken_ShouldReturnUnauthorized() throws Exception {
     when(authService.verifyAdminInviteToken(anyString()))
-        .thenThrow(new RuntimeException("Invalid token"));
+        .thenThrow(new InvalidTokenException());
 
     mockMvc.perform(get("/api/auth/verify-admin-invite")
             .with(SecurityMockMvcRequestPostProcessors.csrf())
             .param("token", "invalid-token"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -445,6 +445,7 @@ class AuthControllerTest {
             jsonPath("$.message").value("User registered successfully. Verification email sent."))
         .andExpect(jsonPath("$.success").value(true));
   }
+
   @Test
   void register_WithInvalidTurnstileToken_ShouldReturnBadRequest() throws Exception {
     // Arrange

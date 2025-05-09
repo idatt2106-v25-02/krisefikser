@@ -460,12 +460,12 @@ public class AuthService {
     AdminInviteToken inviteToken = adminInviteTokens.get(token);
 
     if (inviteToken == null) {
-      throw new RuntimeException("Invalid token");
+      throw new InvalidTokenException("Invalid token");
     }
 
     if (inviteToken.isExpired()) {
       adminInviteTokens.remove(token);
-      throw new RuntimeException("Token has expired");
+      throw new InvalidTokenException("Token has expired");
     }
 
     return inviteToken.email;
