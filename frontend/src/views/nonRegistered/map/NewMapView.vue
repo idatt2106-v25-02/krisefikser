@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth/useAuthStore'
 import type { Map as LeafletMap } from 'leaflet'
 import { computed, watch, onUnmounted } from 'vue'
 import { webSocket } from '@/main.ts'
+import type { EventResponse } from '@/api/generated/model'
 
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
@@ -84,7 +85,7 @@ const renderNewMapPoints = async () => {
   addMarkers([userMarker])
 
   // Subscribe to WebSocket events
-  webSocket.subscribe<EventResponse>('/topic/events', (event) => {
+  webSocket.subscribe<EventResponse>('/topic/events', (_event) => {
     // Update existing event
     clearMarkers()
     renderNewMapPoints()
@@ -98,7 +99,7 @@ const renderNewMapPoints = async () => {
     }
   })
 
-  webSocket.subscribe<number>('/topic/events/delete', (eventId) => {
+  webSocket.subscribe<number>('/topic/events/delete', (_eventId) => {
     // Remove event
     clearMarkers()
     renderNewMapPoints()
