@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import Dialog from '@/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue'
@@ -26,12 +26,12 @@ import PreparednessInfoDialog from '@/components/inventory/info/PreparednessInfo
 import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { useToast } from '@/components/ui/toast/use-toast'
 import {
-  useGetAllUserHouseholds,
-  useGetActiveHousehold,
-  useUpdateActiveHousehold,
-  useSetActiveHousehold,
-  useAddGuestToHousehold,
   getGetActiveHouseholdQueryKey,
+  useAddGuestToHousehold,
+  useGetActiveHousehold,
+  useGetAllUserHouseholds,
+  useSetActiveHousehold,
+  useUpdateActiveHousehold,
 } from '@/api/generated/household/household.ts'
 import { useCreateInvite } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -149,6 +149,8 @@ const { mutate: createInvite } = useCreateInvite({
     onSuccess: () => {
       emit('update:isAddMemberDialogOpen', false)
       emit('memberAdded')
+      // Invalidate the pending invites query to force a refetch
+      queryClient.invalidateQueries({ queryKey: ['getPendingInvitesForHousehold'] })
       toast({
         title: 'Invitasjon sendt',
         description: 'Invitasjonen har blitt sendt til brukeren.',
@@ -282,7 +284,8 @@ async function handleHouseholdSubmit(values: HouseholdFormValues) {
     if (!location) {
       toast({
         title: 'Feil',
-        description: 'Kunne ikke finne koordinater for denne adressen. Vennligst sjekk adressen og prøv igjen.',
+        description:
+          'Kunne ikke finne koordinater for denne adressen. Vennligst sjekk adressen og prøv igjen.',
         variant: 'destructive',
       })
       return
@@ -311,11 +314,7 @@ async function handleHouseholdSubmit(values: HouseholdFormValues) {
   }
 }
 
-function handleMemberSubmit(values: {
-  name?: string
-  email?: string
-  consumptionFactor?: number
-}) {
+function handleMemberSubmit(values: { name?: string; email?: string; consumptionFactor?: number }) {
   if (!household.value?.id) return
 
   if (values.email) {
@@ -351,10 +350,7 @@ function handleChangeActiveHousehold(householdId: string) {
 
 <template>
   <!-- Edit Household Dialog -->
-  <Dialog
-    :open="isEditDialogOpen"
-    @update:open="$emit('update:isEditDialogOpen', $event)"
-  >
+  <Dialog :open="isEditDialogOpen" @update:open="$emit('update:isEditDialogOpen', $event)">
     <DialogContent class="sm:max-w-[525px]">
       <DialogHeader>
         <DialogTitle>Endre husstandsinformasjon</DialogTitle>
@@ -457,10 +453,7 @@ function handleChangeActiveHousehold(householdId: string) {
           </Button>
         </div>
 
-        <Form
-          v-slot="{ handleSubmit: _handleSubmit }"
-          :validation-schema="memberFormSchema"
-        >
+        <Form v-slot="{ handleSubmit: _handleSubmit }" :validation-schema="memberFormSchema">
           <form @submit.prevent="_handleSubmit(handleMemberSubmit)" class="space-y-4">
             <FormField v-slot="{ field, errorMessage }" name="name">
               <FormItem>
@@ -471,11 +464,7 @@ function handleChangeActiveHousehold(householdId: string) {
                 <FormMessage>{{ errorMessage }}</FormMessage>
               </FormItem>
             </FormField>
-            <FormField
-              v-if="memberMode === 'invite'"
-              v-slot="{ field, errorMessage }"
-              name="email"
-            >
+            <FormField v-if="memberMode === 'invite'" v-slot="{ field, errorMessage }" name="email">
               <FormItem>
                 <FormLabel>E-post</FormLabel>
                 <FormControl>
@@ -505,10 +494,7 @@ function handleChangeActiveHousehold(householdId: string) {
               >
                 Avbryt
               </Button>
-              <Button
-                type="submit"
-                :disabled="isAddingGuest"
-              >
+              <Button type="submit" :disabled="isAddingGuest">
                 {{ memberMode === 'invite' ? 'Send invitasjon' : 'Legg til' }}
               </Button>
             </DialogFooter>
@@ -526,9 +512,7 @@ function handleChangeActiveHousehold(householdId: string) {
     <DialogContent class="sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>Bytt aktiv husstand</DialogTitle>
-        <DialogDescription>
-          Velg hvilken husstand du vil gjøre aktiv.
-        </DialogDescription>
+        <DialogDescription> Velg hvilken husstand du vil gjøre aktiv.</DialogDescription>
       </DialogHeader>
 
       <div class="py-4">
@@ -544,10 +528,7 @@ function handleChangeActiveHousehold(householdId: string) {
             @click="household?.id !== h.id && handleChangeActiveHousehold(h.id)"
           >
             <div class="flex items-center gap-2">
-              <CheckCircle
-                v-if="household?.id === h.id"
-                class="h-5 w-5 text-primary"
-              />
+              <CheckCircle v-if="household?.id === h.id" class="h-5 w-5 text-primary" />
               <span>{{ h.name }}</span>
             </div>
           </div>
@@ -582,10 +563,12 @@ function handleChangeActiveHousehold(householdId: string) {
         ref="mapRef"
         :household-latitude="household.latitude"
         :household-longitude="household.longitude"
-        :meeting-places="(household.meetingPlaces ?? []).map(place => ({
-          ...place,
-          position: [place.latitude, place.longitude]
-        }))"
+        :meeting-places="
+          (household.meetingPlaces ?? []).map((place) => ({
+            ...place,
+            position: [place.latitude, place.longitude],
+          }))
+        "
         @place-selected="handleMeetingPlaceSelected"
       />
     </DialogContent>

@@ -11,14 +11,14 @@ import VerifyEmailView from '@/views/auth/VerifyEmailView.vue'
 import NotFoundView from '@/views/errors/NotFoundView.vue'
 
 // Admin views
-import AdminDashboardView from '@/views/admin/dashboard/AdminDashboardView.vue'
-import AdminMapView from '@/views/admin/map/AdminMapView.vue'
-import AdminResetPasswordLink from '@/views/admin/resetPassword/AdminResetPasswordLink.vue'
-import AdminRegisterView from '@/views/admin/register/AdminRegisterView.vue'
-import AdminScenariosView from '@/views/admin/scenario/ScenariosView.vue'
+import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
+import AdminMapView from '@/views/admin/AdminMapView.vue'
+import AdminResetPasswordLink from '@/views/admin/AdminResetPasswordLink.vue'
+import AdminRegisterView from '@/views/admin/AdminRegisterView.vue'
+import AdminScenariosView from '@/views/admin/AdminScenariosView.vue'
 import ManageAdminsView from '@/views/admin/ManageAdminsView.vue'
 import ArticleManagementView from '@/views/admin/ArticleManagementView.vue'
-import AdminInviteView from '@/views/admin/invite/AdminInviteView.vue'
+import AdminInviteView from '@/views/admin/AdminInviteView.vue'
 import VerifyAdminLoginView from '@/views/auth/VerifyAdminLoginView.vue'
 
 // Registered User views
