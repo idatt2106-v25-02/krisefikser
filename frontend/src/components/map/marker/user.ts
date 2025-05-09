@@ -1,6 +1,8 @@
 import { MarkerType, type MarkerComponent } from '.'
 
 export async function createUserMarker(): Promise<MarkerComponent> {
+  console.log('HEELLO!')
+
   const markerPosition = await new Promise<{ latitude: number; longitude: number }>(
     (resolve, _reject) => {
       navigator.geolocation.getCurrentPosition(

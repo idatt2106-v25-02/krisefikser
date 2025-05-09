@@ -18,7 +18,7 @@ import { useGetAllEvents } from '@/api/generated/event/event'
 import { useGetActiveHousehold } from '@/api/generated/household/household'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
-import { useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
+import { getMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
 import type { EventResponse } from '@/api/generated/model'
 
 import { useAuthStore } from '@/stores/auth/useAuthStore'
@@ -26,7 +26,11 @@ import { webSocket } from '@/main.ts'
 
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
-const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
+const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold({
+  query: {
+    retry: 0,
+  },
+})
 const { data: eventPointsData, isLoading: isLoadingEventPoints } = useGetAllEvents()
 
 const authStore = useAuthStore()
@@ -73,17 +77,11 @@ const renderNewMapPoints = async () => {
     addMarkers(householdMembersMarkers)
 
     // Meeting points markers
-    const { data: meetingPointsData, isLoading: isLoadingMeetingPoints } = useGetMeetingPoints(
-      activeHousehold.value.id,
-    )
-
-    watch(isLoadingMeetingPoints, () => {
-      if (meetingPointsData.value) {
-        const meetingPointsMarkers = meetingPointsData.value
-          .map((meetingPoint) => createMeetingPointMarker(meetingPoint))
-          .filter((marker) => marker !== null)
-        addMarkers(meetingPointsMarkers)
-      }
+    getMeetingPoints(activeHousehold.value.id).then((meetingPoints) => {
+      const meetingPointsMarkers = meetingPoints
+        .map((meetingPoint) => createMeetingPointMarker(meetingPoint))
+        .filter((marker) => marker !== null)
+      addMarkers(meetingPointsMarkers)
     })
   }
 
