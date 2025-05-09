@@ -8,26 +8,21 @@ import { useMap } from '@/components/map/useMap'
 import type { Map as LeafletMap } from 'leaflet'
 import { watch } from 'vue'
 
-const { data: newMapPointsData } = useGetAllMapPoints()
-const { data: newMapPointTypesData } = useGetAllMapPointTypes()
+const { data: mapPointsData } = useGetAllMapPoints()
+const { data: mapPointTypesData } = useGetAllMapPointTypes()
 
-const {
-  initMap: newInitMap,
-  addMarkers: newAddMarkers,
-  onMapCreated: newOnMapCreated,
-  clearMarkers: newClearMarkers,
-} = useMap()
+const { initMap, addMarkers, onMapCreated, clearMarkers } = useMap()
 
 const renderNewMapPoints = async () => {
-  newClearMarkers()
+  clearMarkers()
 
   const stopDataLoadWatcher = watch(
-    [newMapPointsData, newMapPointTypesData],
+    [mapPointsData, mapPointTypesData],
     ([newMapPoints, newMapPointTypes]) => {
       if (newMapPoints && newMapPointTypes) {
         console.log('Map points size', newMapPoints.length)
         const mapPoints = loadMapPoints(newMapPoints, newMapPointTypes)
-        newAddMarkers(mapPoints)
+        addMarkers(mapPoints)
         stopDataLoadWatcher()
       }
     },
@@ -35,10 +30,10 @@ const renderNewMapPoints = async () => {
   )
 
   const userMarker = await createUserMarker()
-  newAddMarkers([userMarker])
+  addMarkers([userMarker])
 }
 
-newOnMapCreated(async (_mapInstance: LeafletMap) => {
+onMapCreated(async (_mapInstance: LeafletMap) => {
   renderNewMapPoints()
 })
 </script>
@@ -46,7 +41,7 @@ newOnMapCreated(async (_mapInstance: LeafletMap) => {
 <template>
   <div class="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
     <div class="relative flex-grow overflow-hidden">
-      <NewMapComponent :init-map="newInitMap" />
+      <NewMapComponent :init-map="initMap" />
     </div>
   </div>
 </template>
