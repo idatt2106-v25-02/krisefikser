@@ -43,7 +43,7 @@ const createMockQueryResult = (data: unknown = []): MockQueryResult => {
 }
 
 // Mock the API hook
-vi.mock('@/api/generated/meeting-points/meeting-points.ts', () => ({
+vi.mock('@/api/generated/meeting-points/meeting-points', () => ({
   useGetMeetingPoints: vi.fn(() => createMockQueryResult([]))
 }))
 

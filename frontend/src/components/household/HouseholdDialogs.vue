@@ -32,8 +32,8 @@ import {
   useGetAllUserHouseholds,
   useSetActiveHousehold,
   useUpdateActiveHousehold,
-} from '@/api/generated/household/household.ts'
-import { useCreateInvite } from '@/api/generated/household-invite-controller/household-invite-controller.ts'
+} from '@/api/generated/household/household'
+import { useCreateInvite } from '@/api/generated/household-invite-controller/household-invite-controller'
 import { useQueryClient } from '@tanstack/vue-query'
 
 interface MeetingPlace {

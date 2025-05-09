@@ -7,11 +7,11 @@ import {
   getGetReflectionsByEventIdQueryKey,
   useDeleteReflection,
   useGetReflectionById,
-} from '@/api/generated/reflection/reflection.ts'
-import { useGetEventById } from '@/api/generated/event/event.ts'
+} from '@/api/generated/reflection/reflection'
+import { useGetEventById } from '@/api/generated/event/event'
 import type { ReflectionResponse } from '@/api/generated/model'
 import { ReflectionResponseVisibility } from '@/api/generated/model'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { ArrowLeft, BookText } from 'lucide-vue-next'
 import { Button as BaseButton } from '@/components/ui/button'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'

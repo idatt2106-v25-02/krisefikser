@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils.ts'
+import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   variant?: 'default' | 'secondary' | 'destructive' | 'outline'

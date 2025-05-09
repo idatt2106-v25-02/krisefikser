@@ -120,8 +120,8 @@
 import { defineComponent, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { AlertTriangle, Bell, Calendar, X } from 'lucide-vue-next'
-import speechService from '@/services/tts/speechService.ts'
-import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
+import speechService from '@/services/tts/speechService'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore'
 
 export default defineComponent({
   name: 'NotificationModal',

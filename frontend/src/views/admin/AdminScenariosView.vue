@@ -17,7 +17,7 @@ import {
   useCreateScenario,
   useUpdateScenario,
   useDeleteScenario
-} from '@/api/generated/scenario/scenario.ts';
+} from '@/api/generated/scenario/scenario';
 
 interface Scenario {
   id: string;

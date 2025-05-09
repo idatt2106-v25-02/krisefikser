@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
+import { useAuthStore } from '@/stores/auth/useAuthStore';
 
 export default defineComponent({
   name: 'HeroSection',

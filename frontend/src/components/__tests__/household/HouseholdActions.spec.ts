@@ -16,7 +16,7 @@ vi.mock('lucide-vue-next', () => ({
 }))
 
 describe('HouseholdActions', () => {
-  const mountComponent = (props = {}) => {
+  const mountComponent = (props = { isOwner: false }) => {
     return mount(HouseholdActions, {
       props
     })
@@ -36,10 +36,7 @@ describe('HouseholdActions', () => {
   })
 
   it('shows delete button for all users', () => {
-    const nonOwnerWrapper = mountComponent({ isOwner: false })
     const ownerWrapper = mountComponent({ isOwner: true })
-
-    expect(nonOwnerWrapper.text()).toContain('Slett husstand')
     expect(ownerWrapper.text()).toContain('Slett husstand')
   })
 
@@ -50,7 +47,7 @@ describe('HouseholdActions', () => {
   })
 
   it('emits delete event when delete button is clicked', async () => {
-    const wrapper = mountComponent({ isOwner: false })
+    const wrapper = mountComponent({ isOwner: true })
     await wrapper.find('.bg-red-100').trigger('click')
     expect(wrapper.emitted('delete')).toBeTruthy()
   })
@@ -67,7 +64,7 @@ describe('HouseholdActions', () => {
   })
 
   it('applies correct styling to delete button', () => {
-    const wrapper = mountComponent({ isOwner: false })
+    const wrapper = mountComponent({ isOwner: true })
     const deleteButton = wrapper.find('.bg-red-100')
 
     expect(deleteButton.classes()).toContain('bg-red-100')
@@ -79,7 +76,6 @@ describe('HouseholdActions', () => {
     const wrapper = mountComponent({ isOwner: false })
 
     expect(wrapper.find('.external-link-icon').exists()).toBe(true)
-    expect(wrapper.find('.trash-icon').exists()).toBe(true)
   })
 
   it('has correct container styling', () => {

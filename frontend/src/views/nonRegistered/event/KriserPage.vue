@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, computed, ref } from 'vue';
-import { useGetAllEvents } from '@/api/generated/event/event.ts';
-import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts';
+import { useGetAllEvents } from '@/api/generated/event/event';
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario';
 import type { EventResponse, ScenarioResponse } from '@/api/generated/model';
 import { EventResponseStatus } from '@/api/generated/model';
 import { Button as BaseButton} from '@/components/ui/button';

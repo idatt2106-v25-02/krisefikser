@@ -2,13 +2,13 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import { useGetEventById } from '@/api/generated/event/event.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
+import { useGetEventById } from '@/api/generated/event/event'
 import {
   useGetReflectionsByEventId,
   useDeleteReflection,
   getGetReflectionsByEventIdQueryKey,
-} from '@/api/generated/reflection/reflection.ts'
+} from '@/api/generated/reflection/reflection'
 import type { ReflectionResponse } from '@/api/generated/model'
 import { EventResponseStatus, ReflectionResponseVisibility } from '@/api/generated/model'
 import ReflectionForm from '@/components/reflections/ReflectionForm.vue'
@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { formatDate } from '@/utils/date-formatter.ts'
+import { formatDate } from '@/utils/date-formatter'
 
 const route = useRoute()
 const queryClient = useQueryClient()

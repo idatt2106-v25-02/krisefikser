@@ -6,7 +6,7 @@ import {
   useMe,
   useRegister,
   useRegisterAdmin,
-} from '@/api/generated/authentication/authentication.ts'
+} from '@/api/generated/authentication/authentication'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
 import axios from 'axios'
 

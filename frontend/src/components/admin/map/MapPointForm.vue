@@ -4,7 +4,7 @@ import type {
   MapPointResponse as MapPoint,
   MapPointTypeResponse as MapPointType,
 } from '@/api/generated/model'
-import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type.ts'
+import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 
 const props = defineProps<{
   modelValue: Partial<MapPoint>

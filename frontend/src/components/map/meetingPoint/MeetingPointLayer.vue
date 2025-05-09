@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onUnmounted } from 'vue'
 import L from 'leaflet'
-import { useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points.ts'
+import { useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
 import type { MeetingPointResponse } from '@/api/generated/model'
 
 const props = defineProps<{
