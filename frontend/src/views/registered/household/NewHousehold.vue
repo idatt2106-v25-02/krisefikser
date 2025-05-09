@@ -27,6 +27,7 @@ const {
   mutation: {
     onSuccess: (data: HouseholdResponse) => {
       emit('submit', data)
+      router.push({ name: 'household' })
     },
     onError: (error: Error) => {
       console.error('Failed to create household:', error)
@@ -37,7 +38,6 @@ const {
 // Form handling
 const onSubmit = (values: CreateHouseholdRequest) => {
   createHousehold({ data: values })
-  router.push({ name: 'household' })
 }
 
 const onCancel = () => {
