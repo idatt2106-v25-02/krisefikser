@@ -1,6 +1,5 @@
 package stud.ntnu.krisefikser.household.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -77,8 +77,13 @@ public class HouseholdInvite {
 
   private LocalDateTime respondedAt;
 
-  @OneToMany(mappedBy = "invite", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @OneToMany(mappedBy = "invite")
   private Set<Notification> notifications = new HashSet<>();
+
+  @PreRemove
+  private void preRemove() {
+    notifications.forEach(notification -> notification.setInvite(null));
+  }
 
   /**
    * An enum describing the status of an invitation.

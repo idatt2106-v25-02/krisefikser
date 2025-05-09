@@ -14,7 +14,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -96,27 +95,30 @@ public class User {
   @Column
   private LocalDateTime lockedUntil;
 
-  @ManyToOne(cascade = CascadeType.MERGE)
+  @ManyToOne
   @JoinColumn(name = "active_household_id")
   private Household activeHousehold;
 
   @Column(nullable = false)
   private boolean emailVerified = false;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<VerificationToken> verificationTokens = new ArrayList<>();
+  @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+  private Set<VerificationToken> verificationTokens = new HashSet<>();
 
-  @OneToMany(mappedBy = "invitedUser", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "invitedUser", cascade = CascadeType.REMOVE)
   private Set<HouseholdInvite> householdInvites = new HashSet<>();
 
-  @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "createdBy", cascade = CascadeType.REMOVE)
   private Set<HouseholdInvite> sentHouseholdInvites = new HashSet<>();
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
   private Set<HouseholdMember> householdMembers = new HashSet<>();
 
-  @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE)
   private Set<Reflection> reflections = new HashSet<>();
+
+  @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
+  private Set<Household> ownerOfHouseholds = new HashSet<>();
 
   public boolean isSuperAdmin() {
     return roles.stream().anyMatch(role -> role.getName() == RoleType.SUPER_ADMIN);

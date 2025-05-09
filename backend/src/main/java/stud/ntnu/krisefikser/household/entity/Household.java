@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -77,30 +78,36 @@ public class Household {
   @UpdateTimestamp
   private LocalDateTime updatedAt;
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
   private Set<HouseholdMember> members = new HashSet<>();
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
   private Set<Guest> guests = new HashSet<>();
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
   private Set<MeetingPoint> meetingPoints = new HashSet<>();
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
   private Set<HouseholdInvite> invites = new HashSet<>();
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
   private Set<ChecklistItem> checklistItems = new HashSet<>();
 
-  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "household", cascade = CascadeType.REMOVE)
   private Set<FoodItem> foodItems = new HashSet<>();
 
-  @OneToMany(mappedBy = "household", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @OneToMany(mappedBy = "household")
   private Set<Notification> notifications = new HashSet<>();
 
-  @OneToMany(mappedBy = "household", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @OneToMany(mappedBy = "household")
   private Set<Reflection> reflections = new HashSet<>();
 
-  @OneToMany(mappedBy = "activeHousehold", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @OneToMany(mappedBy = "activeHousehold")
   private Set<User> activeUsers = new HashSet<>();
+
+  @PreRemove
+  private void preRemove() {
+    notifications.forEach(notification -> notification.setHousehold(null));
+    reflections.forEach(reflection -> reflection.setHousehold(null));
+  }
 }

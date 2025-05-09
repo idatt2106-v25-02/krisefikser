@@ -1,6 +1,5 @@
 package stud.ntnu.krisefikser.map.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
@@ -65,11 +65,17 @@ public class Event {
   @Column(nullable = false)
   private EventStatus status;
 
-  @OneToMany(mappedBy = "event", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @OneToMany(mappedBy = "event")
   private Set<Notification> notifications = new HashSet<>();
 
-  @OneToMany(mappedBy = "event", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @OneToMany(mappedBy = "event")
   private Set<Reflection> reflections = new HashSet<>();
+
+  @PreRemove
+  private void preRemove() {
+    notifications.forEach(notification -> notification.setEvent(null));
+    reflections.forEach(reflection -> reflection.setEvent(null));
+  }
 
   /**
    * Converts the Event entity to an EventResponse DTO. This method is used to transfer event data

@@ -3,6 +3,7 @@ package stud.ntnu.krisefikser.household.service;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import stud.ntnu.krisefikser.household.dto.CreateGuestRequest;
@@ -26,6 +27,7 @@ import stud.ntnu.krisefikser.user.service.UserService;
  *
  * @since 1.0
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HouseholdService {
@@ -226,21 +228,24 @@ public class HouseholdService {
       throw new IllegalArgumentException("Only the owner can delete a household");
     }
 
-    // Set a new active household for each member and remove them from the household
-    // as members
-    List<HouseholdMember> members = householdMemberService.getMembers(id);
-    for (HouseholdMember member : members) {
-      setNewActiveHousehold(member.getUser(), household);
-      householdMemberService.removeMember(household, member.getUser());
+    // For each user who has this household as their active household
+    for (User user : household.getActiveUsers()) {
+      // Find another household the user belongs to (if any)
+      List<HouseholdMember> userMemberships = householdMemberService.getHouseholdsByUser(user);
+      HouseholdMember alternativeHouseholdMember = userMemberships.stream()
+          .filter(member -> !member.getHousehold().getId().equals(id))
+          .findFirst()
+          .orElse(null);
+
+      // If user has another household, set it as active
+      // Otherwise, set active household to null
+      Household newActiveHousehold = (alternativeHouseholdMember != null)
+          ? alternativeHouseholdMember.getHousehold()
+          : null;
+
+      user.setActiveHousehold(newActiveHousehold);
     }
-
-    // Delete all invites associated with this household
-    inviteRepository.deleteAll(inviteRepository.findByHousehold(household));
-
-    // Delete all checklist items associated with this household
-    checklistItemService.deleteAllByHousehold(household);
-
-    householdRepo.deleteById(id);
+    householdRepo.delete(household);
   }
 
   /**
