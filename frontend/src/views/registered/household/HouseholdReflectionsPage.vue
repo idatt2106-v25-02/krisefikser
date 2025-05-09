@@ -126,6 +126,17 @@
           Se mine refleksjoner
         </Button>
       </div>
+
+      <!-- Delete Reflection Confirmation -->
+      <ConfirmationDialog
+        :is-open="showDeleteDialog"
+        title="Slett refleksjon"
+        description="Er du sikker på at du vil slette denne refleksjonen? Handlingen kan ikke angres."
+        confirm-text="Slett"
+        variant="destructive"
+        @confirm="handleDeleteReflection"
+        @cancel="showDeleteDialog = false"
+      />
     </div>
   </div>
 </template>
@@ -145,6 +156,7 @@ import type { ReflectionResponse } from '@/api/generated/model';
 import { ReflectionResponseVisibility } from '@/api/generated/model';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Users } from 'lucide-vue-next';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 const router = useRouter();
 const queryClient = useQueryClient();
@@ -231,12 +243,24 @@ const viewReflection = (id: string) => {
   router.push(`/refleksjon/${id}`);
 };
 
-const confirmDeleteReflection = async (id: string) => {
-  if (window.confirm('Er du sikker på at du vil slette denne refleksjonen? Handlingen kan ikke angres.')) {
-      await deleteReflectionMutation.mutateAsync({ id });
-  }
-};
+const showDeleteDialog = ref(false)
+const reflectionToDelete = ref<string | null>(null)
 
+const confirmDeleteReflection = (id: string) => {
+  reflectionToDelete.value = id
+  showDeleteDialog.value = true
+}
+
+const handleDeleteReflection = async () => {
+  if (!reflectionToDelete.value) return
+  try {
+    await deleteReflectionMutation.mutateAsync({ id: reflectionToDelete.value })
+    showDeleteDialog.value = false
+    reflectionToDelete.value = null
+  } catch (error) {
+    console.error('Error deleting reflection:', error)
+  }
+}
 
 const navigateToMyReflections = () => {
   router.push('/mine-refleksjoner');

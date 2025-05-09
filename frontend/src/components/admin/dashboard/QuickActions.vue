@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Map, AlertTriangle, FileText, Mail } from 'lucide-vue-next'
+import { AlertTriangle, FileText, Mail, Map } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { RouterLink as Link } from 'vue-router'
 
@@ -15,7 +15,7 @@ defineProps<Props>()
     <div class="p-4 border-b">
       <h3 class="text-lg font-medium text-gray-800">Hurtighandlinger</h3>
     </div>
-    <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
       <Button
         as-child
         variant="outline"

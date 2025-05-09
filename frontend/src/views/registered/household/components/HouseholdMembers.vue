@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { UserMinus } from 'lucide-vue-next'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,10 @@ const { toast } = useToast()
 const queryClient = useQueryClient()
 const memberGuestTab = ref<'alle' | 'medlemmer' | 'gjester'>('alle')
 const isRemovingGuest = ref(false)
+const showRemoveMemberDialog = ref(false)
+const showRemoveGuestDialog = ref(false)
+const memberToRemove = ref<string | undefined>(null)
+const guestToRemove = ref<string | null>(null)
 
 const filteredPeople = computed(() => {
   if (memberGuestTab.value === 'alle') {
@@ -95,20 +100,32 @@ const { mutate: removeGuest } = useRemoveGuestFromHousehold({
 
 function handleRemoveMember(userId: string | undefined) {
   if (!props.householdId || !userId) return
-  if (confirm('Er du sikker på at du vil fjerne dette medlemmet?')) {
-    leaveHousehold({
-      data: {
-        householdId: props.householdId,
-      },
-    })
-  }
+  memberToRemove.value = userId
+  showRemoveMemberDialog.value = true
+}
+
+function confirmRemoveMember() {
+  if (!props.householdId || !memberToRemove.value) return
+  leaveHousehold({
+    data: {
+      householdId: props.householdId,
+    },
+  })
+  showRemoveMemberDialog.value = false
+  memberToRemove.value = null
 }
 
 function handleRemoveGuest(guestId: string) {
-  if (confirm('Er du sikker på at du vil fjerne denne gjesten?')) {
-    isRemovingGuest.value = true
-    removeGuest({ guestId })
-  }
+  guestToRemove.value = guestId
+  showRemoveGuestDialog.value = true
+}
+
+function confirmRemoveGuest() {
+  if (!guestToRemove.value) return
+  isRemovingGuest.value = true
+  removeGuest({ guestId: guestToRemove.value })
+  showRemoveGuestDialog.value = false
+  guestToRemove.value = null
 }
 </script>
 
@@ -271,5 +288,27 @@ function handleRemoveGuest(guestId: string) {
         </div>
       </div>
     </div>
+
+    <!-- Remove Member Confirmation -->
+    <ConfirmationDialog
+      :is-open="showRemoveMemberDialog"
+      title="Fjern medlem"
+      description="Er du sikker på at du vil fjerne dette medlemmet?"
+      confirm-text="Fjern"
+      variant="destructive"
+      @confirm="confirmRemoveMember"
+      @cancel="showRemoveMemberDialog = false"
+    />
+
+    <!-- Remove Guest Confirmation -->
+    <ConfirmationDialog
+      :is-open="showRemoveGuestDialog"
+      title="Fjern gjest"
+      description="Er du sikker på at du vil fjerne denne gjesten?"
+      confirm-text="Fjern"
+      variant="destructive"
+      @confirm="confirmRemoveGuest"
+      @cancel="showRemoveGuestDialog = false"
+    />
   </div>
 </template>

@@ -27,6 +27,7 @@ import FoodItemDialog from '@/components/inventory/dialog/FoodItemDialog.vue'
 import ChecklistItemDialog from '@/components/inventory/dialog/ChecklistItemDialog.vue'
 import MiscItemDialog from '@/components/inventory/dialog/MiscItemDialog.vue'
 import PreparednessInfoDialog from '@/components/inventory/info/PreparednessInfoDialog.vue'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 
 // Import API hooks and types
 import {
@@ -596,13 +597,25 @@ function cancelEdit(): void {
   editingExpiryDate.value = null // Clear editing expiry date
 }
 
+// Add these with other refs
+const showDeleteFoodDialog = ref(false)
+const foodItemToDelete = ref<InventoryItem | null>(null)
+
+// Replace the promptDeleteFoodItem function
 async function promptDeleteFoodItem(item: InventoryItem): Promise<void> {
-  if (window.confirm(`Er du sikker på at du vil slette matvaren "${item.name}"?`)) {
-    try {
-      await deleteFoodItemMutation.mutateAsync({ id: item.id })
-    } catch (error) {
-      console.error('Error deleting food item after confirmation:', error)
-    }
+  foodItemToDelete.value = item
+  showDeleteFoodDialog.value = true
+}
+
+async function confirmDeleteFoodItem(): Promise<void> {
+  if (!foodItemToDelete.value) return
+  
+  try {
+    await deleteFoodItemMutation.mutateAsync({ id: foodItemToDelete.value.id })
+    showDeleteFoodDialog.value = false
+    foodItemToDelete.value = null
+  } catch (error) {
+    console.error('Error deleting food item after confirmation:', error)
   }
 }
 
@@ -1124,6 +1137,17 @@ function handleTabKey(event: KeyboardEvent, categoryId: string) {
       <PreparednessInfoDialog
         :is-open="isPreparednessInfoDialogOpen"
         @close="isPreparednessInfoDialogOpen = false"
+      />
+
+      <!-- Delete Food Item Confirmation -->
+      <ConfirmationDialog
+        :is-open="showDeleteFoodDialog"
+        title="Slett matvare"
+        :description="`Er du sikker på at du vil slette matvaren '${foodItemToDelete?.name}'?`"
+        confirm-text="Slett"
+        variant="destructive"
+        @confirm="confirmDeleteFoodItem"
+        @cancel="showDeleteFoodDialog = false"
       />
     </div>
   </div>
