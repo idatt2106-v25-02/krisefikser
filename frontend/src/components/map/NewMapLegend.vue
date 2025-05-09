@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
-import { ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, Home, User, MapPin } from 'lucide-vue-next'
 
 const filterOptions = ref<FilterOptions>({
   eventEnabled: true,
@@ -18,9 +18,22 @@ const filterOptions = ref<FilterOptions>({
 })
 
 const isExpanded = ref(true)
+const userLocationAvailable = ref(true)
+const showUserLocation = ref(true)
+const hasActiveHousehold = ref(true)
+const isAddingMeetingPoint = ref(false)
+const userInCrisisZone = ref(false)
 
 const toggleExpanded = () => {
   isExpanded.value = !isExpanded.value
+}
+
+const toggleUserLocation = () => {
+  showUserLocation.value = !showUserLocation.value
+}
+
+const toggleMeetingPointCreation = () => {
+  isAddingMeetingPoint.value = !isAddingMeetingPoint.value
 }
 
 type FilterItem = {
@@ -52,13 +65,19 @@ const handleToggle = (option: keyof FilterOptions, value: boolean) => {
 </script>
 
 <template>
-  <Card
-    class="absolute top-5 right-5 z-10 w-64 transition-all duration-300"
-    :class="{ 'card-expanded': isExpanded, 'card-collapsed': !isExpanded }"
-  >
-    <CardHeader class="pb-2">
-      <div class="flex items-center justify-between">
-        <CardTitle class="text-lg">Kartfilter</CardTitle>
+  <div class="absolute top-5 right-5 z-10 flex flex-col gap-2.5">
+    <!-- Filter Card -->
+    <Card
+      class="w-64 transition-all duration-300"
+      :class="{
+        'card-expanded': isExpanded,
+        'card-collapsed': !isExpanded,
+        'gap-0': !isExpanded,
+        'gap-6': isExpanded,
+      }"
+    >
+      <CardHeader class="flex items-center justify-between h-0">
+        <CardTitle class="text-md">Kartfilter</CardTitle>
         <Button
           variant="ghost"
           size="sm"
@@ -69,24 +88,106 @@ const handleToggle = (option: keyof FilterOptions, value: boolean) => {
           <ChevronUp v-if="isExpanded" class="h-4 w-4" />
           <ChevronDown v-else class="h-4 w-4" />
         </Button>
+      </CardHeader>
+      <div
+        class="content-wrapper"
+        :class="{ 'content-expanded': isExpanded, 'content-collapsed': !isExpanded }"
+      >
+        <CardContent class="flex flex-col gap-4 pt-2">
+          <div
+            v-for="item in filterItems"
+            :key="item.key"
+            class="flex items-center justify-between"
+          >
+            <Label :for="item.key" class="text-sm">{{ item.label }}</Label>
+            <Switch
+              :id="item.key"
+              :model-value="filterOptions[item.key] ?? false"
+              @update:model-value="(value: boolean) => handleToggle(item.key, value)"
+            />
+          </div>
+        </CardContent>
       </div>
-    </CardHeader>
-    <div
-      class="content-wrapper"
-      :class="{ 'content-expanded': isExpanded, 'content-collapsed': !isExpanded }"
-    >
+    </Card>
+
+    <!-- Legend Card -->
+    <Card class="w-64">
+      <CardHeader>
+        <div class="flex items-center justify-between">
+          <CardTitle class="text-lg">Tegnforklaring</CardTitle>
+        </div>
+      </CardHeader>
       <CardContent class="flex flex-col gap-4">
-        <div v-for="item in filterItems" :key="item.key" class="flex items-center justify-between">
-          <Label :for="item.key" class="text-sm">{{ item.label }}</Label>
-          <Switch
-            :id="item.key"
-            :model-value="filterOptions[item.key] ?? false"
-            @update:model-value="(value: boolean) => handleToggle(item.key, value)"
-          />
+        <!-- Location Section -->
+        <div>
+          <h3 class="text-sm font-semibold mb-2">Lokasjon:</h3>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center">
+              <div class="w-5 h-5 mr-2.5 bg-blue-500 rounded-full flex items-center justify-center">
+                <User class="h-3 w-3 text-white" />
+              </div>
+              <span class="text-sm">Min posisjon</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-5 h-5 mr-2.5 bg-red-500 rounded-full flex items-center justify-center">
+                <Home class="h-3 w-3 text-white" />
+              </div>
+              <span class="text-sm">Hjem</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Events Section -->
+        <div>
+          <h3 class="text-sm font-semibold mb-2">Hendelser:</h3>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center">
+              <div class="w-5 h-5 mr-2.5 bg-[#4CAF50] rounded-full opacity-60"></div>
+              <span class="text-sm">Grønt nivå (Informasjon)</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-5 h-5 mr-2.5 bg-[#FFC107] rounded-full opacity-60"></div>
+              <span class="text-sm">Gult nivå (Advarsel)</span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-5 h-5 mr-2.5 bg-[#F44336] rounded-full opacity-60"></div>
+              <span class="text-sm">Rødt nivå (Fare)</span>
+            </div>
+          </div>
         </div>
       </CardContent>
+    </Card>
+
+    <!-- Action Buttons -->
+    <Button
+      v-if="userLocationAvailable"
+      variant="secondary"
+      class="w-full"
+      @click="toggleUserLocation"
+    >
+      <User class="h-4 w-4 mr-2" />
+      {{ showUserLocation ? 'Skjul min posisjon' : 'Vis min posisjon' }}
+    </Button>
+
+    <Button
+      v-if="hasActiveHousehold"
+      variant="default"
+      :disabled="isAddingMeetingPoint"
+      class="w-full"
+      @click="toggleMeetingPointCreation"
+    >
+      <MapPin class="h-4 w-4 mr-2" />
+      {{ isAddingMeetingPoint ? 'Klikk på kartet' : 'Legg til møtepunkt' }}
+    </Button>
+
+    <!-- Crisis Warning -->
+    <div
+      v-if="userInCrisisZone"
+      class="bg-destructive text-destructive-foreground p-2.5 rounded-md font-bold text-center animate-pulse"
+    >
+      ⚠️ Advarsel: Du er i en krisesone!
     </div>
-  </Card>
+  </div>
 </template>
 
 <style scoped>
@@ -116,5 +217,19 @@ const handleToggle = (option: keyof FilterOptions, value: boolean) => {
 .card-collapsed {
   height: auto;
   min-height: 0;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style>
