@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -29,12 +30,12 @@ import stud.ntnu.krisefikser.household.entity.Household;
 import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.exception.HouseholdNotFoundException;
 import stud.ntnu.krisefikser.household.repository.GuestRepository;
+import stud.ntnu.krisefikser.household.repository.HouseholdInviteRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.item.service.ChecklistItemService;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.service.UserService;
-import stud.ntnu.krisefikser.household.repository.HouseholdInviteRepository;
 
 @ExtendWith(MockitoExtension.class)
 class HouseholdServiceTest {
@@ -123,10 +124,12 @@ class HouseholdServiceTest {
 
     // Set up mock for GuestRepository using lenient() to avoid
     // UnnecessaryStubbingException
-    lenient().when(guestRepository.findByHousehold(any(Household.class))).thenReturn(Collections.emptyList());
+    lenient().when(guestRepository.findByHousehold(any(Household.class)))
+        .thenReturn(Collections.emptyList());
 
     // Set up mock for HouseholdInviteRepository
-    lenient().when(inviteRepository.findByHousehold(any(Household.class))).thenReturn(Collections.emptyList());
+    lenient().when(inviteRepository.findByHousehold(any(Household.class)))
+        .thenReturn(Collections.emptyList());
   }
 
   @Test
@@ -335,10 +338,8 @@ class HouseholdServiceTest {
     // Arrange
     when(userService.getCurrentUser()).thenReturn(testUser);
     when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
-    when(householdMemberService.getMembers(householdId)).thenReturn(mockMembersList);
     lenient().doNothing().when(userService).updateActiveHousehold(null);
-    doNothing().when(householdMemberService).removeMember(any(), any());
-    doNothing().when(householdRepository).deleteById(householdId);
+    doNothing().when(householdRepository).delete(testHousehold);
 
     // Act
     householdService.deleteHousehold(householdId);
@@ -346,8 +347,7 @@ class HouseholdServiceTest {
     // Assert
     verify(userService).getCurrentUser();
     verify(householdRepository).findById(householdId);
-    verify(householdMemberService).getMembers(householdId);
-    verify(householdRepository).deleteById(householdId);
+    verify(householdRepository).delete(testHousehold);
   }
 
   @Test

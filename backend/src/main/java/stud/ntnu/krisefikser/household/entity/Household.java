@@ -107,7 +107,11 @@ public class Household {
 
   @PreRemove
   private void preRemove() {
-    notifications.forEach(notification -> notification.setHousehold(null));
-    reflections.forEach(reflection -> reflection.setHousehold(null));
+    if (notifications != null && !notifications.isEmpty()) {
+      notifications.forEach(notification -> notification.setEvent(null));
+    }
+    if (reflections != null && !reflections.isEmpty()) {
+      reflections.forEach(reflection -> reflection.setEvent(null));
+    }
   }
 }

@@ -229,21 +229,23 @@ public class HouseholdService {
     }
 
     // For each user who has this household as their active household
-    for (User user : household.getActiveUsers()) {
-      // Find another household the user belongs to (if any)
-      List<HouseholdMember> userMemberships = householdMemberService.getHouseholdsByUser(user);
-      HouseholdMember alternativeHouseholdMember = userMemberships.stream()
-          .filter(member -> !member.getHousehold().getId().equals(id))
-          .findFirst()
-          .orElse(null);
+    if (household.getActiveUsers() != null && !household.getActiveUsers().isEmpty()) {
+      for (User user : household.getActiveUsers()) {
+        // Find another household the user belongs to (if any)
+        List<HouseholdMember> userMemberships = householdMemberService.getHouseholdsByUser(user);
+        HouseholdMember alternativeHouseholdMember = userMemberships.stream()
+            .filter(member -> !member.getHousehold().getId().equals(id))
+            .findFirst()
+            .orElse(null);
 
-      // If user has another household, set it as active
-      // Otherwise, set active household to null
-      Household newActiveHousehold = (alternativeHouseholdMember != null)
-          ? alternativeHouseholdMember.getHousehold()
-          : null;
+        // If user has another household, set it as active
+        // Otherwise, set active household to null
+        Household newActiveHousehold = (alternativeHouseholdMember != null)
+            ? alternativeHouseholdMember.getHousehold()
+            : null;
 
-      user.setActiveHousehold(newActiveHousehold);
+        user.setActiveHousehold(newActiveHousehold);
+      }
     }
     householdRepo.delete(household);
   }

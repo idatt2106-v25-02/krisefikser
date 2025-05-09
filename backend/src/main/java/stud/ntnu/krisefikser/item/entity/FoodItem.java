@@ -75,7 +75,9 @@ public class FoodItem {
 
   @PreRemove
   private void preRemove() {
-    notifications.forEach(notification -> notification.setItem(null));
+    if (notifications != null && !notifications.isEmpty()) {
+      notifications.forEach(notification -> notification.setEvent(null));
+    }
   }
 
   /**

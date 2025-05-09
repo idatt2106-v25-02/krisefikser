@@ -82,7 +82,9 @@ public class HouseholdInvite {
 
   @PreRemove
   private void preRemove() {
-    notifications.forEach(notification -> notification.setInvite(null));
+    if (notifications != null && !notifications.isEmpty()) {
+      notifications.forEach(notification -> notification.setEvent(null));
+    }
   }
 
   /**
