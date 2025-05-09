@@ -496,7 +496,7 @@ export default {
           </router-link>
         </div>
 
-        <div class="hidden md:flex items-center space-x-8">
+        <div class="hidden lg:flex items-center space-x-8">
           <router-link
             v-for="item in filteredNavItems"
             :key="item.label"
@@ -584,7 +584,7 @@ export default {
           </template>
         </div>
 
-        <div class="md:hidden">
+        <div class="lg:hidden">
           <button @click="isMenuOpen = !isMenuOpen" class="text-gray-700 focus:outline-none">
             <MenuIcon v-if="!isMenuOpen" class="h-6 w-6" />
             <X v-else class="h-6 w-6" />
@@ -593,7 +593,7 @@ export default {
       </div>
     </div>
 
-    <div v-if="isMenuOpen" class="md:hidden bg-gray-50">
+    <div v-if="isMenuOpen" class="lg:hidden bg-gray-50">
       <div class="container mx-auto px-4 pt-2 pb-3 space-y-1">
         <router-link
           v-for="item in filteredNavItems"
