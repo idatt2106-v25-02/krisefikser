@@ -8,12 +8,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +36,6 @@ import stud.ntnu.krisefikser.article.service.ArticleService;
 @RequestMapping("/api/articles")
 @RequiredArgsConstructor
 @Tag(name = "Article", description = "Article management APIs")
-@Validated
 public class ArticleController {
 
   private final ArticleService articleService;
@@ -96,7 +95,7 @@ public class ArticleController {
   @PostMapping
   @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   public ResponseEntity<ArticleResponse> createArticle(
-      @Parameter(description = "Article to create") @RequestBody ArticleRequest articleRequest) {
+      @Parameter(description = "Article to create") @RequestBody @Valid ArticleRequest articleRequest) {
     return new ResponseEntity<>(articleService.createArticle(articleRequest), HttpStatus.CREATED);
   }
 
@@ -121,7 +120,7 @@ public class ArticleController {
   public ResponseEntity<ArticleResponse> updateArticle(
       @Parameter(description = "ID of the article to update") @PathVariable Long id,
       @Parameter(description = "Updated article details")
-      @RequestBody ArticleRequest articleRequest
+      @RequestBody @Valid ArticleRequest articleRequest
   ) {
     return ResponseEntity.ok(articleService.updateArticle(id, articleRequest));
   }

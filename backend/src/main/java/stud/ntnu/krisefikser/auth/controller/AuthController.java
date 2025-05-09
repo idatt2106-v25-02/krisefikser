@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.PermitAll;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,6 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "Authentication management APIs")
-@Validated
 public class AuthController {
 
   private final AuthService authService;
@@ -77,7 +77,7 @@ public class AuthController {
   @PostMapping("/register")
   public ResponseEntity<RegisterResponse> register(
       @Parameter(description = "Registration details including Turnstile token", required = true)
-      @RequestBody RegisterRequest request) {
+      @RequestBody @Valid RegisterRequest request) {
     RegisterResponse response = authService.registerAndSendVerificationEmail(request);
     return ResponseEntity.ok(response);
   }
@@ -107,7 +107,7 @@ public class AuthController {
   @PostMapping("/register/admin")
   public ResponseEntity<RegisterResponse> registerAdmin(
       @Parameter(description = "Registration details including Turnstile token", required = true)
-      @RequestBody RegisterRequest request) {
+      @RequestBody @Valid RegisterRequest request) {
     RegisterResponse response = authService.registerAdmin(request);
     return ResponseEntity.ok(response);
   }
@@ -151,7 +151,7 @@ public class AuthController {
   })
   @PostMapping("/login")
   public ResponseEntity<LoginResponse> login(
-      @Parameter(description = "Login credentials") @RequestBody LoginRequest request) {
+      @Parameter(description = "Login credentials") @RequestBody @Valid LoginRequest request) {
     LoginResponse response = authService.login(request);
     return ResponseEntity.ok(response);
   }
@@ -172,7 +172,7 @@ public class AuthController {
   })
   @PostMapping("/refresh")
   public ResponseEntity<RefreshResponse> refresh(
-      @Parameter(description = "Refresh token") @RequestBody RefreshRequest refreshToken) {
+      @Parameter(description = "Refresh token") @RequestBody @Valid RefreshRequest refreshToken) {
     RefreshResponse response = authService.refresh(refreshToken);
     return ResponseEntity.ok(response);
   }
@@ -213,7 +213,7 @@ public class AuthController {
   })
   @PostMapping("/update-password")
   public ResponseEntity<UpdatePasswordResponse> updatePassword(
-      @RequestBody UpdatePasswordRequest updatePasswordRequest
+      @RequestBody @Valid UpdatePasswordRequest updatePasswordRequest
   ) {
     UpdatePasswordResponse response = authService.updatePassword(updatePasswordRequest);
     return ResponseEntity.ok(response);
@@ -237,7 +237,7 @@ public class AuthController {
   })
   @PostMapping("/request-password-reset")
   public ResponseEntity<PasswordResetResponse> requestPasswordReset(
-      @RequestBody RequestPasswordResetRequest request
+      @RequestBody @Valid RequestPasswordResetRequest request
   ) {
     PasswordResetResponse response = authService.requestPasswordReset(request);
     return ResponseEntity.ok(response);
@@ -260,7 +260,7 @@ public class AuthController {
   })
   @PostMapping("/complete-password-reset")
   public ResponseEntity<PasswordResetResponse> completePasswordReset(
-      @RequestBody CompletePasswordResetRequest request
+      @RequestBody @Valid CompletePasswordResetRequest request
   ) {
     PasswordResetResponse response = authService.completePasswordReset(request);
     return ResponseEntity.ok(response);
@@ -285,7 +285,7 @@ public class AuthController {
   @PreAuthorize("hasRole('SUPER_ADMIN')")
   public ResponseEntity<String> inviteAdmin(
       @Parameter(description = "Email address to send the admin invitation to", required = true)
-      @RequestBody AdminInviteRequest request
+      @RequestBody @Valid AdminInviteRequest request
   ) {
     // Generate a unique token for the admin invitation
     String inviteToken = authService.generateAdminInviteToken(request.getEmail());
@@ -374,7 +374,7 @@ public class AuthController {
   @PostMapping("/admin/reset-password-link")
   @PreAuthorize("hasRole('SUPER_ADMIN')")
   public ResponseEntity<PasswordResetResponse> requestAdminPasswordReset(
-      @Validated @RequestBody RequestPasswordResetRequest request
+      @Validated @RequestBody @Valid RequestPasswordResetRequest request
   ) {
     return ResponseEntity.ok(authService.requestAdminPasswordReset(request));
   }

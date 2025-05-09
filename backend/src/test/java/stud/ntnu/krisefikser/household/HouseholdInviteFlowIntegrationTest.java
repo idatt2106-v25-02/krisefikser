@@ -1,7 +1,5 @@
 package stud.ntnu.krisefikser.household;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -18,12 +16,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import stud.ntnu.krisefikser.auth.dto.RegisterRequest;
-import stud.ntnu.krisefikser.auth.service.TurnstileService;
 import stud.ntnu.krisefikser.common.AbstractIntegrationTest;
 import stud.ntnu.krisefikser.household.dto.CreateHouseholdInviteRequest;
 import stud.ntnu.krisefikser.household.entity.HouseholdInvite.InviteStatus;
-import stud.ntnu.krisefikser.household.repository.HouseholdInviteRepository;
-import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
@@ -36,24 +31,13 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
   private ObjectMapper objectMapper;
 
   @Autowired
-  private HouseholdInviteRepository inviteRepository;
-
-  @Autowired
-  private HouseholdMemberRepository memberRepository;
-
-  @Autowired
   private UserRepository userRepository;
-
-  @Autowired
-  private TurnstileService turnstileService;
 
   private User invitedUser;
   private String invitedUserToken;
 
   @BeforeEach
   void setUp() throws Exception {
-    // Mock Turnstile verification
-    when(turnstileService.verify(any())).thenReturn(true);
 
     // Set up the test user and household
     setUpUser();
@@ -61,7 +45,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
     // Create and register another user to be invited
     RegisterRequest registerRequest = new RegisterRequest(
         "invited@test.com",
-        "password",
+        "Password1!",
         "Invited",
         "User",
         "turnstile-token");
@@ -84,7 +68,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
     // Login to get the access token
     Map<String, String> loginRequest = Map.of(
         "email", "invited@test.com",
-        "password", "password"
+        "password", "Password1!"
     );
 
     String loginResponseContent = mockMvc.perform(
@@ -203,7 +187,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
     // 9. Register new user with the invited email
     RegisterRequest registerRequest = new RegisterRequest(
         "newinvite@test.com",
-        "password",
+        "Password1!",
         "New",
         "User",
         "turnstile-token");
@@ -223,7 +207,7 @@ class HouseholdInviteFlowIntegrationTest extends AbstractIntegrationTest {
     // Login to get the access token
     Map<String, String> loginRequest = Map.of(
         "email", "newinvite@test.com",
-        "password", "password"
+        "password", "Password1!"
     );
 
     String loginResponseContent = mockMvc.perform(

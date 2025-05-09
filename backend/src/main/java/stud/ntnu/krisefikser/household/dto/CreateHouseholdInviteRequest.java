@@ -12,8 +12,11 @@ import java.util.UUID;
  * @param invitedEmail  the email address of the user to invite (optional)
  */
 public record CreateHouseholdInviteRequest(
-    @NotNull UUID householdId,
+    @NotNull
+    UUID householdId,
+
     UUID invitedUserId,
-    @Email String invitedEmail) {
+    @Email
+    String invitedEmail) {
 
 }

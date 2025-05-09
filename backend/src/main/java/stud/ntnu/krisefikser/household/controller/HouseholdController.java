@@ -5,11 +5,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,12 +29,11 @@ import stud.ntnu.krisefikser.household.service.HouseholdService;
 /**
  * REST controller for managing households in the system. Provides endpoints for household
  * management operations.
- *
- * @since 1.0
  */
 @RestController
 @RequestMapping("/api/households")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Household", description = "Household management APIs")
 public class HouseholdController {
 
@@ -71,7 +72,7 @@ public class HouseholdController {
   })
   @PostMapping("/join")
   public ResponseEntity<HouseholdResponse> joinHousehold(
-      @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request) {
+      @Parameter(description = "Household ID") @RequestBody @Valid JoinHouseholdRequest request) {
     return ResponseEntity.ok(householdService.joinHousehold(request.getHouseholdId()));
   }
 
@@ -94,7 +95,7 @@ public class HouseholdController {
   @PostMapping("/active")
   public ResponseEntity<HouseholdResponse> setActiveHousehold(
       @Parameter(description = "Request containing the household ID to set as active",
-          required = true) @RequestBody JoinHouseholdRequest request) {
+          required = true) @RequestBody @Valid JoinHouseholdRequest request) {
     return ResponseEntity.ok(householdService.setActiveHousehold(request.getHouseholdId()));
   }
 
@@ -132,7 +133,7 @@ public class HouseholdController {
   })
   @PostMapping("/leave")
   public void leaveHousehold(
-      @Parameter(description = "Household ID") @RequestBody JoinHouseholdRequest request) {
+      @Parameter(description = "Household ID") @RequestBody @Valid JoinHouseholdRequest request) {
     householdService.leaveHousehold(request.getHouseholdId());
   }
 
@@ -168,7 +169,7 @@ public class HouseholdController {
   })
   @PostMapping
   public ResponseEntity<HouseholdResponse> createHousehold(
-      @Parameter(description = "Household data") @RequestBody CreateHouseholdRequest household) {
+      @Parameter(description = "Household data") @RequestBody @Valid CreateHouseholdRequest household) {
     return ResponseEntity.status(201).body(householdService.createHousehold(household));
   }
 
@@ -187,7 +188,7 @@ public class HouseholdController {
   })
   @PutMapping("/active")
   public ResponseEntity<HouseholdResponse> updateActiveHousehold(
-      @Parameter(description = "Household data") @RequestBody
+      @Parameter(description = "Household data") @RequestBody @Valid
       CreateHouseholdRequest createRequest) {
     return ResponseEntity.ok(householdService.updateActiveHousehold(createRequest));
   }
@@ -229,7 +230,7 @@ public class HouseholdController {
   })
   @PostMapping("/guests")
   public ResponseEntity<HouseholdResponse> addGuestToHousehold(
-      @Parameter(description = "Guest data") @RequestBody CreateGuestRequest guest) {
+      @Parameter(description = "Guest data") @RequestBody @Valid CreateGuestRequest guest) {
     return ResponseEntity.ok(householdService.addGuestToHousehold(guest));
   }
 
@@ -338,7 +339,7 @@ public class HouseholdController {
   @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   public ResponseEntity<HouseholdResponse> updateHousehold(
       @Parameter(description = "Household ID") @PathVariable UUID id,
-      @Parameter(description = "Updated household data") @RequestBody
+      @Parameter(description = "Updated household data") @RequestBody @Valid
       CreateHouseholdRequest request) {
     return ResponseEntity.ok(householdService.updateHousehold(id, request));
   }

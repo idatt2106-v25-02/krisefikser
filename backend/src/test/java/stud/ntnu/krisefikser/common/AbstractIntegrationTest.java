@@ -40,9 +40,9 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
 @AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest {
 
-  private static final String TEST_USER_EMAIL = "brotherman@testern.no";
+  private static final String TEST_USER_EMAIL = "valid.email@example.com";
   private static final String ADMIN_USER_EMAIL = "admin@testern.no";
-  private static final String DEFAULT_PASSWORD = "password";
+  private static final String DEFAULT_PASSWORD = "StrongP@ssw0rd123";
   private static final String TEST_HOUSEHOLD_NAME = "Test Household";
 
   @Autowired

@@ -1,5 +1,9 @@
 package stud.ntnu.krisefikser.household.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -41,9 +45,16 @@ public class HouseholdInviteController {
    * @param request the request object containing invite details
    * @return the created household invite response
    */
+  @Operation(summary = "Create household invite",
+      description = "Creates a new invitation to join a household")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully created invite"),
+      @ApiResponse(responseCode = "400", description = "Invalid request data"),
+      @ApiResponse(responseCode = "404", description = "Household or user not found")
+  })
   @PostMapping
   public ResponseEntity<HouseholdInviteResponse> createInvite(
-      @Valid @RequestBody CreateHouseholdInviteRequest request) {
+      @Parameter(description = "Invite details") @Valid @RequestBody CreateHouseholdInviteRequest request) {
     return ResponseEntity.ok(inviteService.createInvite(request));
   }
 
@@ -55,8 +66,16 @@ public class HouseholdInviteController {
    * @param inviteId the ID of the invite to accept
    * @return the accepted household invite response
    */
+  @Operation(summary = "Accept household invite",
+      description = "Accepts an invitation to join a household")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully accepted invite"),
+      @ApiResponse(responseCode = "400", description = "Invalid invite ID or already processed"),
+      @ApiResponse(responseCode = "404", description = "Invite not found")
+  })
   @PostMapping("/{inviteId}/accept")
-  public ResponseEntity<HouseholdInviteResponse> acceptInvite(@PathVariable UUID inviteId) {
+  public ResponseEntity<HouseholdInviteResponse> acceptInvite(
+      @Parameter(description = "Invite ID") @PathVariable UUID inviteId) {
     return ResponseEntity.ok(inviteService.acceptInvite(inviteId));
   }
 
@@ -68,8 +87,16 @@ public class HouseholdInviteController {
    * @param inviteId the ID of the invite to decline
    * @return the declined household invite response
    */
+  @Operation(summary = "Decline household invite",
+      description = "Declines an invitation to join a household")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully declined invite"),
+      @ApiResponse(responseCode = "400", description = "Invalid invite ID or already processed"),
+      @ApiResponse(responseCode = "404", description = "Invite not found")
+  })
   @PostMapping("/{inviteId}/decline")
-  public ResponseEntity<HouseholdInviteResponse> declineInvite(@PathVariable UUID inviteId) {
+  public ResponseEntity<HouseholdInviteResponse> declineInvite(
+      @Parameter(description = "Invite ID") @PathVariable UUID inviteId) {
     return ResponseEntity.ok(inviteService.declineInvite(inviteId));
   }
 
@@ -81,8 +108,16 @@ public class HouseholdInviteController {
    * @param inviteId the ID of the invite to cancel
    * @return the canceled household invite response
    */
+  @Operation(summary = "Cancel household invite",
+      description = "Cancels a previously sent household invitation")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully canceled invite"),
+      @ApiResponse(responseCode = "400", description = "Invalid invite ID or already processed"),
+      @ApiResponse(responseCode = "404", description = "Invite not found")
+  })
   @PostMapping("/{inviteId}/cancel")
-  public ResponseEntity<HouseholdInviteResponse> cancelInvite(@PathVariable UUID inviteId) {
+  public ResponseEntity<HouseholdInviteResponse> cancelInvite(
+      @Parameter(description = "Invite ID") @PathVariable UUID inviteId) {
     return ResponseEntity.ok(inviteService.cancelInvite(inviteId));
   }
 
@@ -93,6 +128,11 @@ public class HouseholdInviteController {
    *
    * @return a list of pending household invite responses
    */
+  @Operation(summary = "Get pending invites for current user",
+      description = "Retrieves all pending household invitations for the authenticated user")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved pending invites")
+  })
   @GetMapping("/pending")
   public ResponseEntity<List<HouseholdInviteResponse>> getPendingInvitesForUser() {
     List<HouseholdInviteResponse> invites = inviteService.getPendingInvitesForUser();
@@ -109,9 +149,15 @@ public class HouseholdInviteController {
    * @param householdId the ID of the household to fetch invites for
    * @return a list of pending household invite responses
    */
+  @Operation(summary = "Get pending invites for household",
+      description = "Retrieves all pending invitations for a specific household")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved pending invites"),
+      @ApiResponse(responseCode = "404", description = "Household not found")
+  })
   @GetMapping("/household/{householdId}/pending")
   public ResponseEntity<List<HouseholdInviteResponse>> getPendingInvitesForHousehold(
-      @PathVariable UUID householdId) {
+      @Parameter(description = "Household ID") @PathVariable UUID householdId) {
     return ResponseEntity.ok(inviteService.getPendingInvitesForHousehold(householdId));
   }
 
@@ -124,10 +170,18 @@ public class HouseholdInviteController {
    * @param householdId the ID of the household to fetch invites for
    * @return a list of all household invite responses
    */
+  @Operation(summary = "Get all invites for household (Admin only)",
+      description = "Retrieves all invitations (pending, accepted, declined) for a specific "
+          + "household")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved all invites"),
+      @ApiResponse(responseCode = "403", description = "Access denied - admin role required"),
+      @ApiResponse(responseCode = "404", description = "Household not found")
+  })
   @GetMapping("/household/{householdId}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<HouseholdInviteResponse>> getAllInvitesForHousehold(
-      @PathVariable UUID householdId) {
+      @Parameter(description = "Household ID") @PathVariable UUID householdId) {
     return ResponseEntity.ok(inviteService.getPendingInvitesForHousehold(householdId));
   }
 }

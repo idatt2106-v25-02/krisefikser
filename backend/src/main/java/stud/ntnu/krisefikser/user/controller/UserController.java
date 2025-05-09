@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -134,7 +135,7 @@ public class UserController {
   })
   @PutMapping("/location")
   public ResponseEntity<UserResponse> updateCurrentUserLocation(
-      @Parameter(description = "Location coordinates") @RequestBody UserLocationRequest locationRequest) {
+      @Parameter(description = "Location coordinates") @RequestBody @Valid UserLocationRequest locationRequest) {
     User currentUser = userService.getCurrentUser();
 
     // Check if location sharing is enabled before attempting to update
