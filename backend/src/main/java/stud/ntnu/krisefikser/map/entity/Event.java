@@ -7,13 +7,19 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.map.dto.EventResponse;
+import stud.ntnu.krisefikser.notification.entity.Notification;
+import stud.ntnu.krisefikser.reflection.entity.Reflection;
 
 /**
  * Entity class representing an event in the system. This class is used to store information about
@@ -58,6 +64,22 @@ public class Event {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private EventStatus status;
+
+  @OneToMany(mappedBy = "event")
+  private Set<Notification> notifications = new HashSet<>();
+
+  @OneToMany(mappedBy = "event")
+  private Set<Reflection> reflections = new HashSet<>();
+
+  @PreRemove
+  private void preRemove() {
+    if (notifications != null && !notifications.isEmpty()) {
+      notifications.forEach(notification -> notification.setEvent(null));
+    }
+    if (reflections != null && !reflections.isEmpty()) {
+      reflections.forEach(reflection -> reflection.setEvent(null));
+    }
+  }
 
   /**
    * Converts the Event entity to an EventResponse DTO. This method is used to transfer event data
