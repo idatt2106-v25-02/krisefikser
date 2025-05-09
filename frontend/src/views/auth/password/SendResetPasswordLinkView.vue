@@ -8,26 +8,40 @@ import { useRequestPasswordReset } from '../../../api/generated/authentication/a
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Vennligst skriv inn en gyldig e-postadresse')
+  email: z.string().email('Vennligst skriv inn en gyldig e-postadresse'),
 })
 
-const { handleSubmit, meta } = useForm({
+const { handleSubmit } = useForm({
   validationSchema: toTypedSchema(forgotPasswordSchema),
 })
 
-const requestPasswordResetMutation = useRequestPasswordReset()
+const {
+  mutate: requestPasswordReset,
+  isPending: isRequestPasswordResetPending,
+  isSuccess: isRequestPasswordResetSuccess,
+  variables,
+} = useRequestPasswordReset()
 
-const onSubmit = handleSubmit(async (values) => {
-  await requestPasswordResetMutation.mutateAsync({
+const onSubmit = handleSubmit((values) => {
+  requestPasswordReset({
     data: {
-      email: values.email
-    }
+      email: values.email,
+    },
   })
 })
+
+console.log('is success', isRequestPasswordResetSuccess.value)
 </script>
 
 <template>
@@ -35,22 +49,27 @@ const onSubmit = handleSubmit(async (values) => {
     <Card class="w-full max-w-md border border-gray-200 shadow-sm">
       <CardHeader class="space-y-1">
         <CardTitle class="text-2xl font-bold text-center">Glemt Passord</CardTitle>
-        <CardDescription class="text-center text-gray-500" v-if="!requestPasswordResetMutation.isSuccess">
-          Skriv inn e-postadressen din, så sender vi deg en lenke for å tilbakestille passordet ditt.
+        <CardDescription class="text-center text-gray-500" v-if="!isRequestPasswordResetSuccess">
+          Skriv inn e-postadressen din, så sender vi deg en lenke for å tilbakestille passordet
+          ditt.
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <div v-if="requestPasswordResetMutation.isSuccess" class="space-y-4">
+        <div v-if="isRequestPasswordResetSuccess" class="space-y-4">
           <Alert class="bg-green-50 border-green-200">
             <CheckCircle class="h-5 w-5 text-green-500" />
             <AlertDescription class="mt-2">
-              Vi har sendt en lenke for å tilbakestille passordet til <span class="font-medium">{{ requestPasswordResetMutation.variables?.value?.data.email }}</span>.
-              Vennligst sjekk e-posten din og følg instruksjonene.
+              Vi har sendt en lenke for å tilbakestille passordet til
+              <span class="font-medium">{{ variables?.data.email }}</span
+              >. Vennligst sjekk e-posten din og følg instruksjonene.
             </AlertDescription>
           </Alert>
 
-          <Button class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700" @click="requestPasswordResetMutation.reset()">
+          <Button
+            class="w-full mt-4 bg-blue-600 text-white hover:bg-blue-700"
+            @click="requestPasswordReset"
+          >
             Prøv en annen e-post
           </Button>
         </div>
@@ -77,17 +96,33 @@ const onSubmit = handleSubmit(async (values) => {
           <Button
             type="submit"
             class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
-            :disabled="!meta.valid || requestPasswordResetMutation.isPending"
+            :disabled="isRequestPasswordResetPending"
           >
-            <span v-if="!requestPasswordResetMutation.isPending">Tilbakestill Passord</span>
-            <span v-else class="flex items-center justify-center">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <span v-if="isRequestPasswordResetPending" class="flex items-center justify-center">
+              <svg
+                class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               Behandler...
             </span>
-            <ArrowRight class="ml-2 h-4 w-4" v-if="!requestPasswordResetMutation.isPending" />
+            <span v-else>Tilbakestill Passord</span>
+            <ArrowRight class="ml-2 h-4 w-4" v-if="!isRequestPasswordResetPending" />
           </Button>
         </form>
       </CardContent>
