@@ -8,12 +8,14 @@ import { createHouseholdMemberMarker } from '@/components/map/marker/householdMe
 import loadMapPoints from '@/components/map/marker/mapPoints'
 import NewMapComponent from '@/components/map/NewMapComponent.vue'
 import { useMap } from '@/components/map/useMap'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import type { Map as LeafletMap } from 'leaflet'
 import { computed, watch } from 'vue'
 
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
 const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
+const authStore = useAuthStore()
 
 const { initMap, addMarkers, onMapCreated, clearMarkers } = useMap()
 
@@ -39,14 +41,15 @@ const renderNewMapPoints = async () => {
     // Householdmembers markers
     const householdMembers = activeHousehold.value.members
     const householdMembersMarkers = householdMembers
+      .filter((member) => member.user.id !== authStore.currentUser?.id)
       .map((member) => createHouseholdMemberMarker(member))
       .filter((marker) => marker !== null)
     addMarkers(householdMembersMarkers)
   }
 
   // User location marker
-  // const userMarker = await createUserMarker()
-  // addMarkers([userMarker])
+  const userMarker = await createUserMarker()
+  addMarkers([userMarker])
 }
 
 onMapCreated(async (_mapInstance: LeafletMap) => {
