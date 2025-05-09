@@ -130,47 +130,49 @@ export default defineComponent({
 });
 </script>
 <template>
-  <form @submit.prevent="submitReflection" class="space-y-6">
-    <div>
-      <BaseLabel for="reflectionTitle" class="block text-sm font-medium text-gray-700">Tittel</BaseLabel>
-      <BaseInput
-        type="text"
-        id="reflectionTitle"
-        v-model="reflectionData.title"
-        required
-        class="mt-1 w-full"
-        placeholder="Gi refleksjonen en tittel"
-      />
-    </div>
+  <form @submit.prevent="submitReflection" class="flex flex-col h-full">
+    <div class="flex-1 overflow-y-auto space-y-6 pr-2">
+      <div>
+        <BaseLabel for="reflectionTitle" class="block text-sm font-medium text-gray-700">Tittel</BaseLabel>
+        <BaseInput
+          type="text"
+          id="reflectionTitle"
+          v-model="reflectionData.title"
+          required
+          class="mt-1 w-full"
+          placeholder="Gi refleksjonen en tittel"
+        />
+      </div>
 
-    <div>
-      <BaseLabel for="reflectionContent" class="block text-sm font-medium text-gray-700">Innhold</BaseLabel>
-      <RichTextEditor
-        id="reflectionContent"
-        v-model="reflectionData.content"
-        required
-        placeholder="Skriv din refleksjon her..."
-        class="mt-1"
-      />
-    </div>
+      <div>
+        <BaseLabel for="reflectionContent" class="block text-sm font-medium text-gray-700">Innhold</BaseLabel>
+        <RichTextEditor
+          id="reflectionContent"
+          v-model="reflectionData.content"
+          required
+          placeholder="Skriv din refleksjon her..."
+          class="mt-1"
+        />
+      </div>
 
-    <div>
-      <BaseLabel for="reflectionVisibility" class="block text-sm font-medium text-gray-700">Synlighet</BaseLabel>
-      <BaseSelect v-model="reflectionData.visibility" id="reflectionVisibility" required>
-        <SelectTrigger class="mt-1 w-full">
-          <SelectValue placeholder="Velg synlighet" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem :value="VisibilityEnum.PUBLIC">Offentlig</SelectItem>
-          <SelectItem :value="VisibilityEnum.HOUSEHOLD">Husstand</SelectItem>
-          <SelectItem :value="VisibilityEnum.PRIVATE">Privat</SelectItem>
-        </SelectContent>
-      </BaseSelect>
-    </div>
+      <div>
+        <BaseLabel for="reflectionVisibility" class="block text-sm font-medium text-gray-700">Synlighet</BaseLabel>
+        <BaseSelect v-model="reflectionData.visibility" id="reflectionVisibility" required>
+          <SelectTrigger class="mt-1 w-full">
+            <SelectValue placeholder="Velg synlighet" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem :value="VisibilityEnum.PUBLIC">Offentlig</SelectItem>
+            <SelectItem :value="VisibilityEnum.HOUSEHOLD">Husstand</SelectItem>
+            <SelectItem :value="VisibilityEnum.PRIVATE">Privat</SelectItem>
+          </SelectContent>
+        </BaseSelect>
+      </div>
 
-    <div v-if="mutation.isError.value || updateMutation.isError.value" class="text-red-600 text-sm">
-      <p><strong>Noe gikk galt:</strong></p>
-      <p>{{ determineErrorMessage() }}</p>
+      <div v-if="mutation.isError.value || updateMutation.isError.value" class="text-red-600 text-sm">
+        <p><strong>Noe gikk galt:</strong></p>
+        <p>{{ determineErrorMessage() }}</p>
+      </div>
     </div>
 
     <div class="flex justify-end space-x-3 pt-4 border-t mt-6">

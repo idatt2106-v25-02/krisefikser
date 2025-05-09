@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { UserMinus } from 'lucide-vue-next'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +12,11 @@ import {
 import { useToast } from '@/components/ui/toast/use-toast'
 import { useQueryClient } from '@tanstack/vue-query'
 import {
+  getGetActiveHouseholdQueryKey,
   useLeaveHousehold,
   useRemoveGuestFromHousehold,
-  getGetActiveHouseholdQueryKey,
 } from '@/api/generated/household/household.ts'
-import type { HouseholdMemberResponse, GuestResponse } from '@/api/generated/model'
+import type { GuestResponse, HouseholdMemberResponse } from '@/api/generated/model'
 
 const props = defineProps<{
   householdId: string
@@ -33,6 +34,10 @@ const { toast } = useToast()
 const queryClient = useQueryClient()
 const memberGuestTab = ref<'alle' | 'medlemmer' | 'gjester'>('alle')
 const isRemovingGuest = ref(false)
+const showRemoveMemberDialog = ref(false)
+const showRemoveGuestDialog = ref(false)
+const memberToRemove = ref<string | undefined | null>(null)
+const guestToRemove = ref<string | null>(null)
 
 const filteredPeople = computed(() => {
   if (memberGuestTab.value === 'alle') {
@@ -95,20 +100,32 @@ const { mutate: removeGuest } = useRemoveGuestFromHousehold({
 
 function handleRemoveMember(userId: string | undefined) {
   if (!props.householdId || !userId) return
-  if (confirm('Er du sikker på at du vil fjerne dette medlemmet?')) {
-    leaveHousehold({
-      data: {
-        householdId: props.householdId,
-      },
-    })
-  }
+  memberToRemove.value = userId
+  showRemoveMemberDialog.value = true
+}
+
+function confirmRemoveMember() {
+  if (!props.householdId || !memberToRemove.value) return
+  leaveHousehold({
+    data: {
+      householdId: props.householdId,
+    },
+  })
+  showRemoveMemberDialog.value = false
+  memberToRemove.value = null
 }
 
 function handleRemoveGuest(guestId: string) {
-  if (confirm('Er du sikker på at du vil fjerne denne gjesten?')) {
-    isRemovingGuest.value = true
-    removeGuest({ guestId })
-  }
+  guestToRemove.value = guestId
+  showRemoveGuestDialog.value = true
+}
+
+function confirmRemoveGuest() {
+  if (!guestToRemove.value) return
+  isRemovingGuest.value = true
+  removeGuest({ guestId: guestToRemove.value })
+  showRemoveGuestDialog.value = false
+  guestToRemove.value = null
 }
 </script>
 
@@ -116,7 +133,12 @@ function handleRemoveGuest(guestId: string) {
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
     <div class="flex justify-between items-center mb-5">
       <h2 class="text-xl font-semibold text-gray-800">Medlemmer og gjester</h2>
-      <Button variant="outline" size="sm" @click="$emit('addMember')" class="flex items-center gap-1">
+      <Button
+        variant="outline"
+        size="sm"
+        @click="$emit('addMember')"
+        class="flex items-center gap-1"
+      >
         <span class="text-md">+</span>
         <span>Legg til</span>
       </Button>
@@ -146,7 +168,9 @@ function handleRemoveGuest(guestId: string) {
       </Button>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2">
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[32rem] overflow-y-auto pr-2"
+    >
       <div
         v-for="person in filteredPeople"
         :key="person.type === 'member' ? person.data.user?.id : person.data.id"
@@ -186,11 +210,7 @@ function handleRemoveGuest(guestId: string) {
               </span>
             </div>
 
-            <DropdownMenu
-              v-if="
-                person.type === 'member' && person.data.user?.id !== currentUserId
-              "
-            >
+            <DropdownMenu v-if="person.type === 'member' && person.data.user?.id !== currentUserId">
               <DropdownMenuTrigger as-child>
                 <Button variant="ghost" size="icon" class="h-8 w-8">
                   <span class="sr-only">Medlemsalternativer</span>
@@ -264,12 +284,32 @@ function handleRemoveGuest(guestId: string) {
                 {{ person.data.user?.email ?? '' }}
               </div>
             </template>
-            <template v-else>
-              Forbruksfaktor: {{ person.data.consumptionMultiplier }}
-            </template>
+            <template v-else> Forbruksfaktor: {{ person.data.consumptionMultiplier }} </template>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Remove Member Confirmation -->
+    <ConfirmationDialog
+      :is-open="showRemoveMemberDialog"
+      title="Fjern medlem"
+      description="Er du sikker på at du vil fjerne dette medlemmet?"
+      confirm-text="Fjern"
+      variant="destructive"
+      @confirm="confirmRemoveMember"
+      @cancel="showRemoveMemberDialog = false"
+    />
+
+    <!-- Remove Guest Confirmation -->
+    <ConfirmationDialog
+      :is-open="showRemoveGuestDialog"
+      title="Fjern gjest"
+      description="Er du sikker på at du vil fjerne denne gjesten?"
+      confirm-text="Fjern"
+      variant="destructive"
+      @confirm="confirmRemoveGuest"
+      @cancel="showRemoveGuestDialog = false"
+    />
   </div>
 </template>
