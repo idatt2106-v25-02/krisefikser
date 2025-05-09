@@ -24,8 +24,7 @@ import stud.ntnu.krisefikser.user.service.UserService;
 /**
  * Service for managing reflections.
  *
- * <p>
- * Provides business logic for creating, retrieving, updating, and deleting reflections, with
+ * <p>Provides business logic for creating, retrieving, updating, and deleting reflections, with
  * appropriate access controls based on visibility settings and user roles.
  * </p>
  *
@@ -115,8 +114,7 @@ public class ReflectionService {
   /**
    * Retrieves a reflection by its ID.
    *
-   * <p>
-   * Access is restricted based on the reflection's visibility settings and the current user's
+   * <p>Access is restricted based on the reflection's visibility settings and the current user's
    * permissions.
    * </p>
    *
@@ -192,8 +190,7 @@ public class ReflectionService {
   /**
    * Updates an existing reflection.
    *
-   * <p>
-   * Only the author or an admin can update a reflection.
+   * <p>Only the author or an admin can update a reflection.
    * </p>
    *
    * @param id      the ID of the reflection to update
@@ -253,8 +250,7 @@ public class ReflectionService {
   /**
    * Deletes a reflection.
    *
-   * <p>
-   * Only the author or an admin can delete a reflection.
+   * <p>Only the author or an admin can delete a reflection.
    * </p>
    *
    * @param id the ID of the reflection to delete
@@ -276,8 +272,7 @@ public class ReflectionService {
   /**
    * Retrieves all reflections accessible to the current user.
    *
-   * <p>
-   * This includes all public reflections, the user's own private reflections, and household
+   * <p>This includes all public reflections, the user's own private reflections, and household
    * reflections for households the user belongs to.
    * </p>
    *

@@ -1,84 +1,78 @@
 package stud.ntnu.krisefikser.reflection.dto;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.reflection.enums.VisibilityType;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 /**
  * Data Transfer Object for returning reflection information to clients.
- * 
- * <p>
- * Contains all the fields necessary to display a reflection in the UI,
- * including
- * author information, content, and visibility settings.
+ *
+ * <p>Contains all the fields necessary to display a reflection in the UI, including author
+ * information, content, and visibility settings.
  * </p>
- * 
- * @since 1.0
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReflectionResponse {
-    /**
-     * Unique identifier for the reflection.
-     */
-    private UUID id;
 
-    /**
-     * Title of the reflection.
-     */
-    private String title;
+  /**
+   * Unique identifier for the reflection.
+   */
+  private UUID id;
 
-    /**
-     * Content of the reflection.
-     */
-    private String content;
+  /**
+   * Title of the reflection.
+   */
+  private String title;
 
-    /**
-     * ID of the user who authored the reflection.
-     */
-    private UUID authorId;
+  /**
+   * Content of the reflection.
+   */
+  private String content;
 
-    /**
-     * Name of the user who authored the reflection, typically firstName + lastName.
-     */
-    private String authorName;
+  /**
+   * ID of the user who authored the reflection.
+   */
+  private UUID authorId;
 
-    /**
-     * Visibility setting of the reflection (PUBLIC, HOUSEHOLD, or PRIVATE).
-     */
-    private VisibilityType visibility;
+  /**
+   * Name of the user who authored the reflection, typically firstName + lastName.
+   */
+  private String authorName;
 
-    /**
-     * ID of the household associated with the reflection (if visibility is
-     * HOUSEHOLD).
-     */
-    private UUID householdId;
+  /**
+   * Visibility setting of the reflection (PUBLIC, HOUSEHOLD, or PRIVATE).
+   */
+  private VisibilityType visibility;
 
-    /**
-     * Name of the household associated with the reflection (if visibility is
-     * HOUSEHOLD).
-     */
-    private String householdName;
+  /**
+   * ID of the household associated with the reflection (if visibility is HOUSEHOLD).
+   */
+  private UUID householdId;
 
-    /**
-     * ID of the event associated with the reflection (if any).
-     */
-    private Long eventId;
+  /**
+   * Name of the household associated with the reflection (if visibility is HOUSEHOLD).
+   */
+  private String householdName;
 
-    /**
-     * Date and time when the reflection was created.
-     */
-    private LocalDateTime createdAt;
+  /**
+   * ID of the event associated with the reflection (if any).
+   */
+  private Long eventId;
 
-    /**
-     * Date and time when the reflection was last updated.
-     */
-    private LocalDateTime updatedAt;
+  /**
+   * Date and time when the reflection was created.
+   */
+  private LocalDateTime createdAt;
+
+  /**
+   * Date and time when the reflection was last updated.
+   */
+  private LocalDateTime updatedAt;
 }

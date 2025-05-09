@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserLocationRequest {
-    private Double latitude;
-    private Double longitude;
+
+  private Double latitude;
+  private Double longitude;
 }

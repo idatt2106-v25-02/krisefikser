@@ -14,8 +14,8 @@ import stud.ntnu.krisefikser.scenario.repository.ScenarioRepository;
 /**
  * Service responsible for managing scenarios in the emergency preparedness system.
  *
- * <p>
- * This service provides functionality for creating, retrieving, updating, and deleting scenarios.
+ * <p>This service provides functionality for creating, retrieving, updating, and deleting
+ * scenarios.
  * It interacts with the {@link ScenarioRepository} for data access operations.
  * </p>
  */

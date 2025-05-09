@@ -116,9 +116,18 @@ public class UserController {
     return ResponseEntity.ok().build();
   }
 
-  @Operation(summary = "Update user location", description = "Updates the current user's location coordinates if location sharing is enabled")
+  /**
+   * Updates the current user's location.
+   *
+   * @param locationRequest the request containing the new location coordinates
+   * @return the updated user information
+   */
+  @Operation(summary = "Update user location", description = "Updates the current user's location"
+      + " coordinates if location sharing is enabled")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Successfully updated user location", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+      @ApiResponse(responseCode = "200", description = "Successfully updated user location",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation =
+              UserResponse.class))),
       @ApiResponse(responseCode = "400", description = "Location sharing is disabled"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
       @ApiResponse(responseCode = "404", description = "User not found")
@@ -133,7 +142,8 @@ public class UserController {
       return ResponseEntity.badRequest().build();
     }
 
-    User updatedUser = userService.updateUserLocation(currentUser.getId(), locationRequest.getLatitude(),
+    User updatedUser = userService.updateUserLocation(currentUser.getId(),
+        locationRequest.getLatitude(),
         locationRequest.getLongitude());
     // Use regular toDto that doesn't include location data in the response
     return ResponseEntity.ok(updatedUser.toDto());
