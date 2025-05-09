@@ -89,6 +89,9 @@ importers:
       tailwindcss:
         specifier: ^4.1.4
         version: 4.1.4
+      ts-eslint:
+        specifier: link:@typescript-eslint/utils/ts-eslint
+        version: link:@typescript-eslint/utils/ts-eslint
       tw-animate-css:
         specifier: ^1.2.8
         version: 1.2.8
