@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import TokenVerifier from '@/components/auth/TokenVerifier.vue'
 import ResetPasswordView from '@/views/auth/password/ResetPasswordView.vue'
+import VerifyToken from '@/views/VerifyToken.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,7 +25,7 @@ const handleTokenValidated = (valid: boolean) => {
   <div class="min-h-screen flex items-center justify-center bg-white py-12">
     <div class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5">
       <template v-if="!isTokenValid">
-        <TokenVerifier
+        <VerifyToken
           :token="route.query.token as string"
           verify-endpoint="/api/auth/verify-password-reset"
           success-message="Din passordtilbakestillingslenke er gyldig. Du kan nå sette et nytt passord."
