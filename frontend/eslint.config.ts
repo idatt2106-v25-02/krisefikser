@@ -1,3 +1,4 @@
+import { FlatConfig } from '@typescript-eslint/utils/ts-eslint'
 import { globalIgnores } from 'eslint/config'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import pluginVue from 'eslint-plugin-vue'
@@ -6,7 +7,6 @@ import pluginVitest from '@vitest/eslint-plugin'
 // @ts-ignore
 import pluginCypress from 'eslint-plugin-cypress/flat'
 import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
-import type { FlatConfig } from '@typescript-eslint/utils/ts-eslint'
 
 // To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
 // import { configureVueProject } from '@vue/eslint-config-typescript'
@@ -48,4 +48,4 @@ export default defineConfigWithVueTs(
       ],
     },
   },
-) satisfies Array<FlatConfig.Config>
+) satisfies FlatConfig.Config[]
