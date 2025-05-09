@@ -26,8 +26,7 @@ import stud.ntnu.krisefikser.user.service.UserService;
  * Service for managing reflections.
  *
  * <p>Provides business logic for creating, retrieving, updating, and deleting
- * reflections,
- * with appropriate access controls based on visibility settings and user roles.
+ * reflections, with appropriate access controls based on visibility settings and user roles.
  * </p>
  */
 @Service
@@ -76,10 +75,48 @@ public class ReflectionService {
   }
 
   /**
+   * Converts a Reflection entity to a ReflectionResponse DTO.
+   *
+   * @param reflection the reflection entity to convert
+   * @return the response DTO
+   */
+  private ReflectionResponse toResponse(Reflection reflection) {
+    return ReflectionResponse.builder()
+        .id(reflection.getId())
+        .title(reflection.getTitle())
+        .content(reflection.getContent())
+        .authorId(reflection.getAuthor().getId())
+        .authorName(getAuthorName(reflection.getAuthor()))
+        .visibility(reflection.getVisibility())
+        .householdId(reflection.getHousehold() != null ? reflection.getHousehold().getId() : null)
+        .householdName(
+            reflection.getHousehold() != null ? reflection.getHousehold().getName() : null)
+        .eventId(reflection.getEvent() != null ? reflection.getEvent().getId() : null)
+        .createdAt(reflection.getCreatedAt())
+        .updatedAt(reflection.getUpdatedAt())
+        .build();
+  }
+
+  /**
+   * Gets the display name of a user.
+   *
+   * @param user the user
+   * @return the display name (first name + last name, or email if names are not available)
+   */
+  private String getAuthorName(User user) {
+    if (user.getFirstName() != null && user.getLastName() != null) {
+      return user.getFirstName() + " " + user.getLastName();
+    } else if (user.getFirstName() != null) {
+      return user.getFirstName();
+    } else {
+      return user.getEmail();
+    }
+  }
+
+  /**
    * Retrieves a reflection by its ID.
    *
-   * <p>
-   * Access is restricted based on the reflection's visibility settings and the
+   * <p>Access is restricted based on the reflection's visibility settings and the
    * current user's permissions.
    * </p>
    *
@@ -100,10 +137,62 @@ public class ReflectionService {
   }
 
   /**
+   * Finds a reflection by its ID.
+   *
+   * @param id the ID of the reflection to find
+   * @return the found reflection
+   * @throws ReflectionNotFoundException if no reflection with the given ID exists
+   */
+  private Reflection findReflectionById(UUID id) {
+    return reflectionRepository.findById(id)
+        .orElseThrow(() -> new ReflectionNotFoundException(id));
+  }
+
+  /**
+   * Checks if a user has access to a reflection based on visibility settings.
+   *
+   * @param reflection the reflection to check access for
+   * @param user       the user to check access for
+   * @return true if the user has access, false otherwise
+   */
+  private boolean hasAccessToReflection(Reflection reflection, User user) {
+    // Admin can access any reflection
+    boolean isAdmin = user.getRoles().stream()
+        .anyMatch(
+            role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
+    if (isAdmin) {
+      return true;
+    }
+
+    // Author can access their own reflection
+    if (reflection.getAuthor().getId().equals(user.getId())) {
+      return true;
+    }
+
+    // Check visibility
+    switch (reflection.getVisibility()) {
+      case PUBLIC:
+        return true;
+      case HOUSEHOLD:
+        if (reflection.getHousehold() == null) {
+          return false;
+        }
+        // Check if user is in the same household
+        if (user.getActiveHousehold() != null) {
+          return user.getActiveHousehold().getId().equals(reflection.getHousehold().getId());
+        }
+        return false;
+      case PRIVATE:
+        return false;
+      default:
+        return false;
+    }
+  }
+
+  /**
    * Updates an existing reflection.
    *
-   * <p>
-   * Only the author or an admin can update a reflection.
+   * <p>Only the author or an admin can update a reflection.
    * </p>
    *
    * @param id      the ID of the reflection to update
@@ -148,10 +237,24 @@ public class ReflectionService {
   }
 
   /**
+   * Checks if a user is the author of a reflection or an admin.
+   *
+   * @param reflection the reflection to check
+   * @param user       the user to check
+   * @return true if the user is the author or an admin, false otherwise
+   */
+  private boolean isAuthorOrAdmin(Reflection reflection, User user) {
+    boolean isAdmin = user.getRoles().stream()
+        .anyMatch(
+            role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
+
+    return isAdmin || reflection.getAuthor().getId().equals(user.getId());
+  }
+
+  /**
    * Deletes a reflection.
    *
-   * <p>
-   * Only the author or an admin can delete a reflection.
+   * <p>Only the author or an admin can delete a reflection.
    * </p>
    *
    * @param id the ID of the reflection to delete
@@ -173,8 +276,7 @@ public class ReflectionService {
   /**
    * Retrieves all reflections accessible to the current user.
    *
-   * <p>
-   * This includes all public reflections, the user's own private reflections,
+   * <p>This includes all public reflections, the user's own private reflections,
    * and household reflections for households the user belongs to.
    * </p>
    *
@@ -268,113 +370,5 @@ public class ReflectionService {
     return reflections.stream()
         .map(this::toResponse)
         .collect(Collectors.toList());
-  }
-
-  /**
-   * Finds a reflection by its ID.
-   *
-   * @param id the ID of the reflection to find
-   * @return the found reflection
-   * @throws ReflectionNotFoundException if no reflection with the given ID exists
-   */
-  private Reflection findReflectionById(UUID id) {
-    return reflectionRepository.findById(id)
-        .orElseThrow(() -> new ReflectionNotFoundException(id));
-  }
-
-  /**
-   * Checks if a user has access to a reflection based on visibility settings.
-   *
-   * @param reflection the reflection to check access for
-   * @param user       the user to check access for
-   * @return true if the user has access, false otherwise
-   */
-  private boolean hasAccessToReflection(Reflection reflection, User user) {
-    // Admin can access any reflection
-    boolean isAdmin = user.getRoles().stream()
-        .anyMatch(
-            role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
-    if (isAdmin) {
-      return true;
-    }
-
-    // Author can access their own reflection
-    if (reflection.getAuthor().getId().equals(user.getId())) {
-      return true;
-    }
-
-    // Check visibility
-    switch (reflection.getVisibility()) {
-      case PUBLIC:
-        return true;
-      case HOUSEHOLD:
-        if (reflection.getHousehold() == null) {
-          return false;
-        }
-        // Check if user is in the same household
-        if (user.getActiveHousehold() != null) {
-          return user.getActiveHousehold().getId().equals(reflection.getHousehold().getId());
-        }
-        return false;
-      case PRIVATE:
-        return false;
-      default:
-        return false;
-    }
-  }
-
-  /**
-   * Checks if a user is the author of a reflection or an admin.
-   *
-   * @param reflection the reflection to check
-   * @param user       the user to check
-   * @return true if the user is the author or an admin, false otherwise
-   */
-  private boolean isAuthorOrAdmin(Reflection reflection, User user) {
-    boolean isAdmin = user.getRoles().stream()
-        .anyMatch(
-            role -> role.getName() == RoleType.ADMIN || role.getName() == RoleType.SUPER_ADMIN);
-
-    return isAdmin || reflection.getAuthor().getId().equals(user.getId());
-  }
-
-  /**
-   * Converts a Reflection entity to a ReflectionResponse DTO.
-   *
-   * @param reflection the reflection entity to convert
-   * @return the response DTO
-   */
-  private ReflectionResponse toResponse(Reflection reflection) {
-    return ReflectionResponse.builder()
-        .id(reflection.getId())
-        .title(reflection.getTitle())
-        .content(reflection.getContent())
-        .authorId(reflection.getAuthor().getId())
-        .authorName(getAuthorName(reflection.getAuthor()))
-        .visibility(reflection.getVisibility())
-        .householdId(reflection.getHousehold() != null ? reflection.getHousehold().getId() : null)
-        .householdName(
-            reflection.getHousehold() != null ? reflection.getHousehold().getName() : null)
-        .eventId(reflection.getEvent() != null ? reflection.getEvent().getId() : null)
-        .createdAt(reflection.getCreatedAt())
-        .updatedAt(reflection.getUpdatedAt())
-        .build();
-  }
-
-  /**
-   * Gets the display name of a user.
-   *
-   * @param user the user
-   * @return the display name (first name + last name, or email if names are not
-   * available)
-   */
-  private String getAuthorName(User user) {
-    if (user.getFirstName() != null && user.getLastName() != null) {
-      return user.getFirstName() + " " + user.getLastName();
-    } else if (user.getFirstName() != null) {
-      return user.getFirstName();
-    } else {
-      return user.getEmail();
-    }
   }
 }
