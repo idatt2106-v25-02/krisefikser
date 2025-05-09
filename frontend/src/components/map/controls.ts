@@ -1,7 +1,11 @@
 import L from 'leaflet'
 
 // Custom zoom control HTML
-export const setupCustomControls = (map: L.Map, mapCenter: [number, number]) => {
+export const setupCustomControls = (
+  map: L.Map,
+  mapCenter: [number, number],
+  initialZoom: number,
+) => {
   // Create custom zoom in control
   // @ts-expect-error - Leaflet types are not correctly detecting L.control as callable
   const zoomInControl = L.control({ position: 'bottomleft' })
@@ -58,7 +62,7 @@ export const setupCustomControls = (map: L.Map, mapCenter: [number, number]) => 
     `
     L.DomEvent.on(div, 'click', function (e) {
       L.DomEvent.stopPropagation(e)
-      map.setView(mapCenter, props.initialZoom ?? 13)
+      map.setView(mapCenter, initialZoom)
     })
     return div
   }

@@ -4,6 +4,7 @@ import { setupCustomControls } from './controls'
 import type { MarkerComponent } from './marker'
 
 const TRONDHEIM_CENTER: [number, number] = [63.4305, 10.3951]
+const INITIAL_ZOOM = 13
 
 type MapCreatedCallback = (map: L.Map) => void
 
@@ -38,9 +39,9 @@ export const useMap = () => {
       return
     }
 
-    map.value = L.map(elementId).setView(TRONDHEIM_CENTER, 13)
+    map.value = L.map(elementId).setView(TRONDHEIM_CENTER, INITIAL_ZOOM)
     addTileLayer(map.value as L.Map)
-    setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER)
+    setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER, INITIAL_ZOOM)
     mapCreatedCallbacks.value.forEach((callback) => callback(map.value as L.Map))
   }
 
