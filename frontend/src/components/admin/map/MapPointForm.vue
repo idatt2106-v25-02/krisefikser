@@ -24,7 +24,11 @@ const localValue = ref<Partial<MapPoint>>({ ...props.modelValue })
 watch(
   () => props.modelValue,
   (newValue) => {
-    localValue.value = { ...newValue }
+    localValue.value = {
+      ...localValue.value,
+      latitude: newValue.latitude,
+      longitude: newValue.longitude,
+    }
   },
   { deep: true },
 )

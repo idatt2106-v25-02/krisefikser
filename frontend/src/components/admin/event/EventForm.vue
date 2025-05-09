@@ -30,14 +30,15 @@ onMounted(() => {
 
 watch(
   () => props.modelValue,
-  (newVal) => {
-    // Use deep copy to break reactivity chain
-    localValue.value = JSON.parse(JSON.stringify(newVal))
+  (newValue) => {
+    localValue.value = {
+      ...localValue.value,
+      latitude: newValue.latitude,
+      longitude: newValue.longitude,
+    }
   },
   { deep: true },
 )
-
-// Don't watch localValue changes to avoid two-way binding loops
 
 function handleSubmit() {
   emit('update:modelValue', JSON.parse(JSON.stringify(localValue.value)))
