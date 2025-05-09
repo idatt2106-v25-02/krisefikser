@@ -29,7 +29,7 @@ import {
   useUpdateArticle,
 } from '@/api/generated/article/article'
 import type { ArticleRequest, ArticleResponse } from '@/api/generated/model'
-import { formatDate } from '../../api/Utils.ts'
+import { formatDate } from '../../api/Utils'
 
 const showDialog = ref(false)
 const isEditing = ref(false)

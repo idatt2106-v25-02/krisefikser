@@ -16,7 +16,7 @@ const _props = defineProps<{ invites: Invite[], declinedInvites?: Invite[] }>();
 <template>
   <div v-if="invites && invites.length" class="mb-6">
     <h2 class="text-lg font-semibold mb-2">Inviterte (venter på svar)</h2>
-    <div class="invited-scroll-area">
+    <div class="max-h-[220px] overflow-y-auto pr-[2px] scrollbar-thin scrollbar-thumb-[#c7d7f5] scrollbar-thumb-rounded-md">
       <div v-for="invite in invites" :key="invite.id" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-2 flex items-center justify-between">
         <div>
           <div v-if="invite.invitedUser">
@@ -35,7 +35,7 @@ const _props = defineProps<{ invites: Invite[], declinedInvites?: Invite[] }>();
   </div>
   <div v-if="declinedInvites && declinedInvites.length" class="mb-6">
     <h2 class="text-lg font-semibold mb-2">Avslåtte invitasjoner</h2>
-    <div class="invited-scroll-area">
+    <div class="max-h-[220px] overflow-y-auto pr-[2px] scrollbar-thin scrollbar-thumb-[#c7d7f5] scrollbar-thumb-rounded-md">
       <div v-for="invite in declinedInvites" :key="invite.id" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-2 flex items-center justify-between">
         <div>
           <div v-if="invite.invitedUser">
@@ -53,18 +53,3 @@ const _props = defineProps<{ invites: Invite[], declinedInvites?: Invite[] }>();
     </div>
   </div>
 </template>
-
-<style scoped>
-.invited-scroll-area {
-  max-height: 220px;
-  overflow-y: auto;
-  padding-right: 2px;
-}
-.invited-scroll-area::-webkit-scrollbar {
-  width: 6px;
-}
-.invited-scroll-area::-webkit-scrollbar-thumb {
-  background: #c7d7f5;
-  border-radius: 4px;
-}
-</style>

@@ -9,7 +9,7 @@ interface Props {
   pageTitle: string
   sectionName: string
   iconComponent: Component
-  iconBgColor?: Color
+  iconBgColor?: 'blue' | 'yellow' | 'green'
 }
 
 const props = withDefaults(defineProps<Props>(), {

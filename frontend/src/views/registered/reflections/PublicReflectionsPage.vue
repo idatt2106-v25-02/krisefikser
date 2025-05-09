@@ -2,32 +2,24 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import {
-  getGetPublicReflectionsQueryKey,
-  useDeleteReflection,
   useGetPublicReflections,
-} from '@/api/generated/reflection/reflection.ts'
-import { useGetEventById } from '@/api/generated/event/event.ts'
-import type { ReflectionResponse } from '@/api/generated/model'
-import { ReflectionResponseVisibility } from '@/api/generated/model'
-import { Button } from '@/components/ui/button'
-import { BookOpen, Globe } from 'lucide-vue-next' // Added Globe icon
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+  useDeleteReflection,
+  getGetPublicReflectionsQueryKey
+} from '@/api/generated/reflection/reflection';
+import { useGetEventById } from '@/api/generated/event/event';
+import type { ReflectionResponse } from '@/api/generated/model';
+import { ReflectionResponseVisibility } from '@/api/generated/model';
+import { Button } from '@/components/ui/button';
+import {  BookOpen, Globe } from 'lucide-vue-next';
 
-const router = useRouter()
-const queryClient = useQueryClient()
-const authStore = useAuthStore() // To check for admin/author for edit/delete
+const router = useRouter();
+const queryClient = useQueryClient();
+const authStore = useAuthStore();
 
-// Fetch public reflections
-const {
-  data: publicReflections,
-  isLoading,
-  error,
-} = useGetPublicReflections<ReflectionResponse[]>({
+const { data: publicReflections, isLoading, error } = useGetPublicReflections<ReflectionResponse[]>({
   query: {
-    // Public reflections don't strictly need auth, but keeping enabled pattern for consistency
-    // Or set to true if the endpoint is always available
     enabled: true,
     refetchOnWindowFocus: true,
   },
@@ -54,13 +46,11 @@ const errorMessage = computed(() => {
 const formatDate = (dateInput?: string | number[] | null) => {
   if (!dateInput) return 'Ukjent dato'
 
-  // If it's an array, convert to Date
   if (Array.isArray(dateInput)) {
-    // Java months are 1-based, JS months are 0-based
-    const [year, month, day, hour, minute, second, nanosecond] = dateInput
-    const ms = Math.floor((nanosecond || 0) / 1e6) // Convert nanoseconds to milliseconds
-    const date = new Date(year, month - 1, day, hour, minute, second, ms)
-    if (isNaN(date.getTime())) return 'Ukjent dato'
+    const [year, month, day, hour, minute, second, nanosecond] = dateInput;
+    const ms = Math.floor((nanosecond || 0) / 1e6);
+    const date = new Date(year, month - 1, day, hour, minute, second, ms);
+    if (isNaN(date.getTime())) return 'Ukjent dato';
     return date.toLocaleDateString('nb-NO', {
       year: 'numeric',
       month: 'long',
@@ -70,9 +60,8 @@ const formatDate = (dateInput?: string | number[] | null) => {
     })
   }
 
-  // If it's a string, try to parse as date
-  const date = new Date(dateInput)
-  if (isNaN(date.getTime())) return 'Ukjent dato'
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return 'Ukjent dato';
   return date.toLocaleDateString('nb-NO', {
     year: 'numeric',
     month: 'long',
@@ -187,13 +176,11 @@ watch(
   { deep: true, immediate: true },
 )
 
-// No onMounted auth check needed as this page is public
 </script>
 
 <template>
   <div class="bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Page Header with background -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <router-link
           to="/kriser"
@@ -220,7 +207,6 @@ watch(
         </div>
       </div>
 
-      <!-- Error state with better visual cues -->
       <div v-else-if="error" class="bg-white rounded-lg shadow-lg p-6">
         <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
           <div class="flex">
@@ -255,7 +241,6 @@ watch(
           :key="reflection.id"
           class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col relative border border-gray-200 transition-all duration-300 hover:shadow-lg min-h-[220px]"
         >
-          <!-- Colored top bar based on visibility -->
           <div class="h-1 w-full bg-indigo-500"></div>
 
           <!-- Decorative corner -->
@@ -359,7 +344,6 @@ watch(
         </div>
       </div>
 
-      <!-- Empty state -->
       <div v-else-if="!isLoading && !error" class="bg-white rounded-lg shadow-md p-8 text-center">
         <Globe class="mx-auto h-12 w-12 text-gray-400" />
         <h3 class="mt-2 text-xl font-medium text-gray-900">Ingen offentlige refleksjoner</h3>

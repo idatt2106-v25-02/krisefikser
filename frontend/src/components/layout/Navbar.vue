@@ -18,7 +18,7 @@ import {
   User as UserIcon,
   X,
 } from 'lucide-vue-next'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -6,9 +6,9 @@ import {
   useGetAllMapPointTypes,
   useUpdateMapPointType,
   useDeleteMapPointType,
-} from '@/api/generated/map-point-type/map-point-type.ts'
-import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+} from '@/api/generated/map-point-type/map-point-type'
+import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import MapPointTypeForm from './MapPointTypeForm.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 

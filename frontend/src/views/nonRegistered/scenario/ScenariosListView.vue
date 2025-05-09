@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts'
+import { useGetAllScenarios } from '@/api/generated/scenario/scenario'
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import {

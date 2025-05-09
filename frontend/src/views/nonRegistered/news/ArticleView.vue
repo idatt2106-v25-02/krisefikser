@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useGetArticleById } from '@/api/generated/article/article.ts'
+import { useGetArticleById } from '@/api/generated/article/article'
 import { ArrowLeft } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
-import { formatDate } from '../../../api/Utils.ts'
+import { formatDate } from '../../../api/Utils'
 
 const route = useRoute()
 const router = useRouter()

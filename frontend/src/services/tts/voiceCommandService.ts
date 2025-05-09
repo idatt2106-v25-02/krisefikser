@@ -1,5 +1,5 @@
-import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
-import speechService from './speechService.ts'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore'
+import speechService from './speechService'
 
 // Add type declarations for Web Speech API
 interface SpeechRecognitionEvent extends Event {

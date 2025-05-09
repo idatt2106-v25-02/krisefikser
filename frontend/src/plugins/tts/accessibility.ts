@@ -1,8 +1,8 @@
 // src/plugins/accessibility.ts
 import type { App } from 'vue' // Changed to type-only import
-import { focusManager } from '../../services/tts/focusManager.ts'
-import { useAccessibilityStore } from '../../stores/tts/accessibilityStore.ts'
-import speechService from '../../services/tts/speechService.ts'
+import { focusManager } from '../../services/tts/focusManager'
+import { useAccessibilityStore } from '../../stores/tts/accessibilityStore'
+import speechService from '../../services/tts/speechService'
 
 // Define a proper type for the binding
 interface SpeakDirectiveBinding {

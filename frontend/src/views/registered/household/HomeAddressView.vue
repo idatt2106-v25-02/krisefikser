@@ -21,7 +21,7 @@ const onSubmit = (values: any) => {
 </script>
 
 <template>
-  <div class="home-address-container my-10">
+  <div class="py-8 my-10">
     <AddressForm
       :colorTheme="colorTheme"
       :includeHouseholdName="false"
@@ -33,9 +33,3 @@ const onSubmit = (values: any) => {
     />
   </div>
 </template>
-<style scoped>
-.home-address-container {
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-}
-</style>

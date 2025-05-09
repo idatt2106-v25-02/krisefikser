@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
 import router from '@/router'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { watchEffect } from 'vue'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 // Import API hooks
@@ -10,21 +10,21 @@ import {
   useGetActiveHousehold,
   useLeaveHousehold,
   useDeleteHousehold,
-} from '@/api/generated/household/household.ts'
+} from '@/api/generated/household/household'
 import {
   useAcceptInvite,
   useDeclineInvite,
   useGetPendingInvitesForHousehold,
   useGetPendingInvitesForUser,
-} from '@/api/generated/household-invite-controller/household-invite-controller.ts'
+} from '@/api/generated/household-invite-controller/household-invite-controller'
 
 // Import components
-import HouseholdHeader from './components/HouseholdHeader.vue'
-import HouseholdMembers from './components/HouseholdMembers.vue'
-import HouseholdEmergencySuppliesCard from './components/HouseholdEmergencySuppliesCard.vue'
-import HouseholdMeetingPlaces from './components/HouseholdMeetingPlaces.vue'
-import HouseholdActions from './components/HouseholdActions.vue'
-import HouseholdDialogs from './components/HouseholdDialogs.vue'
+import HouseholdHeader from '@/components/household/HouseholdHeader.vue'
+import HouseholdMembers from '@/components/household/HouseholdMembers.vue'
+import HouseholdEmergencySuppliesCard from '@/components/household/HouseholdEmergencySuppliesCard.vue'
+import HouseholdMeetingPlaces from '@/components/household/HouseholdMeetingPlaces.vue'
+import HouseholdActions from '@/components/household/HouseholdActions.vue'
+import HouseholdDialogs from '@/components/household/HouseholdDialogs.vue'
 import InvitedPendingList from '@/components/household/InvitedPendingList.vue'
 
 // Types
@@ -334,6 +334,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
           v-model:is-meeting-map-dialog-open="isMeetingMapDialogOpen"
           v-model:is-change-household-dialog-open="isChangeHouseholdDialogOpen"
           v-model:is-preparedness-info-dialog-open="isPreparednessInfoDialogOpen"
+          class="max-w-[1250px] w-[95vw]"
           @household-updated="refetchHousehold"
           @member-added="() => {
             refetchHousehold()
@@ -374,10 +375,3 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
     </div>
   </div>
 </template>
-
-<style scoped>
-:deep(.meeting-map-dialog) {
-  max-width: 1250px;
-  width: 95vw;
-}
-</style>

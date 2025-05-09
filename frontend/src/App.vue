@@ -8,11 +8,11 @@ import ReadPageButton from '@/components/textToSpeech/ReadPageButton.vue'
 import LocationTracker from '@/components/LocationTracker.vue'
 import CookieBanner from '@/components/CookieBanner.vue'
 import router from '@/router'
-import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore'
 import { Toaster } from '@/components/ui/sonner'
-import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import { NotificationService } from '@/api/websocket/NotificationService.ts'
-import { webSocket } from '@/main.ts'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
+import { NotificationService } from '@/api/websocket/NotificationService'
+import { webSocket } from '@/main'
 
 // Get an accessibility store and set up a reactive state
 const accessibilityStore = useAccessibilityStore()

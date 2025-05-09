@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import speechService from '@/services/tts/speechService.ts'
-import { useAccessibilityStore } from '@/stores/tts/accessibilityStore.ts'
+import speechService from '@/services/tts/speechService'
+import { useAccessibilityStore } from '@/stores/tts/accessibilityStore'
 
 export interface Toast {
   id: string

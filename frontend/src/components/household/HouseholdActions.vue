@@ -1,63 +1,37 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
-import { Button } from '@/components/ui/button'
+import { ExternalLink, Trash } from 'lucide-vue-next'
 
-const _props = defineProps<{
-  householdId: string
+defineProps<{
+  isOwner: boolean
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'leave'): void
   (e: 'delete'): void
 }>()
-
-const showLeaveDialog = ref(false)
-const showDeleteDialog = ref(false)
-
-const handleLeaveHousehold = () => {
-  showLeaveDialog.value = true
-}
-
-const handleDeleteHousehold = () => {
-  showDeleteDialog.value = true
-}
-
-const confirmLeave = () => {
-  emit('leave')
-  showLeaveDialog.value = false
-}
-
-const confirmDelete = () => {
-  emit('delete')
-  showDeleteDialog.value = false
-}
 </script>
 
 <template>
-  <div class="flex gap-2">
-    <Button variant="outline" @click="handleLeaveHousehold"> Forlat husstand </Button>
-    <Button variant="destructive" @click="handleDeleteHousehold"> Slett husstand </Button>
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Husstandshandlinger</h2>
+    <div class="space-y-3">
+      <button
+        v-if="!isOwner"
+        @click="$emit('leave')"
+        class="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center hover:bg-gray-50"
+      >
+        <ExternalLink class="h-4 w-4 mr-2" />
+        Forlat husstand
+      </button>
 
-    <!-- Leave Household Confirmation -->
-    <ConfirmationDialog
-      :is-open="showLeaveDialog"
-      title="Forlate husstand"
-      description="Er du sikker på at du vil forlate denne husstanden?"
-      confirm-text="Forlat"
-      @confirm="confirmLeave"
-      @cancel="showLeaveDialog = false"
-    />
-
-    <!-- Delete Household Confirmation -->
-    <ConfirmationDialog
-      :is-open="showDeleteDialog"
-      title="Slett husstand"
-      description="Er du sikker på at du vil slette denne husstanden? Dette kan ikke angres."
-      confirm-text="Slett"
-      variant="destructive"
-      @confirm="confirmDelete"
-      @cancel="showDeleteDialog = false"
-    />
+      <button
+        v-if="isOwner"
+        @click="$emit('delete')"
+        class="w-full bg-red-100 text-red-600 py-2 px-4 rounded-md flex items-center justify-center hover:bg-red-200"
+      >
+        <Trash class="h-4 w-4 mr-2" />
+        Slett husstand
+      </button>
+    </div>
   </div>
 </template>
