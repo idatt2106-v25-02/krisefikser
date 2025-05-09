@@ -47,6 +47,7 @@ const isDataLoading = computed(() => {
 })
 
 const renderNewMapPoints = async () => {
+  console.log('renderNewMapPoints')
   clearMarkers()
 
   // Shelter and other map points (points added through admin dashboard)
@@ -119,8 +120,14 @@ onUnmounted(() => {
 })
 
 onMounted(() => {
+  console.log('onMounted')
   initMap('map', () => {
-    watch(isDataLoading, renderNewMapPoints)
+    console.log('initMap')
+    if (!isDataLoading.value) {
+      renderNewMapPoints()
+    } else {
+      watch(isDataLoading, renderNewMapPoints)
+    }
   })
 })
 
