@@ -39,7 +39,7 @@ export const useMap = () => {
       return
     }
 
-    map.value = L.map(elementId).setView(TRONDHEIM_CENTER, INITIAL_ZOOM)
+    map.value = L.map(elementId, { zoomControl: false }).setView(TRONDHEIM_CENTER, INITIAL_ZOOM)
     addTileLayer(map.value as L.Map)
     setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER, INITIAL_ZOOM)
     mapCreatedCallbacks.value.forEach((callback) => callback(map.value as L.Map))
@@ -53,25 +53,27 @@ export const useMap = () => {
     }
   }
 
-  const addMarker = (markerComponent: MarkerComponent) => {
+  const addMarkers = (markerComponents: MarkerComponent[]) => {
     if (!map.value) {
       throw new Error('Map is not initialized')
     }
 
-    const marker = L.marker([markerComponent.latitude, markerComponent.longitude], {
-      icon: L.icon({
-        iconUrl: markerComponent.iconUrl,
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32],
-      }),
-      ...markerComponent.options,
-    })
-      .addTo(map.value as L.Map)
-      .bindPopup(markerComponent.popupContent)
+    markerComponents.forEach((markerComponent) => {
+      const marker = L.marker([markerComponent.latitude, markerComponent.longitude], {
+        icon: L.icon({
+          iconUrl: markerComponent.iconUrl,
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+          popupAnchor: [0, -32],
+        }),
+        ...markerComponent.options,
+      })
+        .addTo(map.value as L.Map)
+        .bindPopup(markerComponent.popupContent)
 
-    markers.value.push(marker)
+      markers.value.push(marker)
+    })
   }
 
-  return { map, initMap, markers, addMarker, onMapCreated }
+  return { map, initMap, markers, addMarkers, onMapCreated }
 }

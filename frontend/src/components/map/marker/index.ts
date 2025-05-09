@@ -1,4 +1,4 @@
-import { createUserMarker } from './userMarker'
+import { createUserMarker } from './user'
 
 interface MarkerComponent {
   latitude: number
@@ -6,6 +6,7 @@ interface MarkerComponent {
   iconUrl: string
   popupContent: string
   options?: L.MarkerOptions
+  type: MarkerType
 }
 
 enum MarkerType {
@@ -15,6 +16,7 @@ enum MarkerType {
   Shelter = 'shelter',
   MeetingPoint = 'meetingPoint',
   HouseholdMember = 'householdMember',
+  Other = 'other',
 }
 
 const MARKER_ICONS = {
