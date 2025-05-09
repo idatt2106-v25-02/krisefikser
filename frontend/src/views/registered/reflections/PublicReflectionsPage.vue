@@ -4,25 +4,22 @@ import { useRouter } from 'vue-router';
 import { useQueryClient } from '@tanstack/vue-query';
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts';
 import {
-  useGetPublicReflections, // Using the hook for public reflections
+  useGetPublicReflections,
   useDeleteReflection,
-  getGetPublicReflectionsQueryKey // Query key for public reflections
+  getGetPublicReflectionsQueryKey
 } from '@/api/generated/reflection/reflection.ts';
 import { useGetEventById } from '@/api/generated/event/event.ts';
 import type { ReflectionResponse } from '@/api/generated/model';
 import { ReflectionResponseVisibility } from '@/api/generated/model';
 import { Button } from '@/components/ui/button';
-import {  BookOpen, Globe } from 'lucide-vue-next'; // Added Globe icon
+import {  BookOpen, Globe } from 'lucide-vue-next';
 
 const router = useRouter();
 const queryClient = useQueryClient();
-const authStore = useAuthStore(); // To check for admin/author for edit/delete
+const authStore = useAuthStore();
 
-// Fetch public reflections
 const { data: publicReflections, isLoading, error } = useGetPublicReflections<ReflectionResponse[]>({
   query: {
-    // Public reflections don't strictly need auth, but keeping enabled pattern for consistency
-    // Or set to true if the endpoint is always available
     enabled: true,
     refetchOnWindowFocus: true,
   }
@@ -49,11 +46,9 @@ const errorMessage = computed(() => {
 const formatDate = (dateInput?: string | number[] | null) => {
   if (!dateInput) return 'Ukjent dato';
 
-  // If it's an array, convert to Date
   if (Array.isArray(dateInput)) {
-    // Java months are 1-based, JS months are 0-based
     const [year, month, day, hour, minute, second, nanosecond] = dateInput;
-    const ms = Math.floor((nanosecond || 0) / 1e6); // Convert nanoseconds to milliseconds
+    const ms = Math.floor((nanosecond || 0) / 1e6);
     const date = new Date(year, month - 1, day, hour, minute, second, ms);
     if (isNaN(date.getTime())) return 'Ukjent dato';
     return date.toLocaleDateString('nb-NO', {
@@ -65,7 +60,6 @@ const formatDate = (dateInput?: string | number[] | null) => {
     });
   }
 
-  // If it's a string, try to parse as date
   const date = new Date(dateInput);
   if (isNaN(date.getTime())) return 'Ukjent dato';
   return date.toLocaleDateString('nb-NO', {
@@ -94,7 +88,7 @@ const stripHtml = (html?: string) => {
 };
 
 const canManageReflection = (reflection: ReflectionResponse) => {
-  if (!authStore.currentUser) return false; // If user not logged in, cannot manage
+  if (!authStore.currentUser) return false;
   return authStore.isAdmin || authStore.currentUser.id === reflection.authorId;
 };
 
@@ -116,7 +110,6 @@ const navigateToMyReflections = () => {
   router.push('/mine-refleksjoner');
 };
 
-// Fetch event titles for associated events
 const eventTitles = ref<Record<string, string>>({});
 const eventIdsToFetch = computed(() => {
   const ids = new Set<number>();
@@ -157,14 +150,11 @@ watch(eventIdsToFetch, (newIds) => {
   });
 }, { deep: true, immediate: true });
 
-// No onMounted auth check needed as this page is public
-
 </script>
 
 <template>
   <div class="bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Page Header with background -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <router-link
           to="/kriser"
@@ -180,7 +170,6 @@ watch(eventIdsToFetch, (newIds) => {
         </div>
       </div>
 
-      <!-- Loading state with improved animation -->
       <div v-if="isLoading" class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex justify-center">
         <div class="flex flex-col items-center">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
@@ -188,7 +177,6 @@ watch(eventIdsToFetch, (newIds) => {
         </div>
       </div>
 
-      <!-- Error state with better visual cues -->
       <div v-else-if="error" class="bg-white rounded-lg shadow-lg p-6">
         <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
           <div class="flex">
@@ -206,20 +194,17 @@ watch(eventIdsToFetch, (newIds) => {
         </div>
       </div>
 
-      <!-- Reflection cards -->
       <div v-else-if="publicReflections && publicReflections.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="reflection in publicReflections"
           :key="reflection.id"
           class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col relative border border-gray-200 transition-all duration-300 hover:shadow-lg min-h-[220px]"
         >
-          <!-- Colored top bar based on visibility -->
           <div class="h-1 w-full bg-indigo-500"></div>
 
-          <!-- Decorative corner -->
           <div class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-indigo-50/70">
             <div class="absolute top-2.5 right-2.5">
-              <Globe class="h-6 w-6 text-indigo-600" /> <!-- Globe icon for public -->
+              <Globe class="h-6 w-6 text-indigo-600" />
             </div>
           </div>
 
@@ -277,7 +262,6 @@ watch(eventIdsToFetch, (newIds) => {
         </div>
       </div>
 
-      <!-- Empty state -->
       <div v-else-if="!isLoading && !error" class="bg-white rounded-lg shadow-md p-8 text-center">
         <Globe class="mx-auto h-12 w-12 text-gray-400" />
         <h3 class="mt-2 text-xl font-medium text-gray-900">Ingen offentlige refleksjoner</h3>
@@ -290,8 +274,6 @@ watch(eventIdsToFetch, (newIds) => {
     </div>
   </div>
 </template>
-
-
 
 <style scoped>
 .line-clamp-3 {

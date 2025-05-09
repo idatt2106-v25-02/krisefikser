@@ -292,6 +292,7 @@ onUnmounted(() => {
                 class="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm px-1"
                 tabindex="0"
                 to="/personvern"
+                target="_blank"
               >
                 personvernerklæringen
               </router-link>

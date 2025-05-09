@@ -120,7 +120,6 @@ const scrollToReflection = (reflectionId: string) => {
   })
 }
 
-// Handles opening and closing the dialog
 const openNewReflectionDialog = () => {
   editingReflection.value = null
   showCreateReflectionForm.value = true
