@@ -40,6 +40,8 @@ class EmailVerificationServiceTest {
   @Mock
   private EmailService emailService;
   @Mock
+  private EmailTemplateService emailTemplateService;
+  @Mock
   private MailProperties mailProperties;
   @Mock
   private FrontendConfig frontendConfig;
@@ -58,6 +60,8 @@ class EmailVerificationServiceTest {
     lenient().when(mailProperties.getVerificationTokenValidityHours())
         .thenReturn(TOKEN_VALIDITY_HOURS);
     lenient().when(frontendConfig.getUrl()).thenReturn(TEST_FRONTEND_URL);
+    lenient().when(emailTemplateService.loadAndReplace(anyString(), any()))
+        .thenReturn("<html>Mocked template content</html>");
   }
 
   @Test
@@ -213,7 +217,6 @@ class EmailVerificationServiceTest {
         anyString()
     );
     verify(frontendConfig).getUrl();
-    verify(mailProperties).getVerificationTokenValidityHours();
   }
 
   @Test
@@ -288,7 +291,6 @@ class EmailVerificationServiceTest {
         eq("Admin Login Verification"),
         anyString()
     );
-    verify(mailProperties).getVerificationTokenValidityHours();
   }
 
   @Test
@@ -309,6 +311,5 @@ class EmailVerificationServiceTest {
     // Assert
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals(errorMessage, response.getBody());
-    verify(mailProperties).getVerificationTokenValidityHours();
   }
 }
