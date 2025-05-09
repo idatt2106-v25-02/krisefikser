@@ -54,7 +54,7 @@ const onSubmit = handleSubmit(async (values) => {
       <CardHeader class="space-y-1">
         <CardTitle class="text-2xl font-bold text-center">Glemt Passord</CardTitle>
         <CardDescription class="text-center text-gray-500" v-if="!isSubmitted">
-          Skriv inn e-postadressen din, så sender vi deg en lenke for å tilbakestille passordet ditt.
+          Skriv inn e-postadressen din, så sender vi deg en lenke for å tilbakestille passordet ditt hvis du har en bruker på nettsiden.
         </CardDescription>
       </CardHeader>
 
