@@ -11,7 +11,6 @@ import { useGetAllScenarios } from '@/api/generated/scenario/scenario.ts';
 import type { EventResponse as Event, EventResponseLevel as EventLevel, MapPointResponse as MapPoint } from '@/api/generated/model';
 import { RouterLink as Link } from 'vue-router';
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
-import { useGetAllArticles } from '@/api/generated/article/article.ts'
 
 defineEmits(['navigateToMap'])
 
@@ -40,14 +39,6 @@ const stats = [
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     borderColor: 'border-blue-200',
-  },
-  {
-    title: 'Artikler',
-    value: 0,
-    icon: FileText,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    borderColor: 'border-blue-200',
   }
 ]
 
@@ -59,9 +50,6 @@ const { data: mapPointsData } = useGetAllMapPoints<MapPoint[]>()
 
 // Fetch scenarios using TanStack Query
 const { data: scenariosData } = useGetAllScenarios();
-
-// Fetch articles using TanStack Query
-const { data: articlesData } = useGetAllArticles()
 
 // Computed properties for stats
 const activeEventsCount = computed(() => {
@@ -79,17 +67,12 @@ const scenariosCount = computed(() => {
   return scenariosData.value.length;
 });
 
-const articlesCount = computed(() => {
-  if (!articlesData.value) return 0
-  return articlesData.value.length
-})
-
 // Update stats with real data
 const updatedStats = computed(() => [
   { ...stats[0], value: activeEventsCount.value },
   { ...stats[1], value: mapPointsCount.value },
   { ...stats[2], value: scenariosCount.value },
-  { ...stats[3], value: articlesCount.value }
+  ...stats.slice(3)
 ]);
 
 const getLevelClass = (level?: EventLevel) => {
@@ -138,8 +121,6 @@ const getCardLink = (title: string) => {
       return '/admin/kart'
     case 'Scenarioer':
       return '/admin/scenarios'
-    case 'Artikler':
-      return '/admin/artikler'
     default:
       return '/admin'
   }
@@ -151,7 +132,7 @@ const getCardLink = (title: string) => {
     <h2 class="text-2xl font-bold text-gray-800 mb-6">Dashboard oversikt</h2>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <Link
         v-for="(stat, index) in updatedStats"
         :key="index"

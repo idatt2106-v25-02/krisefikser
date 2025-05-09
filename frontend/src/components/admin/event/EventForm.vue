@@ -6,7 +6,6 @@ import {
   EventResponseLevel as EventLevel,
   EventResponseStatus as EventStatus,
 } from '@/api/generated/model'
-import router from '@/router'
 
 const props = defineProps<{
   modelValue: Partial<Event>
@@ -18,6 +17,7 @@ const emit = defineEmits<{
   (e: 'submit'): void
   (e: 'cancel'): void
   (e: 'start-map-selection'): void
+  (e: 'event-created', eventId: string): void
 }>()
 
 // Create a local copy that doesn't update the original
@@ -42,7 +42,6 @@ watch(
 function handleSubmit() {
   emit('update:modelValue', JSON.parse(JSON.stringify(localValue.value)))
   emit('submit')
-  router.push({ name: 'event-detail' })
 }
 
 function handleCancel() {
