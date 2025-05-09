@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/stores/auth/useAuthStore'
 
 interface Shelter {
   id: number
@@ -44,6 +45,7 @@ const mapInstance = ref<L.Map | null>(null)
 const userLocationAvailable = ref(false)
 const showUserLocation = ref(true)
 const userInCrisisZone = ref(false)
+const authStore = useAuthStore()
 
 // Meeting point state
 const showMeetingPointForm = ref(false)
@@ -63,6 +65,7 @@ const { data: eventsData, isLoading: isLoadingEvents } = useGetAllEvents()
 const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold({
   query: {
     retry: 0,
+    enabled: authStore.isAuthenticated,
   },
 })
 

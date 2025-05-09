@@ -1,17 +1,10 @@
-<!-- ArticleManagementView.vue -->
-<script setup lang="ts">
-import AdminLayout from '@/components/admin/AdminLayout.vue';
-import { ref, computed } from 'vue';
-import {
-  Pencil,
-  Trash2,
-  Plus,
-  Search,
-  Image as ImageIcon
-} from 'lucide-vue-next';
+<script lang="ts" setup>
+import AdminLayout from '@/components/admin/AdminLayout.vue'
+import { computed, ref } from 'vue'
+import { Image as ImageIcon, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next'
 
 // Import shadcn components
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -19,161 +12,147 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 
 // Import API hooks
 import {
-  useGetAllArticles,
   useCreateArticle,
+  useDeleteArticle,
+  useGetAllArticles,
   useUpdateArticle,
-  useDeleteArticle
-} from '@/api/generated/article/article';
-import type { ArticleRequest, ArticleResponse } from '@/api/generated/model';
+} from '@/api/generated/article/article'
+import type { ArticleRequest, ArticleResponse } from '@/api/generated/model'
+import { formatDate } from '../../api/Utils.ts'
 
 // State
-const showDialog = ref(false);
-const isEditing = ref(false);
-const searchQuery = ref('');
-const selectedArticle = ref<ArticleResponse | null>(null);
+const showDialog = ref(false)
+const isEditing = ref(false)
+const searchQuery = ref('')
+const selectedArticle = ref<ArticleResponse | null>(null)
 
 // Form state
 const articleForm = ref<ArticleRequest>({
   title: '',
   text: '',
-  imageUrl: ''
-});
+  imageUrl: '',
+})
 
 // Fetch articles using TanStack Query
-const { data: articlesData, isLoading: isLoadingArticles, refetch: refetchArticles } = useGetAllArticles();
+const {
+  data: articlesData,
+  isLoading: isLoadingArticles,
+  refetch: refetchArticles,
+} = useGetAllArticles()
 
 // Create article mutation
 const { mutate: createArticleMutation } = useCreateArticle({
   mutation: {
     onSuccess: () => {
-      refetchArticles();
-      closeDialog();
-    }
-  }
-});
+      refetchArticles()
+      closeDialog()
+    },
+  },
+})
 
 // Update article mutation
 const { mutate: updateArticleMutation } = useUpdateArticle({
   mutation: {
     onSuccess: () => {
-      refetchArticles();
-      closeDialog();
-    }
-  }
-});
+      refetchArticles()
+      closeDialog()
+    },
+  },
+})
 
 // Delete article mutation
 const { mutate: deleteArticleMutation } = useDeleteArticle({
   mutation: {
     onSuccess: () => {
-      refetchArticles();
-    }
-  }
-});
+      refetchArticles()
+    },
+  },
+})
 
 // Filter articles
 const filteredArticles = computed(() => {
-  if (!articlesData.value) return [];
-  let result = [...articlesData.value];
+  if (!articlesData.value) return []
+  let result = [...articlesData.value]
 
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    result = result.filter(article =>
-      article.title.toLowerCase().includes(query) ||
-      article.text.toLowerCase().includes(query)
-    );
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(
+      (article) =>
+        article.title.toLowerCase().includes(query) || article.text.toLowerCase().includes(query),
+    )
   }
 
-  return result;
-});
+  return result
+})
 
 // Open dialog for creating/editing
 const openDialog = (article?: ArticleResponse) => {
   if (article) {
-    isEditing.value = true;
-    selectedArticle.value = article;
+    isEditing.value = true
+    selectedArticle.value = article
     articleForm.value = {
       title: article.title,
       text: article.text,
-      imageUrl: article.imageUrl
-    };
+      imageUrl: article.imageUrl,
+    }
   } else {
-    isEditing.value = false;
-    selectedArticle.value = null;
+    isEditing.value = false
+    selectedArticle.value = null
     articleForm.value = {
       title: '',
       text: '',
-      imageUrl: ''
-    };
+      imageUrl: '',
+    }
   }
-  showDialog.value = true;
-};
+  showDialog.value = true
+}
 
 // Close dialog and reset form
 const closeDialog = () => {
-  showDialog.value = false;
-  selectedArticle.value = null;
+  showDialog.value = false
+  selectedArticle.value = null
   articleForm.value = {
     title: '',
     text: '',
-    imageUrl: ''
-  };
-};
+    imageUrl: '',
+  }
+}
 
 // Handle form submission
 const handleSubmit = () => {
   if (isEditing.value && selectedArticle.value) {
     updateArticleMutation({
       id: selectedArticle.value.id,
-      data: articleForm.value
-    });
+      data: articleForm.value,
+    })
   } else {
     createArticleMutation({
-      data: articleForm.value
-    });
+      data: articleForm.value,
+    })
   }
-};
+}
 
 // Delete article
 const deleteArticle = (id: number) => {
   if (confirm('Er du sikker på at du vil slette denne artikkelen?')) {
-    deleteArticleMutation({ id });
+    deleteArticleMutation({ id })
   }
-};
+}
 
 // Open image in new tab
 const openImageInNewTab = (url: string) => {
-  const link = document.createElement('a');
-  link.href = url;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.click();
-};
-
-// Format date
-const formatDate = (dateArray: number[]) => {
-  const date = new Date(Date.UTC(
-    dateArray[0], // year
-    dateArray[1] - 1, // month (0-based)
-    dateArray[2], // day
-    dateArray[3], // hour
-    dateArray[4], // minute
-    dateArray[5] // second
-  ));
-  return date.toLocaleDateString('nb-NO', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
+  const link = document.createElement('a')
+  link.href = url
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  link.click()
+}
 </script>
 
 <template>
@@ -182,8 +161,8 @@ const formatDate = (dateArray: number[]) => {
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Administrer artikler</h2>
         <Button
-          variant="default"
           class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
+          variant="default"
           @click="openDialog()"
         >
           <Plus class="h-4 w-4 mr-1" />
@@ -198,9 +177,9 @@ const formatDate = (dateArray: number[]) => {
             <Search class="h-4 w-4 text-gray-500" />
             <input
               v-model="searchQuery"
-              type="text"
-              placeholder="Søk artikler..."
               class="bg-transparent border-0 outline-none ml-2 text-gray-700 w-full"
+              placeholder="Søk artikler..."
+              type="text"
             />
           </div>
         </div>
@@ -217,13 +196,22 @@ const formatDate = (dateArray: number[]) => {
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    scope="col"
+                  >
                     Tittel
                   </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    scope="col"
+                  >
                     Opprettet
                   </th>
-                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    scope="col"
+                  >
                     Handlinger
                   </th>
                 </tr>
@@ -234,8 +222,8 @@ const formatDate = (dateArray: number[]) => {
                     <div class="flex items-center">
                       <img
                         v-if="article.imageUrl"
-                        :src="article.imageUrl"
                         :alt="article.title"
+                        :src="article.imageUrl"
                         class="h-10 w-10 rounded-full object-cover mr-3"
                       />
                       <div class="text-sm font-medium text-gray-900">{{ article.title }}</div>
@@ -247,17 +235,17 @@ const formatDate = (dateArray: number[]) => {
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div class="flex justify-center space-x-2">
                       <Button
-                        variant="ghost"
-                        size="icon"
                         class="text-blue-600 hover:text-blue-800"
+                        size="icon"
+                        variant="ghost"
                         @click="openDialog(article)"
                       >
                         <Pencil class="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="ghost"
-                        size="icon"
                         class="text-red-600 hover:text-red-800"
+                        size="icon"
+                        variant="ghost"
                         @click="deleteArticle(article.id)"
                       >
                         <Trash2 class="h-4 w-4" />
@@ -272,18 +260,19 @@ const formatDate = (dateArray: number[]) => {
       </div>
 
       <!-- Create/Edit Dialog -->
-      <Dialog :open="showDialog" @update:open="val => !val && closeDialog()">
+      <Dialog :open="showDialog" @update:open="(val) => !val && closeDialog()">
         <DialogContent class="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{{ isEditing ? 'Rediger artikkel' : 'Opprett ny artikkel' }}</DialogTitle>
             <DialogDescription>
-              Fyll ut informasjonen under for å {{ isEditing ? 'oppdatere' : 'opprette' }} artikkelen.
+              Fyll ut informasjonen under for å
+              {{ isEditing ? 'oppdatere' : 'opprette' }} artikkelen.
             </DialogDescription>
           </DialogHeader>
 
-          <form @submit.prevent="handleSubmit" class="space-y-4">
+          <form class="space-y-4" @submit.prevent="handleSubmit">
             <div class="space-y-2">
-              <label for="title" class="text-sm font-medium text-gray-700">Tittel</label>
+              <label class="text-sm font-medium text-gray-700" for="title">Tittel</label>
               <Input
                 id="title"
                 v-model="articleForm.title"
@@ -293,7 +282,7 @@ const formatDate = (dateArray: number[]) => {
             </div>
 
             <div class="space-y-2">
-              <label for="imageUrl" class="text-sm font-medium text-gray-700">Bilde URL</label>
+              <label class="text-sm font-medium text-gray-700" for="imageUrl">Bilde URL</label>
               <div class="flex space-x-2">
                 <Input
                   id="imageUrl"
@@ -302,11 +291,11 @@ const formatDate = (dateArray: number[]) => {
                   required
                 />
                 <Button
+                  :disabled="!articleForm.imageUrl"
+                  class="flex-shrink-0"
                   type="button"
                   variant="outline"
-                  class="flex-shrink-0"
                   @click="openImageInNewTab(articleForm.imageUrl)"
-                  :disabled="!articleForm.imageUrl"
                 >
                   <ImageIcon class="h-4 w-4" />
                 </Button>
@@ -314,28 +303,19 @@ const formatDate = (dateArray: number[]) => {
             </div>
 
             <div class="space-y-2">
-              <label for="text" class="text-sm font-medium text-gray-700">Innhold</label>
+              <label class="text-sm font-medium text-gray-700" for="text">Innhold</label>
               <Textarea
                 id="text"
                 v-model="articleForm.text"
                 placeholder="Skriv inn artikkelinnhold"
-                rows="10"
                 required
+                rows="10"
               />
             </div>
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                @click="closeDialog"
-              >
-                Avbryt
-              </Button>
-              <Button
-                type="submit"
-                variant="default"
-              >
+              <Button type="button" variant="outline" @click="closeDialog"> Avbryt</Button>
+              <Button type="submit" variant="default">
                 {{ isEditing ? 'Oppdater' : 'Opprett' }}
               </Button>
             </DialogFooter>
@@ -351,7 +331,7 @@ const formatDate = (dateArray: number[]) => {
   max-height: calc(100vh - 300px);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #CBD5E0 #EDF2F7;
+  scrollbar-color: #cbd5e0 #edf2f7;
 }
 
 .overflow-x-auto::-webkit-scrollbar {
@@ -359,17 +339,17 @@ const formatDate = (dateArray: number[]) => {
 }
 
 .overflow-x-auto::-webkit-scrollbar-track {
-  background: #EDF2F7;
+  background: #edf2f7;
   border-radius: 4px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: #CBD5E0;
+  background-color: #cbd5e0;
   border-radius: 4px;
-  border: 2px solid #EDF2F7;
+  border: 2px solid #edf2f7;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background-color: #A0AEC0;
+  background-color: #a0aec0;
 }
 </style>
