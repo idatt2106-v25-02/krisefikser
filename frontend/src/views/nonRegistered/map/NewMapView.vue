@@ -6,30 +6,47 @@ import loadMapPoints from '@/components/map/marker/mapPoints'
 import NewMapComponent from '@/components/map/NewMapComponent.vue'
 import { useMap } from '@/components/map/useMap'
 import type { Map as LeafletMap } from 'leaflet'
-import { watchEffect } from 'vue'
+import { watch } from 'vue'
 
-const { data: mapPointsData } = useGetAllMapPoints()
-const { data: mapPointTypesData } = useGetAllMapPointTypes()
+const { data: newMapPointsData } = useGetAllMapPoints()
+const { data: newMapPointTypesData } = useGetAllMapPointTypes()
 
-const { initMap, addMarkers, onMapCreated } = useMap()
+const {
+  initMap: newInitMap,
+  addMarkers: newAddMarkers,
+  onMapCreated: newOnMapCreated,
+  clearMarkers: newClearMarkers,
+} = useMap()
 
-onMapCreated(async (_mapInstance: LeafletMap) => {
-  watchEffect(() => {
-    if (mapPointsData.value && mapPointTypesData.value) {
-      const mapPoints = loadMapPoints(mapPointsData.value, mapPointTypesData.value)
-      addMarkers(mapPoints)
-    }
-  })
+const renderNewMapPoints = async () => {
+  newClearMarkers()
+
+  const stopDataLoadWatcher = watch(
+    [newMapPointsData, newMapPointTypesData],
+    ([newMapPoints, newMapPointTypes]) => {
+      if (newMapPoints && newMapPointTypes) {
+        console.log('Map points size', newMapPoints.length)
+        const mapPoints = loadMapPoints(newMapPoints, newMapPointTypes)
+        newAddMarkers(mapPoints)
+        stopDataLoadWatcher()
+      }
+    },
+    { immediate: true },
+  )
 
   const userMarker = await createUserMarker()
-  addMarkers([userMarker])
+  newAddMarkers([userMarker])
+}
+
+newOnMapCreated(async (_mapInstance: LeafletMap) => {
+  renderNewMapPoints()
 })
 </script>
 
 <template>
   <div class="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
     <div class="relative flex-grow overflow-hidden">
-      <NewMapComponent :init-map="initMap" />
+      <NewMapComponent :init-map="newInitMap" />
     </div>
   </div>
 </template>
