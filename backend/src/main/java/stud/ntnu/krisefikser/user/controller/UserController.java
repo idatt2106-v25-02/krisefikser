@@ -8,12 +8,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +36,6 @@ import stud.ntnu.krisefikser.user.service.UserService;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Tag(name = "User", description = "User management APIs")
-@Validated
 public class UserController {
 
   /**
@@ -135,7 +132,7 @@ public class UserController {
   })
   @PutMapping("/location")
   public ResponseEntity<UserResponse> updateCurrentUserLocation(
-      @Parameter(description = "Location coordinates") @RequestBody @Valid UserLocationRequest locationRequest) {
+      @Parameter(description = "Location coordinates") @RequestBody UserLocationRequest locationRequest) {
     User currentUser = userService.getCurrentUser();
 
     // Check if location sharing is enabled before attempting to update

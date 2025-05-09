@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -72,7 +71,7 @@ public class ReflectionController {
       @ApiResponse(responseCode = "401", description = "User not authenticated")
   })
   public ResponseEntity<ReflectionResponse> createReflection(
-      @Parameter(description = "Reflection data") @Valid @RequestBody CreateReflectionRequest request) {
+      @Parameter(description = "Reflection data") @RequestBody CreateReflectionRequest request) {
     ReflectionResponse createdReflection = reflectionService.createReflection(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdReflection);
   }
@@ -122,7 +121,7 @@ public class ReflectionController {
   })
   public ResponseEntity<ReflectionResponse> updateReflection(
       @Parameter(description = "Reflection ID") @PathVariable UUID id,
-      @Parameter(description = "Updated reflection data") @Valid @RequestBody UpdateReflectionRequest request) {
+      @Parameter(description = "Updated reflection data") @RequestBody UpdateReflectionRequest request) {
     ReflectionResponse updatedReflection = reflectionService.updateReflection(id, request);
     return ResponseEntity.ok(updatedReflection);
   }
@@ -277,7 +276,7 @@ public class ReflectionController {
   })
   public ResponseEntity<ReflectionResponse> adminUpdateReflection(
       @Parameter(description = "Reflection ID") @PathVariable UUID id,
-      @Parameter(description = "Updated reflection data") @Valid @RequestBody UpdateReflectionRequest request) {
+      @Parameter(description = "Updated reflection data") @RequestBody UpdateReflectionRequest request) {
     // Using the same service method as regular update, as it already checks for
     // admin privileges
     ReflectionResponse updatedReflection = reflectionService.updateReflection(id, request);
