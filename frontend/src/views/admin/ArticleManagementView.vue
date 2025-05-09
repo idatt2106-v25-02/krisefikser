@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import AdminLayout from '@/components/admin/AdminLayout.vue'
 import { computed, ref } from 'vue'
-import { Image as ImageIcon, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next'
+import { Image as ImageIcon, Pencil, Plus, Trash2 } from 'lucide-vue-next'
 
-// Import shadcn components
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,7 +15,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
-// Import API hooks
+// Import our new components
+import PageHeader from '@/components/ui/page-header/PageHeader.vue'
+import SearchBar from '@/components/ui/search/SearchBar.vue'
+import DataTable from '@/components/ui/data-table/DataTable.vue'
+import ContentCard from '@/components/ui/card/ContentCard.vue'
+
 import {
   useCreateArticle,
   useDeleteArticle,
@@ -26,27 +30,23 @@ import {
 import type { ArticleRequest, ArticleResponse } from '@/api/generated/model'
 import { formatDate } from '../../api/Utils.ts'
 
-// State
 const showDialog = ref(false)
 const isEditing = ref(false)
 const searchQuery = ref('')
 const selectedArticle = ref<ArticleResponse | null>(null)
 
-// Form state
 const articleForm = ref<ArticleRequest>({
   title: '',
   text: '',
   imageUrl: '',
 })
 
-// Fetch articles using TanStack Query
 const {
   data: articlesData,
   isLoading: isLoadingArticles,
   refetch: refetchArticles,
 } = useGetAllArticles()
 
-// Create article mutation
 const { mutate: createArticleMutation } = useCreateArticle({
   mutation: {
     onSuccess: () => {
@@ -90,6 +90,12 @@ const filteredArticles = computed(() => {
 
   return result
 })
+
+const tableColumns = [
+  { key: 'title', label: 'Tittel', align: 'left' as const },
+  { key: 'createdAt', label: 'Opprettet', align: 'left' as const },
+  { key: 'actions', label: 'Handlinger', align: 'center' as const },
+]
 
 // Open dialog for creating/editing
 const openDialog = (article?: ArticleResponse) => {
@@ -158,106 +164,67 @@ const openImageInNewTab = (url: string) => {
 <template>
   <AdminLayout>
     <div class="p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Administrer artikler</h2>
-        <Button
-          class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
-          variant="default"
-          @click="openDialog()"
-        >
-          <Plus class="h-4 w-4 mr-1" />
-          Ny artikkel
-        </Button>
-      </div>
+      <PageHeader title="Administrer artikler">
+        <template #actions>
+          <Button
+            class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
+            variant="default"
+            @click="openDialog()"
+          >
+            <Plus class="h-4 w-4 mr-1" />
+            Ny artikkel
+          </Button>
+        </template>
+      </PageHeader>
 
-      <!-- Search -->
-      <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+      <ContentCard>
         <div class="p-4 flex items-center border-b">
-          <div class="flex items-center rounded-lg bg-gray-100 px-3 py-2 w-full md:w-64">
-            <Search class="h-4 w-4 text-gray-500" />
-            <input
-              v-model="searchQuery"
-              class="bg-transparent border-0 outline-none ml-2 text-gray-700 w-full"
-              placeholder="Søk artikler..."
-              type="text"
-            />
-          </div>
+          <SearchBar v-model="searchQuery" placeholder="Søk artikler..." />
         </div>
 
-        <!-- Loading state -->
-        <div v-if="isLoadingArticles" class="p-8 text-center">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-          <p class="mt-2 text-gray-500">Laster artikler...</p>
-        </div>
-
-        <!-- Articles list -->
-        <div v-else class="relative">
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Tittel
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Opprettet
-                  </th>
-                  <th
-                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    scope="col"
-                  >
-                    Handlinger
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="article in filteredArticles" :key="article.id" class="hover:bg-gray-50">
-                  <td class="px-6 py-4">
-                    <div class="flex items-center">
-                      <img
-                        v-if="article.imageUrl"
-                        :alt="article.title"
-                        :src="article.imageUrl"
-                        class="h-10 w-10 rounded-full object-cover mr-3"
-                      />
-                      <div class="text-sm font-medium text-gray-900">{{ article.title }}</div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ formatDate(article.createdAt) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div class="flex justify-center space-x-2">
-                      <Button
-                        class="text-blue-600 hover:text-blue-800"
-                        size="icon"
-                        variant="ghost"
-                        @click="openDialog(article)"
-                      >
-                        <Pencil class="h-4 w-4" />
-                      </Button>
-                      <Button
-                        class="text-red-600 hover:text-red-800"
-                        size="icon"
-                        variant="ghost"
-                        @click="deleteArticle(article.id)"
-                      >
-                        <Trash2 class="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+        <DataTable
+          :columns="tableColumns"
+          :is-loading="isLoadingArticles"
+          empty-message="Ingen artikler funnet"
+        >
+          <tr v-for="article in filteredArticles" :key="article.id" class="hover:bg-gray-50">
+            <td class="px-4 py-4">
+              <div class="flex items-center">
+                <img
+                  v-if="article.imageUrl"
+                  :alt="article.title"
+                  :src="article.imageUrl"
+                  class="h-10 w-10 rounded-full object-cover mr-3"
+                />
+                <div class="text-sm font-medium text-gray-900">{{ article.title }}</div>
+              </div>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ formatDate(article.createdAt) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex justify-center space-x-2">
+                <Button
+                  class="text-blue-600 hover:text-blue-800"
+                  size="icon"
+                  variant="ghost"
+                  @click="openDialog(article)"
+                >
+                  <Pencil class="h-4 w-4" />
+                </Button>
+                <Button
+                  class="text-red-600 hover:text-red-800"
+                  size="icon"
+                  variant="ghost"
+                  @click="deleteArticle(article.id)"
+                >
+                  <Trash2 class="h-4 w-4" />
+                </Button>
+              </div>
+            </td>
+          </tr>
+        </DataTable>
+      </ContentCard>
 
       <!-- Create/Edit Dialog -->
       <Dialog :open="showDialog" @update:open="(val) => !val && closeDialog()">
@@ -325,31 +292,3 @@ const openImageInNewTab = (url: string) => {
     </div>
   </AdminLayout>
 </template>
-
-<style scoped>
-.overflow-x-auto {
-  max-height: calc(100vh - 300px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e0 #edf2f7;
-}
-
-.overflow-x-auto::-webkit-scrollbar {
-  width: 8px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: #edf2f7;
-  border-radius: 4px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: #cbd5e0;
-  border-radius: 4px;
-  border: 2px solid #edf2f7;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background-color: #a0aec0;
-}
-</style>

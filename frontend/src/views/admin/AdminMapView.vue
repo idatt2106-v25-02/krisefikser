@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import MapPointTypesManager from '@/components/admin/map/MapPointTypesManager.vue'
 import MapPointsManager from '@/components/admin/map/MapPointsManager.vue'
 import EventsManager from '@/components/admin/event/EventsManager.vue'
@@ -7,18 +7,12 @@ import AdminMapContainer from '@/components/admin/map/AdminMapContainer.vue'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
 import { useGetAllEvents } from '@/api/generated/event/event.ts'
-import type { EventResponse as Event, MapPointResponse as MapPoint } from '@/api/generated/model'
 
-// Types
 type AdminTab = 'map-point-types' | 'map-points' | 'events'
 
 // Data fetching
-const { data: mapPointsData } = useGetAllMapPoints()
-const { data: eventsData } = useGetAllEvents()
-
-// Ensure data is arrays
-const mapPoints = computed(() => (mapPointsData.value as MapPoint[]) || [])
-const events = computed(() => (eventsData.value as Event[]) || [])
+const { data: mapPoints } = useGetAllMapPoints()
+const { data: events } = useGetAllEvents()
 
 // Form states
 const activeTab = ref<AdminTab>('map-point-types')
