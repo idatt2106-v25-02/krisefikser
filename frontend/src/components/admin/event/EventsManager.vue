@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref } from 'vue'
+<script lang="ts" setup>
+import { ref, watch } from 'vue'
 import type { EventResponse as Event } from '@/api/generated/model'
 import {
   EventResponseLevel as EventLevel,
@@ -7,19 +7,56 @@ import {
 } from '@/api/generated/model'
 import {
   useCreateEvent,
+  useDeleteEvent,
   useGetAllEvents,
   useUpdateEvent,
-  useDeleteEvent,
 } from '@/api/generated/event/event.ts'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point.ts'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import EventForm from './EventForm.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
-const { data: eventsData, refetch: refetchEvents } = useGetAllEvents()
-const events = ref<Event[]>(Array.isArray(eventsData.value) ? eventsData.value : [])
-const { refetch: refetchMapPoints } = useGetAllMapPoints()
+const router = useRouter()
+// Use staleTime to prevent too frequent refetches
+const { data: events, refetch: refetchEvents } = useGetAllEvents({
+  query: {
+    staleTime: 1000, // 1 second stale time to prevent immediate refetches
+  },
+})
+const { refetch: refetchMapPoints } = useGetAllMapPoints({
+  query: {
+    staleTime: 1000,
+  },
+})
+
+const createEventMutation = useCreateEvent({
+  mutation: {
+    onSuccess: () => {
+      refetchEvents()
+      refetchMapPoints()
+    },
+  },
+})
+
+const updateEventMutation = useUpdateEvent({
+  mutation: {
+    onSuccess: () => {
+      refetchEvents()
+      refetchMapPoints()
+    },
+  },
+})
+
+const deleteEventMutation = useDeleteEvent({
+  mutation: {
+    onSuccess: () => {
+      refetchEvents()
+      refetchMapPoints()
+    },
+  },
+})
 
 const newEvent = ref({
   title: '',
@@ -36,34 +73,14 @@ const editingEvent = ref<Event | null>(null)
 const isDialogOpen = ref(false)
 const isMapSelectionMode = ref(false)
 
-const { mutate: createEvent } = useCreateEvent({
-  mutation: {
-    onSuccess: () => {
-      refetchEvents()
-      refetchMapPoints()
-    },
-  },
-})
-const { mutate: updateEvent } = useUpdateEvent({
-  mutation: {
-    onSuccess: () => {
-      refetchEvents()
-      refetchMapPoints()
-    },
-  },
-})
-const { mutate: deleteEvent } = useDeleteEvent({
-  mutation: {
-    onSuccess: () => {
-      refetchEvents()
-      refetchMapPoints()
-    },
-  },
-})
+const props = defineProps<{
+  mapCoordinates?: { lat: number; lng: number } | null
+}>()
 
 const emit = defineEmits<{
   (e: 'map-click', lat: number, lng: number): void
   (e: 'map-selection-mode-change', isActive: boolean): void
+  (e: 'map-coordinates-handled'): void
 }>()
 
 function _handleMapClick(lat: number, lng: number) {
@@ -97,7 +114,7 @@ async function handleAddEvent() {
   }
 
   try {
-    await createEvent({
+    const response = await createEventMutation.mutateAsync({
       data: {
         title: newEvent.value.title,
         description: newEvent.value.description,
@@ -110,6 +127,8 @@ async function handleAddEvent() {
         status: newEvent.value.status,
       },
     })
+
+    // Reset form
     newEvent.value = {
       title: '',
       description: '',
@@ -120,6 +139,11 @@ async function handleAddEvent() {
       startTime: new Date().toISOString(),
       endTime: undefined,
       status: EventStatus.UPCOMING,
+    }
+
+    // Route to the new event's detail page
+    if (response.id) {
+      router.push(`/kriser/${response.id}`)
     }
   } catch (error) {
     console.error('Error creating event:', error)
@@ -138,10 +162,21 @@ async function handleUpdateEvent() {
   }
 
   try {
-    await updateEvent({
+    await updateEventMutation.mutateAsync({
       id: editingEvent.value.id,
-      data: editingEvent.value,
+      data: {
+        title: editingEvent.value.title,
+        description: editingEvent.value.description,
+        radius: editingEvent.value.radius,
+        latitude: editingEvent.value.latitude,
+        longitude: editingEvent.value.longitude,
+        level: editingEvent.value.level,
+        startTime: editingEvent.value.startTime,
+        endTime: editingEvent.value.endTime,
+        status: editingEvent.value.status,
+      },
     })
+
     editingEvent.value = null
     isDialogOpen.value = false
   } catch (error) {
@@ -151,7 +186,7 @@ async function handleUpdateEvent() {
 
 async function handleDeleteEvent(id: number) {
   try {
-    await deleteEvent({ id })
+    await deleteEventMutation.mutateAsync({ id })
   } catch (error) {
     console.error('Error deleting event:', error)
   }
@@ -167,6 +202,33 @@ function handleDialogCancel() {
   editingEvent.value = null
   isDialogOpen.value = false
 }
+
+// Modify the @cancel handler in the template to use a local function that breaks reactivity
+function resetNewEvent() {
+  newEvent.value = {
+    title: '',
+    description: '',
+    radius: 500,
+    latitude: 63.4305,
+    longitude: 10.3951,
+    level: EventLevel.GREEN,
+    startTime: new Date().toISOString(),
+    endTime: undefined,
+    status: EventStatus.UPCOMING,
+  }
+}
+
+// Watch for incoming map coordinates
+watch(
+  () => props.mapCoordinates,
+  (coordinates) => {
+    if (coordinates && isMapSelectionMode.value) {
+      _handleMapClick(coordinates.lat, coordinates.lng)
+      emit('map-coordinates-handled')
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -175,20 +237,8 @@ function handleDialogCancel() {
     <EventForm
       v-model="newEvent"
       title="Legg til ny krisehendelse"
+      @cancel="resetNewEvent"
       @submit="handleAddEvent"
-      @cancel="
-        newEvent = {
-          title: '',
-          description: '',
-          radius: 500,
-          latitude: 63.4305,
-          longitude: 10.3951,
-          level: EventLevel.GREEN,
-          startTime: new Date().toISOString(),
-          endTime: undefined,
-          status: EventStatus.UPCOMING,
-        }
-      "
       @start-map-selection="handleStartMapSelection"
     />
 
@@ -205,13 +255,13 @@ function handleDialogCancel() {
             </p>
           </div>
           <div class="flex space-x-2">
-            <button @click="handleEditClick(event)" class="text-primary hover:text-primary/80">
+            <button class="text-primary hover:text-primary/80" @click="handleEditClick(event)">
               Rediger
             </button>
             <button
               v-if="event.id"
-              @click="handleDeleteEvent(event.id)"
               class="text-red-500 hover:text-red-600"
+              @click="handleDeleteEvent(event.id)"
             >
               Slett
             </button>
@@ -230,8 +280,8 @@ function handleDialogCancel() {
           v-if="editingEvent"
           v-model="editingEvent"
           title=""
-          @submit="handleUpdateEvent"
           @cancel="handleDialogCancel"
+          @submit="handleUpdateEvent"
           @start-map-selection="handleStartMapSelection"
         />
       </DialogContent>

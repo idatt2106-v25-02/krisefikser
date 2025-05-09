@@ -482,7 +482,12 @@ class AuthServiceTest {
     when(userService.getCurrentUser()).thenReturn(currentUser);
     when(currentUser.getId()).thenReturn(UUID.randomUUID());
     when(currentUser.getPassword()).thenReturn("encoded-old-password");
+    when(currentUser.getEmail()).thenReturn("test@example.com");
     when(passwordEncoder.matches(oldPassword, "encoded-old-password")).thenReturn(true);
+    when(tokenService.generateResetPasswordToken(anyString())).thenReturn("reset-token");
+    when(jwtProperties.getResetPasswordTokenExpiration()).thenReturn(3600000L);
+    when(emailVerificationService.sendPasswordChangeNotification(any(), anyString(), anyLong()))
+        .thenReturn(ResponseEntity.ok("Email sent successfully"));
 
     // Act
     UpdatePasswordResponse response = authService.updatePassword(updatePasswordRequest);
@@ -490,10 +495,13 @@ class AuthServiceTest {
     // Assert
     assertThat(response).isNotNull();
     assertThat(response.isSuccess()).isTrue();
-    assertThat(response.getMessage()).isEqualTo("Password updated");
+    assertThat(response.getMessage()).isEqualTo("Password updated successfully");
 
     verify(userService).getCurrentUser();
     verify(userService).updatePassword(any(UUID.class), eq(newPassword));
+    verify(tokenService).generateResetPasswordToken(anyString());
+    verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
+    verify(emailVerificationService).sendPasswordChangeNotification(any(), anyString(), anyLong());
   }
 
   @Test
@@ -508,12 +516,13 @@ class AuthServiceTest {
 
     when(userService.getCurrentUser()).thenReturn(currentUser);
     when(currentUser.getPassword()).thenReturn("encoded-password");
+    when(currentUser.getEmail()).thenReturn("test@example.com");
     when(passwordEncoder.matches(oldPassword, "encoded-password")).thenReturn(false);
 
     // Act & Assert
     assertThatThrownBy(() -> authService.updatePassword(updatePasswordRequest))
         .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Invalid password");
+        .hasMessage("Current password is incorrect");
 
     verify(userService).getCurrentUser();
     verify(userService, never()).updatePassword(any(UUID.class), anyString());

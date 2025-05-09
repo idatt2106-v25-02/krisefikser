@@ -145,7 +145,7 @@ const { mutate: declineInvite } = useDeclineInvite({
 
 // Fetch pending invites for this household
 const householdId = computed(() => household.value?.id ?? '')
-const { data: householdPendingInvites } =
+const { data: householdPendingInvites, refetch: refetchHouseholdPendingInvites } =
   useGetPendingInvitesForHousehold(householdId, {
     query: {
       enabled: computed(() => !!householdId.value),
@@ -267,7 +267,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
           <div class="lg:col-span-4 space-y-6">
             <!-- Meeting Places Section -->
             <HouseholdMeetingPlaces
-              :meeting-places="household.meetingPlaces ?? []"
+              :household-id="household.id"
               :household-latitude="household.latitude"
               :household-longitude="household.longitude"
               @meeting-place-selected="handleMeetingPlaceSelected"
@@ -287,6 +287,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
                 .map(invite => ({
                   id: invite.id ?? '',
                   status: 'PENDING',
+                  invitedEmail: invite.invitedEmail,
                   household: invite.household ? {
                     name: invite.household.name ?? ''
                   } : undefined,
@@ -300,6 +301,7 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
                 .map(invite => ({
                   id: invite.id ?? '',
                   status: 'DECLINED',
+                  invitedEmail: invite.invitedEmail,
                   household: invite.household ? {
                     name: invite.household.name ?? ''
                   } : undefined,
@@ -320,7 +322,10 @@ function handleMeetingPlaceSelected(place: MeetingPlace) {
           v-model:is-change-household-dialog-open="isChangeHouseholdDialogOpen"
           v-model:is-preparedness-info-dialog-open="isPreparednessInfoDialogOpen"
           @household-updated="refetchHousehold"
-          @member-added="refetchHousehold"
+          @member-added="() => {
+            refetchHousehold()
+            refetchHouseholdPendingInvites()
+          }"
           @active-household-changed="() => {
             refetchHousehold()
             refetchAllHouseholds()

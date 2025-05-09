@@ -1,5 +1,6 @@
 package stud.ntnu.krisefikser.auth.service;
 
+import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -9,6 +10,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -307,17 +310,47 @@ public class AuthService {
   @Transactional
   public UpdatePasswordResponse updatePassword(UpdatePasswordRequest updatePasswordRequest) {
     User user = userService.getCurrentUser();
+    log.info("Starting password update process for user: {}", user.getEmail());
 
+    // Verify current password
     if (!passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword())) {
-      throw new InvalidCredentialsException("Invalid password");
+      log.warn("Password update failed - incorrect current password for user: {}", user.getEmail());
+      throw new InvalidCredentialsException("Current password is incorrect");
     }
 
+    // Update password
+    log.info("Updating password for user: {}", user.getEmail());
     userService.updatePassword(user.getId(), updatePasswordRequest.getPassword());
 
-    return UpdatePasswordResponse.builder()
-        .message("Password updated")
-        .success(true)
+    // Generate reset token for security
+    log.info("Generating reset token for user: {}", user.getEmail());
+    String token = tokenService.generateResetPasswordToken(user.getEmail());
+    long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
+
+    // Save token
+    PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+        .token(token)
+        .user(user)
+        .expiryDate(Instant.now().plus(Duration.ofHours(expirationHours)))
         .build();
+
+    passwordResetTokenRepository.save(passwordResetToken);
+    log.info("Reset token saved for user: {}", user.getEmail());
+
+    // Send notification email with reset link
+    String resetLink = frontendUrl + "/verifiser-passord-tilbakestilling?token=" +
+        java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
+    log.info("Sending password change notification email to: {}", user.getEmail());
+    ResponseEntity<String> emailResponse = emailVerificationService.sendPasswordChangeNotification(user, resetLink, expirationHours);
+
+    if (emailResponse.getStatusCode().is2xxSuccessful()) {
+      log.info("Password change notification email sent successfully to: {}", user.getEmail());
+    } else {
+      log.error("Failed to send password change notification email to: {}. Status: {}, Response: {}",
+          user.getEmail(), emailResponse.getStatusCode(), emailResponse.getBody());
+    }
+
+    return new UpdatePasswordResponse("Password updated successfully", true);
   }
 
   /**

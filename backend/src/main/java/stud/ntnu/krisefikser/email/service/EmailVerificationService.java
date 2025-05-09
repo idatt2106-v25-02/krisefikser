@@ -1,6 +1,9 @@
 package stud.ntnu.krisefikser.email.service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +25,13 @@ import stud.ntnu.krisefikser.user.entity.User;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailVerificationService {
 
   private final VerificationTokenRepository tokenRepository;
   private final EmailService emailService;
   private final MailProperties mailProperties;
+  private final EmailTemplateService emailTemplateService;
   private final FrontendConfig frontendConfig;
 
   /**
@@ -180,5 +185,51 @@ public class EmailVerificationService {
         + "<p>If you did not attempt to log in, please contact the system administrator immediately"
         + ".</p>"
         + "</body></html>";
+  }
+
+  /**
+   * Sends a password change notification email to the user.
+   *
+   * @param user            The user whose password was changed
+   * @param resetLink       The password reset link in case the change was unauthorized
+   * @param expirationHours The number of hours until the reset link expires
+   * @return A ResponseEntity containing the response from the email service
+   */
+  public ResponseEntity<String> sendPasswordChangeNotification(User user, String resetLink,
+      long expirationHours) {
+    try {
+      log.info("Preparing password change notification email for user: {}", user.getEmail());
+
+      Map<String, String> variables = new HashMap<>();
+      variables.put("firstName", user.getFirstName());
+      variables.put("resetLink", resetLink);
+      variables.put("expirationHours", String.valueOf(expirationHours));
+
+      log.debug("Loading email template with variables: {}", variables);
+      String content =
+          emailTemplateService.loadAndReplace("password-change-notification.html", variables);
+
+      log.info("Sending password change notification email to: {}", user.getEmail());
+      ResponseEntity<String> response = emailService.sendEmail(
+          user.getEmail(),
+          "Password Change Notification",
+          content
+      );
+
+      if (response.getStatusCode().is2xxSuccessful()) {
+        log.info("Successfully sent password change notification email to: {}", user.getEmail());
+      } else {
+        log.error(
+            "Failed to send password change notification email to: {}. Status: {}, Response: {}",
+            user.getEmail(), response.getStatusCode(), response.getBody());
+      }
+
+      return response;
+    } catch (Exception e) {
+      log.error("Error sending password change notification email to: {}. Error: {}",
+          user.getEmail(), e.getMessage(), e);
+      return ResponseEntity.internalServerError()
+          .body("Failed to send password change notification: " + e.getMessage());
+    }
   }
 }

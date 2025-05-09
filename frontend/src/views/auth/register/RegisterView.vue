@@ -1,35 +1,37 @@
-<script setup lang="ts">
-import { onMounted, ref, onUnmounted, nextTick } from 'vue'
+<script lang="ts" setup>
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
-import { User, Mail } from 'lucide-vue-next'
+import { Mail, User } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth/useAuthStore.ts'
 import { toast } from 'vue-sonner'
-
-// Declare the global turnstile object
-declare const turnstile: {
-  render: (container: string | HTMLElement, options: {
-    sitekey: string
-    callback?: (token: string) => void
-    'error-callback'?: () => void
-    'expired-callback'?: () => void
-    theme?: 'light' | 'dark' | 'auto'
-    size?: 'normal' | 'compact'
-    tabindex?: number
-    'response-field'?: boolean
-    'response-field-name'?: string
-  }) => string
-  reset: (widgetId?: string) => void
-  getResponse: (widgetId?: string) => string
-  remove: (widgetId?: string) => void
-}
-
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import PasswordInput from '@/components/auth/PasswordInput.vue'
 import { useRouter } from 'vue-router'
+
+// Declare the global turnstile object
+declare const turnstile: {
+  render: (
+    container: string | HTMLElement,
+    options: {
+      sitekey: string
+      callback?: (token: string) => void
+      'error-callback'?: () => void
+      'expired-callback'?: () => void
+      theme?: 'light' | 'dark' | 'auto'
+      size?: 'normal' | 'compact'
+      tabindex?: number
+      'response-field'?: boolean
+      'response-field-name'?: string
+    },
+  ) => string
+  reset: (widgetId?: string) => void
+  getResponse: (widgetId?: string) => string
+  remove: (widgetId?: string) => void
+}
 
 const router = useRouter()
 
@@ -136,11 +138,9 @@ const onSubmit = handleSubmit(async (values) => {
       ...registrationData,
       turnstileToken: captchaToken.value,
     })
-    toast('Suksess', {
-      description: 'Kontoen din er opprettet og du er nå logget inn',
-    })
+    toast('Suksess')
     await router.push('/bekreft-e-post')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     // Reset the captcha on failed registration
     resetTurnstile()
@@ -193,8 +193,8 @@ onUnmounted(() => {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-white py-12">
     <form
-      @submit="onSubmit"
       class="w-full max-w-sm p-8 border border-gray-200 rounded-xl shadow-sm bg-white space-y-5"
+      @submit="onSubmit"
     >
       <h1 class="text-3xl font-bold text-center">Registrer deg</h1>
 
@@ -208,9 +208,9 @@ onUnmounted(() => {
                 class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
               />
               <Input
-                type="text"
-                placeholder="Ola"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Ola"
+                type="text"
                 v-bind="componentField"
               />
             </div>
@@ -229,9 +229,9 @@ onUnmounted(() => {
                 class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
               />
               <Input
-                type="text"
-                placeholder="Nordmann"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Nordmann"
+                type="text"
                 v-bind="componentField"
               />
             </div>
@@ -251,9 +251,9 @@ onUnmounted(() => {
               />
               <Input
                 ref="emailInputRef"
-                type="email"
-                placeholder="navn@eksempel.no"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="navn@eksempel.no"
+                type="email"
                 v-bind="componentField"
               />
             </div>
@@ -265,25 +265,25 @@ onUnmounted(() => {
       <!-- Password field using component -->
       <FormField v-slot="{ componentField }" name="password">
         <PasswordInput
-          name="password"
-          label="Passord"
-          placeholder="********"
           :componentField="componentField"
-          :showToggle="true"
-          :showIcon="true"
           :showComplexityRequirements="true"
+          :showIcon="true"
+          :showToggle="true"
+          label="Passord"
+          name="password"
+          placeholder="********"
         />
       </FormField>
 
       <!-- Confirm Password using component -->
       <FormField v-slot="{ componentField }" name="confirmPassword">
         <PasswordInput
-          name="confirmPassword"
-          label="Bekreft passord"
-          placeholder="********"
           :componentField="componentField"
-          :showToggle="true"
           :showIcon="true"
+          :showToggle="true"
+          label="Bekreft passord"
+          name="confirmPassword"
+          placeholder="********"
         />
       </FormField>
       <!-- Accept Privacy Policy -->
@@ -292,29 +292,30 @@ onUnmounted(() => {
           <div class="flex items-start space-x-2">
             <FormControl>
               <input
-                type="checkbox"
+                id="acceptedPrivacyPolicy"
+                :aria-checked="value"
                 :checked="value"
+                aria-label="Godta personvernerklæringen"
+                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                role="checkbox"
+                tabindex="0"
+                type="checkbox"
                 @change="handleChange(($event.target as HTMLInputElement)?.checked ?? false)"
                 @keydown.enter.prevent="handleChange(!value)"
                 @keydown.space.prevent="handleChange(!value)"
-                id="acceptedPrivacyPolicy"
-                class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                tabindex="0"
-                role="checkbox"
-                :aria-checked="value"
-                aria-label="Godta personvernerklæringen"
               />
             </FormControl>
             <label
-              for="acceptedPrivacyPolicy"
               class="text-sm text-gray-700 cursor-pointer select-none"
+              for="acceptedPrivacyPolicy"
             >
               Jeg godtar
               <router-link
-                to="/personvern"
+                aria-label="Åpne personvernerklæringen"
                 class="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm px-1"
                 tabindex="0"
-                aria-label="Åpne personvernerklæringen"
+                to="/personvern"
+                target="_blank"
               >
                 personvernerklæringen
               </router-link>
@@ -329,9 +330,9 @@ onUnmounted(() => {
 
       <!-- Submit button -->
       <Button
-        type="submit"
         :disabled="!meta.valid || isLoading || !captchaToken"
         class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-md text-sm font-medium"
+        type="submit"
       >
         <template v-if="isLoading">Oppretter konto...</template>
         <template v-else>Registrer deg</template>
@@ -341,7 +342,7 @@ onUnmounted(() => {
       <div class="text-sm text-center space-y-2">
         <div>
           <span class="text-gray-600">Har du allerede en konto?</span>
-          <a href="/logg-inn" class="ml-1 text-blue-600 hover:underline">Logg inn</a>
+          <a class="ml-1 text-blue-600 hover:underline" href="/logg-inn">Logg inn</a>
         </div>
       </div>
     </form>
