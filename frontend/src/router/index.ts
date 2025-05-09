@@ -48,7 +48,7 @@ import ScenariosListView from '@/views/nonRegistered/scenario/ScenariosListView.
 import ScenarioDetailView from '@/views/nonRegistered/scenario/ScenarioDetailView.vue'
 import KriserPage from '@/views/nonRegistered/event/KriserPage.vue'
 import EventDetailPage from '@/views/nonRegistered/event/EventDetailPage.vue'
-import MyReflectionsPage from '@/views/user/MyReflectionsPage.vue'
+import MyReflectionsPage from '@/views/registered/reflections/MyReflectionsPage.vue'
 import ReflectionDetailView from '@/views/registered/reflections/ReflectionDetailView.vue'
 import NotificationsView from '@/views/registered/notification/NotificationView.vue'
 import NotificationDetailView from '@/views/registered/notification/NotificationDetailView.vue'
