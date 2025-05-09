@@ -1,7 +1,7 @@
 package stud.ntnu.krisefikser.item.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,9 +35,8 @@ public class CreateFoodItemRequest {
   /**
    * Nutritional value in kilocalories. More than zero.
    */
-  @Positive
-  @NotBlank(message = "Kcal is required")
-  private Integer kcal;
+  @Min(value = 0, message = "Calories cannot be negative")
+  private int kcal;
 
   /**
    * Date and time when the food item expires.

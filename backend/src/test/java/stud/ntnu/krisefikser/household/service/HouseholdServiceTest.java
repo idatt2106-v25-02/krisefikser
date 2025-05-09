@@ -315,6 +315,24 @@ class HouseholdServiceTest {
   }
 
   @Test
+  void getAllHouseholds_ShouldReturnAllHouseholds() {
+    // Arrange
+    List<Household> households = Collections.singletonList(testHousehold);
+    when(householdRepository.findAll()).thenReturn(households);
+    when(userService.getCurrentUser()).thenReturn(testUser);
+    when(householdMemberService.getMembers(any())).thenReturn(mockMembersList);
+
+    // Act
+    List<HouseholdResponse> result = householdService.getAllHouseholds();
+
+    // Assert
+    assertThat(result).isNotNull();
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getId()).isEqualTo(householdId);
+    verify(householdRepository).findAll();
+  }
+
+  @Test
   void leaveHousehold_WhenNotMember_ShouldThrowException() {
     // Arrange
     when(userService.getCurrentUser()).thenReturn(testUser);
@@ -331,6 +349,64 @@ class HouseholdServiceTest {
     verify(householdMemberService).isMemberOfHousehold(testUser, testHousehold);
     verify(userService, never()).updateActiveHousehold(any());
     verify(householdMemberService, never()).removeMember(any(), any());
+  }
+
+  @Test
+  void leaveHousehold_WhenMemberButNotOwner_ShouldRemoveMember() {
+    // Arrange
+    User otherUser = User.builder()
+        .id(UUID.randomUUID())
+        .email("other@example.com")
+        .build();
+
+    testHousehold.setOwner(otherUser); // Make someone else the owner
+    testUser.setActiveHousehold(testHousehold);
+
+    when(userService.getCurrentUser()).thenReturn(testUser);
+    when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
+    when(householdMemberService.isMemberOfHousehold(testUser, testHousehold)).thenReturn(true);
+    doNothing().when(userService).updateActiveHousehold(any());
+    doNothing().when(householdMemberService).removeMember(testHousehold, testUser);
+
+    // Act
+    householdService.leaveHousehold(householdId);
+
+    // Assert
+    verify(userService).getCurrentUser();
+    verify(householdRepository).findById(householdId);
+    verify(householdMemberService).isMemberOfHousehold(testUser, testHousehold);
+    verify(householdMemberService).removeMember(testHousehold, testUser);
+    verify(userService).updateActiveHousehold(null);
+  }
+
+  @Test
+  void leaveHousehold_WhenOwner_ShouldThrowException() {
+    // Arrange
+    when(userService.getCurrentUser()).thenReturn(testUser);
+    when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
+    when(householdMemberService.isMemberOfHousehold(testUser, testHousehold)).thenReturn(true);
+
+    // Act & Assert
+    assertThatThrownBy(() -> householdService.leaveHousehold(householdId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Owner cannot leave the household");
+  }
+
+  @Test
+  void deleteHouseholdAdmin_ShouldDeleteHousehold() {
+    // Arrange
+    when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
+    when(householdMemberService.getMembers(householdId)).thenReturn(mockMembersList);
+    doNothing().when(householdRepository).deleteById(householdId);
+
+    // Act
+    householdService.deleteHouseholdAdmin(householdId);
+
+    // Assert
+    verify(householdRepository).findById(householdId);
+    verify(householdMemberService).getMembers(householdId);
+    verify(checklistItemService).deleteAllByHousehold(testHousehold);
+    verify(householdRepository).deleteById(householdId);
   }
 
   @Test
@@ -371,6 +447,65 @@ class HouseholdServiceTest {
     verify(userService).getCurrentUser();
     verify(householdRepository).findById(householdId);
     verify(householdRepository, never()).deleteById(any());
+  }
+
+  @Test
+  void updateHousehold_WhenExists_ShouldUpdateAndReturnHousehold() {
+    // Arrange
+    when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
+    when(householdRepository.save(testHousehold)).thenReturn(testHousehold);
+    when(userService.getCurrentUser()).thenReturn(testUser);
+    when(householdMemberService.getMembers(any())).thenReturn(mockMembersList);
+
+    // Act
+    HouseholdResponse response = householdService.updateHousehold(householdId,
+        createHouseholdRequest);
+
+    // Assert
+    assertThat(response).isNotNull();
+    assertThat(testHousehold.getName()).isEqualTo(createHouseholdRequest.getName());
+    assertThat(testHousehold.getAddress()).isEqualTo(createHouseholdRequest.getAddress());
+    verify(householdRepository).findById(householdId);
+    verify(householdRepository).save(testHousehold);
+  }
+
+  @Test
+  void updateHousehold_WhenNotExists_ShouldThrowException() {
+    // Arrange
+    when(householdRepository.findById(householdId)).thenReturn(Optional.empty());
+
+    // Act & Assert
+    assertThatThrownBy(() -> householdService.updateHousehold(householdId, createHouseholdRequest))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Household not found");
+  }
+
+  @Test
+  void updateActiveHousehold_WhenActiveHouseholdExists_ShouldUpdateAndReturnHousehold() {
+    // Arrange
+    testUser.setActiveHousehold(testHousehold);
+    when(userService.getCurrentUser()).thenReturn(testUser);
+    when(householdRepository.findById(householdId)).thenReturn(Optional.of(testHousehold));
+    when(householdRepository.save(testHousehold)).thenReturn(testHousehold);
+    when(householdMemberService.getMembers(any())).thenReturn(mockMembersList);
+
+    // Act
+    HouseholdResponse response = householdService.updateActiveHousehold(createHouseholdRequest);
+
+    // Assert
+    assertThat(response).isNotNull();
+    verify(userService, times(2)).getCurrentUser();
+  }
+
+  @Test
+  void updateActiveHousehold_WhenNoActiveHousehold_ShouldThrowException() {
+    // Arrange
+    testUser.setActiveHousehold(null);
+    when(userService.getCurrentUser()).thenReturn(testUser);
+
+    // Act & Assert
+    assertThatThrownBy(() -> householdService.updateActiveHousehold(createHouseholdRequest))
+        .isInstanceOf(HouseholdNotFoundException.class);
   }
 
   @Test

@@ -25,14 +25,10 @@ import stud.ntnu.krisefikser.user.entity.User;
 /**
  * Entity representing a user's reflection after a disaster.
  *
- * <p>
- * Reflections allow users to document their experiences and thoughts after
- * experiencing a disaster or emergency situation. They can be shared publicly,
- * kept private, or shared only with household members, depending on the chosen
- * visibility.
+ * <p>Reflections allow users to document their experiences and thoughts after experiencing a
+ * disaster or emergency situation. They can be shared publicly, kept private, or shared only with
+ * household members, depending on the chosen visibility.
  * </p>
- *
- * @since 1.0
  */
 @Entity
 @Data

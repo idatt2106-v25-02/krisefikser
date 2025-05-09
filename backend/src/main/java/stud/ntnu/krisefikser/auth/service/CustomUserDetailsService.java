@@ -13,8 +13,7 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
  * authentication.
  *
  * <p>This class is responsible for retrieving user details from the database and converting them
- * into
- * a format suitable for Spring Security.
+ * into a format suitable for Spring Security.
  */
 @Service
 @RequiredArgsConstructor

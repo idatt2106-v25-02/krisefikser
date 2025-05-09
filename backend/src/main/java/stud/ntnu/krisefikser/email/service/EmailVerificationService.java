@@ -1,6 +1,5 @@
 package stud.ntnu.krisefikser.email.service;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,13 +7,22 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import stud.ntnu.krisefikser.config.FrontendConfig;
+import stud.ntnu.krisefikser.email.config.MailProperties;
 import stud.ntnu.krisefikser.email.entity.VerificationToken;
 import stud.ntnu.krisefikser.email.repository.VerificationTokenRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 
+/**
+ * Service class for handling email verification tokens and sending verification emails.
+ *
+ * <p>This service is responsible for creating, verifying, and sending email verification tokens to
+ * users. It also handles the sending of password reset emails and admin login verification
+ * emails.</p>
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -22,14 +30,19 @@ public class EmailVerificationService {
 
   private final VerificationTokenRepository tokenRepository;
   private final EmailService emailService;
+  private final MailProperties mailProperties;
   private final EmailTemplateService emailTemplateService;
+  private final FrontendConfig frontendConfig;
 
-  @Value("${verification.token.validity-hours:24}")
-  private int tokenValidityHours;
-
-  @Value("${frontend.url}")
-  private String frontendUrl;
-
+  /**
+   * Creates a new verification token for the specified user.
+   *
+   * <p>This method deletes any existing unused tokens for the user before creating a new one.</p>
+   *
+   * @param user the user for whom the verification token is created
+   * @return the newly created verification token
+   */
+  @Transactional
   public VerificationToken createVerificationToken(User user) {
     // Delete any existing unused tokens for this user
     Optional<VerificationToken> existingToken = tokenRepository.findByUserAndUsed(user, false);
@@ -39,13 +52,24 @@ public class EmailVerificationService {
     VerificationToken token = VerificationToken.builder()
         .token(UUID.randomUUID().toString())
         .user(user)
-        .expiryDate(LocalDateTime.now().plusHours(tokenValidityHours))
+        .expiryDate(
+            LocalDateTime.now().plusHours(mailProperties.getVerificationTokenValidityHours()))
         .used(false)
         .build();
 
     return tokenRepository.save(token);
   }
 
+  /**
+   * Verifies the provided token and marks it as used if valid.
+   *
+   * <p>This method checks if the token is valid, not used, and not expired. If valid, it marks the
+   * token as used and updates the user's email verification status.</p>
+   *
+   * @param token the token to verify
+   * @return true if the token is valid and successfully verified, false otherwise
+   */
+  @Transactional
   public boolean verifyToken(String token) {
     Optional<VerificationToken> verificationToken = tokenRepository.findByToken(token);
 
@@ -66,71 +90,74 @@ public class EmailVerificationService {
     return true;
   }
 
+  /**
+   * Sends a verification email to the specified user.
+   *
+   * <p>This method constructs the verification email content and sends it using the email service.
+   * It includes a link to verify the user's email address.</p>
+   *
+   * @param user  the user to whom the verification email is sent
+   * @param token the verification token to include in the email
+   * @return the response entity containing the email sending result
+   */
   public ResponseEntity<String> sendVerificationEmail(User user, VerificationToken token) {
-    try {
-      String verificationLink = frontendUrl + "/verify?token=" + token.getToken();
+    String verificationLink = frontendConfig.getUrl() + "/verify?token=" + token.getToken();
 
-      Map<String, String> variables = new HashMap<>();
-      variables.put("name", user.getFirstName());
-      variables.put("link", verificationLink);
+    Map<String, String> variables = new HashMap<>();
+    variables.put("name", user.getFirstName());
+    variables.put("link", verificationLink);
 
-      String htmlContent = emailTemplateService.loadAndReplace("verification.html", variables);
+    String htmlContent = emailTemplateService.loadAndReplace("verification.html", variables);
 
-      return emailService.sendEmail(
-          user.getEmail(),
-          "Please verify your email address",
-          htmlContent
-      );
-    } catch (IOException e) {
-      log.error("Error sending verification email to: {}. Error: {}",
-          user.getEmail(), e.getMessage(), e);
-      return ResponseEntity.internalServerError()
-          .body("Failed to send verification email: " + e.getMessage());
-    }
+    return emailService.sendEmail(
+        user.getEmail(),
+        "Please verify your email address",
+        htmlContent
+    );
   }
 
+  /**
+   * Sends a password reset email to the specified user.
+   *
+   * @param user            the user requesting the password reset
+   * @param resetLink       the password reset link
+   * @param expirationHours the number of hours until the reset link expires
+   */
   public ResponseEntity<String> sendPasswordResetEmail(User user, String resetLink,
       long expirationHours) {
-    try {
-      Map<String, String> variables = new HashMap<>();
-      variables.put("name", user.getFirstName());
-      variables.put("link", resetLink);
+    Map<String, String> variables = new HashMap<>();
+    variables.put("name", user.getFirstName());
+    variables.put("link", resetLink);
 
-      String htmlContent = emailTemplateService.loadAndReplace("password-reset.html", variables);
+    String htmlContent = emailTemplateService.loadAndReplace("password-reset.html", variables);
 
-      return emailService.sendEmail(
-          user.getEmail(),
-          "Reset your password",
-          htmlContent
-      );
-    } catch (IOException e) {
-      log.error("Error sending password reset email to: {}. Error: {}",
-          user.getEmail(), e.getMessage(), e);
-      return ResponseEntity.internalServerError()
-          .body("Failed to send password reset email: " + e.getMessage());
-    }
+    return emailService.sendEmail(
+        user.getEmail(),
+        "Reset your password",
+        htmlContent
+    );
   }
 
+  /**
+   * Sends an admin login verification email to the specified user.
+   *
+   * @param user             the admin user attempting to log in
+   * @param verificationLink the verification link for admin login
+   */
   public ResponseEntity<String> sendAdminLoginVerificationEmail(User user,
       String verificationLink) {
-    try {
-      Map<String, String> variables = new HashMap<>();
-      variables.put("name", user.getFirstName());
-      variables.put("link", verificationLink);
+    Map<String, String> variables = new HashMap<>();
+    variables.put("name", user.getFirstName());
+    variables.put("link", verificationLink);
 
-      String htmlContent = emailTemplateService.loadAndReplace("admin-login-verification.html", variables);
+    String htmlContent = emailTemplateService.loadAndReplace("admin-login-verification.html",
+        variables);
 
-      return emailService.sendEmail(
-          user.getEmail(),
-          "Admin Login Verification",
-          htmlContent
-      );
-    } catch (IOException e) {
-      log.error("Error sending admin login verification email to: {}. Error: {}",
-          user.getEmail(), e.getMessage(), e);
-      return ResponseEntity.internalServerError()
-          .body("Failed to send admin login verification email: " + e.getMessage());
-    }
+    return emailService.sendEmail(
+        user.getEmail(),
+        "Admin Login Verification",
+        htmlContent
+    );
   }
 
   /**

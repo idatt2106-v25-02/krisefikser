@@ -25,13 +25,10 @@ import stud.ntnu.krisefikser.user.service.UserService;
 /**
  * Service for managing reflections.
  *
- * <p>
- * Provides business logic for creating, retrieving, updating, and deleting
+ * <p>Provides business logic for creating, retrieving, updating, and deleting
  * reflections,
  * with appropriate access controls based on visibility settings and user roles.
  * </p>
- *
- * @since 1.0
  */
 @Service
 @RequiredArgsConstructor

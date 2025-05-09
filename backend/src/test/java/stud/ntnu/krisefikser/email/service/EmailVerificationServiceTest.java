@@ -8,10 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import java.io.IOException;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,7 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
+import stud.ntnu.krisefikser.config.FrontendConfig;
+import stud.ntnu.krisefikser.email.config.MailProperties;
 import stud.ntnu.krisefikser.email.entity.VerificationToken;
 import stud.ntnu.krisefikser.email.repository.VerificationTokenRepository;
 import stud.ntnu.krisefikser.user.entity.User;
@@ -31,20 +33,21 @@ import stud.ntnu.krisefikser.user.entity.User;
 @ExtendWith(MockitoExtension.class)
 class EmailVerificationServiceTest {
 
+  private static final String TEST_FRONTEND_URL = "http://localhost:3000";
+  private static final long TOKEN_VALIDITY_HOURS = 24;
   @Mock
   private VerificationTokenRepository tokenRepository;
-
   @Mock
   private EmailService emailService;
-
   @Mock
   private EmailTemplateService emailTemplateService;
-
+  @Mock
+  private MailProperties mailProperties;
+  @Mock
+  private FrontendConfig frontendConfig;
   @InjectMocks
   private EmailVerificationService emailVerificationService;
-
   private User testUser;
-  private static final String TEST_FRONTEND_URL = "http://localhost:3000";
 
   @BeforeEach
   void setUp() {
@@ -54,8 +57,11 @@ class EmailVerificationServiceTest {
     testUser.setFirstName("Test");
     testUser.setEmailVerified(false);
 
-    ReflectionTestUtils.setField(emailVerificationService, "tokenValidityHours", 24);
-    ReflectionTestUtils.setField(emailVerificationService, "frontendUrl", TEST_FRONTEND_URL);
+    lenient().when(mailProperties.getVerificationTokenValidityHours())
+        .thenReturn(TOKEN_VALIDITY_HOURS);
+    lenient().when(frontendConfig.getUrl()).thenReturn(TEST_FRONTEND_URL);
+    lenient().when(emailTemplateService.loadAndReplace(anyString(), any()))
+        .thenReturn("<html>Mocked template content</html>");
   }
 
   @Test
@@ -76,6 +82,7 @@ class EmailVerificationServiceTest {
     assertTrue(token.getExpiryDate().isAfter(LocalDateTime.now()));
     assertEquals(testUser, token.getUser());
     verify(tokenRepository).save(any(VerificationToken.class));
+    verify(mailProperties).getVerificationTokenValidityHours();
   }
 
   @Test
@@ -94,6 +101,7 @@ class EmailVerificationServiceTest {
     verify(tokenRepository).delete(existingToken);
     assertNotNull(newToken);
     assertNotEquals(existingToken, newToken);
+    verify(mailProperties).getVerificationTokenValidityHours();
   }
 
   @Test
@@ -160,7 +168,29 @@ class EmailVerificationServiceTest {
   }
 
   @Test
-  void sendVerificationEmail_Success() throws IOException {
+  void verifyToken_AlreadyUsedToken() {
+    // Arrange
+    String tokenString = UUID.randomUUID().toString();
+    VerificationToken token = VerificationToken.builder()
+        .token(tokenString)
+        .user(testUser)
+        .expiryDate(LocalDateTime.now().plusHours(24))
+        .used(true)
+        .build();
+
+    when(tokenRepository.findByToken(tokenString))
+        .thenReturn(Optional.of(token));
+
+    // Act
+    boolean result = emailVerificationService.verifyToken(tokenString);
+
+    // Assert
+    assertFalse(result);
+    verify(tokenRepository, never()).save(any(VerificationToken.class));
+  }
+
+  @Test
+  void sendVerificationEmail_Success() {
     // Arrange
     String tokenString = UUID.randomUUID().toString();
     VerificationToken token = VerificationToken.builder()
@@ -171,14 +201,12 @@ class EmailVerificationServiceTest {
         .build();
 
     ResponseEntity<String> expectedResponse = ResponseEntity.ok("Email sent successfully");
-    when(emailTemplateService.loadAndReplace(anyString(), any()))
-        .thenReturn("<html>Template content</html>");
     when(emailService.sendEmail(anyString(), anyString(), anyString()))
         .thenReturn(expectedResponse);
 
     // Act
-    ResponseEntity<String> response =
-        emailVerificationService.sendVerificationEmail(testUser, token);
+    ResponseEntity<String> response = emailVerificationService.sendVerificationEmail(testUser,
+        token);
 
     // Assert
     assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -188,17 +216,16 @@ class EmailVerificationServiceTest {
         eq("Please verify your email address"),
         anyString()
     );
+    verify(frontendConfig).getUrl();
   }
 
   @Test
-  void sendPasswordResetEmail_Success() throws IOException {
+  void sendPasswordResetEmail_Success() {
     // Arrange
     String resetLink = TEST_FRONTEND_URL + "/verifiser-passord-tilbakestilling?token=test-token";
     long expirationHours = 24;
     ResponseEntity<String> expectedResponse = ResponseEntity.ok("Email sent successfully");
 
-    when(emailTemplateService.loadAndReplace(anyString(), any()))
-        .thenReturn("<html>Template content</html>");
     when(emailService.sendEmail(anyString(), anyString(), anyString()))
         .thenReturn(expectedResponse);
 
@@ -220,14 +247,12 @@ class EmailVerificationServiceTest {
   }
 
   @Test
-  void sendPasswordResetEmail_ClientError() throws IOException {
+  void sendPasswordResetEmail_ClientError() {
     // Arrange
     String resetLink = TEST_FRONTEND_URL + "/verifiser-passord-tilbakestilling?token=test-token";
     long expirationHours = 24;
     String errorMessage = "Invalid email address";
 
-    when(emailTemplateService.loadAndReplace(anyString(), any()))
-        .thenReturn("<html>Template content</html>");
     when(emailService.sendEmail(anyString(), anyString(), anyString()))
         .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
 
@@ -244,13 +269,11 @@ class EmailVerificationServiceTest {
   }
 
   @Test
-  void sendAdminLoginVerificationEmail_Success() throws IOException {
+  void sendAdminLoginVerificationEmail_Success() {
     // Arrange
     String verificationLink = TEST_FRONTEND_URL + "/admin-verifisering?token=test-token";
     ResponseEntity<String> expectedResponse = ResponseEntity.ok("Email sent successfully");
 
-    when(emailTemplateService.loadAndReplace(anyString(), any()))
-        .thenReturn("<html>Template content</html>");
     when(emailService.sendEmail(anyString(), anyString(), anyString()))
         .thenReturn(expectedResponse);
 
@@ -271,13 +294,11 @@ class EmailVerificationServiceTest {
   }
 
   @Test
-  void sendAdminLoginVerificationEmail_ClientError() throws IOException {
+  void sendAdminLoginVerificationEmail_ClientError() {
     // Arrange
     String verificationLink = TEST_FRONTEND_URL + "/admin-verifisering?token=test-token";
     String errorMessage = "Invalid email address";
 
-    when(emailTemplateService.loadAndReplace(anyString(), any()))
-        .thenReturn("<html>Template content</html>");
     when(emailService.sendEmail(anyString(), anyString(), anyString()))
         .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
 
@@ -290,82 +311,5 @@ class EmailVerificationServiceTest {
     // Assert
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     assertEquals(errorMessage, response.getBody());
-  }
-
-  @Test
-  void sendPasswordChangeNotification_Success() throws IOException {
-    // Arrange
-    String resetLink = TEST_FRONTEND_URL + "/reset-password?token=test-token";
-    long expirationHours = 24;
-    ResponseEntity<String> expectedResponse = ResponseEntity.ok("Email sent successfully");
-
-    when(emailTemplateService.loadAndReplace(eq("password-change-notification.html"), any()))
-        .thenReturn("<html>Template content</html>");
-    when(emailService.sendEmail(anyString(), anyString(), anyString()))
-        .thenReturn(expectedResponse);
-
-    // Act
-    ResponseEntity<String> response = emailVerificationService.sendPasswordChangeNotification(
-        testUser,
-        resetLink,
-        expirationHours
-    );
-
-    // Assert
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("Email sent successfully", response.getBody());
-    verify(emailTemplateService).loadAndReplace(eq("password-change-notification.html"), any());
-    verify(emailService).sendEmail(
-        eq(testUser.getEmail()),
-        eq("Password Change Notification"),
-        anyString()
-    );
-  }
-
-  @Test
-  void sendPasswordChangeNotification_ClientError() throws IOException {
-    // Arrange
-    String resetLink = TEST_FRONTEND_URL + "/reset-password?token=test-token";
-    long expirationHours = 24;
-    String errorMessage = "Invalid email address";
-
-    when(emailTemplateService.loadAndReplace(eq("password-change-notification.html"), any()))
-        .thenReturn("<html>Template content</html>");
-    when(emailService.sendEmail(anyString(), anyString(), anyString()))
-        .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
-
-    // Act
-    ResponseEntity<String> response = emailVerificationService.sendPasswordChangeNotification(
-        testUser,
-        resetLink,
-        expirationHours
-    );
-
-    // Assert
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertEquals(errorMessage, response.getBody());
-  }
-
-  @Test
-  void sendPasswordChangeNotification_Exception() throws IOException {
-    // Arrange
-    String resetLink = TEST_FRONTEND_URL + "/reset-password?token=test-token";
-    long expirationHours = 24;
-    String errorMessage = "Template loading error";
-
-    when(emailTemplateService.loadAndReplace(eq("password-change-notification.html"), any()))
-        .thenThrow(new IOException(errorMessage));
-
-    // Act
-    ResponseEntity<String> response = emailVerificationService.sendPasswordChangeNotification(
-        testUser,
-        resetLink,
-        expirationHours
-    );
-
-    // Assert
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    assertTrue(response.getBody().contains(errorMessage));
-    verify(emailService, never()).sendEmail(anyString(), anyString(), anyString());
   }
 }

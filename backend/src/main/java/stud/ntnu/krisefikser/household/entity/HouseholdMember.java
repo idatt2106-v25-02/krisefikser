@@ -45,6 +45,12 @@ public class HouseholdMember {
   @JoinColumn(name = "household_id")
   private Household household;
 
+  /**
+   * Converts to HouseholdMemberResponse without user location data. This should only be used when
+   * getting household members.
+   *
+   * @return HouseholdMemberResponse without user location data
+   */
   public HouseholdMemberResponse toDto() {
     return new HouseholdMemberResponse(
         user.toDto());

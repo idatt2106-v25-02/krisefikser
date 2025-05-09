@@ -6,4 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export type VerifyAdminInviteToken200 = { [key: string]: string }
+export interface VerifyAdminTokenResponse {
+  email: string
+}

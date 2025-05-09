@@ -18,8 +18,8 @@ public class CreateGuestRequest {
 
   @NotBlank(message = "Name of guest is required")
   private String name;
-  @NotBlank(message = "Icon is required")
+
   private String icon;
-  @NotBlank(message = "Consumption multiplier is required")
+
   private double consumptionMultiplier;
 }

@@ -20,15 +20,13 @@ public class CreateHouseholdRequest {
 
   @NotBlank(message = "Household name is required")
   private String name;
-  @NotBlank(message = "Latitude is required")
   private double latitude;
-  @NotBlank(message = "Longitude is required")
   private double longitude;
   @NotBlank(message = "Address is required")
   private String address;
   @NotBlank(message = "City is required")
   private String city;
-  @NotBlank(message = "State is required")
+  @NotBlank(message = "Postal code is required")
   private String postalCode;
 
   /**
