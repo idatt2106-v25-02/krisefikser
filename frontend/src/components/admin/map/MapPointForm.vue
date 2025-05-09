@@ -15,6 +15,7 @@ const emit = defineEmits<{
   (e: 'submit'): void
   (e: 'cancel'): void
   (e: 'start-map-selection'): void
+  (e: 'update:modelValue', value: Partial<MapPoint>): void
 }>()
 
 const { data: mapPointTypes } = useGetAllMapPointTypes<MapPointType[]>()
@@ -34,6 +35,7 @@ watch(
 )
 
 function handleSubmit() {
+  emit('update:modelValue', JSON.parse(JSON.stringify(localValue.value)))
   emit('submit')
 }
 
