@@ -1,34 +1,39 @@
 <script setup lang="ts">
+import { useGetActiveHousehold } from '@/api/generated/household/household'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { createUserMarker } from '@/components/map/marker'
+import { createHouseholdMarker } from '@/components/map/marker/household'
 import loadMapPoints from '@/components/map/marker/mapPoints'
 import NewMapComponent from '@/components/map/NewMapComponent.vue'
 import { useMap } from '@/components/map/useMap'
 import type { Map as LeafletMap } from 'leaflet'
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 
-const { data: mapPointsData } = useGetAllMapPoints()
-const { data: mapPointTypesData } = useGetAllMapPointTypes()
+const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
+const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
+const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold()
 
 const { initMap, addMarkers, onMapCreated, clearMarkers } = useMap()
+
+const isDataLoading = computed(() => {
+  return isLoadingMapPoints.value || isLoadingMapPointTypes.value || isLoadingActiveHousehold.value
+})
 
 const renderNewMapPoints = async () => {
   clearMarkers()
 
   // Shelter and other map points (points added through admin dashboard)
-  const stopMapPointWatcher = watch(
-    [mapPointsData, mapPointTypesData],
-    ([newMapPoints, newMapPointTypes]) => {
-      if (newMapPoints && newMapPointTypes) {
-        console.log('Map points size', newMapPoints.length)
-        const mapMarkers = loadMapPoints(newMapPoints, newMapPointTypes)
-        addMarkers(mapMarkers)
-        stopMapPointWatcher()
-      }
-    },
-    { immediate: true },
-  )
+  if (mapPointsData.value && mapPointTypesData.value) {
+    const mapMarkers = loadMapPoints(mapPointsData.value, mapPointTypesData.value)
+    addMarkers(mapMarkers)
+  }
+
+  // Active household marker
+  if (activeHousehold.value) {
+    const householdMarker = await createHouseholdMarker(activeHousehold.value)
+    addMarkers([householdMarker])
+  }
 
   // User location marker
   const userMarker = await createUserMarker()
@@ -36,7 +41,7 @@ const renderNewMapPoints = async () => {
 }
 
 onMapCreated(async (_mapInstance: LeafletMap) => {
-  renderNewMapPoints()
+  watch(isDataLoading, renderNewMapPoints)
 })
 </script>
 
