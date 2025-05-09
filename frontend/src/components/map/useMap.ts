@@ -29,7 +29,7 @@ function addTileLayer(map: L.Map) {
 }
 
 interface MarkerInstance {
-  marker: L.Marker
+  marker: L.Marker | L.Circle
   markerComponent: MarkerComponent
 }
 
@@ -64,30 +64,43 @@ export const useMap = () => {
     }
 
     markerComponents.forEach((markerComponent) => {
-      const marker = L.marker([markerComponent.latitude, markerComponent.longitude], {
-        icon: markerComponent.iconUrl
-          ? L.icon({
-              iconUrl: markerComponent.iconUrl,
-              iconSize: [32, 32],
-              iconAnchor: [16, 32],
-              popupAnchor: [0, -32],
-            })
-          : L.divIcon({
-              className: 'marker-icon',
-              html: markerComponent.iconDiv,
-            }),
-        ...markerComponent.options,
-      })
-        .addTo(map.value as L.Map)
-        .bindPopup(markerComponent.popupContent)
+      if (markerComponent.isCircle && markerComponent.circleOptions) {
+        // Create a circle marker for events
+        const circle = L.circle(
+          [markerComponent.latitude, markerComponent.longitude],
+          markerComponent.circleOptions,
+        )
+          .addTo(map.value as L.Map)
+          .bindPopup(markerComponent.popupContent)
 
-      markers.value.push({ marker, markerComponent })
+        markers.value.push({ marker: circle, markerComponent })
+      } else {
+        // Create a regular marker
+        const marker = L.marker([markerComponent.latitude, markerComponent.longitude], {
+          icon: markerComponent.iconUrl
+            ? L.icon({
+                iconUrl: markerComponent.iconUrl,
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32],
+              })
+            : L.divIcon({
+                className: 'marker-icon',
+                html: markerComponent.iconDiv,
+              }),
+          ...markerComponent.options,
+        })
+          .addTo(map.value as L.Map)
+          .bindPopup(markerComponent.popupContent)
+
+        markers.value.push({ marker, markerComponent })
+      }
     })
   }
 
   const clearMarkers = () => {
     if (map.value) {
-      markers.value.forEach((marker) => {
+      markers.value.forEach(({ marker }) => {
         map.value?.removeLayer(marker as unknown as L.Layer)
       })
     }

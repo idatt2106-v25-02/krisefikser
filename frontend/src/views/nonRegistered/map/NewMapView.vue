@@ -4,7 +4,7 @@ import { useGetActiveHousehold } from '@/api/generated/household/household'
 import { useGetAllMapPointTypes } from '@/api/generated/map-point-type/map-point-type'
 import { useGetAllMapPoints } from '@/api/generated/map-point/map-point'
 import { useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
-import { createUserMarker } from '@/components/map/marker'
+import { createUserMarker, createEventMarkers } from '@/components/map/marker'
 import { createHouseholdMarker } from '@/components/map/marker/household'
 import { createHouseholdMemberMarker } from '@/components/map/marker/householdMember'
 import loadMapPoints from '@/components/map/marker/mapPoints'
@@ -45,6 +45,7 @@ const renderNewMapPoints = async () => {
   // Event points
   if (eventPointsData.value) {
     const eventMarkers = createEventMarkers(eventPointsData.value)
+    console.log(eventMarkers)
     addMarkers(eventMarkers)
   }
 

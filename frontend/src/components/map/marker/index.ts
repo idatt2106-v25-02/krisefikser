@@ -1,4 +1,6 @@
 import { createUserMarker } from './user'
+import { createEventMarkers } from './event'
+import type { CircleMarkerOptions, MarkerOptions } from 'leaflet'
 
 interface MarkerComponent {
   latitude: number
@@ -6,8 +8,12 @@ interface MarkerComponent {
   iconUrl?: string
   iconDiv?: string
   popupContent: string
-  options?: L.MarkerOptions
+  options?: MarkerOptions
   type: MarkerType
+  isCircle?: boolean
+  circleOptions?: CircleMarkerOptions
+  radius?: number
+  color?: string
 }
 
 enum MarkerType {
@@ -29,4 +35,4 @@ const MARKER_ICONS = {
 }
 
 export type { MarkerComponent }
-export { MarkerType, createUserMarker, MARKER_ICONS }
+export { MarkerType, createUserMarker, createEventMarkers, MARKER_ICONS }
