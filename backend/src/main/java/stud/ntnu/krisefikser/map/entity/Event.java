@@ -1,5 +1,6 @@
 package stud.ntnu.krisefikser.map.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -7,13 +8,18 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import stud.ntnu.krisefikser.map.dto.EventResponse;
+import stud.ntnu.krisefikser.notification.entity.Notification;
+import stud.ntnu.krisefikser.reflection.entity.Reflection;
 
 /**
  * Entity class representing an event in the system. This class is used to store information about
@@ -58,6 +64,12 @@ public class Event {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private EventStatus status;
+
+  @OneToMany(mappedBy = "event", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  private Set<Notification> notifications = new HashSet<>();
+
+  @OneToMany(mappedBy = "event", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  private Set<Reflection> reflections = new HashSet<>();
 
   /**
    * Converts the Event entity to an EventResponse DTO. This method is used to transfer event data

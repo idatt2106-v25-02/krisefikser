@@ -11,8 +11,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +28,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import stud.ntnu.krisefikser.auth.entity.Role;
 import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
+import stud.ntnu.krisefikser.email.entity.VerificationToken;
 import stud.ntnu.krisefikser.household.entity.Household;
+import stud.ntnu.krisefikser.household.entity.HouseholdInvite;
+import stud.ntnu.krisefikser.household.entity.HouseholdMember;
+import stud.ntnu.krisefikser.reflection.entity.Reflection;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 
 /**
@@ -41,7 +47,7 @@ import stud.ntnu.krisefikser.user.dto.UserResponse;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
-@ToString(exclude = {"activeHousehold"})
+@ToString(exclude = {"activeHousehold", "verificationTokens"})
 public class User {
 
   @Id
@@ -97,6 +103,21 @@ public class User {
   @Column(nullable = false)
   private boolean emailVerified = false;
 
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<VerificationToken> verificationTokens = new ArrayList<>();
+
+  @OneToMany(mappedBy = "invitedUser", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<HouseholdInvite> householdInvites = new HashSet<>();
+
+  @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<HouseholdInvite> sentHouseholdInvites = new HashSet<>();
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<HouseholdMember> householdMembers = new HashSet<>();
+
+  @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<Reflection> reflections = new HashSet<>();
+
   public boolean isSuperAdmin() {
     return roles.stream().anyMatch(role -> role.getName() == RoleType.SUPER_ADMIN);
   }
@@ -128,7 +149,7 @@ public class User {
    * such as when getting the active household.
    *
    * @return a UserResponse DTO containing user information including location
-   *         data.
+   * data.
    */
   public UserResponse toDtoWithLocation() {
     List<String> roleNames = roles.stream().map(role -> role.getName().toString()).toList();

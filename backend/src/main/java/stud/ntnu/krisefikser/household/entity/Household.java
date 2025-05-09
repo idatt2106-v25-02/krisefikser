@@ -21,6 +21,10 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import stud.ntnu.krisefikser.item.entity.ChecklistItem;
+import stud.ntnu.krisefikser.item.entity.FoodItem;
+import stud.ntnu.krisefikser.notification.entity.Notification;
+import stud.ntnu.krisefikser.reflection.entity.Reflection;
 import stud.ntnu.krisefikser.user.entity.User;
 
 /**
@@ -78,4 +82,25 @@ public class Household {
 
   @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Guest> guests = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<MeetingPoint> meetingPoints = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<HouseholdInvite> invites = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<ChecklistItem> checklistItems = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<FoodItem> foodItems = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  private Set<Notification> notifications = new HashSet<>();
+
+  @OneToMany(mappedBy = "household", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  private Set<Reflection> reflections = new HashSet<>();
+
+  @OneToMany(mappedBy = "activeHousehold", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  private Set<User> activeUsers = new HashSet<>();
 }
