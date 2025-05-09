@@ -13,7 +13,8 @@ import NewMapComponent from '@/components/map/NewMapComponent.vue'
 import { useMap } from '@/components/map/useMap'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
 import type { Map as LeafletMap } from 'leaflet'
-import { computed, watch } from 'vue'
+import { computed, watch, onUnmounted } from 'vue'
+import { webSocket } from '@/main.ts'
 
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
@@ -81,10 +82,38 @@ const renderNewMapPoints = async () => {
   // User location marker
   const userMarker = await createUserMarker()
   addMarkers([userMarker])
+
+  // Subscribe to WebSocket events
+  webSocket.subscribe<EventResponse>('/topic/events', (event) => {
+    // Update existing event
+    clearMarkers()
+    renderNewMapPoints()
+  })
+
+  webSocket.subscribe<EventResponse>('/topic/events/new', (event) => {
+    // Add new event
+    if (event) {
+      const eventMarkers = createEventMarkers([event])
+      addMarkers(eventMarkers)
+    }
+  })
+
+  webSocket.subscribe<number>('/topic/events/delete', (eventId) => {
+    // Remove event
+    clearMarkers()
+    renderNewMapPoints()
+  })
 }
 
 onMapCreated(async (_mapInstance: LeafletMap) => {
   watch(isDataLoading, renderNewMapPoints)
+})
+
+// Don't forget to unsubscribe on component unmount
+onUnmounted(() => {
+  webSocket.unsubscribe('/topic/events')
+  webSocket.unsubscribe('/topic/events/new')
+  webSocket.unsubscribe('/topic/events/delete')
 })
 </script>
 
