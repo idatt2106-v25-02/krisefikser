@@ -22,7 +22,7 @@ import { getMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
 import type { EventResponse } from '@/api/generated/model'
 
 import { useAuthStore } from '@/stores/auth/useAuthStore'
-import { webSocket } from '@/main.ts'
+import { webSocket } from '@/main'
 
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
