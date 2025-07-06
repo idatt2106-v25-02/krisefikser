@@ -75,6 +75,10 @@ public class EmailService {
     HttpEntity<MailtrapRequest> requestEntity = new HttpEntity<>(payload, headers);
 
     try {
+      log.info("INSIDE THE TRY BLOCK!!!!");
+      log.info(url);
+      log.info(requestEntity.toString());
+
       ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity,
           String.class);
       log.info("Email sent successfully to {}: Status {}", toEmail, response.getStatusCode());
