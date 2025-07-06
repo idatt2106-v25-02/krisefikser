@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue'
 import NewMapLegend from '@/components/map/NewMapLegend.vue'
 
@@ -24,18 +24,16 @@ import type { EventResponse } from '@/api/generated/model'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { webSocket } from '@/main'
 
-const authStore = useAuthStore()
-
 const { data: mapPointsData, isLoading: isLoadingMapPoints } = useGetAllMapPoints()
 const { data: mapPointTypesData, isLoading: isLoadingMapPointTypes } = useGetAllMapPointTypes()
 const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetActiveHousehold({
   query: {
     retry: 0,
-    throwOnError: false,
-    enabled: authStore.isAuthenticated,
   },
 })
 const { data: eventPointsData, isLoading: isLoadingEventPoints } = useGetAllEvents()
+
+const authStore = useAuthStore()
 
 const { initMap, addMarkers, clearMarkers, filterMarkers } = useMap()
 
@@ -49,6 +47,7 @@ const isDataLoading = computed(() => {
 })
 
 const renderNewMapPoints = async () => {
+  console.log('renderNewMapPoints')
   clearMarkers()
 
   // Shelter and other map points (points added through admin dashboard)
@@ -60,6 +59,7 @@ const renderNewMapPoints = async () => {
   // Event points
   if (eventPointsData.value) {
     const eventMarkers = createEventMarkers(eventPointsData.value)
+    console.log(eventMarkers)
     addMarkers(eventMarkers)
   }
 
@@ -120,7 +120,9 @@ onUnmounted(() => {
 })
 
 onMounted(() => {
+  console.log('onMounted')
   initMap('map', () => {
+    console.log('initMap')
     if (!isDataLoading.value) {
       renderNewMapPoints()
     } else {
@@ -136,5 +138,5 @@ const props = defineProps<{
 
 <template>
   <div id="map" class="w-full h-full z-[1] overflow-hidden"></div>
-  <NewMapLegend v-if="props.showLegend" :filter-markers="filterMarkers" />
+  <NewMapLegend :filter-markers="filterMarkers" v-if="props.showLegend" />
 </template>
