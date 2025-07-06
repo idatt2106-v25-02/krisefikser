@@ -66,7 +66,7 @@ public class SecurityConfiguration {
                 "/api/auth/request-password-reset", "/api/auth/complete-password-reset")
             .permitAll()
             .requestMatchers(HttpMethod.POST, "/api/email/**", "/api/auth/verify-email",
-                "/api/auth/verify-password-reset", "/api/auth/verify-admin-login").permitAll()
+                "/api/auth/verify-password-reset", "/api/auth/verify-admin-login", "/api/email/send").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/auth/verify-admin-invite").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/reflections/public",
                 "/api/reflections/public/**").permitAll()
