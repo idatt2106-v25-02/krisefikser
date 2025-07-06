@@ -58,43 +58,37 @@ public class EmailService {
 
     String url = "https://" + mailProperties.getHost() + "/api/send";
 
+   RestTemplate rawRestTemplate = new RestTemplate();
+
     HttpHeaders headers = new HttpHeaders();
-    log.info("API KEY THAT IS READ FROM APPLICATION PROPERTIES: " + mailProperties.getApiKey());
-    headers.setBearerAuth(mailProperties.getApiKey());
     headers.setContentType(MediaType.APPLICATION_JSON);
+    headers.setBearerAuth(mailProperties.getApiKey());
 
-    MailtrapRequest payload = new MailtrapRequest();
-    log.info("FROM ADDRESS THAT IS READ FROM APPLICATION PROPERTIES: " + new MailtrapAddress(mailProperties.getFrom()).toString());
-    payload.setFrom(new MailtrapAddress(mailProperties.getFrom()));
-    payload.setTo(Collections.singletonList(new MailtrapAddress(toEmail)));
-    log.info("SUBJECT THAT IS READ FROM APPLICATION PROPERTIES: " + subject);
-    payload.setSubject(subject);
-    log.info("HTMLCONTENT THAT IS READ FROM APPLICATION PROPERTIES" + htmlContent);
-    payload.setHtml(htmlContent);
+    String rawJson = """
+    {
+      "from": {
+        "email": "noreply@krisefikser.app",
+        "name": "Mailtrap Test"
+      },
+      "to": [{
+        "email": "kaamyashinde@gmail.com"
+      }],
+      "subject": "You are awesome!",
+      "text": "Congrats for sending test email with Mailtrap!",
+      "category": "Integration Test"
+    }
+    """;
 
-    HttpEntity<MailtrapRequest> requestEntity = new HttpEntity<>(payload, headers);
+    HttpEntity<String> requestEntity = new HttpEntity<>(rawJson, headers);
+    String apiUrl = "https://send.api.mailtrap.io/api/send";
 
     try {
-      log.info("INSIDE THE TRY BLOCK!!!!");
-      log.info(url);
-      log.info(requestEntity.toString());
-
-      ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity,
-          String.class);
-      log.info("Email sent successfully to {}: Status {}", toEmail, response.getStatusCode());
-
-      if (!response.getStatusCode().is2xxSuccessful()) {
-        log.info("THIS IS INSIDE THE TRY BLOCK IN EMAILSERVICE");
-        throw new EmailSendingException("Failed to send email: " + response.getBody());
-      }
-
-      return response;
+        ResponseEntity<String> response = rawRestTemplate.postForEntity(apiUrl, requestEntity, String.class);
+        log.info("Mailtrap API response: {}", response.getBody());
+        return response;
     } catch (Exception e) {
-
-        log.info("THIS IS INSIDE THE CATCH BLOCK IN EMAILSERVICE");
-
-      log.error("Unexpected error sending email to {}: {}", toEmail, e.getMessage(), e);
-      throw new EmailSendingException("Failed to send email due to an unexpected error");
+        log.error("Error sending email using raw JSON payload", e);
+        throw new EmailSendingException("Raw test failed");
     }
   }
 
