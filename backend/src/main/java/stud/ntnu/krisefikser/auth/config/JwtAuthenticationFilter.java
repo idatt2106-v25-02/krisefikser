@@ -35,6 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
+    // Hvis ingen Authorization-header eller den ikke starter med Bearer -> gå videre
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
       filterChain.doFilter(request, response);
       return;
@@ -42,24 +43,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     final String jwtToken = authHeader.substring(7);
 
+    // Hvis det allerede finnes en autentisering, gå videre
     if (SecurityContextHolder.getContext().getAuthentication() != null) {
       filterChain.doFilter(request, response);
       return;
     }
 
-    String email = tokenService.extractEmail(jwtToken);
-    if (email != null) {
-      UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
-      if (tokenService.isAccessToken(jwtToken) && tokenService.isValid(jwtToken, userDetails)) {
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-            userDetails,
-            null,
-            userDetails.getAuthorities());
-        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+    try {
+      String email = tokenService.extractEmail(jwtToken);
+      if (email != null) {
+        UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
+        boolean isValid = tokenService.isAccessToken(jwtToken) && tokenService.isValid(jwtToken, userDetails);
+
+        if (isValid) {
+          UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+              userDetails,
+              null,
+              userDetails.getAuthorities());
+          authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+          SecurityContextHolder.getContext().setAuthentication(authToken);
+        }
       }
+    } catch (Exception ex) {
+      // Validering eller decoding av token feilet – logg det og gå videre
+      System.err.println("JWT authentication failed: " + ex.getMessage());
+      // Du kan bruke en logger her, f.eks. log.warn(...)
     }
 
+    // Uansett – gå videre med filter chain
     filterChain.doFilter(request, response);
   }
 }
