@@ -59,13 +59,17 @@ public class EmailService {
     String url = "https://" + mailProperties.getHost() + "/api/send";
 
     HttpHeaders headers = new HttpHeaders();
+    log.info("API KEY THAT IS READ FROM APPLICATION PROPERTIES: " + mailProperties.getApiKey());
     headers.setBearerAuth(mailProperties.getApiKey());
     headers.setContentType(MediaType.APPLICATION_JSON);
 
     MailtrapRequest payload = new MailtrapRequest();
+    log.info("FROM ADDRESS THAT IS READ FROM APPLICATION PROPERTIES: " + new MailtrapAddress(mailProperties.getFrom()).toString());
     payload.setFrom(new MailtrapAddress(mailProperties.getFrom()));
     payload.setTo(Collections.singletonList(new MailtrapAddress(toEmail)));
+    log.info("SUBJECT THAT IS READ FROM APPLICATION PROPERTIES: " + subject);
     payload.setSubject(subject);
+    log.info("HTMLCONTENT THAT IS READ FROM APPLICATION PROPERTIES" + htmlContent);
     payload.setHtml(htmlContent);
 
     HttpEntity<MailtrapRequest> requestEntity = new HttpEntity<>(payload, headers);
@@ -76,11 +80,15 @@ public class EmailService {
       log.info("Email sent successfully to {}: Status {}", toEmail, response.getStatusCode());
 
       if (!response.getStatusCode().is2xxSuccessful()) {
+        log.info("THIS IS INSIDE THE TRY BLOCK IN EMAILSERVICE");
         throw new EmailSendingException("Failed to send email: " + response.getBody());
       }
 
       return response;
     } catch (Exception e) {
+
+        log.info("THIS IS INSIDE THE CATCH BLOCK IN EMAILSERVICE");
+
       log.error("Unexpected error sending email to {}: {}", toEmail, e.getMessage(), e);
       throw new EmailSendingException("Failed to send email due to an unexpected error");
     }
