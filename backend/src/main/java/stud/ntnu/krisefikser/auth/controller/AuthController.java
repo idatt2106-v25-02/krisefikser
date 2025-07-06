@@ -75,13 +75,18 @@ public class AuthController {
       @ApiResponse(responseCode = "500", description = "Unexpected server error", content =
       @Content(mediaType = "application/json"))
   })
-  @PostMapping("/register")
-  public ResponseEntity<RegisterResponse> register(
-      @Parameter(description = "Registration details including Turnstile token", required = true)
-      @RequestBody RegisterRequest request) {
+ @PostMapping("/register")
+public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+  try {
     RegisterResponse response = authService.registerAndSendVerificationEmail(request);
     return ResponseEntity.ok(response);
+  } catch (Exception e) {
+    log.error("Feil under registrering: {}", e.getMessage(), e);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(Map.of("error", "Uventet feil under registrering"));
   }
+}
+
 
   /**
    * Registers a new admin user after verifying the CAPTCHA and validating the input. This endpoint
