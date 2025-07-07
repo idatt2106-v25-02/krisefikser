@@ -73,12 +73,7 @@ public class EmailService {
     payload.setTo(Collections.singletonList(new MailtrapAddress(toEmail)));
     log.info("SUBJECT THAT IS READ FROM APPLICATION PROPERTIES: " + subject);
     payload.setSubject(subject);
-    String cleanHtml = htmlContent
-    .replaceAll("(?s)<!--\\[if.*?\\[endif\\]-->", "") // remove conditional comments
-    .replaceAll("(?s)<(html|head|meta|!DOCTYPE)[^>]*>.*?</\\1>", "") // remove structural wrappers
-    .replaceAll("(?s)<style.*?>.*?</style>", "") // remove style blocks
-    .trim();
-
+    String cleanHtml = "<p>Hei</p>";
     payload.setHtml(cleanHtml);
     log.info("CLEAN HTML SET CORRECTLY");
     payload.setText(stripHtmlTags(cleanHtml));
