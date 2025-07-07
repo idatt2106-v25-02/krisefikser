@@ -162,7 +162,7 @@ const goToLogin = () => {
         <!-- Back to profile link -->
         <div class="text-sm text-center">
           <span class="text-gray-600">Vil du ikke endre passord?</span>
-          <a href="/profil" class="ml-1 text-blue-600 hover:underline">Tilbake til profil</a>
+          <a href="/dashboard" class="ml-1 text-blue-600 hover:underline">Tilbake til dashboard</a>
         </div>
       </div>
     </form>
