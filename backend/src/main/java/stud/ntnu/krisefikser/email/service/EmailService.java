@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import stud.ntnu.krisefikser.email.config.MailProperties;
 import stud.ntnu.krisefikser.email.exception.EmailSendingException;
@@ -74,6 +75,16 @@ public class EmailService {
     payload.setSubject(subject);
     log.info("HTMLCONTENT THAT IS READ FROM APPLICATION PROPERTIES" + htmlContent);
     payload.setHtml(htmlContent);
+    payload.setText(stripHtmlTags(htmlContent));
+
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      log.info("Serialized Payload: \n{}", mapper.writeValueAsString(payload));
+
+    } catch (Exception e) {
+      log.info("PLEASE SEND HELP - UGHHHHHHHHHH");
+    }
 
     HttpEntity<MailtrapRequest> requestEntity = new HttpEntity<>(payload, headers);
 
@@ -101,6 +112,11 @@ public class EmailService {
     }
   }
 
+  private String stripHtmlTags(String html) {
+  return html.replaceAll("<[^>]*>", ""); // Simple HTML tag remover
+}
+
+
   // --- Mailtrap API DTOs ---
   // Note: Adjust these based on the actual Mailtrap API documentation if needed.
 
@@ -111,6 +127,7 @@ public class EmailService {
     private List<MailtrapAddress> to;
     private String subject;
     private String html;
+    private String text;
   }
 
   @Data
