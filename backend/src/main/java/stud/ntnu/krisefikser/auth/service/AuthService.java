@@ -184,7 +184,7 @@ public class AuthService {
 
       // Generate verification token for admin login
       String token = tokenService.generateResetPasswordToken(user.getEmail());
-      String verificationLink = frontendConfig.getUrl() + "/verify-admin-login?token=" + token;
+      String verificationLink = frontendConfig.getUrl() + "verify-admin-login?token=" + token;
 
       // Send verification email
       emailVerificationService.sendAdminLoginVerificationEmail(user, verificationLink);
@@ -337,7 +337,7 @@ public class AuthService {
     log.info("Reset token saved for user: {}", user.getEmail());
 
     // Send notification email with reset link
-    String resetLink = frontendConfig.getUrl() + "/verifiser-passord-tilbakestilling?token="
+    String resetLink = frontendConfig.getUrl() + "verifiser-passord-tilbakestilling?token="
         + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
     log.info("Sending password change notification email to: {}", user.getEmail());
     ResponseEntity<String> emailResponse = emailVerificationService.sendPasswordChangeNotification(
@@ -382,7 +382,7 @@ public class AuthService {
 
     // Send password reset email
     String resetLink =
-        frontendConfig.getUrl() + "/verifiser-passord-tilbakestilling?token="
+        frontendConfig.getUrl() + "verifiser-passord-tilbakestilling?token="
             + java.net.URLEncoder.encode(
             token, java.nio.charset.StandardCharsets.UTF_8);
     long expirationHours = jwtProperties.getResetPasswordTokenExpiration() / (1000 * 60 * 60);
@@ -542,7 +542,7 @@ public class AuthService {
 
     // Send email
     String resetLink =
-        frontendConfig.getUrl() + "/verifiser-passord-tilbakestilling?token="
+        frontendConfig.getUrl() + "verifiser-passord-tilbakestilling?token="
             + java.net.URLEncoder.encode(
             token, java.nio.charset.StandardCharsets.UTF_8);
     emailVerificationService.sendPasswordResetEmail(user, resetLink, expirationHours);
