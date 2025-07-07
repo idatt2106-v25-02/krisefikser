@@ -101,7 +101,7 @@ public class EmailVerificationService {
    * @return the response entity containing the email sending result
    */
   public ResponseEntity<String> sendVerificationEmail(User user, VerificationToken token) {
-    String verificationLink = frontendConfig.getUrl() + "verify?token=" + token.getToken();
+    String verificationLink = frontendConfig.getUrl() + "/verify?token=" + token.getToken();
 
     Map<String, String> variables = new HashMap<>();
     variables.put("name", user.getFirstName());
