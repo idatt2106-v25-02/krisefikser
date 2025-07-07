@@ -78,6 +78,7 @@ public class EmailService {
     payload.setText(stripHtmlTags(htmlContent));
 
     try {
+      log.info("INSIDE THE FIRST TRY BLOCK NOW");
       ObjectMapper mapper = new ObjectMapper();
       mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
       log.info("Serialized Payload: \n{}", mapper.writeValueAsString(payload));
@@ -89,7 +90,7 @@ public class EmailService {
     HttpEntity<MailtrapRequest> requestEntity = new HttpEntity<>(payload, headers);
 
     try {
-      log.info("INSIDE THE TRY BLOCK!!!!");
+      log.info("INSIDE THE SECOND TRY BLOCK NOW");
       log.info(url);
       log.info(requestEntity.toString());
 
