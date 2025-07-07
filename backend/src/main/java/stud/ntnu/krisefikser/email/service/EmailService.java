@@ -74,8 +74,7 @@ public class EmailService {
     log.info("SUBJECT THAT IS READ FROM APPLICATION PROPERTIES: " + subject);
     payload.setSubject(subject);
     log.info("HTMLCONTENT THAT IS READ FROM APPLICATION PROPERTIES" + htmlContent);
-    payload.setHtml(htmlContent);
-    payload.setText(stripHtmlTags(htmlContent));
+    payload.setHtml("<p>Hello this is a minimal mail</p>");
 
     try {
       log.info("INSIDE THE FIRST TRY BLOCK NOW");
