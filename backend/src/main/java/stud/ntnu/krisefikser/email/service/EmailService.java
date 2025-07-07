@@ -12,6 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import stud.ntnu.krisefikser.email.config.MailProperties;
 import stud.ntnu.krisefikser.email.exception.EmailSendingException;
 
@@ -63,27 +68,36 @@ public class EmailService {
     headers.setBearerAuth(mailProperties.getApiKey());
     headers.setContentType(MediaType.APPLICATION_JSON);
 
+    MailtrapAddress from = new MailtrapAddress(mailProperties.getFrom());
+    from.setName("Mailtrap Test");
+
+    MailtrapAddress to = new MailtrapAddress(toEmail);
+    to.setName("User");
+
     MailtrapRequest payload = new MailtrapRequest();
-    log.info("FROM ADDRESS THAT IS READ FROM APPLICATION PROPERTIES: " + new MailtrapAddress(mailProperties.getFrom()).toString());
-    payload.setFrom(new MailtrapAddress(mailProperties.getFrom()));
-    payload.setTo(Collections.singletonList(new MailtrapAddress(toEmail)));
-    log.info("SUBJECT THAT IS READ FROM APPLICATION PROPERTIES: " + subject);
+    payload.setFrom(from);
+    payload.setTo(Collections.singletonList(to));
     payload.setSubject(subject);
-    String html = "<p>Hello, <strong>User</strong>. Welcome!</p>";
-    log.info("HERE COMES THE HTML CONTENT BEING SENTTTTT");
-    log.info(html);
-    payload.setHtml(html);
+    payload.setHtml("<p>Hello, <strong>User</strong>. Welcome!</p>");
+    payload.setText("Hello, User. Welcome!");
+    payload.setCategory("Integration Test"); // Add this
 
-
-    HttpEntity<MailtrapRequest> requestEntity = new HttpEntity<>(payload, headers);
+    // Log final JSON
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    
 
     try {
+      log.info("FINAL FINAL FINAL JSON:\n" + mapper.writeValueAsString(payload));
+      HttpEntity<MailtrapRequest> requestEntity = new HttpEntity<>(payload, headers);
+
+
       log.info("INSIDE THE TRY BLOCK!!!!");
       log.info(url);
       log.info(requestEntity.toString());
 
-      ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity,
-          String.class);
+         ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+
       log.info("Email sent successfully to {}: Status {}", toEmail, response.getStatusCode());
 
       if (!response.getStatusCode().is2xxSuccessful()) {
@@ -105,13 +119,16 @@ public class EmailService {
   // Note: Adjust these based on the actual Mailtrap API documentation if needed.
 
   @Data
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private static class MailtrapRequest {
-
     private MailtrapAddress from;
     private List<MailtrapAddress> to;
     private String subject;
     private String html;
+    private String text;
+    private String category;
   }
+
 
   @Data
   private static class MailtrapAddress {
