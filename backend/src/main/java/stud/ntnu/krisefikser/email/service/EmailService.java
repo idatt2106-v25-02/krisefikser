@@ -63,20 +63,13 @@ public class EmailService {
     String url = "https://" + mailProperties.getHost() + "/api/send";
 
     try {
-      ClassPathResource resource = new ClassPathResource("templates/verification.html");
-      String template = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
-
-      String name = toEmail.split("@")[0];
-
-      String finalHtml = template.replace("{{name}}", name).replace("{{link}}", htmlContent);
-
       MailtrapRequest requestPayload = new MailtrapRequest();
       MailtrapAddress from = new MailtrapAddress("noreply@krisefikser.app");
       from.setName("Krisefikser");
       requestPayload.setFrom(from);
       requestPayload.setTo(Collections.singletonList(new MailtrapAddress(toEmail)));
       requestPayload.setSubject(subject);
-      requestPayload.setHtml(finalHtml);
+      requestPayload.setHtml(htmlContent);
 
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
@@ -87,9 +80,6 @@ public class EmailService {
       ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
       log.info("Mailtrap API response: {}", response.getBody());
       return response;
-    } catch (IOException e) {
-      log.error("Could not read email template", e);
-      throw new EmailSendingException("Could not read email template", e);
     } catch (Exception e) {
       log.error("Error sending email", e);
       throw new EmailSendingException("Failed to send email", e);
