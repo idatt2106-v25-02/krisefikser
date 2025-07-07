@@ -73,8 +73,15 @@ public class EmailService {
     payload.setTo(Collections.singletonList(new MailtrapAddress(toEmail)));
     log.info("SUBJECT THAT IS READ FROM APPLICATION PROPERTIES: " + subject);
     payload.setSubject(subject);
-    log.info("HTMLCONTENT THAT IS READ FROM APPLICATION PROPERTIES" + htmlContent);
-    payload.setHtml("<p>Hello this is a minimal mail</p>");
+    String cleanHtml = htmlContent
+    .replaceAll("(?s)<!--\\[if.*?\\[endif\\]-->", "") // remove conditional comments
+    .replaceAll("(?s)<(html|head|meta|!DOCTYPE)[^>]*>.*?</\\1>", "") // remove structural wrappers
+    .replaceAll("(?s)<style.*?>.*?</style>", "") // remove style blocks
+    .trim();
+
+    payload.setHtml(cleanHtml);
+    log.info("CLEAN HTML SET CORRECTLY");
+    payload.setText(stripHtmlTags(cleanHtml));
 
     try {
       log.info("INSIDE THE FIRST TRY BLOCK NOW");
