@@ -2,15 +2,19 @@ package stud.ntnu.krisefikser.email.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import stud.ntnu.krisefikser.email.config.MailProperties;
 import stud.ntnu.krisefikser.email.exception.EmailSendingException;
@@ -58,37 +62,37 @@ public class EmailService {
 
     String url = "https://" + mailProperties.getHost() + "/api/send";
 
-   RestTemplate rawRestTemplate = new RestTemplate();
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.setBearerAuth(mailProperties.getApiKey());
-
-    String rawJson = """
-    {
-      "from": {
-        "email": "noreply@krisefikser.app",
-        "name": "Mailtrap Test"
-      },
-      "to": [{
-        "email": "kaamyashinde@gmail.com"
-      }],
-      "subject": "You are awesome!",
-      "text": "Congrats for sending test email with Mailtrap!",
-      "category": "Integration Test"
-    }
-    """;
-
-    HttpEntity<String> requestEntity = new HttpEntity<>(rawJson, headers);
-    String apiUrl = "https://send.api.mailtrap.io/api/send";
-
     try {
-        ResponseEntity<String> response = rawRestTemplate.postForEntity(apiUrl, requestEntity, String.class);
-        log.info("Mailtrap API response: {}", response.getBody());
-        return response;
+      ClassPathResource resource = new ClassPathResource("templates/verification.html");
+      String template = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+
+      String name = toEmail.split("@")[0];
+
+      String finalHtml = template.replace("{{name}}", name).replace("{{link}}", htmlContent);
+
+      MailtrapRequest requestPayload = new MailtrapRequest();
+      MailtrapAddress from = new MailtrapAddress("noreply@krisefikser.app");
+      from.setName("Krisefikser");
+      requestPayload.setFrom(from);
+      requestPayload.setTo(Collections.singletonList(new MailtrapAddress(toEmail)));
+      requestPayload.setSubject(subject);
+      requestPayload.setHtml(finalHtml);
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_JSON);
+      headers.setBearerAuth(mailProperties.getApiKey());
+
+      HttpEntity<MailtrapRequest> requestEntity = new HttpEntity<>(requestPayload, headers);
+
+      ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+      log.info("Mailtrap API response: {}", response.getBody());
+      return response;
+    } catch (IOException e) {
+      log.error("Could not read email template", e);
+      throw new EmailSendingException("Could not read email template", e);
     } catch (Exception e) {
-        log.error("Error sending email using raw JSON payload", e);
-        throw new EmailSendingException("Raw test failed");
+      log.error("Error sending email", e);
+      throw new EmailSendingException("Failed to send email", e);
     }
   }
 
