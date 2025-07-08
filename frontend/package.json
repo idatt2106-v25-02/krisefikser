@@ -31,7 +31,7 @@
     "clsx": "^2.1.1",
     "global": "^4.4.0",
     "leaflet": "^1.9.4",
-    "lucide-vue-next": "^0.503.0",
+    "lucide-vue-next": "^0.516.0",
     "orval": "^7.9.0",
     "pinia": "^3.0.1",
     "posthog-js": "^1.239.0",
