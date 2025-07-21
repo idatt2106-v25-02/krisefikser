@@ -25,12 +25,11 @@ jobs:
           java-version: "21"
           cache: "maven"
 
-      - name: Format code with Google Java Format ✨
-        uses: axel-op/googlejavaformat-action@v4
-        with:
-          args: --replace
-          files: backend/**/*.java
-          commit-message: "refactor: format Java code with google-java-format"
+      # - name: Format code with Google Java Format ✨
+      #   uses: axel-op/googlejavaformat-action@v3
+      #   with:
+      #     args: --set-exit-if-changed
+      #     files: backend/**/*.java
 
       - name: Verify with maven and generate coverage report
         env:
