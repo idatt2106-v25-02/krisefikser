@@ -84,6 +84,7 @@ export const useMap = () => {
   const map = ref<L.Map | null>(null)
   const markers = ref<MarkerInstance[]>([])
   const isInitializing = ref(true)
+  const geolocationFailed = ref(false)
 
   const initMap = (
     elementId: string = 'map',
@@ -111,6 +112,7 @@ export const useMap = () => {
         (error) => {
           // Fallback to default center if geolocation fails
           console.error(`Geolocation error: ${error.message} (Code: ${error.code})`)
+          geolocationFailed.value = true
           map.value = L.map(elementId, { zoomControl: false }).setView(
             TRONDHEIM_CENTER,
             INITIAL_ZOOM,
@@ -171,7 +173,16 @@ export const useMap = () => {
     })
   }
 
-  return { map, initMap, markers, addMarkers, clearMarkers, filterMarkers, isInitializing }
+  return {
+    map,
+    initMap,
+    markers,
+    addMarkers,
+    clearMarkers,
+    filterMarkers,
+    isInitializing,
+    geolocationFailed,
+  }
 }
 
 function isFiltered(markerComponent: MarkerComponent, options: FilterOptions) {

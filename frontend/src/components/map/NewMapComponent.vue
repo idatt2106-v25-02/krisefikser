@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, watch } from 'vue'
 import NewMapLegend from '@/components/map/NewMapLegend.vue'
+import { toast } from 'vue-sonner'
 
 // Components and composables
 import {
@@ -43,6 +44,7 @@ const {
   clearMarkers,
   filterMarkers,
   isInitializing: isMapInitializing,
+  geolocationFailed,
 } = useMap()
 
 const isDataLoading = computed(() => {
@@ -123,6 +125,18 @@ onUnmounted(() => {
   webSocket.unsubscribe('/topic/events')
   webSocket.unsubscribe('/topic/events/new')
   webSocket.unsubscribe('/topic/events/delete')
+})
+
+watch(geolocationFailed, (failed) => {
+  if (failed) {
+    toast.error('Could not get your location', {
+      description: 'Showing default location. Please refresh to try again.',
+      action: {
+        label: 'Refresh',
+        onClick: () => window.location.reload(),
+      },
+    })
+  }
 })
 
 const props = defineProps<{
