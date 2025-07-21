@@ -108,8 +108,9 @@ export const useMap = () => {
           callback?.()
           isInitializing.value = false
         },
-        () => {
+        (error) => {
           // Fallback to default center if geolocation fails
+          console.error(`Geolocation error: ${error.message} (Code: ${error.code})`)
           map.value = L.map(elementId, { zoomControl: false }).setView(
             TRONDHEIM_CENTER,
             INITIAL_ZOOM,
@@ -118,6 +119,11 @@ export const useMap = () => {
           setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER, INITIAL_ZOOM)
           callback?.()
           isInitializing.value = false
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
         },
       )
     } else {
