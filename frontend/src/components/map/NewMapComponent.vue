@@ -37,7 +37,13 @@ const { data: activeHousehold, isLoading: isLoadingActiveHousehold } = useGetAct
 })
 const { data: eventPointsData, isLoading: isLoadingEventPoints } = useGetAllEvents()
 
-const { initMap, addMarkers, clearMarkers, filterMarkers } = useMap()
+const {
+  initMap,
+  addMarkers,
+  clearMarkers,
+  filterMarkers,
+  isInitializing: isMapInitializing,
+} = useMap()
 
 const isDataLoading = computed(() => {
   return (
@@ -119,22 +125,30 @@ onUnmounted(() => {
   webSocket.unsubscribe('/topic/events/delete')
 })
 
-onMounted(() => {
-  initMap('map', () => {
-    if (!isDataLoading.value) {
-      renderNewMapPoints()
-    } else {
-      watch(isDataLoading, renderNewMapPoints)
-    }
-  })
-})
-
 const props = defineProps<{
   showLegend: boolean
+  centerOnUserLocation?: boolean
 }>()
+
+onMounted(() => {
+  initMap(
+    'map',
+    () => {
+      if (!isDataLoading.value) {
+        renderNewMapPoints()
+      } else {
+        watch(isDataLoading, renderNewMapPoints)
+      }
+    },
+    props.centerOnUserLocation,
+  )
+})
 </script>
 
 <template>
+  <div v-if="isMapInitializing" class="flex items-center justify-center w-full h-full">
+    <p class="text-lg">Loading map...</p>
+  </div>
   <div id="map" class="w-full h-full z-[1] overflow-hidden"></div>
   <NewMapLegend v-if="props.showLegend" :filter-markers="filterMarkers" />
 </template>

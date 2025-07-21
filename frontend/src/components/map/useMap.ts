@@ -83,17 +83,50 @@ function createMarker(markerComponent: MarkerComponent, map: L.Map): L.Marker | 
 export const useMap = () => {
   const map = ref<L.Map | null>(null)
   const markers = ref<MarkerInstance[]>([])
+  const isInitializing = ref(true)
 
-  const initMap = (elementId: string = 'map', callback?: () => void) => {
+  const initMap = (
+    elementId: string = 'map',
+    callback?: () => void,
+    centerOnUserLocation: boolean = false,
+  ) => {
     if (map.value) {
       console.warn('Map is already initialized.')
       return
     }
 
-    map.value = L.map(elementId, { zoomControl: false }).setView(TRONDHEIM_CENTER, INITIAL_ZOOM)
-    addTileLayer(map.value as L.Map)
-    setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER, INITIAL_ZOOM)
-    callback?.()
+    if (centerOnUserLocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords
+          map.value = L.map(elementId, { zoomControl: false }).setView(
+            [latitude, longitude],
+            INITIAL_ZOOM,
+          )
+          addTileLayer(map.value as L.Map)
+          setupCustomControls(map.value as L.Map, [latitude, longitude], INITIAL_ZOOM)
+          callback?.()
+          isInitializing.value = false
+        },
+        () => {
+          // Fallback to default center if geolocation fails
+          map.value = L.map(elementId, { zoomControl: false }).setView(
+            TRONDHEIM_CENTER,
+            INITIAL_ZOOM,
+          )
+          addTileLayer(map.value as L.Map)
+          setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER, INITIAL_ZOOM)
+          callback?.()
+          isInitializing.value = false
+        },
+      )
+    } else {
+      map.value = L.map(elementId, { zoomControl: false }).setView(TRONDHEIM_CENTER, INITIAL_ZOOM)
+      addTileLayer(map.value as L.Map)
+      setupCustomControls(map.value as L.Map, TRONDHEIM_CENTER, INITIAL_ZOOM)
+      callback?.()
+      isInitializing.value = false
+    }
   }
 
   const addMarkers = (markerComponents: MarkerComponent[]) => {
@@ -132,7 +165,7 @@ export const useMap = () => {
     })
   }
 
-  return { map, initMap, markers, addMarkers, clearMarkers, filterMarkers }
+  return { map, initMap, markers, addMarkers, clearMarkers, filterMarkers, isInitializing }
 }
 
 function isFiltered(markerComponent: MarkerComponent, options: FilterOptions) {
