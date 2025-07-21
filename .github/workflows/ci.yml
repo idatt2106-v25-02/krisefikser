@@ -30,7 +30,7 @@ jobs:
         with:
           args: --replace
           files: backend/**/*.java
-          commit-message: "refactor: format Java code with google-java-format"
+          # commit-message: "refactor: format Java code with google-java-format"
 
       - name: Verify with maven and generate coverage report
         env:
