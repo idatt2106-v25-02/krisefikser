@@ -130,7 +130,7 @@ onUnmounted(() => {
 watch(geolocationFailed, (failed) => {
   if (failed) {
     toast.error('Could not get your location', {
-      description: 'Showing default location. Please refresh to try again.',
+      description: 'Showing default location. Please refresh the page in case you allowed access to your location but the default is showing up.',
       action: {
         label: 'Refresh',
         onClick: () => window.location.reload(),
