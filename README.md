@@ -4,6 +4,14 @@
 
 Krisefikser is a comprehensive crisis management platform designed to help users prepare for, navigate through, and recover from emergency situations. The application provides real-time information about crisis events, locations of emergency shelters, and resources for crisis preparedness.
 
+
+NB: Known Issues
+
+This project was developed during two intensive sprints (2 weeks total) as part of a university assignment. As such, some known bugs may still exist.
+We welcome any feedback, bug reports, or suggestions for improvement — please feel free to reach out at kontakt@krisefikser.app.
+
+We are continuously working to improve the website and greatly appreciate your input.
+
 ## Features
 
 - Interactive crisis map showing emergency shelters and active crisis zones
