@@ -20,9 +20,25 @@ public class UserResponse {
   private List<String> roles;
   private String firstName;
   private String lastName;
+  private String avatarUrl;
   private boolean notifications;
   private boolean emailUpdates;
   private boolean locationSharing;
   private Double latitude;
   private Double longitude;
+
+  public UserResponse(UUID id, String email, List<String> roles, String firstName, String lastName,
+      boolean notifications, boolean emailUpdates, boolean locationSharing, Double latitude,
+      Double longitude) {
+    this.id = id;
+    this.email = email;
+    this.roles = roles;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.notifications = notifications;
+    this.emailUpdates = emailUpdates;
+    this.locationSharing = locationSharing;
+    this.latitude = latitude;
+    this.longitude = longitude;
+  }
 }

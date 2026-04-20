@@ -19,6 +19,7 @@ import stud.ntnu.krisefikser.map.entity.EventStatus;
 public class UpdateEventRequest {
   private String title;
   private String description;
+  private String imageUrl;
   private Double radius;
   private Double latitude;
   private Double longitude;

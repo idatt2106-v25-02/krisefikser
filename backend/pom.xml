@@ -172,6 +172,11 @@
       <artifactId>spring-boot-starter-websocket</artifactId>
       <groupId>org.springframework.boot</groupId>
     </dependency>
+    <dependency>
+      <groupId>com.cloudinary</groupId>
+      <artifactId>cloudinary-http5</artifactId>
+      <version>2.1.0</version>
+    </dependency>
   </dependencies>
   <description>backend</description>
   <developers>
