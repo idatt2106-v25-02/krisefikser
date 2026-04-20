@@ -1,18 +1,40 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import {
+  grantTrackingConsent,
+  revokeTrackingConsent,
+  hasTrackingConsent,
+} from '@/plugins/docs/posthog-consent'
 
 const isVisible = ref(true)
 
 const acceptCookies = () => {
   isVisible.value = false
   localStorage.setItem('cookiesAccepted', 'true')
+  grantTrackingConsent()
+}
+
+const rejectCookies = () => {
+  isVisible.value = false
+  localStorage.setItem('cookiesAccepted', 'false')
+  revokeTrackingConsent()
 }
 
 // Check if cookies were previously accepted
 const checkCookieConsent = () => {
   const cookiesAccepted = localStorage.getItem('cookiesAccepted')
   if (cookiesAccepted === 'true') {
+    if (!hasTrackingConsent()) {
+      grantTrackingConsent()
+    }
     isVisible.value = false
+    return
+  }
+
+  if (cookiesAccepted === 'false') {
+    revokeTrackingConsent()
+    isVisible.value = false
+    return
   }
 }
 
@@ -34,6 +56,12 @@ checkCookieConsent()
         class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors"
       >
         Aksepter
+      </button>
+      <button
+        @click="rejectCookies"
+        class="bg-transparent border border-white hover:bg-white hover:text-gray-900 text-white px-6 py-2 rounded-md transition-colors"
+      >
+        Avslå
       </button>
     </div>
   </div>
