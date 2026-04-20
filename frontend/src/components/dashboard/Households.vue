@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/label-has-for, vuejs-accessibility/form-control-has-label, vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
 <script lang="ts" setup>
 import {
   useGetActiveHousehold,

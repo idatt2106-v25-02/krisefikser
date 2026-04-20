@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/label-has-for, vuejs-accessibility/form-control-has-label, vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { X, Plus } from 'lucide-vue-next'

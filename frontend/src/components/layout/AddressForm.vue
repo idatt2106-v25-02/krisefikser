@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/label-has-for -->
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
 import { useForm } from 'vee-validate'

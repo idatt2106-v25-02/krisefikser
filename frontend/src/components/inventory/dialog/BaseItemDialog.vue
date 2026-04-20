@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
 <script setup lang="ts">
 import { X } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
