@@ -1,22 +1,27 @@
 [
   {
     "title": "Flom i boligområde",
+    "coverImageUrl": "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713493/krisefikser/scenarios/cover-flom-boligomrade.jpg",
     "content": "## Før flommen\n\n- Flytt verdifulle gjenstander og elektrisk utstyr til øverste etasje.\n- Forbered sekker med medisiner, dokumenter, lader og varmt tøy.\n\n## Under flommen\n\n- Følg kommunevarsling og ikke kjør gjennom oversvømte veier.\n- Hjelp sårbare naboer om det er trygt.\n\n## Etterpå\n\n- Ta bilder av skader til forsikring og vent på klarsignal før du slår på strøm i kjeller."
   },
   {
     "title": "Lange strømbrudd om vinteren",
+    "coverImageUrl": "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713498/krisefikser/scenarios/cover-lange-strombrudd-vinter.jpg",
     "content": "## Hjemme\n\n- Behold kjøleskap/dører lukket så lenge som mulig.\n- Bruk lommelykt — ikke stearinlys uten tilsyn.\n\n## Oppvarming\n\n- Kle deg lagvis og samle husstanden i én rom.\n- Varm drikke og enkel mat som ikke krever komfyr.\n\n## Kommunikasjon\n\n- Spar på mobilbatteri; bruk SMS fremfor video når nettet er svakt."
   },
   {
     "title": "Skogbrann og røyk i lufta",
+    "coverImageUrl": "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713499/krisefikser/scenarios/cover-skogbrann-royk.jpg",
     "content": "## Varsling\n\n- Følg **Varsom** og kommunens anbefalinger om evakuering.\n\n## Ved røyk\n\n- Lukk vinduer og slå av ventilasjon på trekk.\n- Barn, eldre og astmatikere bør minimere utendørs aktivitet.\n\n## Evakuering\n\n- Ta med nødsekken, kjæledyr og medisiner — følg angitte ruter."
   },
   {
     "title": "Farlig stoff / lukt i nærområdet",
+    "coverImageUrl": "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713499/krisefikser/scenarios/cover-farlig-stoff-lukt.jpg",
     "content": "## Umiddelbart\n\n- Gå innendørs og lukk vinduer og dører.\n- Slå av mekanisk ventilasjon som trekker uteluft inn.\n\n## Informasjon\n\n- Ikke spre rykter — vent på melding fra **nødetatene** eller kommunen.\n\n## Symptomer\n\n- Ved pusteproblemer, kontakt legevakt eller 113 etter alvorlighetsgrad."
   },
   {
     "title": "Store snøfall og kolonnekjøring",
+    "coverImageUrl": "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713500/krisefikser/scenarios/cover-snofall-kolonnekjoring.jpg",
     "content": "## Før du kjører\n\n- Sjekk vær og kolonnekjøring på **Statens vegvesen**.\n- Med deg spade, lommelykt, varmt tøy og nok drivstoff/lading.\n\n## Hvis du setter deg fast\n\n- Hold motoren på tomgang kortvarig for varme; luft ut for CO₂.\n- Varsle hjelp med posisjon og antall personer.\n\n## Hjemme\n\n- Hold snøskuffer og takrenner frie for å unngå vannskader og istapper."
   }
 ]

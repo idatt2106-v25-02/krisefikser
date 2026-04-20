@@ -77,6 +77,24 @@ public class DataSeeder implements CommandLineRunner {
   private final Random random = new Random();
   private final PasswordEncoder passwordEncoder;
 
+  /** Rotated in {@link #seedArticles()} so seeded news use Cloudinary delivery URLs (f_auto/q_auto in UI). */
+  private static final String[] SEED_ARTICLE_IMAGE_URLS = {
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713518/krisefikser/articles/seed-article-hero-a.jpg",
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713518/krisefikser/articles/seed-article-hero-b.jpg",
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713519/krisefikser/articles/seed-article-hero-c.jpg",
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713520/krisefikser/articles/seed-article-hero-d.jpg",
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713520/krisefikser/articles/seed-article-hero-e.jpg",
+  };
+
+  /** Rotated in {@link #seedEvents()} for map event detail hero images. */
+  private static final String[] SEED_EVENT_IMAGE_URLS = {
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713536/krisefikser/events/seed-event-hero-1.jpg",
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713536/krisefikser/events/seed-event-hero-2.jpg",
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713537/krisefikser/events/seed-event-hero-3.jpg",
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713539/krisefikser/events/seed-event-hero-4.jpg",
+    "https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713539/krisefikser/events/seed-event-hero-5.jpg",
+  };
+
   @Override
   public void run(String... args) {
     boolean reseedDatabase = Arrays.asList(args).contains("--reseed");
@@ -232,7 +250,7 @@ public class DataSeeder implements CommandLineRunner {
           .title(faker.book().title())
           .text(faker.lorem().paragraphs(3).toString().replace("[", "").replace("]", ""))
           .createdAt(createdAt)
-          .imageUrl("https://picsum.photos/seed/" + i + "/800/600")
+          .imageUrl(SEED_ARTICLE_IMAGE_URLS[i % SEED_ARTICLE_IMAGE_URLS.length])
           .build();
 
       articles.add(article);
@@ -436,6 +454,7 @@ public class DataSeeder implements CommandLineRunner {
           .startTime(startTime)
           .endTime(endTime)
           .status(status)
+          .imageUrl(SEED_EVENT_IMAGE_URLS[placed % SEED_EVENT_IMAGE_URLS.length])
           .build();
 
       events.add(event);
