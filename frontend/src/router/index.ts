@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import NonRegisteredHomeView from '@/views/nonRegistered/HomeView.vue'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
+import { applyAuthGuards } from './guards'
 
 // Auth views
 import LoginView from '@/views/auth/login/LoginView.vue'
@@ -333,64 +334,25 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
-
-  // Check if the route requires authentication
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    // Redirect to login page with return URL
-    return next({
-      name: 'login',
-      query: { redirect: to.fullPath },
-    })
-  }
-
-  // Check if the route requires admin privileges
-  if (to.meta.requiresAdmin) {
-    // If currentUser is still loading, wait for it
-    if (!auth.currentUser) {
-      // Wait for the currentUser query to complete
-      auth.refetchUser().then(() => {
-        if (!auth.isAdmin) {
-          next({ name: 'not-found' })
-        } else {
-          next()
-        }
-      })
-      return
-    }
-
-    if (!auth.isAdmin) {
-      return next({ name: 'not-found' })
-    }
-  }
-
-  // Check if the route requires super admin privileges
-  if (to.meta.requiresSuperAdmin) {
-    // If currentUser is still loading, wait for it
-    if (!auth.currentUser) {
-      // Wait for the currentUser query to complete
-      auth.refetchUser().then(() => {
-        if (!auth.isSuperAdmin) {
-          next({ name: 'not-found' })
-        } else {
-          next()
-        }
-      })
-      return
-    }
-
-    if (!auth.isSuperAdmin) {
-      return next({ name: 'not-found' })
-    }
-  }
-
-  // Check if the route requires guest access (like login page)
-  if (to.meta.requiresGuest && auth.isAuthenticated) {
-    return next({ name: 'dashboard' })
-  }
-
-  // Add a catch-all route for admin paths
-  if (to.path.startsWith('/admin') && !to.matched.length) {
-    return next({ name: 'admin-dashboard' })
+  if (
+    applyAuthGuards(
+      {
+        meta: to.meta,
+        fullPath: to.fullPath,
+        path: to.path,
+        matched: to.matched,
+      },
+      {
+        isAuthenticated: auth.isAuthenticated,
+        isAdmin: auth.isAdmin,
+        isSuperAdmin: auth.isSuperAdmin,
+        currentUser: auth.currentUser,
+        refetchUser: auth.refetchUser,
+      },
+      next,
+    )
+  ) {
+    return
   }
 
   next()
