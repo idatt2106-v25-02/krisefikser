@@ -2,6 +2,8 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import EventForm from './EventForm.vue'
 
+type EventUpdatePayload = [{ title?: string }]
+
 describe('EventForm', () => {
   function mountForm() {
     return mount(EventForm, {
@@ -31,7 +33,8 @@ describe('EventForm', () => {
     expect(wrapper.emitted('submit')).toBeTruthy()
     const updateEvent = wrapper.emitted('update:modelValue')
     expect(updateEvent).toBeTruthy()
-    expect(updateEvent?.[0][0].title).toBe('Oppdatert navn')
+    const firstPayload = (updateEvent?.[0] ?? []) as EventUpdatePayload
+    expect(firstPayload[0].title).toBe('Oppdatert navn')
   })
 
   it('emits start-map-selection when map button is clicked', async () => {

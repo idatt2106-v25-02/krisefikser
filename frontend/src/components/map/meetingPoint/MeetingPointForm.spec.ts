@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import MeetingPointForm from './MeetingPointForm.vue'
+import type { MeetingPointResponse } from '@/api/generated/model'
 
 const refetchMock = vi.fn()
 const createMutateMock = vi.fn()
@@ -29,7 +30,13 @@ vi.mock('@/api/generated/meeting-points/meeting-points', () => ({
   })),
 }))
 
-function mountForm(props: Record<string, unknown>) {
+type MeetingPointFormProps = {
+  householdId: string
+  point?: MeetingPointResponse
+  position?: { lat: number; lng: number }
+}
+
+function mountForm(props: MeetingPointFormProps) {
   return mount(MeetingPointForm, {
     props,
     global: {

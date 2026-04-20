@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ProductSearch from '@/components/inventory/ProductSearch.vue'
 
+type SearchChangedPayload = [isActive: boolean, results: Array<{ item: { id: string } }>]
+
 const categories = [
   {
     id: 'food',
@@ -75,7 +77,7 @@ describe('ProductSearch', () => {
 
     const emitted = wrapper.emitted('searchChanged')
     expect(emitted).toBeTruthy()
-    const lastPayload = emitted?.at(-1) ?? []
+    const lastPayload = (emitted?.at(-1) ?? []) as SearchChangedPayload
     expect(lastPayload[0]).toBe(true)
     expect(lastPayload[1]).toHaveLength(1)
     expect(lastPayload[1][0].item.id).toBe('i-2')

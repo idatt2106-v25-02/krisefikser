@@ -1,20 +1,33 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import type { HouseholdResponse } from '@/api/generated/model'
 import EditHouseholdDialog from './EditHouseholdDialog.vue'
 
 function mountDialog() {
+  const household: HouseholdResponse = {
+    id: 'h-1',
+    name: 'Familien Hansen',
+    latitude: 63.4,
+    longitude: 10.3,
+    address: 'Testveien 1',
+    city: 'Trondheim',
+    postalCode: '7010',
+    owner: {
+      id: 'u-1',
+      firstName: 'Test',
+      lastName: 'Bruker',
+      email: 'test@example.com',
+      roles: ['USER'],
+    },
+    members: [],
+    guests: [],
+    createdAt: '2099-01-01T00:00:00Z',
+  }
+
   return mount(EditHouseholdDialog, {
     props: {
       open: true,
-      household: {
-        id: 'h-1',
-        name: 'Familien Hansen',
-        latitude: 63.4,
-        longitude: 10.3,
-        address: 'Testveien 1',
-        city: 'Trondheim',
-        postalCode: '7010',
-      },
+      household,
     },
     global: {
       stubs: {
