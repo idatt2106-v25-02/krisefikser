@@ -2,109 +2,100 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import CookieBanner from '@/components/CookieBanner.vue'
 import {
-  grantTrackingConsent,
-  hasTrackingConsent,
-  revokeTrackingConsent,
+  grantAllCookies,
+  grantNecessaryCookiesOnly,
+  rejectOptionalCookies,
+  isCookieBannerDismissed,
 } from '@/plugins/docs/posthog-consent'
+import { openCookieSettings } from '@/plugins/docs/cookie-settings-ui'
 
 vi.mock('@/plugins/docs/posthog-consent', () => ({
-  grantTrackingConsent: vi.fn(),
-  revokeTrackingConsent: vi.fn(),
-  hasTrackingConsent: vi.fn(() => false),
+  grantAllCookies: vi.fn(),
+  grantNecessaryCookiesOnly: vi.fn(),
+  rejectOptionalCookies: vi.fn(),
+  isCookieBannerDismissed: vi.fn(() => false),
+}))
+
+vi.mock('@/plugins/docs/cookie-settings-ui', () => ({
+  openCookieSettings: vi.fn(),
 }))
 
 describe('CookieBanner', () => {
   let localStorageMock: { [key: string]: string }
 
-  beforeEach(() => {
-    // Reset localStorage mock before each test
-    localStorageMock = {}
+  const mountBanner = () =>
+    mount(CookieBanner, {
+      global: {
+        stubs: { RouterLink: { template: '<a><slot /></a>' } },
+      },
+    })
 
-    // Mock localStorage
+  beforeEach(() => {
+    localStorageMock = {}
+    vi.mocked(isCookieBannerDismissed).mockReturnValue(false)
+
     vi.stubGlobal('localStorage', {
       getItem: vi.fn((key: string) => localStorageMock[key]),
       setItem: vi.fn((key: string, value: string) => {
         localStorageMock[key] = value
-      })
+      }),
+      removeItem: vi.fn((key: string) => {
+        delete localStorageMock[key]
+      }),
+      clear: vi.fn(() => {
+        localStorageMock = {}
+      }),
     })
   })
 
   it('renders when cookies have not been accepted', () => {
-    const wrapper = mount(CookieBanner)
+    const wrapper = mountBanner()
     expect(wrapper.isVisible()).toBe(true)
-    expect(wrapper.text()).toContain('Vi bruker informasjonskapsler')
+    expect(wrapper.text()).toContain('Vi bruker nødvendige informasjonskapsler')
   })
 
-  it('does not render when cookies have been previously accepted', () => {
-    localStorageMock['cookiesAccepted'] = 'true'
-    const wrapper = mount(CookieBanner)
-    expect(wrapper.isVisible()).toBe(false)
+  it('does not render when consent was previously recorded', () => {
+    vi.mocked(isCookieBannerDismissed).mockReturnValue(true)
+    const wrapper = mountBanner()
+    expect(wrapper.find('[role="region"]').exists()).toBe(false)
   })
 
-  it('hides banner and sets localStorage when accepting cookies', async () => {
-    const wrapper = mount(CookieBanner)
-
-    // Click accept button
-    await wrapper.findAll('button')[0].trigger('click')
-
-    // Check if banner is hidden
-    expect(wrapper.isVisible()).toBe(false)
-
-    // Check if localStorage was updated
-    expect(localStorage.setItem).toHaveBeenCalledWith('cookiesAccepted', 'true')
-    expect(grantTrackingConsent).toHaveBeenCalled()
+  it('hides banner and calls grantAllCookies when accepting all', async () => {
+    const wrapper = mountBanner()
+    await wrapper.get('button').trigger('click')
+    expect(wrapper.find('[role="region"]').exists()).toBe(false)
+    expect(grantAllCookies).toHaveBeenCalledWith('banner_accept_all')
   })
 
-  it('hides banner and revokes tracking when rejecting cookies', async () => {
-    const wrapper = mount(CookieBanner)
-
-    // Click reject button
-    await wrapper.findAll('button')[1].trigger('click')
-
-    // Check if banner is hidden
-    expect(wrapper.isVisible()).toBe(false)
-
-    // Check if localStorage was updated
-    expect(localStorage.setItem).toHaveBeenCalledWith('cookiesAccepted', 'false')
-    expect(revokeTrackingConsent).toHaveBeenCalled()
+  it('hides banner and calls grantNecessaryCookiesOnly for necessary-only', async () => {
+    const wrapper = mountBanner()
+    const buttons = wrapper.findAll('button')
+    await buttons[1].trigger('click')
+    expect(grantNecessaryCookiesOnly).toHaveBeenCalledWith('banner_necessary_only')
   })
 
-  it('has correct styling classes', () => {
-    const wrapper = mount(CookieBanner)
+  it('hides banner and calls rejectOptionalCookies for reject optional', async () => {
+    const wrapper = mountBanner()
+    const buttons = wrapper.findAll('button')
+    await buttons[2].trigger('click')
+    expect(rejectOptionalCookies).toHaveBeenCalledWith('banner_reject')
+  })
 
-    // Check container classes
-    const container = wrapper.find('.container')
-    expect(container.classes()).toContain('mx-auto')
-    expect(container.classes()).toContain('flex')
-
-    // Check button classes
-    const button = wrapper.find('button')
-    expect(button.classes()).toContain('bg-blue-500')
-    expect(button.classes()).toContain('hover:bg-blue-600')
-    expect(button.classes()).toContain('text-white')
+  it('opens cookie settings when clicking Tilpass', async () => {
+    const wrapper = mountBanner()
+    const buttons = wrapper.findAll('button')
+    await buttons[3].trigger('click')
+    expect(openCookieSettings).toHaveBeenCalled()
   })
 
   it('checks cookie consent on mount', () => {
-    mount(CookieBanner)
-    expect(localStorage.getItem).toHaveBeenCalledWith('cookiesAccepted')
+    mountBanner()
+    expect(isCookieBannerDismissed).toHaveBeenCalled()
   })
 
-  it('migrates existing accepted cookies to posthog consent', () => {
-    localStorageMock['cookiesAccepted'] = 'true'
-    vi.mocked(hasTrackingConsent).mockReturnValue(false)
-
-    const wrapper = mount(CookieBanner)
-
-    expect(wrapper.isVisible()).toBe(false)
-    expect(grantTrackingConsent).toHaveBeenCalled()
-  })
-
-  it('keeps tracking disabled when cookies were previously rejected', () => {
-    localStorageMock['cookiesAccepted'] = 'false'
-
-    const wrapper = mount(CookieBanner)
-
-    expect(wrapper.isVisible()).toBe(false)
-    expect(revokeTrackingConsent).toHaveBeenCalled()
+  it('has correct layout classes on container', () => {
+    const wrapper = mountBanner()
+    const container = wrapper.find('.container')
+    expect(container.classes()).toContain('mx-auto')
   })
 })
