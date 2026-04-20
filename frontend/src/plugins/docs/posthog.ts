@@ -1,15 +1,25 @@
-import posthog from "posthog-js";
-import type { Plugin } from 'vue';
+import posthog from 'posthog-js'
+import type { Plugin } from 'vue'
 
 const posthogPlugin: Plugin = {
   install(app) {
-    app.config.globalProperties.$posthog = posthog.init(
-      'phc_tbpc1IzXD0vWSxTf6TwUmzKxXPdlBvMtb1pGBFW2zhc',
-      {
-        api_host: 'https://eu.i.posthog.com',
-      }
-    );
-  },
-};
+    const key = import.meta.env.VITE_POSTHOG_KEY
+    const host = import.meta.env.VITE_POSTHOG_HOST || 'https://eu.i.posthog.com'
 
-export default posthogPlugin;
+    if (!key) {
+      console.warn('PostHog key is missing. Skipping analytics initialization.')
+      return
+    }
+
+    posthog.init(key, {
+      api_host: host,
+      capture_pageview: false,
+      autocapture: true,
+      persistence: 'localStorage',
+    })
+
+    app.config.globalProperties.$posthog = posthog
+  },
+}
+
+export default posthogPlugin
