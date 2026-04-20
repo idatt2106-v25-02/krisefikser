@@ -14,7 +14,7 @@
     "test:e2e": "start-server-and-test preview http://127.0.0.1:5173 \"cypress run --e2e --config-file cypress.config.ts --spec 'cypress/e2e/**/*.cy.ts,cypress/e2e/**/*.spec.ts,!cypress/e2e/**/*.fullstack.cy.ts,!cypress/e2e/fullstack-smoke.cy.ts'\"",
     "test:e2e:dev": "start-server-and-test 'vite dev --host 127.0.0.1 --port 5173' http://127.0.0.1:5173 'cypress open --e2e --config-file cypress.config.ts'",
     "test:e2e:fullstack:smoke": "start-server-and-test preview http://127.0.0.1:5173 \"cypress run --e2e --config-file cypress.config.ts --spec 'cypress/e2e/fullstack-smoke.cy.ts,cypress/e2e/events-reflections.fullstack.cy.ts,cypress/e2e/notifications.fullstack.cy.ts'\"",
-    "test:e2e:fullstack:regression": "start-server-and-test preview http://127.0.0.1:5173 \"cypress run --e2e --config-file cypress.config.ts --spec 'cypress/e2e/*.fullstack.cy.ts,cypress/e2e/fullstack-smoke.cy.ts'\"",
+    "test:e2e:fullstack:regression": "start-server-and-test preview http://127.0.0.1:5173 \"cross-env CYPRESS_COVERAGE=true cypress run --e2e --config-file cypress.config.ts --spec 'cypress/e2e/*.fullstack.cy.ts,cypress/e2e/fullstack-smoke.cy.ts'\"",
     "build:coverage": "cross-env CYPRESS_COVERAGE=true run-p type-check build-only --",
     "e2e:coverage:report": "nyc report --report-dir coverage-e2e --reporter=lcov --reporter=html --reporter=text-summary",
     "build-only": "vite build",
@@ -105,6 +105,8 @@
   },
   "pnpm": {
     "overrides": {
+      "nyc": "18.0.0",
+      "@cypress/code-coverage>nyc": "18.0.0",
       "flatted": ">=3.4.2",
       "defu": ">=6.1.7",
       "picomatch": ">=4.0.4",

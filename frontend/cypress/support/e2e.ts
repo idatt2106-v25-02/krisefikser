@@ -1,22 +1,3 @@
-// ***********************************************************
-// This example support/index.js is processed and
-// loaded automatically before your test files.
-//
-// This is a great place to put global configuration and
-// behavior that modifies Cypress.
-//
-// You can change the location of this file or turn off
-// automatically serving support files with the
-// 'supportFile' configuration option.
-//
-// You can read more here:
-// https://on.cypress.io/configuration
-// ***********************************************************
-
-import '@cypress/code-coverage/support'
-
-// Import commands.js using ES2015 syntax:
-import './commands'
-
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
+// Default Cypress support entry; keep in sync with cypress.config.ts `supportFile`.
+// Coverage hooks live in e2eCoverage.ts and load only when CYPRESS_COVERAGE=true.
+import './e2eStandard'
