@@ -18,6 +18,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import stud.ntnu.krisefikser.article.entity.Article;
@@ -53,6 +54,7 @@ import stud.ntnu.krisefikser.user.repository.UserRepository;
  */
 @Component
 @RequiredArgsConstructor
+@Profile({"dev", "test"})
 public class DataSeeder implements CommandLineRunner {
 
   private final UserRepository userRepo;
@@ -84,12 +86,35 @@ public class DataSeeder implements CommandLineRunner {
       return;
     }
 
-    if (userRepo.count() == 0 && householdRepository.count() == 0
-        && articleRepository.count() == 0 && mapPointTypeRepository.count() == 0
-        && eventRepository.count() == 0 && roleRepository.count() == 0) {
-      seedDatabase();
-      System.out.println("Data seeding completed successfully!");
+    if (roleRepository.count() == 0) {
+      seedRoles();
     }
+    if (userRepo.count() == 0) {
+      seedUsers();
+    }
+    if (householdRepository.count() == 0) {
+      seedHouseholds();
+    }
+    if (articleRepository.count() == 0) {
+      seedArticles();
+    }
+    if (mapPointTypeRepository.count() == 0) {
+      seedMapPointTypes();
+    }
+    if (mapPointRepository.count() == 0) {
+      seedMapPoints();
+      seedShelters();
+    }
+    if (eventRepository.count() == 0) {
+      seedEvents();
+    }
+    if (foodItemRepository.count() == 0) {
+      seedFoodItems();
+    }
+    if (checklistItemRepository.count() == 0) {
+      seedChecklistItems();
+    }
+    System.out.println("Data seeding completed successfully!");
   }
 
   /**
@@ -133,13 +158,13 @@ public class DataSeeder implements CommandLineRunner {
   }
 
   private void seedDatabase() {
+    seedRoles();
+    seedUsers();
     seedHouseholds();
     seedArticles();
     seedMapPointTypes();
     seedMapPoints();
     seedEvents();
-    seedRoles();
-    seedUsers();
     seedShelters();
     seedFoodItems();
     seedChecklistItems();

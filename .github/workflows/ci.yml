@@ -214,4 +214,3 @@ jobs:
         run: |
           cd frontend
           pnpm run test:e2e:fullstack:smoke
-
