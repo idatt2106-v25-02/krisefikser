@@ -42,13 +42,13 @@ export const getActiveHousehold = (
   signal?: AbortSignal,
 ) => {
   return customInstance<HouseholdResponse>(
-    { url: `http://localhost:8080/api/households/active`, method: 'GET', signal },
+    { url: `/api/households/active`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetActiveHouseholdQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'households', 'active'] as const
+  return ['api', 'households', 'active'] as const
 }
 
 export const getGetActiveHouseholdQueryOptions = <
@@ -114,7 +114,7 @@ export const updateActiveHousehold = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households/active`,
+      url: `/api/households/active`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: createHouseholdRequest,
@@ -202,7 +202,7 @@ export const setActiveHousehold = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households/active`,
+      url: `/api/households/active`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: joinHouseholdRequest,
@@ -291,7 +291,7 @@ export const createHousehold = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households`,
+      url: `/api/households`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createHouseholdRequest,
@@ -378,7 +378,7 @@ export const leaveHousehold = (
 
   return customInstance<void>(
     {
-      url: `http://localhost:8080/api/households/leave`,
+      url: `/api/households/leave`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: joinHouseholdRequest,
@@ -465,7 +465,7 @@ export const joinHousehold = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households/join`,
+      url: `/api/households/join`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: joinHouseholdRequest,
@@ -552,7 +552,7 @@ export const addGuestToHousehold = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households/guests`,
+      url: `/api/households/guests`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createGuestRequest,
@@ -643,7 +643,7 @@ export const updateHousehold = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households/admin/${id}`,
+      url: `/api/households/admin/${id}`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createHouseholdRequest,
@@ -728,7 +728,7 @@ export const deleteHouseholdAdmin = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/households/admin/${id}`, method: 'DELETE' },
+    { url: `/api/households/admin/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -814,7 +814,7 @@ export const addMemberToHousehold = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households/admin/${householdId}/members/${userId}`,
+      url: `/api/households/admin/${householdId}/members/${userId}`,
       method: 'POST',
       signal,
     },
@@ -902,7 +902,7 @@ export const removeMemberFromHousehold = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households/admin/${householdId}/members/${userId}`,
+      url: `/api/households/admin/${householdId}/members/${userId}`,
       method: 'DELETE',
     },
     options,
@@ -987,13 +987,13 @@ export const getAllUserHouseholds = (
   signal?: AbortSignal,
 ) => {
   return customInstance<HouseholdResponse[]>(
-    { url: `http://localhost:8080/api/households/all`, method: 'GET', signal },
+    { url: `/api/households/all`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllUserHouseholdsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'households', 'all'] as const
+  return ['api', 'households', 'all'] as const
 }
 
 export const getGetAllUserHouseholdsQueryOptions = <
@@ -1058,13 +1058,13 @@ export const getAllHouseholdsAdmin = (
   signal?: AbortSignal,
 ) => {
   return customInstance<HouseholdResponse[]>(
-    { url: `http://localhost:8080/api/households/admin/all`, method: 'GET', signal },
+    { url: `/api/households/admin/all`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllHouseholdsAdminQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'households', 'admin', 'all'] as const
+  return ['api', 'households', 'admin', 'all'] as const
 }
 
 export const getGetAllHouseholdsAdminQueryOptions = <
@@ -1131,7 +1131,7 @@ export const deleteHousehold = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/households/${id}`, method: 'DELETE' },
+    { url: `/api/households/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -1214,7 +1214,7 @@ export const removeMemberFromHouseholdOwner = (
 
   return customInstance<HouseholdResponse>(
     {
-      url: `http://localhost:8080/api/households/${householdId}/members/${userId}`,
+      url: `/api/households/${householdId}/members/${userId}`,
       method: 'DELETE',
     },
     options,
@@ -1301,7 +1301,7 @@ export const removeGuestFromHousehold = (
   guestId = unref(guestId)
 
   return customInstance<HouseholdResponse>(
-    { url: `http://localhost:8080/api/households/guests/${guestId}`, method: 'DELETE' },
+    { url: `/api/households/guests/${guestId}`, method: 'DELETE' },
     options,
   )
 }

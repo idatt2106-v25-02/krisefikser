@@ -40,13 +40,13 @@ export const getArticleById = (
   id = unref(id)
 
   return customInstance<ArticleResponse>(
-    { url: `http://localhost:8080/api/articles/${id}`, method: 'GET', signal },
+    { url: `/api/articles/${id}`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetArticleByIdQueryKey = (id: MaybeRef<number>) => {
-  return ['http:', 'localhost:8080', 'api', 'articles', id] as const
+  return ['api', 'articles', id] as const
 }
 
 export const getGetArticleByIdQueryOptions = <
@@ -117,7 +117,7 @@ export const updateArticle = (
 
   return customInstance<ArticleResponse>(
     {
-      url: `http://localhost:8080/api/articles/${id}`,
+      url: `/api/articles/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: articleRequest,
@@ -201,7 +201,7 @@ export const deleteArticle = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/articles/${id}`, method: 'DELETE' },
+    { url: `/api/articles/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -278,13 +278,13 @@ export const getAllArticles = (
   signal?: AbortSignal,
 ) => {
   return customInstance<ArticleResponse[]>(
-    { url: `http://localhost:8080/api/articles`, method: 'GET', signal },
+    { url: `/api/articles`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllArticlesQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'articles'] as const
+  return ['api', 'articles'] as const
 }
 
 export const getGetAllArticlesQueryOptions = <
@@ -349,7 +349,7 @@ export const createArticle = (
 
   return customInstance<ArticleResponse>(
     {
-      url: `http://localhost:8080/api/articles`,
+      url: `/api/articles`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: articleRequest,

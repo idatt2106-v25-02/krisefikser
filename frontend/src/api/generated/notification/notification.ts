@@ -34,7 +34,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  */
 export const readAll = (options?: SecondParameter<typeof customInstance>) => {
   return customInstance<void>(
-    { url: `http://localhost:8080/api/notifications/readAll`, method: 'PUT' },
+    { url: `/api/notifications/readAll`, method: 'PUT' },
     options,
   )
 }
@@ -89,7 +89,7 @@ export const readNotification = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/notifications/read/${id}`, method: 'PUT' },
+    { url: `/api/notifications/read/${id}`, method: 'PUT' },
     options,
   )
 }
@@ -173,7 +173,7 @@ export const getNotifications = (
 
   return customInstance<PageNotificationResponse>(
     {
-      url: `http://localhost:8080/api/notifications`,
+      url: `/api/notifications`,
       method: 'GET',
       params: unref(params),
       signal,
@@ -183,7 +183,7 @@ export const getNotifications = (
 }
 
 export const getGetNotificationsQueryKey = (params: MaybeRef<GetNotificationsParams>) => {
-  return ['http:', 'localhost:8080', 'api', 'notifications', ...(params ? [params] : [])] as const
+  return ['api', 'notifications', ...(params ? [params] : [])] as const
 }
 
 export const getGetNotificationsQueryOptions = <
@@ -248,13 +248,13 @@ export const getUnreadCount = (
   signal?: AbortSignal,
 ) => {
   return customInstance<number>(
-    { url: `http://localhost:8080/api/notifications/unread`, method: 'GET', signal },
+    { url: `/api/notifications/unread`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetUnreadCountQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'notifications', 'unread'] as const
+  return ['api', 'notifications', 'unread'] as const
 }
 
 export const getGetUnreadCountQueryOptions = <
@@ -317,7 +317,7 @@ export const deleteNotification = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/notifications/${id}`, method: 'DELETE' },
+    { url: `/api/notifications/${id}`, method: 'DELETE' },
     options,
   )
 }
