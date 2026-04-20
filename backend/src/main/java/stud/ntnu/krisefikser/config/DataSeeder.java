@@ -48,13 +48,14 @@ import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
 /**
- * DataSeeder is a component that seeds the database with initial data for development and testing
- * purposes. It implements CommandLineRunner to execute the seeding process when the application
- * starts.
+ * DataSeeder seeds the database on startup when tables are empty (roles, users, households, articles,
+ * map data, etc.). Active for dev, test, and prod so a fresh Railway/prod database gets baseline data;
+ * per-table {@code count() == 0} guards avoid duplicating rows. Use {@code --reseed} only in dev/test.
+ * Runs as a Spring Boot {@link CommandLineRunner} after the application context starts.
  */
 @Component
 @RequiredArgsConstructor
-@Profile({"dev", "test"})
+@Profile({"dev", "test", "prod"})
 public class DataSeeder implements CommandLineRunner {
 
   private final UserRepository userRepo;
