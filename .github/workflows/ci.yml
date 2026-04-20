@@ -155,6 +155,11 @@ jobs:
           cd frontend
           pnpm install --frozen-lockfile
 
+      - name: Build frontend for preview server
+        run: |
+          cd frontend
+          pnpm run build
+
       - name: Run Cypress E2E tests
         run: |
           cd frontend
