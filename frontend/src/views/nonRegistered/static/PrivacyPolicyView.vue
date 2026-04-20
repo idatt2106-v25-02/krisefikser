@@ -1,6 +1,11 @@
+<script setup lang="ts">
+import { PRIVACY_POLICY_VERSION } from '@/plugins/docs/posthog-consent'
+</script>
+
 <template>
   <div class="max-w-4xl mx-auto px-4 py-8 lg:py-12">
     <h1 class="text-3xl lg:text-5xl font-bold mb-8 text-gray-800 border-b border-gray-200 pb-3">Personvern</h1>
+    <p class="text-sm text-gray-500 mb-6">Dokumentversjon: {{ PRIVACY_POLICY_VERSION }}</p>
 
     <section class="mb-10">
       <h2 class="text-2xl lg:text-3xl font-semibold mb-4 text-blue-700">Hvordan vi behandler dine data</h2>
@@ -11,16 +16,66 @@
 
       <div class="mb-8 bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-800">Informasjonskapsler og samtykke</h3>
+        </div>
+        <div class="p-6">
+          <p class="text-lg text-gray-700 mb-3">
+            Vi skiller mellom <strong>nødvendige</strong> og <strong>valgfrie</strong> informasjonskapsler:
+          </p>
+          <ul class="list-disc ml-6 mb-4 text-lg text-gray-700 space-y-2">
+            <li>
+              <strong>Nødvendige</strong> brukes for at tjenesten skal fungere (for eksempel innlogging og
+              sikkerhet). Disse kan ikke slås av i nettleseren vår uten at funksjonalitet faller bort.
+            </li>
+            <li>
+              <strong>Analyse (PostHog)</strong> er valgfritt. Vi starter ikke analyseverktøyet før du har gitt
+              eksplisitt samtykke via cookie-banneret eller «Cookie-innstillinger» i bunnteksten. Uten samtykke
+              lastes ikke PostHog SDK for analyseformål.
+            </li>
+          </ul>
+          <p class="text-lg text-gray-700 mb-3">
+            <strong>Trekke samtykke / endre valg:</strong> Bruk
+            <strong>«Cookie-innstillinger»</strong> i bunnteksten på nettstedet. Du kan når som helst slå av analyse;
+            valget lagres lokalt i nettleseren din sammen med tidspunkt og versjon av denne personvernteksten
+            (revisjonsspor).
+          </p>
+        </div>
+      </div>
+
+      <div class="mb-8 bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-800">PostHog (valgfri analyse)</h3>
+        </div>
+        <div class="p-6">
+          <p class="text-lg text-gray-700 mb-3">
+            Når du har samtykket til analyse, kan vi bruke PostHog (leverandør PostHog Inc., med EU-hosting der det er
+            konfigurert) til å forstå hvordan nettstedet brukes, for eksempel sidevisninger og teknisk feilsøking.
+            Vi bruker ikke «autocapture» for generell klikksporing i denne konfigurasjonen; vi sender i hovedsak
+            strukturerte hendelser som sidevisning.
+          </p>
+          <ul class="list-disc ml-6 mb-3 text-lg text-gray-700 space-y-2">
+            <li><strong>Behandlingsgrunnlag:</strong> samtykke (GDPR art. 6 nr. 1 bokstav a), når du har slått på analyse.</li>
+            <li><strong>Oppbevaring:</strong> følger innstillingene hos PostHog og vårt behov for statistikk i prosjektperioden.</li>
+            <li><strong>Overføring:</strong> PostHog kan behandle data i EU/USA avhengig av produktoppsett; se PostHogs personvern for detaljer.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mb-8 bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
           <h3 class="text-xl font-semibold text-gray-800">For ikke-registrerte brukere</h3>
         </div>
         <div class="p-6">
           <p class="text-lg text-gray-700 mb-3">
-            For ikke-registrerte brukere samler vi kun begrenset informasjon:
+            For ikke-registrerte brukere kan vi behandle begrenset informasjon:
           </p>
           <ul class="list-disc ml-6 mb-3 text-lg text-gray-700 space-y-2">
-            <li>IP-adresse (anonymisert)</li>
-            <li>Grunnleggende besøksstatistikk</li>
-            <li>Nødvendige informasjonskapsler</li>
+            <li>Tekniske logger (f.eks. IP-adresse i begrenset omfang der servere logger trafikk)</li>
+            <li>Nødvendige informasjonskapsler for drift</li>
+            <li>
+              Valgfri besøksanalyse via PostHog <strong>kun etter samtykke</strong> (se over). Uten samtykke bruker vi
+              ikke PostHog til analyse for ditt besøk.
+            </li>
           </ul>
         </div>
       </div>
@@ -37,6 +92,7 @@
             <li>Basis kontaktinformasjon</li>
             <li>Testdata for beredskapsplanlegging</li>
             <li>Brukerpreferanser</li>
+            <li>Valgfri analyse (PostHog) etter samtykke, som beskrevet over</li>
           </ul>
         </div>
       </div>
@@ -53,7 +109,7 @@
             <li>Innsyn i dine data</li>
             <li>Retting av feil informasjon</li>
             <li>Sletting av dine data</li>
-            <li>Trekke ditt samtykke</li>
+            <li>Trekke eller endre samtykke til informasjonskapsler og analyse (via «Cookie-innstillinger»)</li>
           </ul>
         </div>
       </div>
