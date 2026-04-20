@@ -26,7 +26,7 @@
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "@vueup/vue-quill": "^1.2.0",
     "@vueuse/core": "^13.1.0",
-    "axios": "^1.8.4",
+    "axios": "^1.15.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "global": "^4.4.0",
@@ -37,9 +37,9 @@
     "posthog-js": "^1.239.0",
     "qs": "^6.14.0",
     "reka-ui": "^2.2.0",
-    "rollup": "^4.40.1",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
+    "rollup": "^4.60.2",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "sockjs": "^0.3.24",
     "sockjs-client": "^1.6.1",
     "stompjs": "^2.3.3",
@@ -84,11 +84,22 @@
     "prettier": "3.5.3",
     "start-server-and-test": "^2.0.11",
     "typescript": "~5.8.0",
-    "vite": "^6.3.4",
+    "vite": "^6.4.2",
     "vite-plugin-vue-devtools": "^7.7.2",
     "vitest": "^3.1.1",
     "vue-router": "4",
     "vue-tsc": "^2.2.8"
+  },
+  "pnpm": {
+    "overrides": {
+      "flatted": ">=3.4.2",
+      "defu": ">=6.1.7",
+      "picomatch": ">=4.0.4",
+      "minimatch": ">=9.0.5",
+      "brace-expansion": ">=2.0.1",
+      "yaml": ">=2.8.0",
+      "socket.io-parser": ">=4.2.6"
+    }
   },
   "packageManager": "pnpm@10.10.0"
 }
