@@ -93,6 +93,9 @@ describe('Household flow', () => {
 
     visitHousehold()
     cy.wait('@getPendingInvitesForUser')
+    cy.get('button[aria-label="Tilgjengelighetsalternativer"]')
+      .should('exist')
+      .invoke('hide')
     cy.contains('Avslå').click()
     cy.wait('@declineInvite')
   })
