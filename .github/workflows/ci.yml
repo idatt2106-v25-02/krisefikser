@@ -285,6 +285,7 @@ jobs:
 
       - name: Run full-stack regression E2E
         env:
+          CYPRESS_COVERAGE: 'true'
           CYPRESS_e2eMailHookSecret: ${{ env.E2E_MAIL_HOOK_SECRET }}
         run: |
           cd frontend
