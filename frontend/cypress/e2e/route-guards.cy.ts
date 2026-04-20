@@ -7,7 +7,7 @@ describe('Route guard behaviour', () => {
     cy.visit('/dashboard')
 
     cy.url().should('include', '/logg-inn')
-    cy.url().should('include', 'redirect=/dashboard')
+    cy.url().should('include', 'redirect=%2Fdashboard')
     cy.contains('Innlogging').should('be.visible')
   })
 
@@ -15,7 +15,7 @@ describe('Route guard behaviour', () => {
     cy.visit('/husstand/beredskapslager')
 
     cy.url().should('include', '/logg-inn')
-    cy.url().should('include', 'redirect=/husstand/beredskapslager')
+    cy.url().should('include', 'redirect=%2Fhusstand%2Fberedskapslager')
     cy.contains('Innlogging').should('be.visible')
   })
 
@@ -38,10 +38,6 @@ describe('Route guard behaviour', () => {
   it('redirects authenticated users away from register page to dashboard', () => {
     cy.mockAuthMe()
     cy.mockCoreHouseholdData()
-    cy.intercept('POST', '/api/auth/check-email', {
-      statusCode: 200,
-      body: { exists: false },
-    })
 
     cy.visit('/registrer', {
       onBeforeLoad(win) {
