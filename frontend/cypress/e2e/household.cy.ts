@@ -32,6 +32,7 @@ describe('Household flow', () => {
       onBeforeLoad(win) {
         win.localStorage.setItem('accessToken', 'mock-test-access-token')
         win.localStorage.setItem('refreshToken', 'mock-test-refresh-token')
+        win.localStorage.setItem('cookiesAccepted', 'true')
       },
     })
   }
@@ -93,10 +94,12 @@ describe('Household flow', () => {
 
     visitHousehold()
     cy.wait('@getPendingInvitesForUser')
-    cy.get('button[aria-label="Tilgjengelighetsalternativer"]')
-      .should('exist')
-      .invoke('hide')
-    cy.contains('Avslå').click()
+    cy.contains('Ventende invitasjoner')
+      .parent()
+      .within(() => {
+        cy.contains('Annen-husstand').should('be.visible')
+        cy.contains('button', 'Avslå').click()
+      })
     cy.wait('@declineInvite')
   })
 
