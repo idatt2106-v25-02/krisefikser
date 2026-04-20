@@ -22,7 +22,7 @@ public class MockEmailService extends EmailService {
    * requests.
    */
   public MockEmailService() {
-    super(null, null);
+    super(null, null, null);
   }
 
   @Override
