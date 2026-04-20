@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { axe, toHaveNoViolations } from 'jest-axe'
+import { axe } from 'jest-axe'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import NotificationModal from '@/components/notification/NotificationModal.vue'
 import DataTable from '@/components/ui/data-table/DataTable.vue'
-
-expect.extend(toHaveNoViolations)
 
 describe('Critical accessibility checks', () => {
   it('renders notification modal without axe violations', async () => {
@@ -30,7 +28,7 @@ describe('Critical accessibility checks', () => {
     })
 
     const results = await axe(document.body)
-    expect(results).toHaveNoViolations()
+    expect(results.violations).toHaveLength(0)
     wrapper.unmount()
   })
 
@@ -53,7 +51,7 @@ describe('Critical accessibility checks', () => {
 
     const main = wrapper.find('main').element
     const results = await axe(main)
-    expect(results).toHaveNoViolations()
+    expect(results.violations).toHaveLength(0)
     wrapper.unmount()
   })
 })
