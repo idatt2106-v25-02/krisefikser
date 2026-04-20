@@ -45,6 +45,9 @@ public class Scenario {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String content;
 
+  @Column(name = "cover_image_url")
+  private String coverImageUrl;
+
   /**
    * Converts this entity to a response DTO.
    *
@@ -55,6 +58,7 @@ public class Scenario {
         .id(id)
         .title(title)
         .content(content)
+        .coverImageUrl(coverImageUrl)
         .build();
   }
 }

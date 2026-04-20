@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -79,7 +79,6 @@ const authStore = useAuthStore()
 
 // Loading state
 const isLoading = ref(false)
-const emailInputRef = ref<HTMLInputElement | null>(null)
 
 // Function to parse error messages and provide specific user feedback
 const handleRegistrationError = (error: unknown) => {
@@ -93,10 +92,8 @@ const handleRegistrationError = (error: unknown) => {
       'email',
       'E-postadressen er allerede registrert. Vennligst bruk en annen e-post eller prøv å logge inn.',
     )
-    // Use nextTick to ensure DOM is updated before focusing
-    nextTick(() => {
-      emailInputRef.value?.focus()
-    })
+    // Do not attempt imperative focus here; some environments wrap inputs
+    // differently and can throw during error handling.
   }
 
   showErrorToast('Registreringsfeil', error)
@@ -235,7 +232,6 @@ onUnmounted(() => {
                 class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4"
               />
               <Input
-                ref="emailInputRef"
                 id="email"
                 class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="navn@eksempel.no"

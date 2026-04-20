@@ -44,13 +44,13 @@ export const getMapPointTypeById = (
   id = unref(id)
 
   return customInstance<MapPointTypeResponse>(
-    { url: `http://localhost:8080/api/map-point-types/${id}`, method: 'GET', signal },
+    { url: `/api/map-point-types/${id}`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetMapPointTypeByIdQueryKey = (id: MaybeRef<number>) => {
-  return ['http:', 'localhost:8080', 'api', 'map-point-types', id] as const
+  return ['api', 'map-point-types', id] as const
 }
 
 export const getGetMapPointTypeByIdQueryOptions = <
@@ -123,7 +123,7 @@ export const updateMapPointType = (
 
   return customInstance<MapPointTypeResponse>(
     {
-      url: `http://localhost:8080/api/map-point-types/${id}`,
+      url: `/api/map-point-types/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: updateMapPointTypeRequest,
@@ -209,7 +209,7 @@ export const deleteMapPointType = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/map-point-types/${id}`, method: 'DELETE' },
+    { url: `/api/map-point-types/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -289,13 +289,13 @@ export const getAllMapPointTypes = (
   signal?: AbortSignal,
 ) => {
   return customInstance<MapPointTypeResponse>(
-    { url: `http://localhost:8080/api/map-point-types`, method: 'GET', signal },
+    { url: `/api/map-point-types`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllMapPointTypesQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'map-point-types'] as const
+  return ['api', 'map-point-types'] as const
 }
 
 export const getGetAllMapPointTypesQueryOptions = <
@@ -362,7 +362,7 @@ export const createMapPointType = (
 
   return customInstance<MapPointTypeResponse>(
     {
-      url: `http://localhost:8080/api/map-point-types`,
+      url: `/api/map-point-types`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: mapPointTypeRequest,

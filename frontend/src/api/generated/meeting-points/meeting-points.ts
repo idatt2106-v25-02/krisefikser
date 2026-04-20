@@ -44,7 +44,7 @@ export const updateMeetingPoint = (
 
   return customInstance<MeetingPointResponse>(
     {
-      url: `http://localhost:8080/api/households/${householdId}/meeting-points/${id}`,
+      url: `/api/households/${householdId}/meeting-points/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: meetingPointRequest,
@@ -133,7 +133,7 @@ export const deleteMeetingPoint = (
 
   return customInstance<void>(
     {
-      url: `http://localhost:8080/api/households/${householdId}/meeting-points/${id}`,
+      url: `/api/households/${householdId}/meeting-points/${id}`,
       method: 'DELETE',
     },
     options,
@@ -219,7 +219,7 @@ export const getMeetingPoints = (
 
   return customInstance<MeetingPointResponse[]>(
     {
-      url: `http://localhost:8080/api/households/${householdId}/meeting-points`,
+      url: `/api/households/${householdId}/meeting-points`,
       method: 'GET',
       signal,
     },
@@ -228,7 +228,7 @@ export const getMeetingPoints = (
 }
 
 export const getGetMeetingPointsQueryKey = (householdId: MaybeRef<string>) => {
-  return ['http:', 'localhost:8080', 'api', 'households', householdId, 'meeting-points'] as const
+  return ['api', 'households', householdId, 'meeting-points'] as const
 }
 
 export const getGetMeetingPointsQueryOptions = <
@@ -300,7 +300,7 @@ export const createMeetingPoint = (
 
   return customInstance<MeetingPointResponse>(
     {
-      url: `http://localhost:8080/api/households/${householdId}/meeting-points`,
+      url: `/api/households/${householdId}/meeting-points`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: meetingPointRequest,

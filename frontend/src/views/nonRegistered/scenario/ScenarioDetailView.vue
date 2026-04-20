@@ -10,10 +10,12 @@ import {
   Info,
   HeartPulse
 } from 'lucide-vue-next'
+import { useCloudinaryUrl } from '@/composables/useCloudinaryUrl'
 
 const route = useRoute()
 const router = useRouter()
 const scenarioId = route.params.id as string
+const { buildCloudinaryUrl } = useCloudinaryUrl()
 
 const { data: scenario, isLoading, error } = useGetScenarioById(scenarioId)
 
@@ -109,6 +111,12 @@ onMounted(() => {
       <!-- Scenario content -->
       <div class="relative z-10">
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 border-b pb-4">{{ scenario.title }}</h1>
+        <img
+          v-if="scenario.coverImageUrl"
+          :src="buildCloudinaryUrl(scenario.coverImageUrl, 'f_auto,q_auto,w_1400,h_700,c_fill')"
+          alt="Scenario cover"
+          class="w-full h-72 object-cover rounded-lg mb-6"
+        />
 
         <div class="text-gray-700 leading-relaxed scenario-content" v-html="formattedContent"></div>
       </div>

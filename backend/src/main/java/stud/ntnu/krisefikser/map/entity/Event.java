@@ -43,6 +43,9 @@ public class Event {
   @Column(columnDefinition = "TEXT")
   private String description;
 
+  @Column(name = "image_url")
+  private String imageUrl;
+
   @Column(nullable = false)
   private Double radius;
 
@@ -92,6 +95,7 @@ public class Event {
         .id(id)
         .title(title)
         .description(description)
+        .imageUrl(imageUrl)
         .radius(radius)
         .latitude(latitude)
         .longitude(longitude)

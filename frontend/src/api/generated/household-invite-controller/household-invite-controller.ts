@@ -41,7 +41,7 @@ export const createInvite = (
 
   return customInstance<HouseholdInviteResponse>(
     {
-      url: `http://localhost:8080/api/household-invites`,
+      url: `/api/household-invites`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createHouseholdInviteRequest,
@@ -128,7 +128,7 @@ export const declineInvite = (
 
   return customInstance<HouseholdInviteResponse>(
     {
-      url: `http://localhost:8080/api/household-invites/${inviteId}/decline`,
+      url: `/api/household-invites/${inviteId}/decline`,
       method: 'POST',
       signal,
     },
@@ -213,7 +213,7 @@ export const cancelInvite = (
 
   return customInstance<HouseholdInviteResponse>(
     {
-      url: `http://localhost:8080/api/household-invites/${inviteId}/cancel`,
+      url: `/api/household-invites/${inviteId}/cancel`,
       method: 'POST',
       signal,
     },
@@ -298,7 +298,7 @@ export const acceptInvite = (
 
   return customInstance<HouseholdInviteResponse>(
     {
-      url: `http://localhost:8080/api/household-invites/${inviteId}/accept`,
+      url: `/api/household-invites/${inviteId}/accept`,
       method: 'POST',
       signal,
     },
@@ -379,13 +379,13 @@ export const getPendingInvitesForUser = (
   signal?: AbortSignal,
 ) => {
   return customInstance<HouseholdInviteResponse[]>(
-    { url: `http://localhost:8080/api/household-invites/pending`, method: 'GET', signal },
+    { url: `/api/household-invites/pending`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetPendingInvitesForUserQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'household-invites', 'pending'] as const
+  return ['api', 'household-invites', 'pending'] as const
 }
 
 export const getGetPendingInvitesForUserQueryOptions = <
@@ -457,7 +457,7 @@ export const getAllInvitesForHousehold = (
 
   return customInstance<HouseholdInviteResponse[]>(
     {
-      url: `http://localhost:8080/api/household-invites/household/${householdId}`,
+      url: `/api/household-invites/household/${householdId}`,
       method: 'GET',
       signal,
     },
@@ -466,7 +466,7 @@ export const getAllInvitesForHousehold = (
 }
 
 export const getGetAllInvitesForHouseholdQueryKey = (householdId: MaybeRef<string>) => {
-  return ['http:', 'localhost:8080', 'api', 'household-invites', 'household', householdId] as const
+  return ['api', 'household-invites', 'household', householdId] as const
 }
 
 export const getGetAllInvitesForHouseholdQueryOptions = <
@@ -543,7 +543,7 @@ export const getPendingInvitesForHousehold = (
 
   return customInstance<HouseholdInviteResponse[]>(
     {
-      url: `http://localhost:8080/api/household-invites/household/${householdId}/pending`,
+      url: `/api/household-invites/household/${householdId}/pending`,
       method: 'GET',
       signal,
     },
@@ -553,8 +553,6 @@ export const getPendingInvitesForHousehold = (
 
 export const getGetPendingInvitesForHouseholdQueryKey = (householdId: MaybeRef<string>) => {
   return [
-    'http:',
-    'localhost:8080',
     'api',
     'household-invites',
     'household',

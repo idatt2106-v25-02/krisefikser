@@ -28,6 +28,8 @@ public class EventRequest {
   @NotBlank
   private String description;
 
+  private String imageUrl;
+
   @NotNull
   private Double radius;
 

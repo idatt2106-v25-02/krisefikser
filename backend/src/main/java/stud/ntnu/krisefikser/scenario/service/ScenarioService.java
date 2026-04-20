@@ -39,6 +39,7 @@ public class ScenarioService {
     Scenario scenario = Scenario.builder()
         .title(request.getTitle())
         .content(request.getContent())
+        .coverImageUrl(request.getCoverImageUrl())
         .build();
 
     return scenarioRepository.save(scenario).toResponse();
@@ -58,6 +59,7 @@ public class ScenarioService {
         .map(scenario -> {
           scenario.setTitle(request.getTitle());
           scenario.setContent(request.getContent());
+          scenario.setCoverImageUrl(request.getCoverImageUrl());
           return scenarioRepository.save(scenario).toResponse();
         })
         .orElseThrow(() -> new EntityNotFoundException("Scenario not found with id: " + id));

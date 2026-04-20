@@ -1,6 +1,17 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import CookieBanner from '@/components/CookieBanner.vue'
+import {
+  grantTrackingConsent,
+  hasTrackingConsent,
+  revokeTrackingConsent,
+} from '@/plugins/docs/posthog-consent'
+
+vi.mock('@/plugins/docs/posthog-consent', () => ({
+  grantTrackingConsent: vi.fn(),
+  revokeTrackingConsent: vi.fn(),
+  hasTrackingConsent: vi.fn(() => false),
+}))
 
 describe('CookieBanner', () => {
   let localStorageMock: { [key: string]: string }
@@ -34,13 +45,28 @@ describe('CookieBanner', () => {
     const wrapper = mount(CookieBanner)
 
     // Click accept button
-    await wrapper.find('button').trigger('click')
+    await wrapper.findAll('button')[0].trigger('click')
 
     // Check if banner is hidden
     expect(wrapper.isVisible()).toBe(false)
 
     // Check if localStorage was updated
     expect(localStorage.setItem).toHaveBeenCalledWith('cookiesAccepted', 'true')
+    expect(grantTrackingConsent).toHaveBeenCalled()
+  })
+
+  it('hides banner and revokes tracking when rejecting cookies', async () => {
+    const wrapper = mount(CookieBanner)
+
+    // Click reject button
+    await wrapper.findAll('button')[1].trigger('click')
+
+    // Check if banner is hidden
+    expect(wrapper.isVisible()).toBe(false)
+
+    // Check if localStorage was updated
+    expect(localStorage.setItem).toHaveBeenCalledWith('cookiesAccepted', 'false')
+    expect(revokeTrackingConsent).toHaveBeenCalled()
   })
 
   it('has correct styling classes', () => {
@@ -61,5 +87,24 @@ describe('CookieBanner', () => {
   it('checks cookie consent on mount', () => {
     mount(CookieBanner)
     expect(localStorage.getItem).toHaveBeenCalledWith('cookiesAccepted')
+  })
+
+  it('migrates existing accepted cookies to posthog consent', () => {
+    localStorageMock['cookiesAccepted'] = 'true'
+    vi.mocked(hasTrackingConsent).mockReturnValue(false)
+
+    const wrapper = mount(CookieBanner)
+
+    expect(wrapper.isVisible()).toBe(false)
+    expect(grantTrackingConsent).toHaveBeenCalled()
+  })
+
+  it('keeps tracking disabled when cookies were previously rejected', () => {
+    localStorageMock['cookiesAccepted'] = 'false'
+
+    const wrapper = mount(CookieBanner)
+
+    expect(wrapper.isVisible()).toBe(false)
+    expect(revokeTrackingConsent).toHaveBeenCalled()
   })
 })

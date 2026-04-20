@@ -40,13 +40,13 @@ export const getEventById = (
   id = unref(id)
 
   return customInstance<EventResponse>(
-    { url: `http://localhost:8080/api/events/${id}`, method: 'GET', signal },
+    { url: `/api/events/${id}`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetEventByIdQueryKey = (id: MaybeRef<number>) => {
-  return ['http:', 'localhost:8080', 'api', 'events', id] as const
+  return ['api', 'events', id] as const
 }
 
 export const getGetEventByIdQueryOptions = <
@@ -117,7 +117,7 @@ export const updateEvent = (
 
   return customInstance<EventResponse>(
     {
-      url: `http://localhost:8080/api/events/${id}`,
+      url: `/api/events/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: updateEventRequest,
@@ -201,7 +201,7 @@ export const deleteEvent = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/events/${id}`, method: 'DELETE' },
+    { url: `/api/events/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -278,13 +278,13 @@ export const getAllEvents = (
   signal?: AbortSignal,
 ) => {
   return customInstance<EventResponse[]>(
-    { url: `http://localhost:8080/api/events`, method: 'GET', signal },
+    { url: `/api/events`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllEventsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'events'] as const
+  return ['api', 'events'] as const
 }
 
 export const getGetAllEventsQueryOptions = <
@@ -349,7 +349,7 @@ export const createEvent = (
 
   return customInstance<EventResponse>(
     {
-      url: `http://localhost:8080/api/events`,
+      url: `/api/events`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: eventRequest,

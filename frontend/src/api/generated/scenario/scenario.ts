@@ -39,13 +39,13 @@ export const getScenarioById = (
   id = unref(id)
 
   return customInstance<ScenarioResponse>(
-    { url: `http://localhost:8080/api/scenarios/${id}`, method: 'GET', signal },
+    { url: `/api/scenarios/${id}`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetScenarioByIdQueryKey = (id: MaybeRef<string>) => {
-  return ['http:', 'localhost:8080', 'api', 'scenarios', id] as const
+  return ['api', 'scenarios', id] as const
 }
 
 export const getGetScenarioByIdQueryOptions = <
@@ -115,7 +115,7 @@ export const updateScenario = (
 
   return customInstance<ScenarioResponse>(
     {
-      url: `http://localhost:8080/api/scenarios/${id}`,
+      url: `/api/scenarios/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: createScenarioRequest,
@@ -198,7 +198,7 @@ export const deleteScenario = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/scenarios/${id}`, method: 'DELETE' },
+    { url: `/api/scenarios/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -274,13 +274,13 @@ export const getAllScenarios = (
   signal?: AbortSignal,
 ) => {
   return customInstance<ScenarioResponse[]>(
-    { url: `http://localhost:8080/api/scenarios`, method: 'GET', signal },
+    { url: `/api/scenarios`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllScenariosQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'scenarios'] as const
+  return ['api', 'scenarios'] as const
 }
 
 export const getGetAllScenariosQueryOptions = <
@@ -344,7 +344,7 @@ export const createScenario = (
 
   return customInstance<ScenarioResponse>(
     {
-      url: `http://localhost:8080/api/scenarios`,
+      url: `/api/scenarios`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createScenarioRequest,

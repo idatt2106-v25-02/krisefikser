@@ -62,12 +62,14 @@ class ScenarioControllerTest {
 
         createScenarioRequest = new CreateScenarioRequest(
                 "Flood Emergency",
-                "# Flood Emergency Guide\n\nThis is what to do in case of a flood.");
+                "# Flood Emergency Guide\n\nThis is what to do in case of a flood.",
+                null);
 
         scenarioResponse = new ScenarioResponse(
                 validId,
                 "Flood Emergency",
-                "# Flood Emergency Guide\n\nThis is what to do in case of a flood.");
+                "# Flood Emergency Guide\n\nThis is what to do in case of a flood.",
+                null);
     }
 
     @Test

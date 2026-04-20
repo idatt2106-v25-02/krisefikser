@@ -5,10 +5,12 @@ import { useGetArticleById } from '@/api/generated/article/article'
 import { ArrowLeft } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { formatDate } from '../../../api/Utils'
+import { useCloudinaryUrl } from '@/composables/useCloudinaryUrl'
 
 const route = useRoute()
 const router = useRouter()
 const articleId = computed(() => Number(route.params.id))
+const { buildCloudinaryUrl } = useCloudinaryUrl()
 
 const { data: article, isLoading, error } = useGetArticleById(articleId)
 
@@ -114,7 +116,7 @@ const goBackToNews = () => {
 
           <div v-if="article.imageUrl" class="mb-8">
             <img
-              :src="article.imageUrl"
+              :src="buildCloudinaryUrl(article.imageUrl, 'f_auto,q_auto,w_1400,h_800,c_fill')"
               alt="Artikkelillustrasjon"
               class="rounded-lg w-full h-[400px] object-cover shadow-md"
             />

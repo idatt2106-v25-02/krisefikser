@@ -59,7 +59,7 @@ export const verifyEmail = (
 
   return customInstance<string>(
     {
-      url: `http://localhost:8080/api/auth/verify-email`,
+      url: `/api/auth/verify-email`,
       method: 'POST',
       params: unref(params),
       signal,
@@ -145,7 +145,7 @@ export const verifyAdminLogin = (
 
   return customInstance<LoginResponse>(
     {
-      url: `http://localhost:8080/api/auth/verify-admin-login`,
+      url: `/api/auth/verify-admin-login`,
       method: 'POST',
       params: unref(params),
       signal,
@@ -233,7 +233,7 @@ export const updatePassword = (
 
   return customInstance<UpdatePasswordResponse>(
     {
-      url: `http://localhost:8080/api/auth/update-password`,
+      url: `/api/auth/update-password`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: updatePasswordRequest,
@@ -320,7 +320,7 @@ export const requestPasswordReset = (
 
   return customInstance<PasswordResetResponse>(
     {
-      url: `http://localhost:8080/api/auth/request-password-reset`,
+      url: `/api/auth/request-password-reset`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: requestPasswordResetRequest,
@@ -412,7 +412,7 @@ export const register = (
 
   return customInstance<RegisterResponse>(
     {
-      url: `http://localhost:8080/api/auth/register`,
+      url: `/api/auth/register`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: registerRequest,
@@ -499,7 +499,7 @@ export const registerAdmin = (
 
   return customInstance<RegisterResponse>(
     {
-      url: `http://localhost:8080/api/auth/register/admin`,
+      url: `/api/auth/register/admin`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: registerRequest,
@@ -586,7 +586,7 @@ export const refresh = (
 
   return customInstance<RefreshResponse>(
     {
-      url: `http://localhost:8080/api/auth/refresh`,
+      url: `/api/auth/refresh`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: refreshRequest,
@@ -673,7 +673,7 @@ export const login = (
 
   return customInstance<LoginResponse>(
     {
-      url: `http://localhost:8080/api/auth/login`,
+      url: `/api/auth/login`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: loginRequest,
@@ -760,7 +760,7 @@ export const inviteAdmin = (
 
   return customInstance<string>(
     {
-      url: `http://localhost:8080/api/auth/invite/admin`,
+      url: `/api/auth/invite/admin`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: adminInviteRequest,
@@ -847,7 +847,7 @@ export const completePasswordReset = (
 
   return customInstance<PasswordResetResponse>(
     {
-      url: `http://localhost:8080/api/auth/complete-password-reset`,
+      url: `/api/auth/complete-password-reset`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: completePasswordResetRequest,
@@ -939,7 +939,7 @@ export const requestAdminPasswordReset = (
 
   return customInstance<PasswordResetResponse>(
     {
-      url: `http://localhost:8080/api/auth/admin/reset-password-link`,
+      url: `/api/auth/admin/reset-password-link`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: requestPasswordResetRequest,
@@ -1031,7 +1031,7 @@ export const verifyAdminInviteToken = (
 
   return customInstance<VerifyAdminTokenResponse>(
     {
-      url: `http://localhost:8080/api/auth/verify-admin-invite`,
+      url: `/api/auth/verify-admin-invite`,
       method: 'GET',
       params: unref(params),
       signal,
@@ -1044,8 +1044,6 @@ export const getVerifyAdminInviteTokenQueryKey = (
   params: MaybeRef<VerifyAdminInviteTokenParams>,
 ) => {
   return [
-    'http:',
-    'localhost:8080',
     'api',
     'auth',
     'verify-admin-invite',
@@ -1118,13 +1116,13 @@ export function useVerifyAdminInviteToken<
  */
 export const me = (options?: SecondParameter<typeof customInstance>, signal?: AbortSignal) => {
   return customInstance<UserResponse>(
-    { url: `http://localhost:8080/api/auth/me`, method: 'GET', signal },
+    { url: `/api/auth/me`, method: 'GET', signal },
     options,
   )
 }
 
 export const getMeQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'auth', 'me'] as const
+  return ['api', 'auth', 'me'] as const
 }
 
 export const getMeQueryOptions = <

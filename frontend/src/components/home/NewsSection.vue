@@ -10,9 +10,11 @@ import { computed } from 'vue'
 import { useGetAllArticles } from '@/api/generated/article/article'
 import { useRouter } from 'vue-router'
 import { arrayToDate } from '@/api/Utils'
+import { useCloudinaryUrl } from '@/composables/useCloudinaryUrl'
 
 const { data: articles, isLoading, error } = useGetAllArticles()
 const router = useRouter()
+const { buildCloudinaryUrl } = useCloudinaryUrl()
 
 const latestArticles = computed(() => {
   if (!articles?.value) return []
@@ -117,7 +119,7 @@ const goToAllNews = () => {
       >
         <div
           v-if="article.imageUrl"
-          :style="`background-image: url('${article.imageUrl}')`"
+          :style="`background-image: url('${buildCloudinaryUrl(article.imageUrl, 'f_auto,q_auto,w_800,h_400,c_fill')}')`"
           class="h-48 bg-cover bg-center"
         ></div>
         <div v-else class="h-48 bg-gray-200"></div>

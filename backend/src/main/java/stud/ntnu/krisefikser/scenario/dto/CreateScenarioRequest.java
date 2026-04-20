@@ -29,4 +29,6 @@ public class CreateScenarioRequest {
    */
   @NotBlank(message = "Content is required")
   private String content;
+
+  private String coverImageUrl;
 }

@@ -28,6 +28,7 @@ public class CreateUser {
   private String firstName;
   @NotBlank(message = "Last name is required")
   private String lastName;
+  private String avatarUrl;
   private boolean notifications;
   private boolean emailUpdates;
   private boolean locationSharing;

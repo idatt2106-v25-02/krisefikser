@@ -12,6 +12,7 @@ export interface UserResponse {
   roles?: string[]
   firstName?: string
   lastName?: string
+  avatarUrl?: string
   notifications?: boolean
   emailUpdates?: boolean
   locationSharing?: boolean

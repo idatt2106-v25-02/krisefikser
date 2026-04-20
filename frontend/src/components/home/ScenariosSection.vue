@@ -3,9 +3,11 @@
 import { computed, onMounted } from 'vue'
 import { useGetAllScenarios } from '@/api/generated/scenario/scenario'
 import { useRouter } from 'vue-router'
+import { useCloudinaryUrl } from '@/composables/useCloudinaryUrl'
 
 const { data: scenarios, isLoading, error } = useGetAllScenarios()
 const router = useRouter()
+const { buildCloudinaryUrl } = useCloudinaryUrl()
 
 const latestScenarios = computed(() => {
   if (!scenarios?.value) return [];
@@ -147,6 +149,12 @@ onMounted(() => {
         class="bg-white p-6 rounded-lg shadow-md transition-shadow hover:shadow-lg cursor-pointer"
         @click="goToScenario(scenario.id)"
       >
+        <img
+          v-if="scenario.coverImageUrl"
+          :src="buildCloudinaryUrl(scenario.coverImageUrl, 'f_auto,q_auto,w_900,h_450,c_fill')"
+          alt="Scenario cover"
+          class="h-36 w-full object-cover rounded-md mb-3"
+        />
         <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ scenario.title }}</h3>
         <div
           class="text-gray-600 mb-4 line-clamp-4 scenario-preview [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold [&_h1]:my-2 [&_h2]:my-2 [&_h3]:my-2 [&_p]:my-2 [&_strong]:font-bold [&_em]:italic [&_u]:underline [&_.ql-color-red]:!text-red-500 [&_.ql-color-blue]:!text-blue-500 [&_.ql-color-green]:!text-green-500 [&_.ql-color-orange]:!text-orange-500 [&_.ql-color-purple]:!text-purple-500 [&_.ql-background-yellow]:!bg-yellow-200 [&_.ql-align-center]:!text-center [&_.ql-align-right]:!text-right overflow-hidden"
