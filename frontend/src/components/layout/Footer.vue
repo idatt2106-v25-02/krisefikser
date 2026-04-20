@@ -2,6 +2,7 @@
 import { defineComponent } from 'vue'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { LogOut, Mail } from 'lucide-vue-next'
+import { openCookieSettings } from '@/plugins/docs/cookie-settings-ui'
 
 export default defineComponent({
   name: 'AppFooter',
@@ -31,6 +32,7 @@ export default defineComponent({
     return {
       authStore,
       handleEmailClick,
+      openCookieSettings,
     }
   },
 })
@@ -124,6 +126,15 @@ export default defineComponent({
               <router-link to="/personvern" class="text-blue-200 hover:text-white transition"
                 >Personvern</router-link
               >
+            </li>
+            <li>
+              <button
+                type="button"
+                class="text-blue-200 hover:text-white transition text-left"
+                @click="openCookieSettings"
+              >
+                Cookie-innstillinger
+              </button>
             </li>
             <li>
               <router-link to="/info/for-krisen" class="text-blue-200 hover:text-white transition"

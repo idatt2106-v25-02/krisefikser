@@ -7,6 +7,7 @@ import AccessibilityMenu from '@/components/textToSpeech/AccessibilityMenu.vue'
 import ReadPageButton from '@/components/textToSpeech/ReadPageButton.vue'
 import LocationTracker from '@/components/LocationTracker.vue'
 import CookieBanner from '@/components/CookieBanner.vue'
+import CookieConsentSettingsModal from '@/components/CookieConsentSettingsModal.vue'
 import { useAccessibilityStore } from '@/stores/tts/accessibilityStore'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
@@ -60,6 +61,7 @@ onUnmounted(() => {
     </a>
     <LocationTracker />
     <CookieBanner />
+    <CookieConsentSettingsModal />
     <!-- TTS active indicator -->
     <div
       v-if="ttsEnabled"
