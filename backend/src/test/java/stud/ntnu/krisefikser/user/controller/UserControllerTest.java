@@ -28,6 +28,7 @@ import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.service.CustomUserDetailsService;
 import stud.ntnu.krisefikser.auth.service.TokenService;
 import stud.ntnu.krisefikser.common.TestSecurityConfig;
+import stud.ntnu.krisefikser.media.service.CloudinaryService;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
 import stud.ntnu.krisefikser.user.entity.User;
@@ -51,6 +52,9 @@ class UserControllerTest {
 
   @MockitoBean
   private CustomUserDetailsService userDetailsService;
+
+  @MockitoBean
+  private CloudinaryService cloudinaryService;
 
   private User testUser;
   private UUID testUserId;
