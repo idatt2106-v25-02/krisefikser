@@ -15,7 +15,8 @@ describe('Inventory flow', () => {
   }
 
   function openProductCategory(categoryId: 'water' | 'food' | 'misc'): void {
-    cy.get(`[aria-controls="category-${categoryId}"]`).scrollIntoView().click()
+    cy.get(`[aria-controls="category-${categoryId}"]`).scrollIntoView()
+    cy.get(`[aria-controls="category-${categoryId}"]`).click()
     cy.get(`#category-${categoryId}`).should('be.visible')
   }
 
