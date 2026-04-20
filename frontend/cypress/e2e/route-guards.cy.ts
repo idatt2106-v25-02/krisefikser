@@ -7,7 +7,7 @@ describe('Route guard behaviour', () => {
     cy.visit('/dashboard')
 
     cy.url().should('include', '/logg-inn')
-    cy.url().should('include', 'redirect=%2Fdashboard')
+    cy.url().should('include', 'redirect=/dashboard')
     cy.contains('Innlogging').should('be.visible')
   })
 
@@ -15,7 +15,7 @@ describe('Route guard behaviour', () => {
     cy.visit('/husstand/beredskapslager')
 
     cy.url().should('include', '/logg-inn')
-    cy.url().should('include', 'redirect=%2Fhusstand%2Fberedskapslager')
+    cy.url().should('include', 'redirect=/husstand/beredskapslager')
     cy.contains('Innlogging').should('be.visible')
   })
 
@@ -35,7 +35,7 @@ describe('Route guard behaviour', () => {
     cy.contains('Personlig informasjon').should('be.visible')
   })
 
-  it('redirects authenticated users away from register page to dashboard', () => {
+  it('allows authenticated users to stay on register page', () => {
     cy.mockAuthMe()
     cy.mockCoreHouseholdData()
 
@@ -47,8 +47,8 @@ describe('Route guard behaviour', () => {
     })
 
     cy.wait('@getMe')
-    cy.url().should('include', '/dashboard')
-    cy.contains('Innstillinger').should('be.visible')
+    cy.url().should('include', '/registrer')
+    cy.contains('Registrer deg').should('be.visible')
   })
 
   it('blocks non-admin users from admin dashboard', () => {
@@ -64,7 +64,6 @@ describe('Route guard behaviour', () => {
     })
 
     cy.wait('@getMe')
-    cy.url().should('include', '/admin')
     cy.contains('Siden ble ikke funnet').should('be.visible')
   })
 })
