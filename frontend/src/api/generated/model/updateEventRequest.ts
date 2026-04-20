@@ -14,6 +14,7 @@ import type { UpdateEventRequestStatus } from './updateEventRequestStatus'
 export interface UpdateEventRequest {
   title?: string
   description?: string
+  imageUrl?: string
   radius?: number
   latitude?: number
   longitude?: number

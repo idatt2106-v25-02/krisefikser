@@ -15,6 +15,7 @@ export interface CreateUser {
   password: string
   firstName: string
   lastName: string
+  avatarUrl?: string
   notifications?: boolean
   emailUpdates?: boolean
   locationSharing?: boolean

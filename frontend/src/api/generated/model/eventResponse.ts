@@ -12,6 +12,7 @@ export interface EventResponse {
   id: number
   title: string
   description: string
+  imageUrl?: string
   radius: number
   latitude: number
   longitude: number
