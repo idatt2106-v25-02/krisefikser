@@ -34,8 +34,8 @@ const MARKER_ICONS = {
   shelter: '/icons/map/shelter.svg',
   user: '/icons/map/user.svg',
   home: '/icons/map/home.svg',
-  household_members: '/icons/map/household-members.svg',
-  meeting_point: '/icons/map/meeting-point.svg',
+  household_members: '/icons/map/user.svg',
+  meeting_point: '/icons/map/gathering-point.svg',
 }
 
 export type { MarkerComponent }

@@ -4,6 +4,7 @@ import CrisisInfoSection from '@/components/home/CrisisInfoSection.vue';
 import FeaturesSection from '@/components/home/FeaturesSection.vue';
 import NewsSection from '@/components/home/NewsSection.vue';
 import ScenariosSection from '@/components/home/ScenariosSection.vue';
+import HomeTechStackTeaser from '@/components/home/HomeTechStackTeaser.vue';
 
 export default {
   name: 'HomeView',
@@ -12,7 +13,8 @@ export default {
     CrisisInfoSection,
     FeaturesSection,
     NewsSection,
-    ScenariosSection
+    ScenariosSection,
+    HomeTechStackTeaser,
   }
 }
 
@@ -27,6 +29,7 @@ export default {
       <ScenariosSection />
       <NewsSection />
       <FeaturesSection />
+      <HomeTechStackTeaser />
     </main>
 
   </div>

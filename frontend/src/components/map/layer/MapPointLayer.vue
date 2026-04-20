@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import L from 'leaflet'
 import type { MapPointResponse as MapPoint } from '@/api/generated/model'
+import { resolveMapPointIconUrl } from '@/components/map/marker/mapPointIconUrl'
 
 const props = defineProps<{
   map: L.Map | null
@@ -14,7 +15,7 @@ function createMarker(point: MapPoint) {
   if (!point.latitude || !point.longitude) return null
 
   const icon = L.icon({
-    iconUrl: point.type?.iconUrl || '/default-marker.png',
+    iconUrl: resolveMapPointIconUrl(point.type?.iconUrl),
     iconSize: [32, 32],
     iconAnchor: [16, 32],
   })

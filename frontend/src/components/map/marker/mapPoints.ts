@@ -1,5 +1,6 @@
 import type { MapPointResponse, MapPointTypeResponse } from '@/api/generated/model'
 import { MarkerType, type MarkerComponent } from '.'
+import { resolveMapPointIconUrl } from './mapPointIconUrl'
 
 function mapPointsToMarkers(
   mapPointsData: MapPointResponse[],
@@ -17,7 +18,10 @@ function mapPointsToMarkers(
     return {
       latitude: point.latitude || 0,
       longitude: point.longitude || 0,
-      iconUrl: type === MarkerType.Shelter ? '/icons/map/shelter.svg' : point.type.iconUrl,
+      iconUrl:
+        type === MarkerType.Shelter
+          ? '/icons/map/shelter.svg'
+          : resolveMapPointIconUrl(point.type.iconUrl),
       popupContent: type === MarkerType.Shelter ? createShelterPopup(point) : point.type.title,
       type,
     }

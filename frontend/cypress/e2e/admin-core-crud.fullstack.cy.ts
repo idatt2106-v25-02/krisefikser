@@ -11,7 +11,9 @@ describe('Admin article CRUD full-stack', () => {
 
     cy.contains('button', 'Ny artikkel').click()
     cy.get('#title').type(title)
-    cy.get('#imageUrl').type('https://picsum.photos/seed/e2e/800/600')
+    cy.get('#imageUrl').type(
+      'https://res.cloudinary.com/dmoe4eqt4/image/upload/v1776713518/krisefikser/articles/seed-article-hero-a.jpg',
+    )
     cy.get('#text').type('Automatisk opprettet av full-stack Cypress-test.')
     cy.contains('button', 'Opprett').click()
 
