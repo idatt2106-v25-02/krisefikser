@@ -196,6 +196,7 @@ jobs:
 
       - name: Start database and backend
         run: |
+          export AUTH_ADMIN_TWO_FACTOR_ENABLED=false
           docker compose up -d db backend
           for i in {1..60}; do
             STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/me || true)
@@ -243,6 +244,7 @@ jobs:
 
       - name: Start database and backend
         run: |
+          export AUTH_ADMIN_TWO_FACTOR_ENABLED=false
           docker compose up -d db backend
           for i in {1..60}; do
             STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/me || true)

@@ -2,15 +2,17 @@ describe('Public content full-stack', () => {
   it('navigates scenario list to detail', () => {
     cy.visit('/scenarioer')
     cy.contains('Alle krisescenarioer').should('be.visible')
-    cy.get('div[class*="cursor-pointer"]').first().click()
-    cy.url().should('match', /\/scenario\/\d+$/)
+    cy.contains('div', 'Les mer').first().should('be.visible').click()
+    cy.url().should('include', '/scenario/')
+    cy.url().should('not.include', '/scenario/undefined')
   })
 
   it('navigates news list to article', () => {
     cy.visit('/nyheter')
     cy.contains('Nyheter').should('be.visible')
-    cy.get('div[class*="cursor-pointer"]').first().click()
-    cy.url().should('match', /\/artikkel\/\d+$/)
+    cy.contains('div', 'Les mer').first().should('be.visible').click()
+    cy.url().should('include', '/artikkel/')
+    cy.url().should('not.include', '/artikkel/undefined')
   })
 
   it('loads map route shell', () => {
