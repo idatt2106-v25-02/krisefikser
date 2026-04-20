@@ -2,6 +2,7 @@ import { globalIgnores } from 'eslint/config';
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
 import pluginVue from 'eslint-plugin-vue';
 import pluginVitest from '@vitest/eslint-plugin';
+import pluginVueA11y from 'eslint-plugin-vuejs-accessibility';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import pluginCypress from 'eslint-plugin-cypress/flat';
@@ -20,6 +21,22 @@ export default defineConfigWithVueTs({
     ...pluginCypress.configs.recommended,
     files: ['cypress/e2e/**/*.{cy,spec}.{js,ts,jsx,tsx}', 'cypress/support/**/*.{js,ts,jsx,tsx}'],
 }, skipFormatting, {
+    plugins: {
+        'vuejs-accessibility': pluginVueA11y,
+    },
+    rules: {
+        'vuejs-accessibility/alt-text': 'error',
+        'vuejs-accessibility/anchor-has-content': 'error',
+        'vuejs-accessibility/aria-props': 'error',
+        'vuejs-accessibility/click-events-have-key-events': 'off',
+        'vuejs-accessibility/form-control-has-label': 'off',
+        'vuejs-accessibility/interactive-supports-focus': 'warn',
+        'vuejs-accessibility/label-has-for': 'off',
+        'vuejs-accessibility/no-autofocus': 'error',
+        'vuejs-accessibility/no-static-element-interactions': 'off',
+        'vuejs-accessibility/tabindex-no-positive': 'error',
+    },
+}, {
     rules: {
         'vue/multi-word-component-names': 'off',
         '@typescript-eslint/no-unused-vars': [

@@ -62,8 +62,9 @@ function handleStartMapSelection() {
 
     <!-- Form fields bound to localValue only -->
     <div class="space-y-2">
-      <label class="text-sm font-medium">Navn</label>
+      <label class="text-sm font-medium" for="event-title">Navn</label>
       <input
+        id="event-title"
         v-model="localValue.title"
         class="w-full px-3 py-2 border rounded-lg"
         placeholder="Navn på hendelse"
@@ -75,8 +76,9 @@ function handleStartMapSelection() {
     <!-- ... -->
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Beskrivelse</label>
+      <label class="text-sm font-medium" for="event-description">Beskrivelse</label>
       <textarea
+        id="event-description"
         v-model="localValue.description"
         class="w-full px-3 py-2 border rounded-lg"
         placeholder="Beskriv hendelsen"
@@ -85,8 +87,9 @@ function handleStartMapSelection() {
     </div>
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Radius (meter)</label>
+      <label class="text-sm font-medium" for="event-radius">Radius (meter)</label>
       <input
+        id="event-radius"
         v-model="localValue.radius"
         class="w-full px-3 py-2 border rounded-lg"
         placeholder="Radius i meter"
@@ -95,8 +98,8 @@ function handleStartMapSelection() {
     </div>
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Alvorlighetsgrad</label>
-      <select v-model="localValue.level" class="w-full px-3 py-2 border rounded-lg">
+      <label class="text-sm font-medium" for="event-level">Alvorlighetsgrad</label>
+      <select id="event-level" v-model="localValue.level" class="w-full px-3 py-2 border rounded-lg">
         <option :value="EventLevel.GREEN">Lav</option>
         <option :value="EventLevel.YELLOW">Middels</option>
         <option :value="EventLevel.RED">Høy</option>
@@ -104,8 +107,8 @@ function handleStartMapSelection() {
     </div>
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Status</label>
-      <select v-model="localValue.status" class="w-full px-3 py-2 border rounded-lg">
+      <label class="text-sm font-medium" for="event-status">Status</label>
+      <select id="event-status" v-model="localValue.status" class="w-full px-3 py-2 border rounded-lg">
         <option :value="EventStatus.UPCOMING">Kommende</option>
         <option :value="EventStatus.ONGOING">Pågående</option>
         <option :value="EventStatus.FINISHED">Avsluttet</option>
@@ -113,8 +116,9 @@ function handleStartMapSelection() {
     </div>
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Start tidspunkt</label>
+      <label class="text-sm font-medium" for="event-start-time">Start tidspunkt</label>
       <input
+        id="event-start-time"
         v-model="localValue.startTime"
         class="w-full px-3 py-2 border rounded-lg"
         type="datetime-local"
@@ -122,8 +126,9 @@ function handleStartMapSelection() {
     </div>
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Slutt tidspunkt (valgfritt)</label>
+      <label class="text-sm font-medium" for="event-end-time">Slutt tidspunkt (valgfritt)</label>
       <input
+        id="event-end-time"
         v-model="localValue.endTime"
         class="w-full px-3 py-2 border rounded-lg"
         type="datetime-local"
@@ -131,9 +136,10 @@ function handleStartMapSelection() {
     </div>
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Plassering</label>
+      <label class="text-sm font-medium" for="event-latitude">Plassering</label>
       <div class="flex space-x-2">
         <input
+          id="event-latitude"
           v-model="localValue.latitude"
           class="w-1/2 px-3 py-2 border rounded-lg"
           placeholder="Breddegrad"
@@ -142,12 +148,14 @@ function handleStartMapSelection() {
           type="number"
         />
         <input
+          id="event-longitude"
           v-model="localValue.longitude"
           class="w-1/2 px-3 py-2 border rounded-lg"
           placeholder="Lengdegrad"
           readonly
           step="0.0001"
           type="number"
+          aria-label="Lengdegrad"
         />
       </div>
       <button

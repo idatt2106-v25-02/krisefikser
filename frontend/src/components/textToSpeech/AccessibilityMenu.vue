@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/label-has-for, vuejs-accessibility/form-control-has-label -->
 <script setup lang="ts">
 import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { useAccessibilityStore } from '@/stores/tts/accessibilityStore';

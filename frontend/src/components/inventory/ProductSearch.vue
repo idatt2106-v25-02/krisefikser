@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/form-control-has-label, vuejs-accessibility/click-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { Filter, Search } from 'lucide-vue-next'

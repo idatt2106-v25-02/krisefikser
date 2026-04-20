@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/label-has-for, vuejs-accessibility/form-control-has-label -->
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useCreateMeetingPoint, useUpdateMeetingPoint, useDeleteMeetingPoint, useGetMeetingPoints } from '@/api/generated/meeting-points/meeting-points'
