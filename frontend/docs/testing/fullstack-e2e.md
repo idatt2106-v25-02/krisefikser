@@ -1,6 +1,6 @@
 # Full-stack E2E med Cypress
 
-Denne testpakken kjører mot ekte backend + database (ingen API-mocking med `cy.intercept` for domeneflyter).
+Denne testpakken kjører mot ekte backend + database. Domenekall stubbes ikke; enkelte mutasjonstester bruker `cy.intercept` kun for å vente på ekte `PUT`-svar og asserte statuskode (ingen kunstig responskropp).
 
 ## Forutsetninger
 
@@ -29,6 +29,19 @@ For full regresjon:
 ```bash
 pnpm run test:e2e:fullstack:regression
 ```
+
+## Utvidede full-stack-scenarioer
+
+Følgende specs er lagt til for å avdekke logikk på tvers av frontend og ekte API (uten å stubbe svar med `cy.intercept`; enkelte mutasjonstester bruker intercept kun for å vente på `PUT` og asserte HTTP-status):
+
+| Fil | Kort innhold |
+|-----|----------------|
+| [`cypress/e2e/inventory-mutations.fullstack.cy.ts`](../../cypress/e2e/inventory-mutations.fullstack.cy.ts) | Oppdater vann, endre matvarenavn, toggl sjekkliste mot ekte backend |
+| [`cypress/e2e/dashboard-household.fullstack.cy.ts`](../../cypress/e2e/dashboard-household.fullstack.cy.ts) | Seedet bruker på dashboard, navigasjon til husstand og husstandens refleksjoner |
+| [`cypress/e2e/auth-login.fullstack.cy.ts`](../../cypress/e2e/auth-login.fullstack.cy.ts) | Feil passord (401) og vellykket innlogging via skjema |
+| [`cypress/e2e/my-reflections.fullstack.cy.ts`](../../cypress/e2e/my-reflections.fullstack.cy.ts) | Siden «Mine refleksjoner» laster uten API-feilbanner |
+
+**Mutasjoner og seed-data:** Tester som endrer lager skriver til databasen som vanlige brukerhandlinger. Lokalt kan du nullstille med ny `docker compose` / tom DB ved behov. I CI er miljøet typisk ferskt per kjøring.
 
 ## Seedede brukere (dev-seeding)
 
