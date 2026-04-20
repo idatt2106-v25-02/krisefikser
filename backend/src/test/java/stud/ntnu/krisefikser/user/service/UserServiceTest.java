@@ -77,6 +77,7 @@ class UserServiceTest {
         "password",
         "Test",
         "User",
+        null,
         true,
         true,
         true,

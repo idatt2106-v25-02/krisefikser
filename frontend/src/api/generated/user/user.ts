@@ -42,7 +42,7 @@ export const updateUser = (
 
   return customInstance<UserResponse>(
     {
-      url: `http://localhost:8080/api/users/${userId}`,
+      url: `/api/users/${userId}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: createUser,
@@ -126,7 +126,7 @@ export const deleteUser = (
   userId = unref(userId)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/users/${userId}`, method: 'DELETE' },
+    { url: `/api/users/${userId}`, method: 'DELETE' },
     options,
   )
 }
@@ -206,7 +206,7 @@ export const updateCurrentUserLocation = (
 
   return customInstance<UserResponse>(
     {
-      url: `http://localhost:8080/api/users/location`,
+      url: `/api/users/location`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: userLocationRequest,
@@ -290,13 +290,13 @@ export const getAllUsers = (
   signal?: AbortSignal,
 ) => {
   return customInstance<UserResponse[]>(
-    { url: `http://localhost:8080/api/users`, method: 'GET', signal },
+    { url: `/api/users`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllUsersQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'users'] as const
+  return ['api', 'users'] as const
 }
 
 export const getGetAllUsersQueryOptions = <

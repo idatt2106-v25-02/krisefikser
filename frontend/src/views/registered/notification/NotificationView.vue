@@ -297,6 +297,7 @@ watch(activeFilter, () => {
       <!-- Notification filters -->
       <div class="flex flex-wrap gap-2 mb-6">
         <button
+          data-testid="notifications-filter-all"
           :class="
             activeFilter === 'all'
               ? 'bg-blue-600 text-white'
@@ -308,6 +309,7 @@ watch(activeFilter, () => {
           Alle varsler
         </button>
         <button
+          data-testid="notifications-filter-unread"
           :class="
             activeFilter === 'unread'
               ? 'bg-blue-600 text-white'
@@ -319,6 +321,7 @@ watch(activeFilter, () => {
           Uleste ({{ unreadCountData || 0 }})
         </button>
         <button
+          data-testid="notifications-filter-crisis"
           :class="
             activeFilter === 'crisis'
               ? 'bg-red-600 text-white'
@@ -330,6 +333,7 @@ watch(activeFilter, () => {
           Krisevarsler
         </button>
         <button
+          data-testid="notifications-filter-expiry"
           :class="
             activeFilter === 'expiry'
               ? 'bg-yellow-600 text-white'
@@ -341,6 +345,7 @@ watch(activeFilter, () => {
           Beredskapslager
         </button>
         <button
+          data-testid="notifications-filter-update"
           :class="
             activeFilter === 'update'
               ? 'bg-blue-600 text-white'
@@ -356,6 +361,7 @@ watch(activeFilter, () => {
       <!-- Mark all as read button -->
       <div v-if="notifications && hasUnread" class="mb-4 flex justify-end">
         <button
+          data-testid="notifications-mark-all-read"
           :disabled="isMarkingAllAsRead"
           class="text-sm text-blue-600 hover:text-blue-800 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           @click="markAllAsRead"

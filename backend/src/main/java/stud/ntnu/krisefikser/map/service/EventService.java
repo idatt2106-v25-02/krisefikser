@@ -95,6 +95,7 @@ public class EventService {
     Event event = eventRepository.save(Event.builder()
         .title(eventRequest.getTitle())
         .description(eventRequest.getDescription())
+        .imageUrl(eventRequest.getImageUrl())
         .radius(eventRequest.getRadius())
         .latitude(eventRequest.getLatitude())
         .longitude(eventRequest.getLongitude())
@@ -138,6 +139,9 @@ public class EventService {
 
     if (eventRequest.getDescription() != null) {
       existingEvent.setDescription(eventRequest.getDescription());
+    }
+    if (eventRequest.getImageUrl() != null) {
+      existingEvent.setImageUrl(eventRequest.getImageUrl());
     }
 
     if (eventRequest.getRadius() != null) {

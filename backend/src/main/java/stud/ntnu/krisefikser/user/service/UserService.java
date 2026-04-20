@@ -56,6 +56,7 @@ public class UserService {
     User user = User.builder().email(data.getEmail())
         .password(passwordEncoder.encode(data.getPassword()))
         .firstName(data.getFirstName()).lastName(data.getLastName())
+        .avatarUrl(data.getAvatarUrl())
         .notifications(data.isNotifications()).emailUpdates(data.isEmailUpdates())
         .locationSharing(data.isLocationSharing()).roles(roles).passwordRetries(0)
         .lockedUntil(null)
@@ -104,6 +105,7 @@ public class UserService {
     user.setEmail(data.getEmail());
     user.setFirstName(data.getFirstName());
     user.setLastName(data.getLastName());
+    user.setAvatarUrl(data.getAvatarUrl());
     user.setNotifications(data.isNotifications());
     user.setEmailUpdates(data.isEmailUpdates());
 
@@ -239,5 +241,20 @@ public class UserService {
 
     // Return the user without updating location if sharing is disabled
     return user;
+  }
+
+  /**
+   * Updates a user's avatar URL.
+   *
+   * @param userId    the UUID of the user to update
+   * @param avatarUrl the avatar URL to store
+   * @return the updated User entity
+   */
+  public User updateUserAvatar(UUID userId, String avatarUrl) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(
+            () -> new UserNotFoundException("User with id " + userId + " does not exist"));
+    user.setAvatarUrl(avatarUrl);
+    return userRepository.save(user);
   }
 }

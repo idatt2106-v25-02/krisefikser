@@ -10,4 +10,5 @@ export interface ScenarioResponse {
   id: string
   title: string
   content: string
+  coverImageUrl?: string
 }

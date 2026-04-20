@@ -13,12 +13,12 @@ export default defineConfig({
       mock: false,
       prettier: true,
       clean: true,
-      baseUrl: env.VITE_API_URL || 'http://localhost:8080',
       override: {
         mutator: {
           path: './src/api/axios.ts',
           name: 'customInstance',
         },
+        transformer: './src/api/orval-transformer.ts',
       },
     },
     input: {

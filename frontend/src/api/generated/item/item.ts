@@ -43,7 +43,7 @@ export const setWaterAmount = (
   amount = unref(amount)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/items/water/${amount}`, method: 'PUT' },
+    { url: `/api/items/water/${amount}`, method: 'PUT' },
     options,
   )
 }
@@ -125,7 +125,7 @@ export const updateFoodItem = (
 
   return customInstance<FoodItemResponse>(
     {
-      url: `http://localhost:8080/api/items/food/${id}`,
+      url: `/api/items/food/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: createFoodItemRequest,
@@ -208,7 +208,7 @@ export const deleteFoodItem = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/items/food/${id}`, method: 'DELETE' },
+    { url: `/api/items/food/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -286,7 +286,7 @@ export const toggleChecklistItem = (
   id = unref(id)
 
   return customInstance<ChecklistItemResponse>(
-    { url: `http://localhost:8080/api/items/checklist/${id}`, method: 'PUT' },
+    { url: `/api/items/checklist/${id}`, method: 'PUT' },
     options,
   )
 }
@@ -368,13 +368,13 @@ export const getAllFoodItems = (
   signal?: AbortSignal,
 ) => {
   return customInstance<FoodItemResponse[]>(
-    { url: `http://localhost:8080/api/items/food`, method: 'GET', signal },
+    { url: `/api/items/food`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllFoodItemsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'items', 'food'] as const
+  return ['api', 'items', 'food'] as const
 }
 
 export const getGetAllFoodItemsQueryOptions = <
@@ -438,7 +438,7 @@ export const createFoodItem = (
 
   return customInstance<FoodItemResponse>(
     {
-      url: `http://localhost:8080/api/items/food`,
+      url: `/api/items/food`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createFoodItemRequest,
@@ -520,13 +520,13 @@ export const getInventorySummary = (
   signal?: AbortSignal,
 ) => {
   return customInstance<InventorySummaryResponse>(
-    { url: `http://localhost:8080/api/items/summary`, method: 'GET', signal },
+    { url: `/api/items/summary`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetInventorySummaryQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'items', 'summary'] as const
+  return ['api', 'items', 'summary'] as const
 }
 
 export const getGetInventorySummaryQueryOptions = <
@@ -588,13 +588,13 @@ export const getAllChecklistItems = (
   signal?: AbortSignal,
 ) => {
   return customInstance<ChecklistItemResponse[]>(
-    { url: `http://localhost:8080/api/items/checklist`, method: 'GET', signal },
+    { url: `/api/items/checklist`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllChecklistItemsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'items', 'checklist'] as const
+  return ['api', 'items', 'checklist'] as const
 }
 
 export const getGetAllChecklistItemsQueryOptions = <

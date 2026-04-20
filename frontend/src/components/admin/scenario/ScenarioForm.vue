@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import ImageUpload from '@/components/ui/ImageUpload.vue';
 
 const props = defineProps({
   scenario: {
@@ -13,7 +14,8 @@ const props = defineProps({
     default: () => ({
       id: '',
       title: '',
-      content: ''
+      content: '',
+      coverImageUrl: ''
     })
   },
   isEditing: {
@@ -27,7 +29,8 @@ const emit = defineEmits(['save', 'cancel']);
 const formData = ref({
   id: props.scenario.id || '',
   title: props.scenario.title || '',
-  content: props.scenario.content || ''
+  content: props.scenario.content || '',
+  coverImageUrl: props.scenario.coverImageUrl || ''
 });
 
 const submitForm = () => {
@@ -39,7 +42,8 @@ const submitForm = () => {
   emit('save', {
     id: formData.value.id,
     title: formData.value.title,
-    content: formData.value.content
+    content: formData.value.content,
+    coverImageUrl: formData.value.coverImageUrl
   });
 };
 </script>
@@ -68,6 +72,15 @@ const submitForm = () => {
         placeholder="Detaljert informasjon om scenarioet"
       />
     </div>
+
+    <ImageUpload
+      v-model="formData.coverImageUrl"
+      folder="krisefikser/scenarios"
+      upload-preset="krisefikser-scenarios"
+      tags="krisefikser,scenarios"
+      :context="`module=scenarios|scenario_title=${(formData.title || '').replaceAll('|', ' ')}`"
+      label="Cover-bilde"
+    />
 
     <!-- Form Actions -->
     <div class="flex justify-end space-x-3 pt-4 border-t">

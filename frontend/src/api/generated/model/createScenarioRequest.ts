@@ -12,4 +12,5 @@
 export interface CreateScenarioRequest {
   title: string
   content: string
+  coverImageUrl?: string
 }

@@ -552,7 +552,13 @@ export default {
                     ]"
                     aria-label="Min profil"
                   >
-                    <UserIcon class="h-4 w-4 flex-shrink-0" />
+                    <img
+                      v-if="authStore.currentUser?.avatarUrl"
+                      :src="authStore.currentUser.avatarUrl"
+                      alt="Avatar"
+                      class="h-5 w-5 rounded-full object-cover flex-shrink-0"
+                    />
+                    <UserIcon v-else class="h-4 w-4 flex-shrink-0" />
                     <span class="font-medium text-sm">
                       {{ authStore.currentUser?.firstName }}
                       {{ authStore.currentUser?.lastName }}
@@ -759,7 +765,13 @@ export default {
                       : 'text-gray-700 border-gray-200 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50',
                   ]"
                 >
-                  <UserIcon class="h-4 w-4 flex-shrink-0" />
+                  <img
+                    v-if="authStore.currentUser?.avatarUrl"
+                    :src="authStore.currentUser.avatarUrl"
+                    alt="Avatar"
+                    class="h-5 w-5 rounded-full object-cover flex-shrink-0"
+                  />
+                  <UserIcon v-else class="h-4 w-4 flex-shrink-0" />
                   <span class="font-medium text-sm">
                     {{ authStore.currentUser?.firstName }}
                     {{ authStore.currentUser?.lastName }}

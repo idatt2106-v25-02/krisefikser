@@ -68,6 +68,9 @@ public class User {
 
   private String lastName;
 
+  @Column(name = "avatar_url")
+  private String avatarUrl;
+
   @Column(nullable = false)
   private boolean notifications = true;
 
@@ -138,6 +141,7 @@ public class User {
         roleNames,
         firstName,
         lastName,
+        avatarUrl,
         notifications,
         emailUpdates,
         locationSharing,
@@ -162,6 +166,7 @@ public class User {
         roleNames,
         firstName,
         lastName,
+        avatarUrl,
         notifications,
         emailUpdates,
         locationSharing,

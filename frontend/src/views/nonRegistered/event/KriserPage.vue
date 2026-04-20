@@ -186,6 +186,7 @@ export default defineComponent({
             <div class="border-b">
               <div class="flex overflow-x-auto whitespace-nowrap scrollbar-hide">
                 <button
+                  data-testid="kriser-tab-all"
                   @click="activeTab = 'all'"
                   :class="[
                     'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
@@ -197,6 +198,7 @@ export default defineComponent({
                   Alle hendelser
                 </button>
                 <button
+                  data-testid="kriser-tab-ongoing"
                   @click="activeTab = 'ongoing'"
                   :class="[
                     'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
@@ -214,6 +216,7 @@ export default defineComponent({
                   </div>
                 </button>
                 <button
+                  data-testid="kriser-tab-upcoming"
                   @click="activeTab = 'upcoming'"
                   :class="[
                     'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',
@@ -225,6 +228,7 @@ export default defineComponent({
                   Kommende
                 </button>
                 <button
+                  data-testid="kriser-tab-finished"
                   @click="activeTab = 'finished'"
                   :class="[
                     'py-4 px-6 font-medium transition-colors border-b-2 -mb-px flex-shrink-0',

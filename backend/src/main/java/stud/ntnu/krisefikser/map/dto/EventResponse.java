@@ -28,6 +28,8 @@ public class EventResponse {
   @NotNull
   private String description;
 
+  private String imageUrl;
+
   @NotNull
   private Double radius;
 

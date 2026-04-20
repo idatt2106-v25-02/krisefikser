@@ -16,10 +16,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import stud.ntnu.krisefikser.media.dto.ImageUploadResponse;
+import stud.ntnu.krisefikser.media.service.CloudinaryService;
 import stud.ntnu.krisefikser.user.dto.CreateUser;
 import stud.ntnu.krisefikser.user.dto.UserLocationRequest;
 import stud.ntnu.krisefikser.user.dto.UserResponse;
@@ -44,6 +49,7 @@ public class UserController {
    * The user service for handling user-related operations.
    */
   private final UserService userService;
+  private final CloudinaryService cloudinaryService;
 
   /**
    * Retrieves a user by their ID.
@@ -146,6 +152,23 @@ public class UserController {
             locationRequest.getLongitude());
     // Use regular toDto that doesn't include location data in the response
     log.info("Updated user: {}", updatedUser);
+    return ResponseEntity.ok(updatedUser.toDto());
+  }
+
+  @Operation(summary = "Upload avatar", description = "Uploads avatar image for the current user")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully uploaded avatar",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = UserResponse.class))),
+      @ApiResponse(responseCode = "401", description = "Not authenticated")
+  })
+  @PostMapping("/avatar")
+  public ResponseEntity<UserResponse> uploadAvatar(
+      @Parameter(description = "Avatar image file")
+      @RequestParam("file") MultipartFile file) {
+    User currentUser = userService.getCurrentUser();
+    ImageUploadResponse upload = cloudinaryService.uploadImage(file, "krisefikser/avatars");
+    User updatedUser = userService.updateUserAvatar(currentUser.getId(), upload.getUrl());
     return ResponseEntity.ok(updatedUser.toDto());
   }
 }

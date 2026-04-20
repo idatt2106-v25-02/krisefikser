@@ -23,6 +23,7 @@ interface Scenario {
   id: string;
   title: string;
   content: string;
+  coverImageUrl: string;
 }
 const { data: scenarios, refetch } = useGetAllScenarios();
 
@@ -31,7 +32,8 @@ const isEditing = ref(false);
 const currentScenario = ref({
   id: '',
   title: '',
-  content: ''
+  content: '',
+  coverImageUrl: ''
 });
 
 // Add this with other refs
@@ -42,14 +44,15 @@ const openAddForm = () => {
   currentScenario.value = {
     id: '',
     title: '',
-    content: ''
+    content: '',
+    coverImageUrl: ''
   };
   isEditing.value = false;
   showForm.value = true;
 };
 
-const openEditForm = (scenario: Scenario) => {
-  currentScenario.value = { ...scenario };
+const openEditForm = (scenario: { id: string; title: string; content: string; coverImageUrl?: string }) => {
+  currentScenario.value = { ...scenario, coverImageUrl: scenario.coverImageUrl || '' };
   isEditing.value = true;
   showForm.value = true;
 };
@@ -73,6 +76,7 @@ const saveScenario = (scenarioData: Scenario) => {
   const payload = {
     title: scenarioData.title,
     content: scenarioData.content,
+    coverImageUrl: scenarioData.coverImageUrl,
   };
   if (isEditing.value) {
     updateScenario({ id: scenarioData.id, data: payload });
@@ -126,6 +130,12 @@ const getContentPreview = (content: string) => {
           class="bg-white rounded-lg shadow overflow-hidden h-[180px] flex flex-col"
         >
           <div class="p-4 flex flex-col h-full">
+            <img
+              v-if="scenario.coverImageUrl"
+              :src="scenario.coverImageUrl"
+              alt="Scenario cover"
+              class="h-20 w-full object-cover rounded-md mb-2"
+            />
             <h3 class="text-lg font-medium text-gray-800 mb-2 line-clamp-1">{{ scenario.title }}</h3>
             <p class="text-gray-600 mb-2 line-clamp-3 flex-grow">
               {{ getContentPreview(scenario.content) }}

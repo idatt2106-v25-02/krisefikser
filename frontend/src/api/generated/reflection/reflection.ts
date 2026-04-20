@@ -43,13 +43,13 @@ export const getReflectionById = (
   id = unref(id)
 
   return customInstance<ReflectionResponse>(
-    { url: `http://localhost:8080/api/reflections/${id}`, method: 'GET', signal },
+    { url: `/api/reflections/${id}`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetReflectionByIdQueryKey = (id: MaybeRef<string>) => {
-  return ['http:', 'localhost:8080', 'api', 'reflections', id] as const
+  return ['api', 'reflections', id] as const
 }
 
 export const getGetReflectionByIdQueryOptions = <
@@ -121,7 +121,7 @@ export const updateReflection = (
 
   return customInstance<ReflectionResponse>(
     {
-      url: `http://localhost:8080/api/reflections/${id}`,
+      url: `/api/reflections/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: updateReflectionRequest,
@@ -206,7 +206,7 @@ export const deleteReflection = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/reflections/${id}`, method: 'DELETE' },
+    { url: `/api/reflections/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -290,7 +290,7 @@ export const adminUpdateReflection = (
 
   return customInstance<ReflectionResponse>(
     {
-      url: `http://localhost:8080/api/reflections/admin/${id}`,
+      url: `/api/reflections/admin/${id}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: updateReflectionRequest,
@@ -378,7 +378,7 @@ export const adminDeleteReflection = (
   id = unref(id)
 
   return customInstance<void>(
-    { url: `http://localhost:8080/api/reflections/admin/${id}`, method: 'DELETE' },
+    { url: `/api/reflections/admin/${id}`, method: 'DELETE' },
     options,
   )
 }
@@ -457,13 +457,13 @@ export const getAccessibleReflections = (
   signal?: AbortSignal,
 ) => {
   return customInstance<ReflectionResponse[]>(
-    { url: `http://localhost:8080/api/reflections`, method: 'GET', signal },
+    { url: `/api/reflections`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAccessibleReflectionsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'reflections'] as const
+  return ['api', 'reflections'] as const
 }
 
 export const getGetAccessibleReflectionsQueryOptions = <
@@ -534,7 +534,7 @@ export const createReflection = (
 
   return customInstance<ReflectionResponse>(
     {
-      url: `http://localhost:8080/api/reflections`,
+      url: `/api/reflections`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createReflectionRequest,
@@ -618,13 +618,13 @@ export const getPublicReflections = (
   signal?: AbortSignal,
 ) => {
   return customInstance<ReflectionResponse[]>(
-    { url: `http://localhost:8080/api/reflections/public`, method: 'GET', signal },
+    { url: `/api/reflections/public`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetPublicReflectionsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'reflections', 'public'] as const
+  return ['api', 'reflections', 'public'] as const
 }
 
 export const getGetPublicReflectionsQueryOptions = <
@@ -688,13 +688,13 @@ export const getCurrentUserReflections = (
   signal?: AbortSignal,
 ) => {
   return customInstance<ReflectionResponse[]>(
-    { url: `http://localhost:8080/api/reflections/my`, method: 'GET', signal },
+    { url: `/api/reflections/my`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetCurrentUserReflectionsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'reflections', 'my'] as const
+  return ['api', 'reflections', 'my'] as const
 }
 
 export const getGetCurrentUserReflectionsQueryOptions = <
@@ -761,13 +761,13 @@ export const getHouseholdReflections = (
   signal?: AbortSignal,
 ) => {
   return customInstance<ReflectionResponse[]>(
-    { url: `http://localhost:8080/api/reflections/household`, method: 'GET', signal },
+    { url: `/api/reflections/household`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetHouseholdReflectionsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'reflections', 'household'] as const
+  return ['api', 'reflections', 'household'] as const
 }
 
 export const getGetHouseholdReflectionsQueryOptions = <
@@ -837,13 +837,13 @@ export const getReflectionsByEventId = (
   eventId = unref(eventId)
 
   return customInstance<ReflectionResponse[]>(
-    { url: `http://localhost:8080/api/reflections/event/${eventId}`, method: 'GET', signal },
+    { url: `/api/reflections/event/${eventId}`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetReflectionsByEventIdQueryKey = (eventId: MaybeRef<number>) => {
-  return ['http:', 'localhost:8080', 'api', 'reflections', 'event', eventId] as const
+  return ['api', 'reflections', 'event', eventId] as const
 }
 
 export const getGetReflectionsByEventIdQueryOptions = <
@@ -915,13 +915,13 @@ export const getAllReflections = (
   signal?: AbortSignal,
 ) => {
   return customInstance<ReflectionResponse[]>(
-    { url: `http://localhost:8080/api/reflections/admin/all`, method: 'GET', signal },
+    { url: `/api/reflections/admin/all`, method: 'GET', signal },
     options,
   )
 }
 
 export const getGetAllReflectionsQueryKey = () => {
-  return ['http:', 'localhost:8080', 'api', 'reflections', 'admin', 'all'] as const
+  return ['api', 'reflections', 'admin', 'all'] as const
 }
 
 export const getGetAllReflectionsQueryOptions = <

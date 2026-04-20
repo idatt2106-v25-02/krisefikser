@@ -37,4 +37,6 @@ public class ScenarioResponse {
    */
   @NotNull
   private String content;
+
+  private String coverImageUrl;
 }

@@ -45,3 +45,4 @@ vitest.config.d.ts
 cypress.config.d.ts
 orval.config.js
 orval.config.d.ts
+.env.local
