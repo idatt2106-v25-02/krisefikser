@@ -1,85 +1,109 @@
 describe('Authentication Tests', () => {
-  /**
-   * Test the user registration process.
-   * It intercepts the registration API call, visits the registration page,
-   * fills out the form, submits it, and verifies the API call was made.
-   */
-  it('registrering', function() {
-    // Intercept the registration API call
+  it('registers user and redirects to email verification page', () => {
+    cy.stubTurnstile()
     cy.intercept('POST', '/api/auth/register', {
       statusCode: 200,
       body: {
         accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token'
-      }
-    }).as('registerRequest');
+        refreshToken: 'mock-refresh-token',
+      },
+    }).as('registerRequest')
 
     cy.fixture('user').then((user) => {
-      cy.visit('/registrer', {
-        onBeforeLoad(win) {
-          // Stub the turnstile render function
-          // @ts-expect-error - Overwriting window property for test purposes
-          win.turnstile = {
-            render: (selector: string, options: { callback: (token: string) => void }) => {
-              // Immediately call the callback with a mock token
-              options.callback('mock-captcha-token');
-              // Return a dummy widget ID
-              return 'dummy-widget-id';
-            },
-            // Add other methods if your app uses them (e.g., remove, reset)
-            remove: () => {},
-            reset: () => {},
-          };
-        },
-      });
-      cy.get('input[name="firstName"]').clear();
-      cy.get('input[name="firstName"]').type(user.registration.firstName);
-      cy.get('input[name="lastName"]').clear();
-      cy.get('input[name="lastName"]').type(user.registration.lastName);
-      cy.get('input[name="email"]').clear();
-      cy.get('input[name="email"]').type(user.registration.email);
-      cy.get('input[name="password"]').clear();
-      cy.get('input[name="password"]').type(user.registration.password);
-      cy.get('input[name="confirmPassword"]').clear();
-      cy.get('input[name="confirmPassword"]').type(user.registration.password); // Use the same password for confirmation
-      cy.get('input[type="checkbox"]').click();
-      // Click the submit button
-      cy.get('button[type="submit"]').click();
+      cy.visit('/registrer')
+      cy.get('input[name="firstName"]').type(user.registration.firstName)
+      cy.get('input[name="lastName"]').type(user.registration.lastName)
+      cy.get('input[name="email"]').type(user.registration.email)
+      cy.get('input[name="password"]').type(user.registration.password)
+      cy.get('input[name="confirmPassword"]').type(user.registration.password)
+      cy.get('input#acceptedPrivacyPolicy').check({ force: true })
+      cy.get('button[type="submit"]').click()
 
-      // Wait for the intercepted request to ensure it was called
-      cy.wait('@registerRequest');
-    });
-  });
+      cy.wait('@registerRequest').then((interception) => {
+        expect(interception.request.body).to.include({
+          firstName: user.registration.firstName,
+          lastName: user.registration.lastName,
+          email: user.registration.email,
+        })
+      })
+      cy.url().should('include', '/bekreft-e-post')
+    })
+  })
 
-  /**
-   * Test the user login process.
-   * It intercepts the login API call, visits the login page,
-   * fills out the email and password, submits the form,
-   * and verifies the API call was made.
-   */
-  it('logg-inn', function() {
-    // Intercept the login API call
+  it('shows validation feedback for invalid registration email', () => {
+    cy.stubTurnstile()
+    cy.visit('/registrer')
+
+    cy.get('input[name="firstName"]').type('Test')
+    cy.get('input[name="lastName"]').type('User')
+    cy.get('input[name="email"]').type('not-an-email')
+    cy.get('input[name="password"]').type('Password123!')
+    cy.get('input[name="confirmPassword"]').type('Password123!')
+    cy.get('input#acceptedPrivacyPolicy').check({ force: true })
+    cy.get('button[type="submit"]').click()
+
+    cy.contains('Ugyldig e-post').should('be.visible')
+  })
+
+  it('shows duplicate-email error from backend', () => {
+    cy.stubTurnstile()
+    cy.intercept('POST', '/api/auth/register', {
+      statusCode: 409,
+      body: {
+        message: 'E-post finnes allerede',
+      },
+    }).as('registerConflict')
+
+    cy.visit('/registrer')
+    cy.get('input[name="firstName"]').type('Test')
+    cy.get('input[name="lastName"]').type('User')
+    cy.get('input[name="email"]').type('already.used@example.com')
+    cy.get('input[name="password"]').type('Password123!')
+    cy.get('input[name="confirmPassword"]').type('Password123!')
+    cy.get('input#acceptedPrivacyPolicy').check({ force: true })
+    cy.get('button[type="submit"]').click()
+
+    cy.wait('@registerConflict')
+    cy.contains('E-postadressen er allerede registrert').should('be.visible')
+  })
+
+  it('logs in and respects redirect query parameter', () => {
     cy.intercept('POST', '/api/auth/login', {
       statusCode: 200,
       body: {
         accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token'
-      }
-    }).as('loginRequest');
+        refreshToken: 'mock-refresh-token',
+      },
+    }).as('loginRequest')
+    cy.mockAuthMe()
+    cy.mockCoreHouseholdData()
+    cy.mockInventoryData()
 
-    cy.fixture('user').then((user) => {
-      cy.visit('/logg-inn');
+    cy.visit('/logg-inn?redirect=/husstand/beredskapslager')
+    cy.get('input[type="email"]').type('test.user@example.com')
+    cy.get('input[name="password"]').type('Password123!')
+    cy.get('button[type="submit"]').click()
 
-      cy.get('input[type="email"]').clear();
-      cy.get('input[type="email"]').type(user.login.email);
-      cy.get('input[type="password"]').clear();
-      cy.get('input[type="password"]').type(user.login.password);
+    cy.wait('@loginRequest')
+    cy.url().should('include', '/husstand/beredskapslager')
+    cy.contains('Beredskapslager').should('be.visible')
+  })
 
-      // Click the submit button
-      cy.get('button[type="submit"]').click();
+  it('stays on login view when credentials are rejected', () => {
+    cy.intercept('POST', '/api/auth/login', {
+      statusCode: 401,
+      body: {
+        message: 'Invalid credentials',
+      },
+    }).as('loginRequest')
 
-      // Wait for the intercepted request to ensure it was called
-      cy.wait('@loginRequest');
-    });
-  });
+    cy.visit('/logg-inn')
+    cy.get('input[type="email"]').type('wrong.user@example.com')
+    cy.get('input[name="password"]').type('WrongPass123!')
+    cy.get('button[type="submit"]').click()
+
+    cy.wait('@loginRequest')
+    cy.url().should('include', '/logg-inn')
+    cy.contains('Innlogging').should('be.visible')
+  })
 })
