@@ -74,7 +74,7 @@ public class AuthService {
   private final Map<String, AdminInviteToken> adminInviteTokens = new ConcurrentHashMap<>();
   private final FrontendConfig frontendConfig;
   @Value("${auth.admin-two-factor.enabled:true}")
-  private boolean adminTwoFactorEnabled;
+  private boolean adminTwoFactorEnabled = true;
 
   /**
    * Registers a new user and sends verification email.
