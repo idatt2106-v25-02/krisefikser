@@ -18,6 +18,7 @@ import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.notification.service.NotificationService;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
+import stud.ntnu.krisefikser.user.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 class HouseholdInviteServiceTest {

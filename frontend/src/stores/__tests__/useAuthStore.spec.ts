@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { ref } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '../auth/useAuthStore'
 
@@ -17,7 +16,7 @@ const {
   registerMutation: vi.fn(),
   registerAdminMutation: vi.fn(),
   refetchUser: vi.fn().mockResolvedValue(undefined),
-  currentUser: ref<{ roles?: string[] } | null>(null),
+  currentUser: { value: null as { roles?: string[] } | null },
 }))
 
 vi.mock('@/router', () => ({

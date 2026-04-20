@@ -2,6 +2,7 @@ package stud.ntnu.krisefikser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import stud.ntnu.krisefikser.auth.exception.InvalidTokenException;
@@ -21,7 +22,7 @@ class GlobalExceptionHandlerTest {
 
   @Test
   void handleUserDoesNotExistException_shouldReturnNotFoundProblem() {
-    var problem = handler.handleUserDoesNotExistException(new UserNotFoundException());
+    var problem = handler.handleUserDoesNotExistException(new UserNotFoundException(UUID.randomUUID()));
 
     assertThat(problem.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
     assertThat(problem.getDetail()).contains("User not found");
