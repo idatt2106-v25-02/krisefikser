@@ -4,12 +4,21 @@ import { ref } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '../auth/useAuthStore'
 
-const mockPush = vi.fn()
-const loginMutation = vi.fn()
-const registerMutation = vi.fn()
-const registerAdminMutation = vi.fn()
-const refetchUser = vi.fn().mockResolvedValue(undefined)
-const currentUser = ref<{ roles?: string[] } | null>(null)
+const {
+  mockPush,
+  loginMutation,
+  registerMutation,
+  registerAdminMutation,
+  refetchUser,
+  currentUser,
+} = vi.hoisted(() => ({
+  mockPush: vi.fn(),
+  loginMutation: vi.fn(),
+  registerMutation: vi.fn(),
+  registerAdminMutation: vi.fn(),
+  refetchUser: vi.fn().mockResolvedValue(undefined),
+  currentUser: ref<{ roles?: string[] } | null>(null),
+}))
 
 vi.mock('@/router', () => ({
   default: {
