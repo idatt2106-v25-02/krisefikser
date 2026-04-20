@@ -16,6 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -25,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import stud.ntnu.krisefikser.e2e.E2eMailOutbox;
 import stud.ntnu.krisefikser.email.config.MailProperties;
 import stud.ntnu.krisefikser.email.exception.EmailSendingException;
 
@@ -38,6 +41,10 @@ class EmailServiceTest {
   private RestTemplate restTemplate;
   @Mock
   private MailProperties mailProperties;
+  @Mock
+  private ObjectProvider<E2eMailOutbox> e2eMailOutbox;
+  @Mock
+  private E2eMailOutbox capturedOutbox;
   @InjectMocks
   private EmailService emailService;
   @Captor
@@ -48,6 +55,21 @@ class EmailServiceTest {
     lenient().when(mailProperties.getHost()).thenReturn(TEST_HOST);
     lenient().when(mailProperties.getApiKey()).thenReturn(TEST_API_KEY);
     lenient().when(mailProperties.getFrom()).thenReturn(TEST_FROM_EMAIL);
+    lenient().when(e2eMailOutbox.getIfAvailable()).thenReturn(null);
+    ReflectionTestUtils.setField(emailService, "e2eMailCapture", false);
+  }
+
+  @Test
+  void sendEmail_whenE2eCaptureAndOutboxPresent_skipsMailtrap() {
+    ReflectionTestUtils.setField(emailService, "e2eMailCapture", true);
+    when(e2eMailOutbox.getIfAvailable()).thenReturn(capturedOutbox);
+
+    ResponseEntity<String> response = emailService.sendEmail(
+        "recipient@example.com", "Test Subject", "<p>Test content</p>");
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    verify(capturedOutbox).record("recipient@example.com", "Test Subject", "<p>Test content</p>");
+    verify(restTemplate, never()).postForEntity(anyString(), any(), any());
   }
 
   @Test

@@ -29,7 +29,6 @@ jobs:
 
   backend:
     runs-on: ubuntu-latest
-    environment: production
     needs: backend-lint
     steps:
       - uses: actions/checkout@v4.2.2
@@ -80,7 +79,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install dependencies
         run: |
@@ -112,7 +111,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install dependencies
         run: |
@@ -151,7 +150,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install dependencies
         run: |
@@ -183,28 +182,39 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install frontend dependencies
         run: |
           cd frontend
           pnpm install --frozen-lockfile
 
+      - name: Prepare E2E mail hook secret
+        run: echo "E2E_MAIL_HOOK_SECRET=$(openssl rand -hex 16)" >> "$GITHUB_ENV"
+
       - name: Build frontend
+        env:
+          VITE_API_URL: http://127.0.0.1:8080
         run: |
           cd frontend
           pnpm run build
 
       - name: Start database and backend
+        env:
+          AUTH_ADMIN_TWO_FACTOR_ENABLED: "false"
+          SPRING_PROFILES_ACTIVE: dev,e2e
+          TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+          FRONTEND_URL: http://127.0.0.1:5173
+          E2E_MAIL_HOOK_SECRET: ${{ env.E2E_MAIL_HOOK_SECRET }}
         run: |
-          export AUTH_ADMIN_TWO_FACTOR_ENABLED=false
           docker compose up -d db backend
           for i in {1..60}; do
             STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/me || true)
-            if [ "$STATUS_CODE" != "000" ]; then
-              echo "Backend is healthy"
+            if [ "$STATUS_CODE" = "401" ] || [ "$STATUS_CODE" = "200" ]; then
+              echo "Backend is healthy (HTTP $STATUS_CODE)"
               exit 0
             fi
+            echo "Waiting for backend (HTTP $STATUS_CODE)..."
             sleep 5
           done
           echo "Backend did not become healthy in time"
@@ -212,6 +222,8 @@ jobs:
           exit 1
 
       - name: Run full-stack smoke E2E
+        env:
+          CYPRESS_e2eMailHookSecret: ${{ env.E2E_MAIL_HOOK_SECRET }}
         run: |
           cd frontend
           pnpm run test:e2e:fullstack:smoke
@@ -231,30 +243,40 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install frontend dependencies
         run: |
           cd frontend
           pnpm install --frozen-lockfile
 
+      - name: Prepare E2E mail hook secret
+        run: echo "E2E_MAIL_HOOK_SECRET=$(openssl rand -hex 16)" >> "$GITHUB_ENV"
+
       - name: Build frontend with E2E coverage instrumentation
         env:
           CYPRESS_COVERAGE: "true"
+          VITE_API_URL: http://127.0.0.1:8080
         run: |
           cd frontend
           pnpm run build:coverage
 
       - name: Start database and backend
+        env:
+          AUTH_ADMIN_TWO_FACTOR_ENABLED: "false"
+          SPRING_PROFILES_ACTIVE: dev,e2e
+          TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+          FRONTEND_URL: http://127.0.0.1:5173
+          E2E_MAIL_HOOK_SECRET: ${{ env.E2E_MAIL_HOOK_SECRET }}
         run: |
-          export AUTH_ADMIN_TWO_FACTOR_ENABLED=false
           docker compose up -d db backend
           for i in {1..60}; do
             STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/me || true)
-            if [ "$STATUS_CODE" != "000" ]; then
-              echo "Backend is healthy"
+            if [ "$STATUS_CODE" = "401" ] || [ "$STATUS_CODE" = "200" ]; then
+              echo "Backend is healthy (HTTP $STATUS_CODE)"
               exit 0
             fi
+            echo "Waiting for backend (HTTP $STATUS_CODE)..."
             sleep 5
           done
           echo "Backend did not become healthy in time"
@@ -262,6 +284,9 @@ jobs:
           exit 1
 
       - name: Run full-stack regression E2E
+        env:
+          CYPRESS_COVERAGE: 'true'
+          CYPRESS_e2eMailHookSecret: ${{ env.E2E_MAIL_HOOK_SECRET }}
         run: |
           cd frontend
           pnpm run test:e2e:fullstack:regression

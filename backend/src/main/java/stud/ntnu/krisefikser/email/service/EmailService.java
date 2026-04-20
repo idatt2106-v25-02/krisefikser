@@ -6,12 +6,15 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import stud.ntnu.krisefikser.e2e.E2eMailOutbox;
 import stud.ntnu.krisefikser.email.config.MailProperties;
 import stud.ntnu.krisefikser.email.exception.EmailSendingException;
 
@@ -30,6 +33,11 @@ public class EmailService {
   private final RestTemplate restTemplate;
 
   private final MailProperties mailProperties;
+
+  private final ObjectProvider<E2eMailOutbox> e2eMailOutbox;
+
+  @Value("${e2e.mail.capture:false}")
+  private boolean e2eMailCapture;
 
   /**
    * Sends an email using the Mailtrap API.
@@ -54,6 +62,15 @@ public class EmailService {
     if (htmlContent == null) {
       log.error("Cannot send email: HTML content is null");
       throw new EmailSendingException("Email content cannot be null");
+    }
+
+    if (e2eMailCapture) {
+      E2eMailOutbox outbox = e2eMailOutbox.getIfAvailable();
+      if (outbox != null) {
+        outbox.record(toEmail, subject, htmlContent);
+        log.info("E2E mail capture: stored outbound message for {}", toEmail);
+        return ResponseEntity.ok("{\"status\":\"captured\"}");
+      }
     }
 
     String url = "https://" + mailProperties.getHost() + "/api/send";

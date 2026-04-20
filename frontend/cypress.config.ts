@@ -23,6 +23,7 @@ export default defineConfig({
   },
   env: {
     apiUrl: 'http://127.0.0.1:8080',
+    e2eMailHookSecret: '',
     e2eUserEmail: 'brotherman@testern.no',
     e2eUserPassword: 'password',
     e2eAdminEmail: 'admin@example.com',
