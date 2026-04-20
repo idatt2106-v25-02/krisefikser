@@ -1,8 +1,7 @@
 import './styles/globals.css'
 
-import { createApp, watch } from 'vue'
+import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import posthog from 'posthog-js'
 
 import App from './App.vue'
 import router from './router'
@@ -11,7 +10,11 @@ import { createWebSocketService } from '@/api/websocket/webSocketProvider'
 import type { IWebSocketService } from '@/api/websocket/IWebSocketService'
 import accessibilityPlugin from './plugins/tts/accessibility'
 import posthogPlugin from './plugins/docs/posthog'
-import { applyStoredTrackingConsent } from './plugins/docs/posthog-consent'
+import {
+  applyStoredTrackingConsent,
+  registerPostHogActivationHandler,
+} from './plugins/docs/posthog-consent'
+import { setupPostHogAppHooks } from './plugins/docs/posthog-app-hooks'
 import { useAuthStore } from './stores/auth/useAuthStore'
 import { setStoreRef } from './api/storeRef'
 const app = createApp(App)
@@ -32,40 +35,11 @@ const posthogEnabled =
 if (posthogEnabled) {
   app.use(posthogPlugin)
 
-  applyStoredTrackingConsent()
-
-  router.afterEach((to) => {
-    posthog.capture('$pageview', {
-      path: to.path,
-      routeName: typeof to.name === 'string' ? to.name : null,
-      query: to.query,
-    })
+  registerPostHogActivationHandler(() => {
+    setupPostHogAppHooks(app, router, authStore)
   })
 
-  watch(
-    () => authStore.currentUser,
-    (currentUser) => {
-      if (!currentUser?.id) {
-        return
-      }
-
-      posthog.identify(currentUser.id, {
-        email: currentUser.email,
-        roles: currentUser.roles,
-      })
-    },
-    { immediate: true },
-  )
-
-  watch(
-    () => authStore.isAuthenticated,
-    (isAuthenticated) => {
-      if (!isAuthenticated) {
-        posthog.reset()
-      }
-    },
-    { immediate: true },
-  )
+  applyStoredTrackingConsent()
 } else {
   console.log('PostHog is disabled or missing key')
 }
