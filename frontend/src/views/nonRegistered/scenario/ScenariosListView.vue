@@ -2,6 +2,7 @@
 import { useGetAllScenarios } from '@/api/generated/scenario/scenario'
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
+import { useCloudinaryUrl } from '@/composables/useCloudinaryUrl'
 import {
   LightbulbIcon,
   AlertTriangle,
@@ -12,6 +13,7 @@ import {
 
 const { data: scenarios, isLoading, error } = useGetAllScenarios()
 const router = useRouter()
+const { buildCloudinaryUrl } = useCloudinaryUrl()
 
 const goToScenario = (id: string) => {
   router.push(`/scenario/${id}`)
@@ -106,6 +108,12 @@ onMounted(() => {
           class="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition relative min-h-[180px] flex flex-col"
           @click="goToScenario(scenario.id)"
         >
+          <img
+            v-if="scenario.coverImageUrl"
+            :src="buildCloudinaryUrl(scenario.coverImageUrl, 'f_auto,q_auto,w_900,h_450,c_fill')"
+            alt="Scenario cover"
+            class="h-36 w-full object-cover"
+          />
           <!-- Blue corner decoration - same for all cards -->
           <div class="absolute top-0 right-0 w-16 h-16 rounded-bl-full -mt-1 -mr-1 overflow-hidden z-0 bg-blue-50/70">
             <div class="absolute top-2.5 right-2.5">

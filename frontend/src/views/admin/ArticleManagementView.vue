@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import ImageUpload from '@/components/ui/ImageUpload.vue'
 
 // Import our new components
 import PageHeader from '@/components/ui/page-header/PageHeader.vue'
@@ -259,14 +260,12 @@ const openImageInNewTab = (url: string) => {
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium text-gray-700" for="imageUrl">Bilde URL</label>
-              <div class="flex space-x-2">
-                <Input
-                  id="imageUrl"
-                  v-model="articleForm.imageUrl"
-                  placeholder="Lim inn bilde URL"
-                  required
-                />
+              <ImageUpload
+                v-model="articleForm.imageUrl"
+                folder="krisefikser/articles"
+                label="Bilde"
+              />
+              <div class="flex justify-end">
                 <Button
                   :disabled="!articleForm.imageUrl"
                   class="flex-shrink-0"

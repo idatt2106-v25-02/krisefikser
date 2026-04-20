@@ -6,6 +6,7 @@ import { useMe } from '@/api/generated/authentication/authentication'
 import { useUpdateUser } from '@/api/generated/user/user'
 import type { CreateUser } from '@/api/generated/model'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
+import ImageUpload from '@/components/ui/ImageUpload.vue'
 
 // Get auth store
 const authStore = useAuthStore()
@@ -17,6 +18,7 @@ const editedUser = ref({
   firstName: '',
   lastName: '',
   email: '',
+  avatarUrl: '',
 })
 
 // Get current user data
@@ -39,6 +41,7 @@ watch(currentUser, (newUser) => {
       firstName: newUser.firstName || '',
       lastName: newUser.lastName || '',
       email: newUser.email || '',
+      avatarUrl: newUser.avatarUrl || '',
     }
   }
 }, { immediate: true })
@@ -92,6 +95,7 @@ const toggleEdit = () => {
         firstName: currentUser.value.firstName || '',
         lastName: currentUser.value.lastName || '',
         email: currentUser.value.email || '',
+        avatarUrl: currentUser.value.avatarUrl || '',
       }
     }
   }
@@ -106,6 +110,7 @@ const saveProfile = async () => {
     firstName: editedUser.value.firstName.trim(),
     lastName: editedUser.value.lastName.trim(),
     email: editedUser.value.email.trim(),
+    avatarUrl: editedUser.value.avatarUrl,
     password: '',
   }
 
@@ -130,6 +135,7 @@ const saveProfile = async () => {
     </div>
 
     <form v-else-if="currentUser" @submit.prevent="saveProfile" class="space-y-4">
+      <ImageUpload v-model="editedUser.avatarUrl" folder="krisefikser/avatars" label="Profilbilde" />
       <!-- First Name field -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1" for="firstName">Fornavn</label>

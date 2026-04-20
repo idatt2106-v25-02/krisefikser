@@ -62,6 +62,7 @@ const deleteEventMutation = useDeleteEvent({
 const newEvent = ref({
   title: '',
   description: '',
+  imageUrl: '',
   radius: 500,
   latitude: 63.4305,
   longitude: 10.3951,
@@ -119,6 +120,7 @@ async function handleAddEvent() {
       data: {
         title: newEvent.value.title,
         description: newEvent.value.description,
+        imageUrl: newEvent.value.imageUrl,
         radius: newEvent.value.radius,
         latitude: newEvent.value.latitude,
         longitude: newEvent.value.longitude,
@@ -133,6 +135,7 @@ async function handleAddEvent() {
     newEvent.value = {
       title: '',
       description: '',
+      imageUrl: '',
       radius: 500,
       latitude: 63.4305,
       longitude: 10.3951,
@@ -168,6 +171,7 @@ async function handleUpdateEvent() {
       data: {
         title: editingEvent.value.title,
         description: editingEvent.value.description,
+        imageUrl: editingEvent.value.imageUrl,
         radius: editingEvent.value.radius,
         latitude: editingEvent.value.latitude,
         longitude: editingEvent.value.longitude,
@@ -209,6 +213,7 @@ function resetNewEvent() {
   newEvent.value = {
     title: '',
     description: '',
+    imageUrl: '',
     radius: 500,
     latitude: 63.4305,
     longitude: 10.3951,
@@ -249,6 +254,12 @@ watch(
       <div v-for="event in events" :key="event.id" class="border rounded-lg p-4">
         <div class="flex justify-between items-start">
           <div>
+            <img
+              v-if="event.imageUrl"
+              :src="event.imageUrl"
+              alt="Hendelsesbilde"
+              class="h-28 w-full object-cover rounded-md mb-3"
+            />
             <h4 class="font-medium">{{ event.title || 'Ukjent tittel' }}</h4>
             <p class="text-sm text-gray-600">{{ event.description || 'Ingen beskrivelse' }}</p>
             <p class="text-sm text-gray-600">

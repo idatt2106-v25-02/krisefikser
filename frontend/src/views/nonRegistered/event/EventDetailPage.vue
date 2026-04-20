@@ -22,11 +22,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { formatDate } from '@/utils/date-formatter'
+import { useCloudinaryUrl } from '@/composables/useCloudinaryUrl'
 
 const route = useRoute()
 const queryClient = useQueryClient()
 const authStore = useAuthStore()
 const eventId = computed(() => Number(route.params.id))
+const { buildCloudinaryUrl } = useCloudinaryUrl()
 
 const isEditing = ref(false)
 const editingReflection = ref<ReflectionResponse | null>(null)
@@ -259,6 +261,13 @@ watch(
 
         <div class="p-6">
           <h1 class="text-3xl font-bold mb-4 text-gray-800">{{ event.title }}</h1>
+
+          <img
+            v-if="event.imageUrl"
+            :src="buildCloudinaryUrl(event.imageUrl, 'f_auto,q_auto,w_1400,h_700,c_fill')"
+            alt="Hendelsesbilde"
+            class="w-full h-72 object-cover rounded-lg mb-6"
+          />
 
           <!-- Metadata badges -->
           <div class="flex flex-wrap gap-2 mb-6">

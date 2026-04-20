@@ -6,6 +6,7 @@ import {
   EventResponseLevel as EventLevel,
   EventResponseStatus as EventStatus,
 } from '@/api/generated/model'
+import ImageUpload from '@/components/ui/ImageUpload.vue'
 
 const props = defineProps<{
   modelValue: Partial<Event>
@@ -85,6 +86,8 @@ function handleStartMapSelection() {
         rows="3"
       ></textarea>
     </div>
+
+    <ImageUpload v-model="localValue.imageUrl" folder="krisefikser/events" label="Hendelsesbilde" />
 
     <div class="space-y-2">
       <label class="text-sm font-medium" for="event-radius">Radius (meter)</label>
