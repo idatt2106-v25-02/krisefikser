@@ -98,7 +98,6 @@
       "minimatch": ">=9.0.5",
       "brace-expansion": ">=2.0.1",
       "yaml": ">=2.8.0",
-      "ajv": ">=8.17.1",
       "socket.io-parser": ">=4.2.6"
     }
   },
