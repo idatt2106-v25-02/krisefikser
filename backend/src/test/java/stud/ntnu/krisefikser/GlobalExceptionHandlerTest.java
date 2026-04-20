@@ -25,6 +25,6 @@ class GlobalExceptionHandlerTest {
     var problem = handler.handleUserDoesNotExistException(new UserNotFoundException(UUID.randomUUID()));
 
     assertThat(problem.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
-    assertThat(problem.getDetail()).contains("User not found");
+    assertThat(problem.getDetail()).contains("does not exist");
   }
 }
