@@ -9,6 +9,8 @@ interface Props {
   columns: Column[]
   isLoading?: boolean
   emptyMessage?: string
+  caption?: string
+  rowCount?: number
 }
 
 defineProps<Props>()
@@ -17,7 +19,7 @@ defineProps<Props>()
 <template>
   <div class="relative">
     <!-- Loading state -->
-    <div v-if="isLoading" class="p-8 text-center">
+    <div v-if="isLoading" class="p-8 text-center" role="status" aria-live="polite">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
       <p class="mt-2 text-gray-500">Laster data...</p>
     </div>
@@ -28,6 +30,9 @@ defineProps<Props>()
         <div class="min-w-full inline-block align-middle">
           <div class="overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
+              <caption v-if="caption" class="sr-only">
+                {{ caption }}
+              </caption>
               <thead class="bg-gray-50 sticky top-0 z-10">
                 <tr>
                   <th
@@ -48,7 +53,7 @@ defineProps<Props>()
               <tbody class="bg-white divide-y divide-gray-200">
                 <slot />
                 <!-- Empty state -->
-                <tr v-if="!$slots.default">
+                <tr v-if="(rowCount ?? 0) === 0">
                   <td
                     :colspan="columns.length"
                     class="px-4 py-8 text-center text-gray-500 whitespace-nowrap"
