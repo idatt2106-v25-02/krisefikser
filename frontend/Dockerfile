@@ -18,6 +18,8 @@ COPY . .
 ARG VITE_API_URL
 ARG VITE_WS_URL
 ARG VITE_POSTHOG_ENABLED
+ARG VITE_POSTHOG_KEY
+ARG VITE_POSTHOG_HOST
 
 # Build the application (ignoring type errors)
 ENV NODE_ENV=production
