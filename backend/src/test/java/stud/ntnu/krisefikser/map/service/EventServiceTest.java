@@ -3,6 +3,8 @@ package stud.ntnu.krisefikser.map.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +27,7 @@ import stud.ntnu.krisefikser.map.repository.EventRepository;
 import stud.ntnu.krisefikser.notification.service.NotificationService;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class EventServiceTest {
 
   @Mock
@@ -76,7 +79,7 @@ class EventServiceTest {
         .status(EventStatus.ONGOING)
         .startTime(ZonedDateTime.now())
         .build();
-    when(eventRepository.save(any(Event.class))).thenReturn(event);
+    when(eventRepository.save(org.mockito.ArgumentMatchers.<Event>any())).thenReturn(event);
 
     var result = eventService.createEvent(request);
 
@@ -92,5 +95,66 @@ class EventServiceTest {
     assertThatThrownBy(() -> eventService.updateEvent(1L, UpdateEventRequest.builder().build()))
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessageContaining("Event not found");
+  }
+
+  @Test
+  void getEventById_shouldReturnMappedEvent() {
+    when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+
+    var result = eventService.getEventById(1L);
+
+    assertThat(result.getId()).isEqualTo(1L);
+    assertThat(result.getTitle()).isEqualTo("Storm");
+  }
+
+  @Test
+  void getEventEntityById_shouldThrowWhenMissing() {
+    when(eventRepository.findById(999L)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> eventService.getEventEntityById(999L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessageContaining("Event not found with id: 999");
+  }
+
+  @Test
+  void updateEvent_shouldUpdateFieldsAndNotify() {
+    UpdateEventRequest request = UpdateEventRequest.builder()
+        .title("Updated storm")
+        .description("Updated description")
+        .status(EventStatus.FINISHED)
+        .build();
+
+    when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+    when(eventRepository.save(org.mockito.ArgumentMatchers.<Event>any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    var result = eventService.updateEvent(1L, request);
+
+    assertThat(result.getTitle()).isEqualTo("Updated storm");
+    assertThat(result.getDescription()).isEqualTo("Updated description");
+    assertThat(result.getStatus()).isEqualTo(EventStatus.FINISHED);
+    verify(eventWebSocketService).notifyEventUpdate(any());
+    verify(notificationService).createNotificationsForAll(any());
+  }
+
+  @Test
+  void deleteEvent_shouldDeleteAndNotifyWhenExists() {
+    when(eventRepository.existsById(1L)).thenReturn(true);
+
+    eventService.deleteEvent(1L);
+
+    verify(eventWebSocketService).notifyEventDeletion(1L);
+    verify(eventRepository).deleteById(1L);
+  }
+
+  @Test
+  void deleteEvent_shouldThrowAndNotNotifyWhenMissing() {
+    when(eventRepository.existsById(123L)).thenReturn(false);
+
+    assertThatThrownBy(() -> eventService.deleteEvent(123L))
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessageContaining("Event not found with id: 123");
+    verify(eventWebSocketService, never()).notifyEventDeletion(anyLong());
+    verify(eventRepository, never()).deleteById(anyLong());
   }
 }
