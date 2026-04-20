@@ -77,6 +77,7 @@ class UserControllerTest {
         "password",
         "Test",
         "User",
+        null,
         true,
         true,
         true,

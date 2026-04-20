@@ -46,7 +46,8 @@ class ScenarioServiceTest {
 
         createRequest = new CreateScenarioRequest(
                 "Flood Emergency",
-                "# Flood Emergency Guide\n\nThis is what to do in case of a flood.");
+                "# Flood Emergency Guide\n\nThis is what to do in case of a flood.",
+                null);
     }
 
     @Test
@@ -77,7 +78,8 @@ class ScenarioServiceTest {
 
         CreateScenarioRequest updateRequest = new CreateScenarioRequest(
                 "Updated Flood Emergency",
-                "# Updated Flood Emergency Guide\n\nUpdated content.");
+                "# Updated Flood Emergency Guide\n\nUpdated content.",
+                null);
 
         when(scenarioRepository.findById(scenarioId)).thenReturn(Optional.of(scenario));
         when(scenarioRepository.save(any(Scenario.class))).thenReturn(updatedScenario);
