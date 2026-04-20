@@ -87,7 +87,15 @@ function handleStartMapSelection() {
       ></textarea>
     </div>
 
-    <ImageUpload v-model="localValue.imageUrl" folder="krisefikser/events" label="Hendelsesbilde" />
+    <ImageUpload
+      v-model="localValue.imageUrl"
+      folder="krisefikser/events"
+      upload-preset="krisefikser-events"
+      tags="krisefikser,events"
+      :context="`module=events|event_title=${(localValue.title || '').replaceAll('|', ' ')}`"
+      metadata="event-type=other"
+      label="Hendelsesbilde"
+    />
 
     <div class="space-y-2">
       <label class="text-sm font-medium" for="event-radius">Radius (meter)</label>

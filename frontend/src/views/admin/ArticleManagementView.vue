@@ -263,6 +263,10 @@ const openImageInNewTab = (url: string) => {
               <ImageUpload
                 v-model="articleForm.imageUrl"
                 folder="krisefikser/articles"
+                upload-preset="krisefikser-articles"
+                tags="krisefikser,articles"
+                :context="`module=articles|article_title=${(articleForm.title || '').replaceAll('|', ' ')}`"
+                metadata="article-id=pending"
                 label="Bilde"
               />
               <div class="flex justify-end">

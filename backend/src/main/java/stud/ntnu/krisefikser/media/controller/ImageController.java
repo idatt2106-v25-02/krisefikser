@@ -40,8 +40,17 @@ public class ImageController {
       @Parameter(description = "Image file")
       @RequestParam("file") MultipartFile file,
       @Parameter(description = "Optional Cloudinary folder")
-      @RequestParam(value = "folder", required = false) String folder
+      @RequestParam(value = "folder", required = false) String folder,
+      @Parameter(description = "Optional comma-separated tags")
+      @RequestParam(value = "tags", required = false) String tags,
+      @Parameter(description = "Optional Cloudinary context string (key=value|key2=value2)")
+      @RequestParam(value = "context", required = false) String context,
+      @Parameter(description = "Optional Cloudinary metadata string (field=value|field2=value2)")
+      @RequestParam(value = "metadata", required = false) String metadata,
+      @Parameter(description = "Optional upload preset name")
+      @RequestParam(value = "uploadPreset", required = false) String uploadPreset
   ) {
-    return ResponseEntity.ok(cloudinaryService.uploadImage(file, folder));
+    return ResponseEntity.ok(
+        cloudinaryService.uploadImage(file, folder, tags, context, metadata, uploadPreset));
   }
 }

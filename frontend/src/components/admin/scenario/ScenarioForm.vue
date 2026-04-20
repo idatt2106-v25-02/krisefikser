@@ -73,7 +73,14 @@ const submitForm = () => {
       />
     </div>
 
-    <ImageUpload v-model="formData.coverImageUrl" folder="krisefikser/scenarios" label="Cover-bilde" />
+    <ImageUpload
+      v-model="formData.coverImageUrl"
+      folder="krisefikser/scenarios"
+      upload-preset="krisefikser-scenarios"
+      tags="krisefikser,scenarios"
+      :context="`module=scenarios|scenario_title=${(formData.title || '').replaceAll('|', ' ')}`"
+      label="Cover-bilde"
+    />
 
     <!-- Form Actions -->
     <div class="flex justify-end space-x-3 pt-4 border-t">

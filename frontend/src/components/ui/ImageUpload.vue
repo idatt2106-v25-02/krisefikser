@@ -9,6 +9,10 @@ const props = withDefaults(
     modelValue?: string
     folder?: string
     label?: string
+    tags?: string
+    context?: string
+    metadata?: string
+    uploadPreset?: string
   }>(),
   {
     modelValue: '',
@@ -34,7 +38,13 @@ const handleFileChange = async (event: Event) => {
   uploadError.value = ''
   isUploading.value = true
   try {
-    const uploaded = await uploadImage(file, props.folder)
+    const uploaded = await uploadImage(file, {
+      folder: props.folder,
+      tags: props.tags,
+      context: props.context,
+      metadata: props.metadata,
+      uploadPreset: props.uploadPreset,
+    })
     emit('update:modelValue', uploaded.url)
   } catch {
     uploadError.value = 'Kunne ikke laste opp bildet. Proev igjen.'

@@ -5,11 +5,34 @@ export interface ImageUploadResponse {
   publicId: string
 }
 
-export const uploadImage = async (file: File, folder?: string): Promise<ImageUploadResponse> => {
+export interface ImageUploadOptions {
+  folder?: string
+  tags?: string
+  context?: string
+  metadata?: string
+  uploadPreset?: string
+}
+
+export const uploadImage = async (
+  file: File,
+  options?: ImageUploadOptions,
+): Promise<ImageUploadResponse> => {
   const formData = new FormData()
   formData.append('file', file)
-  if (folder) {
-    formData.append('folder', folder)
+  if (options?.folder) {
+    formData.append('folder', options.folder)
+  }
+  if (options?.tags) {
+    formData.append('tags', options.tags)
+  }
+  if (options?.context) {
+    formData.append('context', options.context)
+  }
+  if (options?.metadata) {
+    formData.append('metadata', options.metadata)
+  }
+  if (options?.uploadPreset) {
+    formData.append('uploadPreset', options.uploadPreset)
   }
 
   const { data } = await AXIOS_INSTANCE.post<ImageUploadResponse>('/api/images/upload', formData, {

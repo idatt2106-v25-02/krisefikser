@@ -135,7 +135,14 @@ const saveProfile = async () => {
     </div>
 
     <form v-else-if="currentUser" @submit.prevent="saveProfile" class="space-y-4">
-      <ImageUpload v-model="editedUser.avatarUrl" folder="krisefikser/avatars" label="Profilbilde" />
+      <ImageUpload
+        v-model="editedUser.avatarUrl"
+        folder="krisefikser/avatars"
+        upload-preset="krisefikser-avatars"
+        tags="krisefikser,avatars"
+        :context="`module=avatars|email=${(editedUser.email || '').replaceAll('|', ' ')}`"
+        label="Profilbilde"
+      />
       <!-- First Name field -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1" for="firstName">Fornavn</label>
