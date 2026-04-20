@@ -27,9 +27,9 @@ export default {
     <main class="flex-grow container mx-auto px-4 py-12 border-t-0">
       <CrisisInfoSection />
       <ScenariosSection />
+      <HomeTechStackTeaser />
       <NewsSection />
       <FeaturesSection />
-      <HomeTechStackTeaser />
     </main>
 
   </div>

@@ -18,11 +18,14 @@ services:
         ports:
             - '${BACKEND_PORT:-8080}:8080'
         environment:
-            - SPRING_PROFILES_ACTIVE=${SPRING_PROFILE:-dev}
+            - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-${SPRING_PROFILE:-dev}}
             - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/krisefikser
             - SPRING_DATASOURCE_USERNAME=root
             - SPRING_DATASOURCE_PASSWORD=root
             - AUTH_ADMIN_TWO_FACTOR_ENABLED=${AUTH_ADMIN_TWO_FACTOR_ENABLED:-true}
+            - FRONTEND_URL=${FRONTEND_URL:-http://127.0.0.1:5173}
+            - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY:-}
+            - E2E_MAIL_HOOK_SECRET=${E2E_MAIL_HOOK_SECRET:-}
         depends_on:
             db:
                 condition: service_healthy

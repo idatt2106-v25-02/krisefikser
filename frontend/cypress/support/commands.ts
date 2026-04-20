@@ -125,12 +125,13 @@ Cypress.Commands.add('stubTurnstile', () => {
     // @ts-expect-error - test double for global turnstile in registration flow
     win.turnstile = {
       render: (_selector: string, options: { callback?: (token: string) => void }) => {
-        options.callback?.('mock-captcha-token')
+        // Cloudflare Turnstile dummy token; pairs with test secret 1x0000000000000000000000000000000AA on backend.
+        options.callback?.('XXXX.DUMMY.TOKEN.XXXX')
         return 'stubbed-widget-id'
       },
       remove: () => {},
       reset: () => {},
-      getResponse: () => 'mock-captcha-token',
+      getResponse: () => 'XXXX.DUMMY.TOKEN.XXXX',
     }
   })
 })
