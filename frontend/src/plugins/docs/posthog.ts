@@ -1,22 +1,16 @@
 import posthog from 'posthog-js'
 import type { Plugin } from 'vue'
 
+/**
+ * Registers `$posthog` on the app. SDK initialization is deferred until analytics consent
+ * (see {@link initializePostHogSdk} in `posthog-sdk.ts`).
+ */
 const posthogPlugin: Plugin = {
   install(app) {
-    const key = import.meta.env.VITE_POSTHOG_KEY
-    const host = import.meta.env.VITE_POSTHOG_HOST || 'https://eu.i.posthog.com'
-
-    if (!key) {
-      console.warn('PostHog key is missing. Skipping analytics initialization.')
+    if (!import.meta.env.VITE_POSTHOG_KEY) {
+      console.warn('PostHog key is missing. Skipping analytics plugin install.')
       return
     }
-
-    posthog.init(key, {
-      api_host: host,
-      capture_pageview: false,
-      autocapture: true,
-      persistence: 'localStorage',
-    })
 
     app.config.globalProperties.$posthog = posthog
   },
