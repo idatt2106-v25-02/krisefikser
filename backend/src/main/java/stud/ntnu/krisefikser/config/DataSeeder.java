@@ -28,6 +28,7 @@ import stud.ntnu.krisefikser.auth.entity.Role.RoleType;
 import stud.ntnu.krisefikser.auth.repository.RefreshTokenRepository;
 import stud.ntnu.krisefikser.auth.repository.RoleRepository;
 import stud.ntnu.krisefikser.household.entity.Household;
+import stud.ntnu.krisefikser.household.entity.HouseholdMember;
 import stud.ntnu.krisefikser.household.repository.HouseholdMemberRepository;
 import stud.ntnu.krisefikser.household.repository.HouseholdRepository;
 import stud.ntnu.krisefikser.household.repository.MeetingPointRepository;
@@ -234,6 +235,39 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     householdRepository.saveAll(households);
+
+    for (Household household : households) {
+      User owner = userRepo.findById(household.getOwner().getId())
+          .orElseThrow(() -> new IllegalStateException("Household owner not found"));
+      if (!householdMemberRepository.existsByUserAndHousehold(owner, household)) {
+        HouseholdMember member = new HouseholdMember();
+        member.setHousehold(household);
+        member.setUser(owner);
+        householdMemberRepository.save(member);
+      }
+      if (owner.getActiveHousehold() == null) {
+        owner.setActiveHousehold(household);
+        userRepo.save(owner);
+      }
+    }
+
+    userRepo.findByEmail("brotherman@testern.no").ifPresent(e2eUserRef -> {
+      User e2eUser = userRepo.findById(e2eUserRef.getId()).orElseThrow();
+      if (e2eUser.getActiveHousehold() != null) {
+        return;
+      }
+      householdRepository.findAll().stream().findFirst().ifPresent(household -> {
+        if (!householdMemberRepository.existsByUserAndHousehold(e2eUser, household)) {
+          HouseholdMember member = new HouseholdMember();
+          member.setHousehold(household);
+          member.setUser(e2eUser);
+          householdMemberRepository.save(member);
+        }
+        e2eUser.setActiveHousehold(household);
+        userRepo.save(e2eUser);
+      });
+    });
+
     System.out.println("Seeded " + households.size() + " households");
   }
 
@@ -580,6 +614,7 @@ public class DataSeeder implements CommandLineRunner {
         .firstName("Brotherman")
         .lastName("Testern")
         .emailVerified(true)
+        .roles(new HashSet<>(List.of(userRole)))
         .build();
     users.add(brotherman);
 
