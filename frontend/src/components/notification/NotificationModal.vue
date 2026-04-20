@@ -7,7 +7,12 @@
       leave-to-class="opacity-0"
     >
         <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black bg-opacity-50" @click="close"></div>
+          <button
+            type="button"
+            class="absolute inset-0 bg-black bg-opacity-50"
+            aria-label="Lukk varsel"
+            @click="close"
+          ></button>
 
         <div
             ref="modalRef"
@@ -16,7 +21,6 @@
             :aria-labelledby="titleId"
             :aria-describedby="messageId"
             tabindex="-1"
-            @keydown="onModalKeydown"
           class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden"
           :class="{
             'border-l-4 border-red-500': type === 'crisis',
@@ -204,6 +208,7 @@ export default defineComponent({
     }
 
     const onModalKeydown = (event: KeyboardEvent) => {
+      if (!isOpen.value) return
       if (event.key === 'Escape') {
         event.preventDefault()
         close()
@@ -256,6 +261,18 @@ export default defineComponent({
       },
     )
 
+    watch(
+      () => isOpen.value,
+      (value) => {
+        if (value) {
+          document.addEventListener('keydown', onModalKeydown)
+        } else {
+          document.removeEventListener('keydown', onModalKeydown)
+        }
+      },
+      { immediate: true },
+    )
+
     const close = () => {
       isOpen.value = false
       unlockScroll()
@@ -272,6 +289,7 @@ export default defineComponent({
     }
 
     onBeforeUnmount(() => {
+      document.removeEventListener('keydown', onModalKeydown)
       unlockScroll()
     })
 
