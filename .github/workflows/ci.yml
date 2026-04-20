@@ -22,7 +22,7 @@ jobs:
       - name: Run backend lint (Checkstyle)
         run: |
           cd backend
-          mvn checkstyle:check
+          mvn checkstyle:check -Dcheckstyle.config.location=checkstyle.xml
 
   backend:
     runs-on: ubuntu-latest
@@ -87,8 +87,8 @@ jobs:
       - name: Run frontend lint
         run: |
           cd frontend
-          rm cypress.config.d.ts
-          rm vitest.config.d.ts
+          rm -f cypress.config.d.ts
+          rm -f vitest.config.d.ts
           pnpm exec eslint . --max-warnings=0
 
   frontend:
