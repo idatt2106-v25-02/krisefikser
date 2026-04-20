@@ -56,6 +56,8 @@ const canInviteUser = (userRoles?: string[]) => {
   <DataTable
     :columns="userTableColumns"
     :is-loading="isLoading"
+    :row-count="users.length"
+    caption="Oversikt over brukere og tilgjengelige handlinger"
     empty-message="Ingen brukere funnet"
   >
     <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50">
@@ -77,6 +79,7 @@ const canInviteUser = (userRoles?: string[]) => {
               class="text-blue-600 hover:text-blue-800 p-1 h-auto"
               size="icon"
               title="Inviter til Admin"
+              aria-label="Inviter bruker til admin"
               variant="ghost"
               @click="emit('invite', user.id || '')"
             >
@@ -89,6 +92,7 @@ const canInviteUser = (userRoles?: string[]) => {
             class="text-red-600 hover:text-red-800 p-1 h-auto"
             size="icon"
             title="Slett bruker"
+            aria-label="Slett bruker"
             variant="ghost"
             @click="emit('delete', user.id || '')"
           >

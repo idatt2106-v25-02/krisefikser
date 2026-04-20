@@ -1,13 +1,12 @@
 <script lang="ts" setup>
-import { RouterView } from 'vue-router'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import { onUnmounted, ref, watch } from 'vue'
 import AppNavbar from '@/components/layout/Navbar.vue'
 import AppFooter from '@/components/layout/Footer.vue'
 import AccessibilityMenu from '@/components/textToSpeech/AccessibilityMenu.vue'
 import ReadPageButton from '@/components/textToSpeech/ReadPageButton.vue'
 import LocationTracker from '@/components/LocationTracker.vue'
 import CookieBanner from '@/components/CookieBanner.vue'
-import router from '@/router'
 import { useAccessibilityStore } from '@/stores/tts/accessibilityStore'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/stores/auth/useAuthStore'
@@ -18,6 +17,7 @@ import { webSocket } from '@/main'
 const accessibilityStore = useAccessibilityStore()
 const ttsEnabled = ref(accessibilityStore.ttsEnabled)
 const authStore = useAuthStore()
+const route = useRoute()
 const notificationService = NotificationService.getInstance()
 
 // Watch for changes in TTS state
@@ -45,27 +45,6 @@ watch(
   { immediate: true }, // Still run once on mount
 )
 
-onMounted(async () => {
-  // Make all router-links and interactive elements focusable
-  const makeElementsFocusable = () => {
-    document.querySelectorAll('a, [to], .router-link, button').forEach((el) => {
-      if (!el.hasAttribute('tabindex')) {
-        el.setAttribute('tabindex', '0')
-      }
-    })
-  }
-
-  // Run immediately
-  makeElementsFocusable()
-
-  // And after route changes
-  if (router) {
-    router.afterEach(() => {
-      setTimeout(makeElementsFocusable, 200)
-    })
-  }
-})
-
 onUnmounted(() => {
   webSocket.unsubscribeAll()
 })
@@ -73,6 +52,12 @@ onUnmounted(() => {
 
 <template>
   <div id="app">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:bg-white focus:px-4 focus:py-2 focus:text-blue-700 focus:shadow-md"
+    >
+      Hopp til hovedinnhold
+    </a>
     <LocationTracker />
     <CookieBanner />
     <!-- TTS active indicator -->
@@ -98,10 +83,10 @@ onUnmounted(() => {
     </div>
 
     <AppNavbar />
-    <div id="main-content" class="relative flex-grow">
+    <main id="main-content" tabindex="-1" class="relative flex-grow">
       <router-view />
-    </div>
-    <AppFooter v-if="!router.currentRoute.value.path.includes('kart')" />
+    </main>
+    <AppFooter v-if="!route.path.includes('kart')" />
     <Toaster />
     <AccessibilityMenu />
     <ReadPageButton />

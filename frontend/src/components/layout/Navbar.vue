@@ -501,6 +501,7 @@ export default {
             v-for="item in filteredNavItems"
             :key="item.label"
             :to="item.to"
+            :aria-current="isActive(item.to) ? 'page' : undefined"
             :class="[
               'flex items-center transition text-sm',
               isActive(item.to) ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600',
@@ -540,8 +541,9 @@ export default {
 
               <!-- User Profile -->
               <DropdownMenu>
-                <DropdownMenuTrigger>
+                <DropdownMenuTrigger as-child>
                   <button
+                    type="button"
                     :class="[
                       'flex items-center gap-2 px-3 py-1.5 rounded-md border transition-all duration-200 shadow-sm',
                       isActive('/dashboard')
@@ -585,7 +587,14 @@ export default {
         </div>
 
         <div class="lg:hidden">
-          <button @click="isMenuOpen = !isMenuOpen" class="text-gray-700 focus:outline-none">
+          <button
+            type="button"
+            @click="isMenuOpen = !isMenuOpen"
+            class="text-gray-700 focus:outline-none"
+            :aria-expanded="isMenuOpen"
+            aria-controls="mobile-nav"
+            :aria-label="isMenuOpen ? 'Lukk meny' : 'Åpne meny'"
+          >
             <MenuIcon v-if="!isMenuOpen" class="h-6 w-6" />
             <X v-else class="h-6 w-6" />
           </button>
@@ -593,12 +602,13 @@ export default {
       </div>
     </div>
 
-    <div v-if="isMenuOpen" class="lg:hidden bg-gray-50">
+    <div id="mobile-nav" v-if="isMenuOpen" class="lg:hidden bg-gray-50">
       <div class="container mx-auto px-4 pt-2 pb-3 space-y-1">
         <router-link
           v-for="item in filteredNavItems"
           :key="item.label"
           :to="item.to"
+          :aria-current="isActive(item.to) ? 'page' : undefined"
           :class="[
             'flex items-center px-3 py-2 rounded',
             isActive(item.to)
@@ -611,8 +621,9 @@ export default {
         </router-link>
 
         <!-- Mobile Notifications - Only show if enabled in settings -->
-        <div
+        <button
           v-if="authStore.isAuthenticated && shouldShowNotifications"
+          type="button"
           class="flex items-center justify-between px-3 py-2 rounded text-gray-700 hover:bg-gray-200 cursor-pointer relative"
           @click="showMobileNotifications = !showMobileNotifications"
         >
@@ -631,7 +642,7 @@ export default {
             </span>
             <span class="ml-2">Varsler</span>
           </div>
-        </div>
+        </button>
 
         <!-- Mobile notifications panel - Only show if enabled in settings -->
         <div
@@ -641,6 +652,7 @@ export default {
           <div class="p-2 border-b border-gray-100 flex justify-between items-center">
             <h3 class="font-medium text-gray-900">Varsler</h3>
             <button
+              type="button"
               @click="() => refetchNotifications()"
               :disabled="isFetchingNotifications"
               class="text-blue-600 hover:text-blue-800 disabled:opacity-50"
@@ -659,11 +671,12 @@ export default {
             >
               Ingen nye varsler
             </div>
-            <div
+            <button
               v-for="notification in notifications"
               :key="notification.id"
+              type="button"
               @click="handleNotificationClick(notification)"
-              class="p-3 hover:bg-blue-50 border-b border-gray-100 cursor-pointer"
+              class="w-full text-left p-3 hover:bg-blue-50 border-b border-gray-100 cursor-pointer"
               :class="{ 'bg-blue-50': !notification.read }"
             >
               <div class="flex items-start gap-2">
@@ -697,13 +710,14 @@ export default {
                   </p>
                 </div>
               </div>
-            </div>
+            </button>
           </div>
           <div
             v-if="notifications && notifications.length > 0"
             class="p-2 border-t border-gray-100"
           >
             <button
+              type="button"
               @click="markAllAsRead"
               :disabled="isMarkingAllAsRead"
               class="text-sm text-blue-600 hover:text-blue-800 w-full text-center disabled:opacity-50 mb-2"
@@ -735,8 +749,9 @@ export default {
         <template v-else>
           <div class="flex items-center px-3 py-2 mt-2 rounded text-gray-700">
             <DropdownMenu>
-              <DropdownMenuTrigger>
+              <DropdownMenuTrigger as-child>
                 <button
+                  type="button"
                   :class="[
                     'flex items-center gap-2 w-full px-3 py-2 rounded-md border transition-all duration-200',
                     isActive('/dashboard')

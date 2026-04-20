@@ -29,7 +29,7 @@ ENV NODE_ENV=production
 RUN pnpm build-only
 
 # Production stage
-FROM nginx:alpine
+FROM nginx:1.29.5-alpine3.23
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html

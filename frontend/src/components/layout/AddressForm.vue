@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/label-has-for -->
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
 import { useForm } from 'vee-validate'
@@ -152,8 +153,10 @@ const geocodeAddress = async (
 
 // Submission
 const loading = ref(false)
+const geocodeError = ref('')
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true
+  geocodeError.value = ''
 
   try {
     // Try to geocode the address
@@ -166,15 +169,13 @@ const onSubmit = handleSubmit(async (values) => {
         emit('submit', { ...values, ...location })
       }, 500)
     } else {
-      // Show alert if address not found
-      alert(
-        'Kunne ikke finne koordinater for denne adressen. Vennligst sjekk adressen og prøv igjen.',
-      )
+      geocodeError.value =
+        'Kunne ikke finne koordinater for adressen. Kontroller adressen og proeve igjen.'
       loading.value = false
     }
   } catch (error) {
     console.error('Error during geocoding:', error)
-    alert('En feil oppstod under geokoding av adressen. Vennligst prøv igjen senere.')
+    geocodeError.value = 'En feil oppstod under geokoding. Vennligst proeve igjen senere.'
     loading.value = false
   }
 })
@@ -199,6 +200,9 @@ const buttonColorClass = computed(() => {
 
       <CardContent>
         <form class="space-y-6" novalidate @submit.prevent="onSubmit">
+          <p v-if="geocodeError" role="alert" class="text-sm text-red-600">
+            {{ geocodeError }}
+          </p>
           <!-- Household Name (optional) -->
           <FormField v-if="includeHouseholdName" v-slot="{ field, meta }" name="name">
             <FormItem>

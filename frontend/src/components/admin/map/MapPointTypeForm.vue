@@ -33,8 +33,9 @@ function handleCancel() {
     <h2 v-if="title" class="text-xl font-semibold">{{ title }}</h2>
 
     <div class="space-y-2">
-      <label class="block text-sm font-medium">Tittel</label>
+      <label class="block text-sm font-medium" for="map-point-type-title">Tittel</label>
       <input
+        id="map-point-type-title"
         v-model="formData.title"
         type="text"
         class="w-full rounded-md border p-2"
@@ -43,8 +44,9 @@ function handleCancel() {
     </div>
 
     <div class="space-y-2">
-      <label class="block text-sm font-medium">Beskrivelse</label>
+      <label class="block text-sm font-medium" for="map-point-type-description">Beskrivelse</label>
       <textarea
+        id="map-point-type-description"
         v-model="formData.description"
         class="w-full rounded-md border p-2"
         placeholder="Skriv inn beskrivelse"
@@ -52,13 +54,14 @@ function handleCancel() {
     </div>
 
     <div class="space-y-2">
-      <label class="block text-sm font-medium">Ikon</label>
-      <IconPicker v-model="formData.iconUrl" />
+      <label class="block text-sm font-medium" for="map-point-type-icon">Ikon</label>
+      <IconPicker id="map-point-type-icon" v-model="formData.iconUrl" />
     </div>
 
     <div class="space-y-2">
-      <label class="block text-sm font-medium">Åpningstid</label>
+      <label class="block text-sm font-medium" for="map-point-type-opening-time">Åpningstid</label>
       <input
+        id="map-point-type-opening-time"
         v-model="formData.openingTime"
         type="text"
         class="w-full rounded-md border p-2"

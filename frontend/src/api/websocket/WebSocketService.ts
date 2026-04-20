@@ -1,6 +1,7 @@
 import { Client, type IMessage, type StompHeaders, type StompSubscription } from '@stomp/stompjs'
+import type { IWebSocketService } from './IWebSocketService'
 
-export class WebSocketService {
+export class WebSocketService implements IWebSocketService {
   private client: Client
   private activeSubscriptions: Map<string, StompSubscription> = new Map()
   private isConnected: boolean = false

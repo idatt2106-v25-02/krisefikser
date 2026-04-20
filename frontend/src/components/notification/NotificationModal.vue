@@ -6,10 +6,21 @@
       enter-from-class="opacity-0"
       leave-to-class="opacity-0"
     >
-      <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black bg-opacity-50" @click="close"></div>
+        <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+          <button
+            type="button"
+            class="absolute inset-0 bg-black bg-opacity-50"
+            aria-label="Lukk varsel"
+            @click="close"
+          ></button>
 
         <div
+            ref="modalRef"
+            role="dialog"
+            aria-modal="true"
+            :aria-labelledby="titleId"
+            :aria-describedby="messageId"
+            tabindex="-1"
           class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden"
           :class="{
             'border-l-4 border-red-500': type === 'crisis',
@@ -39,10 +50,11 @@
                 <Calendar v-else-if="type === 'expiry'" class="h-5 w-5" />
                 <Bell v-else class="h-5 w-5" />
               </div>
-              <h3 class="font-medium text-lg">{{ title }}</h3>
+              <h3 :id="titleId" class="font-medium text-lg">{{ title }}</h3>
             </div>
             <button
               @click="close"
+              type="button"
               class="text-gray-400 hover:text-gray-600 focus:outline-none"
               aria-label="Lukk"
             >
@@ -52,7 +64,7 @@
 
           <!-- Body -->
           <div class="p-6">
-            <p class="text-gray-700">{{ message }}</p>
+            <p :id="messageId" class="text-gray-700">{{ message }}</p>
 
             <div class="mt-6">
               <div v-if="type === 'crisis'" class="bg-red-50 p-4 rounded-md">
@@ -92,6 +104,7 @@
           <div class="px-6 py-4 bg-gray-50 border-t flex justify-end space-x-3">
             <button
               @click="close"
+              type="button"
               class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
             >
               Lukk
@@ -100,6 +113,7 @@
             <button
               v-if="actionRoute"
               @click="handleAction"
+              type="button"
               class="px-4 py-2 rounded-md text-white"
               :class="{
                 'bg-red-600 hover:bg-red-700': type === 'crisis',
@@ -117,7 +131,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue'
+import { defineComponent, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { AlertTriangle, Bell, Calendar, X } from 'lucide-vue-next'
 import speechService from '@/services/tts/speechService'
@@ -165,12 +179,72 @@ export default defineComponent({
   setup(props, { emit }) {
     const router = useRouter()
     const isOpen = ref(props.show)
+    const modalRef = ref<HTMLElement | null>(null)
+    const lastFocusedElement = ref<HTMLElement | null>(null)
+    const titleId = 'notification-modal-title'
+    const messageId = 'notification-modal-description'
+
+    const focusFirstElement = () => {
+      nextTick(() => {
+        modalRef.value?.focus()
+      })
+    }
+
+    const lockScroll = () => {
+      document.body.style.overflow = 'hidden'
+    }
+
+    const unlockScroll = () => {
+      document.body.style.overflow = ''
+    }
+
+    const getFocusableElements = () => {
+      if (!modalRef.value) return []
+      return Array.from(
+        modalRef.value.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hasAttribute('disabled') && !element.getAttribute('aria-hidden'))
+    }
+
+    const onModalKeydown = (event: KeyboardEvent) => {
+      if (!isOpen.value) return
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        close()
+        return
+      }
+
+      if (event.key !== 'Tab') return
+
+      const focusableElements = getFocusableElements()
+      if (!focusableElements.length) {
+        event.preventDefault()
+        modalRef.value?.focus()
+        return
+      }
+
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+      const activeElement = document.activeElement as HTMLElement | null
+
+      if (event.shiftKey && activeElement === firstElement) {
+        event.preventDefault()
+        lastElement.focus()
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault()
+        firstElement.focus()
+      }
+    }
 
     watch(
       () => props.show,
       (value) => {
         isOpen.value = value
         if (value) {
+          lastFocusedElement.value = document.activeElement as HTMLElement | null
+          lockScroll()
+          focusFirstElement()
           try {
             const accessibilityStore = useAccessibilityStore()
             if (accessibilityStore.ttsEnabled) {
@@ -180,12 +254,29 @@ export default defineComponent({
           } catch (error) {
             console.warn('Could not access accessibility store:', error)
           }
+        } else {
+          unlockScroll()
+          nextTick(() => lastFocusedElement.value?.focus())
         }
       },
     )
 
+    watch(
+      () => isOpen.value,
+      (value) => {
+        if (value) {
+          document.addEventListener('keydown', onModalKeydown)
+        } else {
+          document.removeEventListener('keydown', onModalKeydown)
+        }
+      },
+      { immediate: true },
+    )
+
     const close = () => {
       isOpen.value = false
+      unlockScroll()
+      nextTick(() => lastFocusedElement.value?.focus())
       emit('update:show', false)
       props.onClose()
     }
@@ -197,10 +288,19 @@ export default defineComponent({
       close()
     }
 
+    onBeforeUnmount(() => {
+      document.removeEventListener('keydown', onModalKeydown)
+      unlockScroll()
+    })
+
     return {
       isOpen,
+      modalRef,
+      titleId,
+      messageId,
       close,
       handleAction,
+      onModalKeydown,
     }
   },
 })

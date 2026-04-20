@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/label-has-for, vuejs-accessibility/form-control-has-label -->
 <script setup lang="ts">
 import { ref } from 'vue'
 import { FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form'

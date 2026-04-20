@@ -8,7 +8,7 @@
 
 export type CreateUserRolesItem = (typeof CreateUserRolesItem)[keyof typeof CreateUserRolesItem]
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+ 
 export const CreateUserRolesItem = {
   USER: 'USER',
   ADMIN: 'ADMIN',

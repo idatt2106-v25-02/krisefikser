@@ -119,19 +119,24 @@ onUnmounted(() => {
   webSocket.unsubscribe('/topic/events/delete')
 })
 
-onMounted(() => {
-  initMap('map', () => {
-    if (!isDataLoading.value) {
-      renderNewMapPoints()
-    } else {
-      watch(isDataLoading, renderNewMapPoints)
-    }
-  })
-})
-
 const props = defineProps<{
   showLegend: boolean
+  centerOnUserLocation?: boolean
 }>()
+
+onMounted(() => {
+  initMap(
+    'map',
+    () => {
+      if (!isDataLoading.value) {
+        renderNewMapPoints()
+      } else {
+        watch(isDataLoading, renderNewMapPoints)
+      }
+    },
+    props.centerOnUserLocation,
+  )
+})
 </script>
 
 <template>

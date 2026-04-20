@@ -53,8 +53,8 @@ function handleStartMapSelection() {
     <h3 v-if="title" class="text-lg font-semibold">{{ title }}</h3>
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Kartpunkttype</label>
-      <select v-model="localValue.type" class="w-full px-3 py-2 border rounded-lg">
+      <label class="text-sm font-medium" for="map-point-type">Kartpunkttype</label>
+      <select id="map-point-type" v-model="localValue.type" class="w-full px-3 py-2 border rounded-lg">
         <option :value="undefined">Velg type</option>
         <option v-for="type in mapPointTypes" :key="type?.id" :value="type">
           {{ type?.title || 'Ukjent tittel' }}
@@ -63,9 +63,10 @@ function handleStartMapSelection() {
     </div>
 
     <div class="space-y-2">
-      <label class="text-sm font-medium">Plassering</label>
+      <label class="text-sm font-medium" for="map-point-latitude">Plassering</label>
       <div class="flex space-x-2">
         <input
+          id="map-point-latitude"
           v-model="localValue.latitude"
           class="w-1/2 px-3 py-2 border rounded-lg"
           placeholder="Breddegrad"
@@ -74,12 +75,14 @@ function handleStartMapSelection() {
           type="number"
         />
         <input
+          id="map-point-longitude"
           v-model="localValue.longitude"
           class="w-1/2 px-3 py-2 border rounded-lg"
           placeholder="Lengdegrad"
           readonly
           step="0.0001"
           type="number"
+          aria-label="Lengdegrad"
         />
       </div>
       <button

@@ -1,3 +1,4 @@
+<!-- eslint-disable vuejs-accessibility/label-has-for, vuejs-accessibility/form-control-has-label -->
 <script lang="ts" setup>
 import { Plus } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
