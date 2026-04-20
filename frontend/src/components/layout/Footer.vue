@@ -123,6 +123,13 @@ export default defineComponent({
               >
             </li>
             <li>
+              <router-link
+                to="/emne-og-teknologi"
+                class="text-blue-200 hover:text-white transition"
+                >Emne og teknologi</router-link
+              >
+            </li>
+            <li>
               <router-link to="/personvern" class="text-blue-200 hover:text-white transition"
                 >Personvern</router-link
               >

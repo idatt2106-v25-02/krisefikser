@@ -39,6 +39,7 @@ import PrivacyPolicyView from '@/views/nonRegistered/static/PrivacyPolicyView.vu
 import NewsView from '@/views/nonRegistered/news/NewsView.vue'
 import ArticleView from '@/views/nonRegistered/news/ArticleView.vue'
 import AboutUsView from '@/views/nonRegistered/static/AboutUsView.vue'
+import EmneOgTeknologiView from '@/views/nonRegistered/static/EmneOgTeknologiView.vue'
 import ForgotPasswordView from '@/views/auth/password/ForgotPasswordView.vue'
 import VerifyPasswordReset from '@/views/VerifyPasswordReset.vue'
 // Crisis Information views
@@ -277,6 +278,11 @@ const router = createRouter({
       path: '/om-oss',
       name: 'about-us',
       component: AboutUsView,
+    },
+    {
+      path: '/emne-og-teknologi',
+      name: 'course-and-tech',
+      component: EmneOgTeknologiView,
     },
 
     // Crisis Information routes

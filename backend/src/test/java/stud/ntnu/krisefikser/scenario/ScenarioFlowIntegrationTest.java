@@ -4,9 +4,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,9 +29,9 @@ import stud.ntnu.krisefikser.scenario.dto.CreateScenarioRequest;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Transactional
 class ScenarioFlowIntegrationTest extends AbstractIntegrationTest {
@@ -87,8 +89,8 @@ class ScenarioFlowIntegrationTest extends AbstractIntegrationTest {
                                 withJwtAuth(
                                                 get("/api/scenarios")))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$[0].id").value(scenarioId.toString()))
-                                .andExpect(jsonPath("$[0].title").value("Test Scenario"));
+                                .andExpect(jsonPath("$[*].id", hasItem(scenarioId.toString())))
+                                .andExpect(jsonPath("$[*].title", hasItem("Test Scenario")));
 
                 // 3. Get specific scenario by ID (can use regular user authentication)
                 mockMvc.perform(
@@ -128,7 +130,7 @@ class ScenarioFlowIntegrationTest extends AbstractIntegrationTest {
                                                 get("/api/scenarios/" + scenarioId)))
                                 .andExpect(status().isNotFound());
 
-                // 7. Verify scenarios list is now empty (can use regular user authentication)
+                // 7. Verify deleted scenario is absent (list may still contain seed scenarios)
                 MvcResult listResult = mockMvc.perform(
                                 withJwtAuth(
                                                 get("/api/scenarios")))
@@ -136,7 +138,10 @@ class ScenarioFlowIntegrationTest extends AbstractIntegrationTest {
                                 .andReturn();
 
                 String listContent = listResult.getResponse().getContentAsString();
-                assertEquals("[]", listContent);
+                JsonNode listNode = objectMapper.readTree(listContent);
+                for (JsonNode n : listNode) {
+                        assertNotEquals(scenarioId.toString(), n.get("id").asText());
+                }
         }
 
         @Test

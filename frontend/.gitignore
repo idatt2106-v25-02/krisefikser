@@ -12,6 +12,8 @@ node_modules
 dist
 dist-ssr
 coverage
+coverage-e2e
+.nyc_output
 *.local
 
 /cypress/videos/
@@ -42,6 +44,7 @@ vite.config.js
 vite.config.d.ts
 vitest.config.js
 vitest.config.d.ts
+cypress.config.js
 cypress.config.d.ts
 orval.config.js
 orval.config.d.ts

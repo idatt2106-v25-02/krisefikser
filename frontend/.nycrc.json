@@ -1,0 +1,14 @@
+{
+  "report-dir": "coverage-e2e",
+  "reporter": ["lcov", "html", "text-summary"],
+  "extension": [".js", ".cjs", ".mjs", ".ts", ".tsx", ".vue"],
+  "include": ["src/**/*"],
+  "exclude": [
+    "cypress/**",
+    "**/*.cy.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**",
+    "node_modules/**",
+    "src/api/generated/**"
+  ]
+}
