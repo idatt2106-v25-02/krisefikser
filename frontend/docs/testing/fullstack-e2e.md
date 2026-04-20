@@ -5,7 +5,7 @@ Denne testpakken kjører mot ekte backend + database. Domenekall stubbes ikke; e
 ## Forutsetninger
 
 - Docker + Docker Compose installert.
-- `pnpm` installert.
+- `pnpm` installert og tilgjengelig i PATH (samme versjon som `packageManager` i [`package.json`](../../package.json) anbefales; `corepack enable` er et alternativ). Når dette er på plass, er `pnpm run test:e2e:fullstack:smoke` og `pnpm run test:e2e:fullstack:regression` tilstrekkelig — du trenger ikke `npx pnpm@…` med mindre du bevisst kjører uten global pnpm.
 - Ledige porter `3306`, `8080` og `5173`.
 
 ## Start testmiljø lokalt
@@ -77,3 +77,8 @@ pnpm run build:coverage
 # start docker + kjør f.eks. test:e2e:fullstack:regression
 pnpm run e2e:coverage:report
 ```
+
+## Leveransefaser
+
+- **Fase 1 (nåværende leveranse):** Full-stack E2E mot ekte backend — smoke- og regresjonsscripts, alle `*.fullstack.cy.ts` pluss `fullstack-smoke.cy.ts` som beskrevet over, og tilhørende CI-jobber (smoke på PR, regresjon på natt/manuell kjøring).
+- **Senere (utenfor fase 1):** Utvidet arbeid rundt seed/invite-flyter, glemt-passord-stabilitet og generell stabilitetsherding av testmiljøet er bevisst lagt utenfor denne leveransen; det kan planlegges som egne faser når behovet melder seg.
