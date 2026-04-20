@@ -27,11 +27,25 @@ describe('Household flow', () => {
         guests: [],
       },
     }).as('getActiveHousehold')
+
+    cy.intercept('GET', '/api/households/all', {
+      statusCode: 200,
+      body: [
+        {
+          id: 'household-1',
+          name: 'Testhusstand',
+          address: 'Eksempelvei 1',
+          members: [],
+          guests: [],
+        },
+      ],
+    }).as('getAllHouseholds')
   })
 
   it('loads household page with mocked active household', () => {
-    cy.visit('/husholdning')
+    cy.visit('/husstand')
     cy.wait('@getMe')
+    cy.wait('@getAllHouseholds')
     cy.wait('@getActiveHousehold')
     cy.contains(/hushold|husstand/i).should('exist')
   })
