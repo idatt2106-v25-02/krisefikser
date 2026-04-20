@@ -1,4 +1,9 @@
 describe('Critical smoke flow', () => {
+  function openProductCategory(categoryId: 'water' | 'food'): void {
+    cy.get(`[aria-controls="category-${categoryId}"]`).scrollIntoView().click()
+    cy.get(`#category-${categoryId}`).should('be.visible')
+  }
+
   it('logs in and lands on dashboard', () => {
     cy.intercept('POST', '/api/auth/login', {
       statusCode: 200,
@@ -36,7 +41,7 @@ describe('Critical smoke flow', () => {
     cy.wait('@getMe')
     cy.wait('@getActiveHousehold')
     cy.contains('Testhusstand').should('be.visible')
-    cy.contains('Husstandsmedlemmer').should('be.visible')
+    cy.contains('Medlemmer og gjester').should('be.visible')
   })
 
   it('loads inventory page and displays key widgets', () => {
@@ -76,7 +81,7 @@ describe('Critical smoke flow', () => {
     })
 
     cy.wait('@getInventorySummary')
-    cy.contains('Vann').click()
+    openProductCategory('water')
     cy.get('#waterAddInput').clear()
     cy.get('#waterAddInput').type('1.5')
     cy.contains('Oppdater vannmengde').click()
@@ -100,7 +105,7 @@ describe('Critical smoke flow', () => {
     })
 
     cy.wait('@getFoodItems')
-    cy.contains('Mat').click()
+    openProductCategory('food')
     cy.get('[title="Rediger matvare"]').first().click()
     cy.get('input[placeholder="Navn"]').clear()
     cy.get('input[placeholder="Navn"]').type('Bygggryn')

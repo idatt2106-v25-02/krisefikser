@@ -37,12 +37,13 @@ describe('Authentication Tests', () => {
     cy.get('input[name="firstName"]').type('Test')
     cy.get('input[name="lastName"]').type('User')
     cy.get('input[name="email"]').type('not-an-email')
+    cy.get('input[name="email"]').focus().blur()
     cy.get('input[name="password"]').type('Password123!')
     cy.get('input[name="confirmPassword"]').type('Password123!')
     cy.get('input#acceptedPrivacyPolicy').check({ force: true })
-    cy.get('button[type="submit"]').click()
 
     cy.contains('Ugyldig e-post').should('be.visible')
+    cy.get('button[type="submit"]').should('be.disabled')
   })
 
   it('shows duplicate-email error from backend', () => {

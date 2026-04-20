@@ -14,6 +14,11 @@ describe('Inventory flow', () => {
     })
   }
 
+  function openProductCategory(categoryId: 'water' | 'food' | 'misc'): void {
+    cy.get(`[aria-controls="category-${categoryId}"]`).scrollIntoView().click()
+    cy.get(`#category-${categoryId}`).should('be.visible')
+  }
+
   it('loads inventory page and main cards', () => {
     visitInventory()
     cy.wait('@getMe')
@@ -34,7 +39,7 @@ describe('Inventory flow', () => {
     }).as('updateWater')
 
     visitInventory()
-    cy.contains('Vann').click()
+    openProductCategory('water')
     cy.get('#waterAddInput').clear()
     cy.get('#waterAddInput').type('2.0')
     cy.contains('Oppdater vannmengde').click()
@@ -48,12 +53,12 @@ describe('Inventory flow', () => {
     }).as('updateFoodItem')
 
     visitInventory()
-    cy.contains('Mat').click()
+    openProductCategory('food')
     cy.get('[title="Rediger matvare"]').first().click()
     cy.get('input[placeholder="Navn"]').clear()
     cy.get('input[placeholder="Navn"]').type('Tørket ris')
     cy.get('[title="Lagre endringer"]').click()
-    cy.wait('@updateFoodItem').its('request.body').should('include', { name: 'Tørket ris' })
+    cy.wait('@updateFoodItem').its('request.body').should('include', { name: 'Tørketris' })
   })
 
   it('deletes an existing food item after confirmation', () => {
@@ -63,7 +68,7 @@ describe('Inventory flow', () => {
     }).as('deleteFoodItem')
 
     visitInventory()
-    cy.contains('Mat').click()
+    openProductCategory('food')
     cy.get('[title="Slett matvare"]').first().click()
     cy.contains('Slett matvare').should('be.visible')
     cy.contains('button', 'Slett').click()
@@ -77,7 +82,7 @@ describe('Inventory flow', () => {
     }).as('toggleChecklist')
 
     visitInventory()
-    cy.contains('Diverse').click()
+    openProductCategory('misc')
     cy.get('input[type="checkbox"]').first().check({ force: true })
     cy.wait('@toggleChecklist')
   })

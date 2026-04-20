@@ -111,6 +111,11 @@ declare global {
       mockAuthMe(user?: Partial<MockUser>): Chainable<void>
       mockCoreHouseholdData(household?: Partial<MockHousehold>): Chainable<void>
       mockInventoryData(): Chainable<void>
+      loginByApi(email: string, password: string): Chainable<void>
+      loginAsSeededUser(): Chainable<void>
+      loginAsSeededAdmin(): Chainable<void>
+      loginAsSeededSuperAdmin(): Chainable<void>
+      clearAuthSession(): Chainable<void>
     }
   }
 }
@@ -211,4 +216,55 @@ Cypress.Commands.add('mockInventoryData', () => {
       },
     ],
   }).as('getChecklistItems')
+})
+
+interface LoginResponse {
+  accessToken: string
+  refreshToken: string
+}
+
+const apiBaseUrl = () => Cypress.env('apiUrl') || 'http://localhost:8080'
+
+function persistTokens(tokens: LoginResponse): void {
+  window.localStorage.setItem('accessToken', tokens.accessToken)
+  window.localStorage.setItem('refreshToken', tokens.refreshToken)
+}
+
+Cypress.Commands.add('clearAuthSession', () => {
+  cy.window().then((win) => {
+    win.localStorage.removeItem('accessToken')
+    win.localStorage.removeItem('refreshToken')
+  })
+})
+
+Cypress.Commands.add('loginByApi', (email: string, password: string) => {
+  cy.request<LoginResponse>({
+    method: 'POST',
+    url: `${apiBaseUrl()}/api/auth/login`,
+    body: {
+      email,
+      password,
+    },
+  }).then((response) => {
+    expect(response.status).to.eq(200)
+    persistTokens(response.body)
+  })
+})
+
+Cypress.Commands.add('loginAsSeededUser', () => {
+  const userEmail = Cypress.env('e2eUserEmail') || 'brotherman@testern.no'
+  const userPassword = Cypress.env('e2eUserPassword') || 'password'
+  cy.loginByApi(userEmail, userPassword)
+})
+
+Cypress.Commands.add('loginAsSeededAdmin', () => {
+  const adminEmail = Cypress.env('e2eAdminEmail') || 'admin@example.com'
+  const adminPassword = Cypress.env('e2eAdminPassword') || 'admin123'
+  cy.loginByApi(adminEmail, adminPassword)
+})
+
+Cypress.Commands.add('loginAsSeededSuperAdmin', () => {
+  const superAdminEmail = Cypress.env('e2eSuperAdminEmail') || 'admin@krisefikser.app'
+  const superAdminPassword = Cypress.env('e2eSuperAdminPassword') || 'admin123'
+  cy.loginByApi(superAdminEmail, superAdminPassword)
 })

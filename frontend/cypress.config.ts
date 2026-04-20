@@ -7,4 +7,13 @@ export default defineConfig({
     viewportWidth: 1280,
     viewportHeight: 720,
   },
+  env: {
+    apiUrl: 'http://localhost:8080',
+    e2eUserEmail: 'brotherman@testern.no',
+    e2eUserPassword: 'password',
+    e2eAdminEmail: 'admin@example.com',
+    e2eAdminPassword: 'admin123',
+    e2eSuperAdminEmail: 'admin@krisefikser.app',
+    e2eSuperAdminPassword: 'admin123',
+  },
 })

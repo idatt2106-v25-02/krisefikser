@@ -43,7 +43,7 @@ describe('Household flow', () => {
     cy.wait('@getActiveHousehold')
 
     cy.contains('Testhusstand').should('be.visible')
-    cy.contains('Husstandsmedlemmer').should('be.visible')
+    cy.contains('Medlemmer og gjester').should('be.visible')
     cy.contains('Kari Nordmann').should('be.visible')
   })
 
