@@ -94,3 +94,29 @@ jobs:
           name: frontend-coverage-report
           path: frontend/coverage/
           retention-days: 7
+
+  frontend-e2e:
+    runs-on: ubuntu-latest
+    needs: frontend
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3.9.1
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4.1.0
+        with:
+          version: "10.8.0"
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          pnpm install --frozen-lockfile
+
+      - name: Run Cypress E2E tests
+        run: |
+          cd frontend
+          pnpm run test:e2e
