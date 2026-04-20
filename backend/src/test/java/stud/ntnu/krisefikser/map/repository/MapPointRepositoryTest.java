@@ -28,7 +28,7 @@ class MapPointRepositoryTest {
     // Create a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Hospital")
-        .iconUrl("/images/icons/hospital.png")
+        .iconUrl("/icons/hospital.svg")
         .description("Medical facility")
         .openingTime("24/7")
         .build();
@@ -59,7 +59,7 @@ class MapPointRepositoryTest {
     // Create a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Police Station")
-        .iconUrl("/images/icons/police.png")
+        .iconUrl("/icons/shield.svg")
         .description("Law enforcement facility")
         .openingTime("24/7")
         .build();
@@ -89,7 +89,7 @@ class MapPointRepositoryTest {
     // Create a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Shelter")
-        .iconUrl("/images/icons/shelter.png")
+        .iconUrl("/icons/map/shelter.svg")
         .description("Emergency shelter")
         .openingTime("24/7")
         .build();
@@ -126,7 +126,7 @@ class MapPointRepositoryTest {
     // Create a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Food Distribution")
-        .iconUrl("/images/icons/food.png")
+        .iconUrl("/icons/utensils.svg")
         .description("Food distribution center")
         .openingTime("08:00-20:00")
         .build();
@@ -157,7 +157,7 @@ class MapPointRepositoryTest {
     // Create a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Water Supply")
-        .iconUrl("/images/icons/water.png")
+        .iconUrl("/icons/droplets.svg")
         .description("Water distribution point")
         .openingTime("24/7")
         .build();

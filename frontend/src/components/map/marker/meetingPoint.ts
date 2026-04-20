@@ -11,7 +11,7 @@ export function createMeetingPointMarker(
   return {
     latitude: meetingPoint.latitude,
     longitude: meetingPoint.longitude,
-    iconUrl: 'icons/map/meeting-point.svg',
+    iconUrl: '/icons/map/gathering-point.svg',
     popupContent: createMeetingPointPopup(meetingPoint),
     type: MarkerType.MeetingPoint,
   }

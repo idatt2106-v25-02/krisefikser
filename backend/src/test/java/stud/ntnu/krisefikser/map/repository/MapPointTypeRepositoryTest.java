@@ -27,7 +27,7 @@ class MapPointTypeRepositoryTest {
     // Create a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Hospital")
-        .iconUrl("/images/icons/hospital.png")
+        .iconUrl("/icons/hospital.svg")
         .description("Medical facility")
         .openingTime("24/7")
         .build();
@@ -41,7 +41,7 @@ class MapPointTypeRepositoryTest {
     // Verify the map point type was saved with an ID
     assertThat(savedMapPointType.getId()).isNotNull();
     assertThat(savedMapPointType.getTitle()).isEqualTo("Hospital");
-    assertThat(savedMapPointType.getIconUrl()).isEqualTo("/images/icons/hospital.png");
+    assertThat(savedMapPointType.getIconUrl()).isEqualTo("/icons/hospital.svg");
     assertThat(savedMapPointType.getDescription()).isEqualTo("Medical facility");
     assertThat(savedMapPointType.getOpeningTime()).isEqualTo("24/7");
   }
@@ -51,7 +51,7 @@ class MapPointTypeRepositoryTest {
     // Create and persist a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Police Station")
-        .iconUrl("/images/icons/police.png")
+        .iconUrl("/icons/shield.svg")
         .description("Law enforcement facility")
         .openingTime("24/7")
         .build();
@@ -65,7 +65,7 @@ class MapPointTypeRepositoryTest {
     // Verify map point type was found
     assertThat(foundMapPointType).isPresent();
     assertThat(foundMapPointType.get().getTitle()).isEqualTo("Police Station");
-    assertThat(foundMapPointType.get().getIconUrl()).isEqualTo("/images/icons/police.png");
+    assertThat(foundMapPointType.get().getIconUrl()).isEqualTo("/icons/shield.svg");
   }
 
   @Test
@@ -73,14 +73,14 @@ class MapPointTypeRepositoryTest {
     // Create and persist multiple map point types
     MapPointType mapPointType1 = MapPointType.builder()
         .title("Shelter")
-        .iconUrl("/images/icons/shelter.png")
+        .iconUrl("/icons/map/shelter.svg")
         .description("Emergency shelter")
         .openingTime("24/7")
         .build();
 
     MapPointType mapPointType2 = MapPointType.builder()
         .title("Food Distribution")
-        .iconUrl("/images/icons/food.png")
+        .iconUrl("/icons/utensils.svg")
         .description("Food distribution center")
         .openingTime("08:00-20:00")
         .build();
@@ -103,7 +103,7 @@ class MapPointTypeRepositoryTest {
     // Create and persist a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Water Supply")
-        .iconUrl("/images/icons/water.png")
+        .iconUrl("/icons/droplets.svg")
         .description("Water distribution point")
         .openingTime("24/7")
         .build();
@@ -127,7 +127,7 @@ class MapPointTypeRepositoryTest {
     // Create and persist a map point type
     MapPointType mapPointType = MapPointType.builder()
         .title("Pharmacy")
-        .iconUrl("/images/icons/pharmacy.png")
+        .iconUrl("/icons/pill.svg")
         .description("Medical supplies")
         .openingTime("08:00-22:00")
         .build();

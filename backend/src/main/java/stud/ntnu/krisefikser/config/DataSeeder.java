@@ -44,6 +44,8 @@ import stud.ntnu.krisefikser.map.entity.MapPointType;
 import stud.ntnu.krisefikser.map.repository.EventRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointRepository;
 import stud.ntnu.krisefikser.map.repository.MapPointTypeRepository;
+import stud.ntnu.krisefikser.scenario.entity.Scenario;
+import stud.ntnu.krisefikser.scenario.repository.ScenarioRepository;
 import stud.ntnu.krisefikser.user.entity.User;
 import stud.ntnu.krisefikser.user.repository.UserRepository;
 
@@ -70,6 +72,7 @@ public class DataSeeder implements CommandLineRunner {
   private final FoodItemRepository foodItemRepository;
   private final ChecklistItemRepository checklistItemRepository;
   private final RefreshTokenRepository refreshTokenRepository;
+  private final ScenarioRepository scenarioRepository;
   private final Faker faker = new Faker();
   private final Random random = new Random();
   private final PasswordEncoder passwordEncoder;
@@ -98,6 +101,9 @@ public class DataSeeder implements CommandLineRunner {
     }
     if (articleRepository.count() == 0) {
       seedArticles();
+    }
+    if (scenarioRepository.count() == 0) {
+      seedScenarios();
     }
     if (mapPointTypeRepository.count() == 0) {
       seedMapPointTypes();
@@ -153,6 +159,7 @@ public class DataSeeder implements CommandLineRunner {
     mapPointTypeRepository.deleteAll();
     eventRepository.deleteAll();
     articleRepository.deleteAll();
+    scenarioRepository.deleteAll();
     householdRepository.deleteAll();
     userRepo.deleteAll();
     roleRepository.deleteAll();
@@ -163,6 +170,7 @@ public class DataSeeder implements CommandLineRunner {
     seedUsers();
     seedHouseholds();
     seedArticles();
+    seedScenarios();
     seedMapPointTypes();
     seedMapPoints();
     seedEvents();
@@ -237,11 +245,18 @@ public class DataSeeder implements CommandLineRunner {
   private void seedMapPointTypes() {
     List<MapPointType> mapPointTypes = new ArrayList<>();
 
-    // Create 10 map point types
-    String[] icons = {
-        "hospital.png", "shelter.png", "food.png", "water.png",
-        "police.png", "fire.png", "pharmacy.png", "school.png",
-        "gas.png", "grocery.png"
+    // Create 10 map point types (iconUrl paths match frontend public/icons)
+    String[] iconUrls = {
+        "/icons/hospital.svg",
+        "/icons/map/shelter.svg",
+        "/icons/utensils.svg",
+        "/icons/droplets.svg",
+        "/icons/shield.svg",
+        "/icons/flame.svg",
+        "/icons/pill.svg",
+        "/icons/school.svg",
+        "/icons/fuel.svg",
+        "/icons/shopping-cart.svg"
     };
 
     String[] titles = {
@@ -259,7 +274,7 @@ public class DataSeeder implements CommandLineRunner {
     for (int i = 0; i < 10; i++) {
       MapPointType mapPointType = MapPointType.builder()
           .title(titles[i])
-          .iconUrl("/images/icons/" + icons[i])
+          .iconUrl(iconUrls[i])
           .description(faker.lorem().paragraph())
           .openingTime(openingTimes[i])
           .build();
@@ -311,13 +326,15 @@ public class DataSeeder implements CommandLineRunner {
   private void seedEvents() {
     List<Event> events = new ArrayList<>();
 
-    // Trondheim coordinates
-    double minLat = 63.3900;
-    double maxLat = 63.4400;
-    double minLong = 10.3600;
-    double maxLong = 10.4500;
+    // Wider Trondheim / Trøndelag core (fewer overlaps than a tight downtown box)
+    double minLat = 63.32;
+    double maxLat = 63.50;
+    double minLong = 10.20;
+    double maxLong = 10.65;
+    double minSeparationMeters = 1600;
+    int maxAttemptsPerEvent = 250;
+    int targetEventCount = 7;
 
-    // Event titles
     String[] eventTitles = {
         "Flood Warning", "Winter Storm Alert", "Power Outage", "Traffic Accident",
         "Gas Leak", "Water Main Break", "Public Gathering", "Construction Zone",
@@ -325,7 +342,6 @@ public class DataSeeder implements CommandLineRunner {
         "Disaster Relief Center", "Road Closure", "Temporary Shelter"
     };
 
-    // Event descriptions
     String[] eventDescriptions = {
         "Area affected by rising water levels. Avoid low-lying roads.",
         "Heavy snowfall expected. Stay indoors if possible.",
@@ -344,62 +360,64 @@ public class DataSeeder implements CommandLineRunner {
         "Temporary accommodation available for displaced residents."
     };
 
-    // Event levels and their distribution probability
     EventLevel[] levels = EventLevel.values();
-    int[] levelWeights = {60, 30, 10}; // 60% GREEN, 30% YELLOW, 10% RED
+    int[] levelWeights = {60, 30, 10};
 
-    // Event statuses and their distribution probability
     EventStatus[] statuses = EventStatus.values();
-    int[] statusWeights = {30, 50, 20}; // 30% UPCOMING, 50% ONGOING, 20% FINISHED
+    int[] statusWeights = {30, 50, 20};
 
-    // Create 15 events
     ZonedDateTime now = ZonedDateTime.now();
 
-    for (int i = 0; i < 15; i++) {
-      // Random coordinates in Trondheim
-      double latitude = minLat + (maxLat - minLat) * random.nextDouble();
-      double longitude = minLong + (maxLong - minLong) * random.nextDouble();
+    for (int placed = 0; placed < targetEventCount; placed++) {
+      Double latitude = null;
+      Double longitude = null;
+      for (int attempt = 0; attempt < maxAttemptsPerEvent; attempt++) {
+        double lat = minLat + (maxLat - minLat) * random.nextDouble();
+        double lon = minLong + (maxLong - minLong) * random.nextDouble();
+        boolean farEnough = true;
+        for (Event existing : events) {
+          if (haversineMeters(lat, lon, existing.getLatitude(), existing.getLongitude())
+              < minSeparationMeters) {
+            farEnough = false;
+            break;
+          }
+        }
+        if (farEnough) {
+          latitude = lat;
+          longitude = lon;
+          break;
+        }
+      }
+      if (latitude == null || longitude == null) {
+        break;
+      }
 
-      // Random radius between 50m and 1000m
-      double radius = 50 + (950 * random.nextDouble());
+      double radius = 80 + (520 * random.nextDouble());
 
-      // Choose a level based on weighted probability
       EventLevel level = getRandomWeightedChoice(levels, levelWeights);
-
-      // Choose a status based on weighted probability
       EventStatus status = getRandomWeightedChoice(statuses, statusWeights);
 
-      // Set startTime and endTime based on status
       ZonedDateTime startTime;
       ZonedDateTime endTime = null;
 
       switch (status) {
         case UPCOMING:
-          // Start time in the future (1-14 days from now)
           startTime = now.plusDays(1 + random.nextInt(14));
-
-          // 50% chance to have an end time (1-7 days after start)
           if (random.nextBoolean()) {
             endTime = startTime.plusDays(1 + random.nextInt(7));
           }
           break;
 
         case ONGOING:
-          // Start time in the past (1-7 days ago)
           startTime = now.minusDays(1 + random.nextInt(7));
-
-          // 50% chance to have an end time in the future (1-7 days from now)
           if (random.nextBoolean()) {
             endTime = now.plusDays(1 + random.nextInt(7));
           }
           break;
 
         case FINISHED:
-          // Start time in the past (8-30 days ago)
           startTime = now.minusDays(8 + random.nextInt(23));
-
-          // End time in the past but after start time
-          int daysAfterStart = random.nextInt(7) + 1; // 1-7 days after start
+          int daysAfterStart = random.nextInt(7) + 1;
           endTime = startTime.plusDays(daysAfterStart);
           break;
 
@@ -407,10 +425,10 @@ public class DataSeeder implements CommandLineRunner {
           startTime = now;
       }
 
-      // Create the event
+      int titleIndex = Math.min(placed, eventTitles.length - 1);
       Event event = Event.builder()
-          .title(eventTitles[i])
-          .description(eventDescriptions[i])
+          .title(eventTitles[titleIndex])
+          .description(eventDescriptions[titleIndex])
           .radius(radius)
           .latitude(latitude)
           .longitude(longitude)
@@ -425,6 +443,53 @@ public class DataSeeder implements CommandLineRunner {
 
     eventRepository.saveAll(events);
     System.out.println("Seeded " + events.size() + " events");
+  }
+
+  private void seedScenarios() {
+    try {
+      ObjectMapper objectMapper = new ObjectMapper();
+      InputStream inputStream = getClass().getResourceAsStream("/scenarios.json");
+      if (inputStream == null) {
+        System.out.println("Could not find scenarios.json file");
+        return;
+      }
+      JsonNode rootNode = objectMapper.readTree(inputStream);
+      if (!rootNode.isArray()) {
+        System.out.println("Invalid scenarios.json format - expected a JSON array");
+        return;
+      }
+      List<Scenario> scenarios = new ArrayList<>();
+      for (JsonNode node : rootNode) {
+        if (!node.hasNonNull("title") || !node.hasNonNull("content")) {
+          continue;
+        }
+        String cover = null;
+        if (node.has("coverImageUrl") && !node.get("coverImageUrl").isNull()) {
+          cover = node.get("coverImageUrl").asText();
+        }
+        scenarios.add(Scenario.builder()
+            .title(node.get("title").asText())
+            .content(node.get("content").asText())
+            .coverImageUrl(cover)
+            .build());
+      }
+      scenarioRepository.saveAll(scenarios);
+      System.out.println("Seeded " + scenarios.size() + " scenarios");
+    } catch (IOException e) {
+      System.out.println("Error reading scenarios.json: " + e.getMessage());
+    }
+  }
+
+  private static double haversineMeters(double lat1, double lon1, double lat2, double lon2) {
+    final double earthRadiusM = 6_371_000;
+    double phi1 = Math.toRadians(lat1);
+    double phi2 = Math.toRadians(lat2);
+    double dPhi = Math.toRadians(lat2 - lat1);
+    double dLambda = Math.toRadians(lon2 - lon1);
+    double a = Math.sin(dPhi / 2) * Math.sin(dPhi / 2)
+        + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) * Math.sin(dLambda / 2);
+    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusM * c;
   }
 
   private void seedRoles() {
@@ -527,7 +592,7 @@ public class DataSeeder implements CommandLineRunner {
           .orElseGet(() -> {
             MapPointType type = MapPointType.builder()
                 .title("Emergency Shelter")
-                .iconUrl("/images/icons/shelter.png")
+                .iconUrl("/icons/map/shelter.svg")
                 .description("Emergency shelter location")
                 .openingTime("24/7")
                 .build();
