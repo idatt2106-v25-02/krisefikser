@@ -8,6 +8,7 @@ import {
   useRegisterAdmin,
 } from '@/api/generated/authentication/authentication'
 import type { LoginRequest, RegisterRequest } from '@/api/generated/model'
+import { getApiBaseUrl } from '@/api/apiBaseUrl'
 import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -112,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       // Use direct axios for the refresh call
-      const response = await axios.post(import.meta.env.VITE_API_URL + '/api/auth/refresh', {
+      const response = await axios.post(`${getApiBaseUrl()}/api/auth/refresh`, {
         refreshToken: refreshToken.value,
       })
 

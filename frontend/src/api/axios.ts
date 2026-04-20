@@ -1,8 +1,12 @@
 import axios from 'axios'
+import { getApiBaseUrl } from './apiBaseUrl'
 import { getStoreRef } from './storeRef'
+
+const apiBaseUrl = getApiBaseUrl()
 
 // Create a custom Axios instance with the correct base URL
 export const AXIOS_INSTANCE = axios.create({
+  ...(apiBaseUrl ? { baseURL: apiBaseUrl } : {}),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -119,12 +123,9 @@ AXIOS_INSTANCE.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/api/auth/refresh`,
-          {
-            refreshToken: refreshToken,
-          },
-        )
+        const response = await axios.post(`${getApiBaseUrl()}/api/auth/refresh`, {
+          refreshToken: refreshToken,
+        })
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data
 
