@@ -58,7 +58,7 @@ describe('Inventory flow', () => {
     cy.get('input[placeholder="Navn"]').clear()
     cy.get('input[placeholder="Navn"]').type('Tørket ris')
     cy.get('[title="Lagre endringer"]').click()
-    cy.wait('@updateFoodItem').its('request.body').should('include', { name: 'Tørketris' })
+    cy.wait('@updateFoodItem').its('request.body').should('include', { name: 'Tørket ris' })
   })
 
   it('deletes an existing food item after confirmation', () => {
