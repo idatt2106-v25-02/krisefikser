@@ -6,12 +6,18 @@ describe('Profile settings full-stack', () => {
   })
 
   it('opens profile editing and shows validation feedback', () => {
-    cy.contains('Personlig informasjon').should('be.visible')
-    cy.contains('button', 'Rediger').click()
-    cy.get('#firstName').clear()
-    cy.contains('button', 'Lagre endringer').click()
-    cy.contains('Fornavn er påkrevd').should('be.visible')
-    cy.contains('button', 'Avbryt').click()
+    cy.contains('h2', 'Personlig informasjon')
+      .should('be.visible')
+      .closest('div.bg-white')
+      .as('personalInfoCard')
+
+    cy.get('@personalInfoCard').within(() => {
+      cy.contains('button', 'Rediger').click()
+      cy.get('#firstName').should('be.enabled').clear()
+      cy.contains('button', 'Lagre endringer').click()
+      cy.contains('Fornavn er påkrevd').should('be.visible')
+      cy.contains('button', 'Avbryt').click()
+    })
   })
 
   it('navigates to change password view', () => {

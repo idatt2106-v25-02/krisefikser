@@ -17,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import stud.ntnu.krisefikser.auth.config.JwtProperties;
 import stud.ntnu.krisefikser.auth.dto.CompletePasswordResetRequest;
 import stud.ntnu.krisefikser.auth.dto.LoginRequest;
@@ -72,6 +73,8 @@ public class AuthService {
   private final JwtProperties jwtProperties;
   private final Map<String, AdminInviteToken> adminInviteTokens = new ConcurrentHashMap<>();
   private final FrontendConfig frontendConfig;
+  @Value("${auth.admin-two-factor.enabled:true}")
+  private boolean adminTwoFactorEnabled = true;
 
   /**
    * Registers a new user and sends verification email.
@@ -178,7 +181,8 @@ public class AuthService {
       throw new LockedException("Account is locked until " + user.getLockedUntil());
     }
 
-    if (user.getRoles().stream()
+    if (adminTwoFactorEnabled
+        && user.getRoles().stream()
         .anyMatch(role -> role.getName().equals(RoleType.ADMIN))
         && user.getRoles().stream()
         .noneMatch(role -> role.getName().equals(RoleType.SUPER_ADMIN))) {
