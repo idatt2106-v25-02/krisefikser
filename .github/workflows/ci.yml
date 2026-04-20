@@ -29,7 +29,6 @@ jobs:
 
   backend:
     runs-on: ubuntu-latest
-    environment: production
     needs: backend-lint
     steps:
       - uses: actions/checkout@v4.2.2
@@ -80,7 +79,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install dependencies
         run: |
@@ -112,7 +111,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install dependencies
         run: |
@@ -151,7 +150,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install dependencies
         run: |
@@ -183,7 +182,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install frontend dependencies
         run: |
@@ -211,10 +210,11 @@ jobs:
           docker compose up -d db backend
           for i in {1..60}; do
             STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/me || true)
-            if [ "$STATUS_CODE" != "000" ]; then
-              echo "Backend is healthy"
+            if [ "$STATUS_CODE" = "401" ] || [ "$STATUS_CODE" = "200" ]; then
+              echo "Backend is healthy (HTTP $STATUS_CODE)"
               exit 0
             fi
+            echo "Waiting for backend (HTTP $STATUS_CODE)..."
             sleep 5
           done
           echo "Backend did not become healthy in time"
@@ -243,7 +243,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
         with:
-          version: "10.8.0"
+          version: "10.10.0"
 
       - name: Install frontend dependencies
         run: |
@@ -272,10 +272,11 @@ jobs:
           docker compose up -d db backend
           for i in {1..60}; do
             STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/auth/me || true)
-            if [ "$STATUS_CODE" != "000" ]; then
-              echo "Backend is healthy"
+            if [ "$STATUS_CODE" = "401" ] || [ "$STATUS_CODE" = "200" ]; then
+              echo "Backend is healthy (HTTP $STATUS_CODE)"
               exit 0
             fi
+            echo "Waiting for backend (HTTP $STATUS_CODE)..."
             sleep 5
           done
           echo "Backend did not become healthy in time"
