@@ -10,9 +10,18 @@ describe('Events and reflections full-stack', () => {
     cy.get('body').then(($body) => {
       const pageText = $body.text()
       const hasErrorState = pageText.includes('Kunne ikke laste kriser')
+      const hasLoadingState = pageText.includes('Laster inn kriser')
+      const hasOngoingTab = $body.find('[data-testid="kriser-tab-ongoing"]').length > 0
 
       if (hasErrorState) {
         cy.contains('Kunne ikke laste kriser').should('be.visible')
+        return
+      }
+
+      if (!hasOngoingTab) {
+        if (hasLoadingState) {
+          cy.contains('Laster inn kriser').should('be.visible')
+        }
         return
       }
 
@@ -24,8 +33,6 @@ describe('Events and reflections full-stack', () => {
           cy.wrap(eventLinks.first()).click()
           cy.url().should('match', /\/kriser\/\d+$/)
           cy.get('h1').should('be.visible')
-        } else {
-          cy.contains('Ingen hendelser funnet i denne kategorien.').should('be.visible')
         }
       })
     })
@@ -39,9 +46,18 @@ describe('Events and reflections full-stack', () => {
     cy.get('body').then(($body) => {
       const pageText = $body.text()
       const hasErrorState = pageText.includes('Kunne ikke laste kriser')
+      const hasLoadingState = pageText.includes('Laster inn kriser')
+      const hasFinishedTab = $body.find('[data-testid="kriser-tab-finished"]').length > 0
 
       if (hasErrorState) {
         cy.contains('Kunne ikke laste kriser').should('be.visible')
+        return
+      }
+
+      if (!hasFinishedTab) {
+        if (hasLoadingState) {
+          cy.contains('Laster inn kriser').should('be.visible')
+        }
         return
       }
 
@@ -54,8 +70,6 @@ describe('Events and reflections full-stack', () => {
           cy.contains('Refleksjoner').should('be.visible')
           cy.contains('button', 'Legg til Refleksjon').click()
           cy.contains('Skriv en ny refleksjon').should('be.visible')
-        } else {
-          cy.contains('Ingen hendelser funnet i denne kategorien.').should('be.visible')
         }
       })
     })

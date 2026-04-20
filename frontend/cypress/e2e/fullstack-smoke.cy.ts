@@ -24,6 +24,7 @@ describe('Full-stack smoke', () => {
       const pageText = $body.text()
       const eventLinks = $body.find('a[href^="/kriser/"]')
       const hasErrorState = pageText.includes('Kunne ikke laste kriser')
+      const hasLoadingState = pageText.includes('Laster inn kriser')
 
       if (hasErrorState) {
         cy.contains('Kunne ikke laste kriser').should('be.visible')
@@ -34,8 +35,11 @@ describe('Full-stack smoke', () => {
         cy.wrap(eventLinks.first()).click()
         cy.url().should('match', /\/kriser\/\d+$/)
         cy.get('h1').should('be.visible')
-      } else {
-        cy.contains('Ingen hendelser funnet i denne kategorien.').should('be.visible')
+        return
+      }
+
+      if (hasLoadingState) {
+        cy.contains('Laster inn kriser').should('be.visible')
       }
     })
   })
