@@ -77,7 +77,8 @@ describe('Critical smoke flow', () => {
 
     cy.wait('@getInventorySummary')
     cy.contains('Vann').click()
-    cy.get('#waterAddInput').clear().type('1.5')
+    cy.get('#waterAddInput').clear()
+    cy.get('#waterAddInput').type('1.5')
     cy.contains('Oppdater vannmengde').click()
     cy.wait('@updateWater')
   })
@@ -101,7 +102,8 @@ describe('Critical smoke flow', () => {
     cy.wait('@getFoodItems')
     cy.contains('Mat').click()
     cy.get('[title="Rediger matvare"]').first().click()
-    cy.get('input[placeholder="Navn"]').clear().type('Bygggryn')
+    cy.get('input[placeholder="Navn"]').clear()
+    cy.get('input[placeholder="Navn"]').type('Bygggryn')
     cy.get('[title="Lagre endringer"]').click()
 
     cy.wait('@updateFoodItem').its('request.body').should('include', { name: 'Bygggryn' })
