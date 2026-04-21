@@ -18,11 +18,12 @@ export function createPasswordConfirmationSchema(passwordField: string = 'passwo
   }
 }
 
-// Common API error type
+// Common API error type (Spring ProblemDetail uses `detail`, not `message`)
 export type ApiError = {
   response?: {
     data?: {
       message?: string
+      detail?: string
     }
     status?: number
   }

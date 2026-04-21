@@ -92,6 +92,19 @@ We are continuously working to improve the website and greatly appreciate your i
 
    Open your browser and navigate to `http://localhost:5173`
 
+### Email registration (local troubleshooting)
+
+Registration calls `POST /api/auth/register`, which verifies **Cloudflare Turnstile**, creates the user, then sends a verification email via **Mailtrap**. Copy variables from [`backend/.env.example`](backend/.env.example) into `backend/.env` and fill in real values.
+
+| What you see | Likely cause |
+| -------------- | ------------ |
+| HTTP **400** / captcha errors | Missing or wrong `TURNSTILE_SECRET_KEY` for the Turnstile **site key** used in [`frontend/src/views/auth/register/RegisterView.vue`](frontend/src/views/auth/register/RegisterView.vue) |
+| HTTP **503** / «kunne ikke sende bekreftelses-e-post» | Missing or invalid `MAILTRAP_API_TOKEN`, Mailtrap API error, or network from backend to `send.api.mailtrap.io` |
+| HTTP **200** and redirect to `/bekreft-e-post` but no email | Check spam; confirm Mailtrap inbox; ensure `FRONTEND_URL` matches the URL users open (verification links are built from this value) |
+| Never reaches `/bekreft-e-post` | Inspect browser Network tab for the register response status and JSON body (`detail` field on errors) |
+
+Full-stack Cypress coverage (mail captured in-memory instead of Mailtrap): [`frontend/cypress/e2e/auth-registration-email.fullstack.cy.ts`](frontend/cypress/e2e/auth-registration-email.fullstack.cy.ts) — requires backend profile `dev,e2e` and `E2E_MAIL_HOOK_SECRET` / `CYPRESS_e2eMailHookSecret` as described in that file and in `backend/.env.example`.
+
 ## Development Workflow
 
 ### Gitflow Workflow

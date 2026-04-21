@@ -119,7 +119,7 @@ class EmailServiceTest {
         emailService.sendEmail(toEmail, subject, htmlContent)
     );
 
-    assertEquals("Failed to send email due to an unexpected error", exception.getMessage());
+    assertEquals("Failed to send email: Invalid email address", exception.getMessage());
   }
 
   @Test
