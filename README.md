@@ -1,87 +1,51 @@
 # Krisefikser.no
 
-## About
+Crisis preparedness and response in one place: maps, shelters, news, households, and resources. Built for **before, during, and after** a crisis—in line with the product owners’ vision to raise household readiness and bring scattered services together.
 
-Krisefikser is a comprehensive crisis management platform designed to help users prepare for, navigate through, and recover from emergency situations. The application provides real-time information about crisis events, locations of emergency shelters, and resources for crisis preparedness.
+Student project in **IDATT2106** (NTNU): **three weeks**, two implementation sprints and one documentation sprint. Lower-priority user stories may be partial or omitted.
 
+- **Vision (PDF):** [Visjonsdokument 2025 (final)](frontend/public/docs/visjonsdokument-2025-final.pdf)
+- **Traceability in the app:** open **Emne, krav og teknologi** at `/emne-og-teknologi` when the frontend is running (e.g. `http://localhost:5173/emne-og-teknologi`).
 
-NB: Known Issues
+Feedback: [kontakt@krisefikser.app](mailto:kontakt@krisefikser.app)
 
-This project was developed over **three weeks** as part of the IDATT2106 course at NTNU: **two sprints focused on implementation** and **one sprint focused on documentation**. Requirements and product vision follow the product owners' *Visjonsdokument 2025 (final)* for Krisefikser.no — increasing household preparedness and bringing dispersed services together in one solution, structured around **before, during, and after** a crisis. You can open the vision document here: [frontend/public/docs/visjonsdokument-2025-final.pdf](frontend/public/docs/visjonsdokument-2025-final.pdf).
+## Tech stack
 
-Lower-priority user stories may be partially implemented or omitted, given limited sprint capacity in a student project. Some known bugs may still exist.
+**Frontend:** Vue 3.5, TypeScript, Vite 6, Pinia, TanStack Vue Query, Tailwind 4, Reka UI, Lucide, Leaflet / Vue Leaflet, Axios, Orval, VeeValidate, Zod, WebSocket/STOMP where enabled. Package manager: **pnpm 10**.
 
-We welcome any feedback, bug reports, or suggestions for improvement — please feel free to reach out at kontakt@krisefikser.app.
+**Backend:** Java 21, Spring Boot 3.4 (Web, JPA, Security, Validation, WebSocket), REST + JPA, JWT, SpringDoc OpenAPI. **MySQL** in dev/prod-style setups, **H2** in tests. JaCoCo line coverage gate **≥80%** on `mvn verify`.
 
-We are continuously working to improve the website and greatly appreciate your input.
+**Quality & CI:** Vitest, Cypress (incl. fullstack specs where configured), a11y checks in pipeline, GitHub Actions — see [.github/workflows/ci.yml](.github/workflows/ci.yml) (runs on `main` / `develop`, PRs, nightly cron, and manual dispatch).
 
-## Features
+## Prerequisites
 
-- Interactive crisis map showing emergency shelters and active crisis zones
-- Real-time location tracking to determine if users are in crisis areas
-- Emergency preparedness information and checklists
-- User account management with household coordination
-- News and updates about crisis situations
-- Resource sharing and community support
+Node **18+**, **pnpm 10+**, **JDK 21**, **Docker** (Compose), **Maven** (or use the Maven wrapper in `backend/`).
 
-## Tech Stack
+## Quick start
 
-### Frontend
-
-- Vue 3 with Composition API
-- TypeScript
-- Tailwind CSS
-- Leaflet for interactive maps
-- Vue Query for data fetching
-- Vite build system
-
-### Backend
-
-- Spring Boot 3.4
-- Java 21
-- Spring Security
-- Spring Data JPA
-- MySQL database
-- JWT authentication
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v18+)
-- PNPM (v10+)
-- JDK 21
-- Docker and Docker Compose
-- Maven
-
-### Setting Up Development Environment
-
-1. **Clone the repository**
+1. **Clone**
 
    ```bash
    git clone https://github.com/idatt2106-v25-02/krisefikser.git
    cd krisefikser
    ```
 
-2. **Start the database**
+2. **Database**
 
    ```bash
    docker-compose up -d
    ```
 
-   This will start a MySQL database with the necessary configuration.
-
-3. **Set up the backend**
+3. **Backend** (from `backend/`, default port **8080**)
 
    ```bash
    cd backend
-   ./mvnw clean install
    ./mvnw spring-boot:run
    ```
 
-   The backend will start on port 8080 by default.
+   On Windows CMD, use `mvnw.cmd spring-boot:run` if `./mvnw` is not available.
 
-4. **Set up the frontend**
+4. **Frontend** (from `frontend/`, default **5173**)
 
    ```bash
    cd frontend
@@ -89,136 +53,20 @@ We are continuously working to improve the website and greatly appreciate your i
    pnpm dev
    ```
 
-   The frontend development server will start on port 5173 by default.
+5. Open [http://localhost:5173](http://localhost:5173). API docs: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) when the backend is up.
 
-5. **Access the application**
+## Environment variables
 
-   Open your browser and navigate to `http://localhost:5173`
+Copy examples and fill in values: [backend/.env.example](backend/.env.example), [frontend/.env.example](frontend/.env.example) (Turnstile, Mailtrap, URLs, etc.).
 
-### Email registration (local troubleshooting)
+## Tests
 
-Registration calls `POST /api/auth/register`, which verifies **Cloudflare Turnstile**, creates the user, then sends a verification email via **Mailtrap**. Copy variables from [`backend/.env.example`](backend/.env.example) into `backend/.env` and fill in real values.
-
-| What you see | Likely cause |
-| -------------- | ------------ |
-| HTTP **400** / captcha errors | Missing or wrong `TURNSTILE_SECRET_KEY` for the Turnstile **site key** used in [`frontend/src/views/auth/register/RegisterView.vue`](frontend/src/views/auth/register/RegisterView.vue) |
-| HTTP **503** / «kunne ikke sende bekreftelses-e-post» | Missing or invalid `MAILTRAP_API_TOKEN`, Mailtrap API error, or network from backend to `send.api.mailtrap.io` |
-| HTTP **200** and redirect to `/bekreft-e-post` but no email | Check spam; confirm Mailtrap inbox; ensure `FRONTEND_URL` matches the URL users open (verification links are built from this value) |
-| Never reaches `/bekreft-e-post` | Inspect browser Network tab for the register response status and JSON body (`detail` field on errors) |
-
-Full-stack Cypress coverage (mail captured in-memory instead of Mailtrap): [`frontend/cypress/e2e/auth-registration-email.fullstack.cy.ts`](frontend/cypress/e2e/auth-registration-email.fullstack.cy.ts) — requires backend profile `dev,e2e` and `E2E_MAIL_HOOK_SECRET` / `CYPRESS_e2eMailHookSecret` (see kommentar nederst i `backend/.env.example`).
-
-## Development Workflow
-
-### Gitflow Workflow
-
-We follow the Gitflow workflow with the following branches:
-
-- **`refactor/*`**: Code refactoring
-- **`doc/*`**: Documentation
-- **`feat/*`**: New features
-- **`hotfix/*`**: Critical production fixes
-- **`main`**: Stable production code
-- **`develop`**: Main development branch
-
-We use merge (not rebase) as our merge strategy.
-
-### CI/CD Automation per Branch
-
-| Branch       | CI (Testing)                      | CD (Deployment)                        |
-| ------------ | --------------------------------- | -------------------------------------- |
-| `refactor/*` | Unit tests, linting               | No deployment (work in progress)       |
-| `doc/*`      | Unit tests, linting               | No deployment (work in progress)       |
-| `feat/*`     | Unit tests, linting               | No deployment (work in progress)       |
-| `hotfix/*`   | Hotfix testing                    | Quick production deploy after approval |
-| `develop`    | Unit, integration, security tests | Automatic to staging environment       |
-| `main`       | Final test run                    | Automatic to production                |
-
-### Commit Messages
-
-Use standardized prefixes:
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation
-- `style`: Formatting (no code change)
-- `refactor`: Code restructuring
-- `test`: Test-related changes
-- `chore`: Build/tool updates
-
-### Backend Development
-
-- API documentation is available at `http://localhost:8080/swagger-ui.html` when the backend is running
-- Run tests with `./mvnw test`
-- The backend follows a standard Spring Boot architecture with controllers, services, and repositories
-
-### Frontend Development
-
-- Use `pnpm lint` to check code quality
-- Use `pnpm test:unit` to run unit tests
-- Use `pnpm test:e2e` to run end-to-end tests with Playwright
-- The API client is auto-generated using Orval
-
-### Testing
-
-#### Backend
-
-- Unit tests
-- Controller tests
-- Integration tests
-
-#### Frontend
-
-- Unit tests (Vitest)
-- E2E tests (Cypress)
-
-### Documentation Standards
-
-#### Structure and Formatting
-
-- First sentence is a brief summary
-- Use HTML tags like `<p>`, `<code>`, `<ul>` for clarity
-- Maximum 80 characters per line
-- Third-person style ("It should...", "The method handles...")
-
-#### Grammar and Tags
-
-- **Third person** preferred ("it", "they")
-- **JavaDoc tags**:
-  - `@author`, `@version` (classes/interfaces)
-  - `@param`, `@return` (methods)
-  - `@see`, `@deprecated` (optional)
-
-#### Documentation Example
-
-```java
-/**
- * Calculates the total price based on quantity.
- * <p>
- * Uses <code>calculateTax</code> to include VAT.
- * @param quantity Number of units (must be > 0).
- * @return Total price including VAT.
- */
-public double calculateTotal(int quantity) { ... }
-```
-
-## Deployment
-
-The application is deployed using a CI/CD pipeline.
-
-## Contributing
-
-If you'd like to contribute to the project, please first read the [Gitflow Workflow](#gitflow-workflow) and [commit messages](#commit-messages).
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Merge Request
+- Backend: `cd backend && ./mvnw test` (verify with JaCoCo: `./mvnw verify`)
+- Frontend: `cd frontend && pnpm test:unit` · `pnpm test:e2e` (Cypress against preview; see `package.json` for fullstack variants)
 
 ## Credits
 
-Developed as part of the IDATT2106 course at NTNU by:
+IDATT2106, NTNU:
 
 - [Henrik Halvorsen Kvamme](https://gitlab.stud.idi.ntnu.no/henrihkv)
 - [Conrad Tinius Osvik](https://gitlab.stud.idi.ntnu.no/conrado)
