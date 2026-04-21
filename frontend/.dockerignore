@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+coverage
+.nyc_output
+cypress/videos
+cypress/screenshots
+*.log
+.DS_Store
