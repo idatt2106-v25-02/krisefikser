@@ -13,27 +13,7 @@ import PasswordInput from '@/components/auth/PasswordInput.vue'
 import { useRouter } from 'vue-router'
 import { createPasswordConfirmationSchema, type ApiError } from '@/utils/validation/passwordSchemas'
 import { showSuccessToast, showErrorToast } from '@/utils/error/errorHandling'
-
-// Declare the global turnstile object
-declare const turnstile: {
-  render: (
-    container: string | HTMLElement,
-    options: {
-      sitekey: string
-      callback?: (token: string) => void
-      'error-callback'?: () => void
-      'expired-callback'?: () => void
-      theme?: 'light' | 'dark' | 'auto'
-      size?: 'normal' | 'compact'
-      tabindex?: number
-      'response-field'?: boolean
-      'response-field-name'?: string
-    },
-  ) => string
-  reset: (widgetId?: string) => void
-  getResponse: (widgetId?: string) => string
-  remove: (widgetId?: string) => void
-}
+import { waitForTurnstile } from '@/utils/turnstile/waitForTurnstile'
 
 const router = useRouter()
 
@@ -102,9 +82,9 @@ const handleRegistrationError = (error: unknown) => {
 // Reset Turnstile function to rerender captcha
 function resetTurnstile() {
   captchaToken.value = ''
-  // Reset the turnstile widget
-  if (turnstileWidgetId.value) {
-    turnstile.reset(turnstileWidgetId.value)
+  const api = window.turnstile
+  if (turnstileWidgetId.value && api) {
+    api.reset(turnstileWidgetId.value)
   }
 }
 
@@ -131,35 +111,47 @@ const onSubmit = handleSubmit(async (values: RegistrationFormValues) => {
 const captchaToken = ref('')
 const turnstileWidgetId = ref<string>('')
 
-// Initialise Cloudflare Turnstile
+// Initialise Cloudflare Turnstile after api.js has registered window.turnstile (script uses async defer).
 onMounted(() => {
-  turnstileWidgetId.value = turnstile.render('#turnstile', {
-    sitekey: '0x4AAAAAABSTiPNZwrBLQkgr',
-    callback: (token: string) => {
-      captchaToken.value = token
-      toast('Success', {
-        description: 'Captcha token hentet',
+  void (async () => {
+    try {
+      const api = await waitForTurnstile()
+      turnstileWidgetId.value = api.render('#turnstile', {
+        sitekey:
+          import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAABSTiPNZwrBLQkgr',
+        callback: (token: string) => {
+          captchaToken.value = token
+          toast('Success', {
+            description: 'Captcha token hentet',
+          })
+        },
+        'error-callback': () => {
+          toast('Error', {
+            description: 'Captcha token feil',
+          })
+          captchaToken.value = ''
+        },
+        'expired-callback': () => {
+          toast('Warning', {
+            description: 'Captcha token har utløpt',
+          })
+          captchaToken.value = ''
+        },
       })
-    },
-    'error-callback': () => {
-      toast('Error', {
-        description: 'Captcha token feil',
+    } catch {
+      toast('Feil', {
+        description:
+          'Kunne ikke laste sikkerhetsbekreftelse (Cloudflare). Oppdater siden, eller sjekk nettverk/adblock.',
       })
-      captchaToken.value = ''
-    },
-    'expired-callback': () => {
-      toast('Warning', {
-        description: 'Captcha token har utløpt',
-      })
-      captchaToken.value = ''
-    },
-  })
+    }
+  })()
 })
 
 // Clean up Turnstile on component unmount
 onUnmounted(() => {
-  if (turnstileWidgetId.value) {
-    turnstile.remove(turnstileWidgetId.value)
+  const api = window.turnstile
+  if (turnstileWidgetId.value && api) {
+    api.remove(turnstileWidgetId.value)
   }
 })
 </script>

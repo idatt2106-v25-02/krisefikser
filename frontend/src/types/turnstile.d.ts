@@ -16,3 +16,13 @@ declare namespace turnstile {
   function getResponse(widgetId?: string): string
   function remove(widgetId?: string): void
 }
+
+/** Injected by https://challenges.cloudflare.com/turnstile/v0/api.js (may be briefly undefined while loading). */
+interface Window {
+  turnstile?: {
+    render: typeof turnstile.render
+    reset: typeof turnstile.reset
+    getResponse: typeof turnstile.getResponse
+    remove: typeof turnstile.remove
+  }
+}
