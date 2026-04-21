@@ -8,6 +8,8 @@ interface ImportMetaEnv {
   readonly VITE_POSTHOG_ENABLED: string
   readonly VITE_POSTHOG_KEY: string
   readonly VITE_POSTHOG_HOST?: string
+  /** Mapbox GL (kart); valgfritt lokalt. */
+  readonly VITE_MAPBOX_ACCESS_TOKEN?: string
 }
 
 interface ImportMeta {
