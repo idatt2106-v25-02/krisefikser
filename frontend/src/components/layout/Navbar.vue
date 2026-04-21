@@ -8,6 +8,7 @@ import {
   Calendar,
   Home,
   Info,
+  Layers,
   ListChecks,
   LogIn,
   LogOut,
@@ -25,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -55,6 +57,7 @@ export default {
     DropdownMenuContent,
     DropdownMenuItem,
     ListChecks,
+    Layers,
     BookText,
     BellIcon,
     AlertTriangle,
@@ -64,6 +67,9 @@ export default {
     RefreshCw,
     ArrowRight,
     NotificationDropdown,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
   },
   setup() {
     const authStore = useAuthStore()
@@ -71,6 +77,8 @@ export default {
     const router = useRouter()
     const route = useRoute()
     const isMenuOpen = ref(false)
+    const techStackPopoverOpen = ref(false)
+    const techStackPopoverOpenMobile = ref(false)
     const showMobileNotifications = ref(false)
     const audioPlayerRef = ref<HTMLAudioElement | null>(null)
     const playedNotificationIds = ref(new Set<string>())
@@ -458,6 +466,8 @@ export default {
     return {
       authStore,
       isMenuOpen,
+      techStackPopoverOpen,
+      techStackPopoverOpenMobile,
       isLoadingNotifications: isLoadingFetchedNotifications,
       isFetchingNotifications: isFetchingFetchedNotifications,
       notificationsError: fetchedNotificationsError,
@@ -510,6 +520,41 @@ export default {
             <component :is="item.icon" class="h-4 w-4 mr-1" />
             <span>{{ item.label }}</span>
           </router-link>
+
+          <Popover v-model:open="techStackPopoverOpen">
+            <PopoverTrigger as-child>
+              <button
+                type="button"
+                class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-md p-2 text-gray-700 transition hover:bg-gray-100 hover:text-blue-600"
+                :aria-expanded="techStackPopoverOpen"
+                aria-label="Vis teknologier brukt i Krisefikser"
+              >
+                <Layers class="h-5 w-5" aria-hidden="true" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent class="w-[min(100vw-2rem,22rem)] p-4" align="end" :side-offset="6">
+              <div class="space-y-3">
+                <h2 class="text-lg font-bold text-slate-800">Bygget med moderne verktøy</h2>
+                <p class="text-sm text-slate-600">
+                  Krisefikser kombinerer et Vue&nbsp;3-frontend med Spring Boot og en sikker API — for
+                  pålitelig ytelse fra registrering til kart og varslinger.
+                </p>
+                <ul class="flex flex-wrap gap-2 text-sm font-medium text-slate-700">
+                  <li class="rounded-full bg-slate-100 px-3 py-1">Vue 3</li>
+                  <li class="rounded-full bg-slate-100 px-3 py-1">TypeScript</li>
+                  <li class="rounded-full bg-slate-100 px-3 py-1">Spring Boot</li>
+                  <li class="rounded-full bg-slate-100 px-3 py-1">MySQL</li>
+                </ul>
+                <router-link
+                  to="/emne-og-teknologi"
+                  class="inline-flex text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                  @click="techStackPopoverOpen = false"
+                >
+                  Emne og teknologi
+                </router-link>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <template v-if="!authStore.isAuthenticated">
             <router-link
@@ -625,6 +670,42 @@ export default {
           <component :is="item.icon" class="h-4 w-4 mr-2" />
           <span>{{ item.label }}</span>
         </router-link>
+
+        <Popover v-model:open="techStackPopoverOpenMobile">
+          <PopoverTrigger as-child>
+            <button
+              type="button"
+              class="flex w-full items-center px-3 py-2 rounded text-gray-700 hover:bg-gray-200 text-sm"
+              :aria-expanded="techStackPopoverOpenMobile"
+              aria-label="Vis teknologier brukt i Krisefikser"
+            >
+              <Layers class="h-4 w-4 mr-2 shrink-0" aria-hidden="true" />
+              <span>Teknologier</span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent class="w-[min(100vw-2rem,22rem)] p-4" align="start" :side-offset="6">
+            <div class="space-y-3">
+              <h2 class="text-lg font-bold text-slate-800">Bygget med moderne verktøy</h2>
+              <p class="text-sm text-slate-600">
+                Krisefikser kombinerer et Vue&nbsp;3-frontend med Spring Boot og en sikker API — for
+                pålitelig ytelse fra registrering til kart og varslinger.
+              </p>
+              <ul class="flex flex-wrap gap-2 text-sm font-medium text-slate-700">
+                <li class="rounded-full bg-slate-100 px-3 py-1">Vue 3</li>
+                <li class="rounded-full bg-slate-100 px-3 py-1">TypeScript</li>
+                <li class="rounded-full bg-slate-100 px-3 py-1">Spring Boot</li>
+                <li class="rounded-full bg-slate-100 px-3 py-1">MySQL</li>
+              </ul>
+              <router-link
+                to="/emne-og-teknologi"
+                class="inline-flex text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                @click="techStackPopoverOpenMobile = false"
+              >
+                Emne og teknologi
+              </router-link>
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <!-- Mobile Notifications - Only show if enabled in settings -->
         <button
