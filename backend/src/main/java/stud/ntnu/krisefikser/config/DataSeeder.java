@@ -378,15 +378,16 @@ public class DataSeeder implements CommandLineRunner {
   private void seedEvents() {
     List<Event> events = new ArrayList<>();
 
-    // Wider Trondheim / Trøndelag core — few events, radius-aware spacing so circles never overlap
-    double minLat = 63.32;
-    double maxLat = 63.50;
-    double minLong = 10.18;
-    double maxLong = 10.68;
+    // Wider Trondheim / Trøndelag core — fewer but larger circles; spacing scales with radius
+    double minLat = 63.30;
+    double maxLat = 63.52;
+    double minLong = 10.15;
+    double maxLong = 10.72;
     /** Minimum clear gap (meters) between circle edges, in addition to r1 + r2. */
-    double gapBetweenCircleEdgesMeters = 500;
-    int maxAttemptsPerEvent = 400;
-    int targetEventCount = 4;
+    double gapBetweenCircleEdgesMeters = 350;
+    int maxAttemptsPerEvent = 500;
+    /** More events on the map; placement loop may stop early if no non-overlapping spot is found. */
+    int targetEventCount = 8;
 
     String[] eventTitles = {
         "Flood Warning", "Winter Storm Alert", "Power Outage", "Traffic Accident",
@@ -414,16 +415,17 @@ public class DataSeeder implements CommandLineRunner {
     };
 
     EventLevel[] levels = EventLevel.values();
-    int[] levelWeights = {60, 30, 10};
+    // ~50% GREEN (vanlige / lav alvorlighet), resten fordelt på gul og rød
+    int[] levelWeights = {50, 35, 15};
 
     EventStatus[] statuses = EventStatus.values();
-    int[] statusWeights = {30, 50, 20};
+    int[] statusWeights = {25, 50, 25};
 
     ZonedDateTime now = ZonedDateTime.now();
 
     for (int placed = 0; placed < targetEventCount; placed++) {
-      // Radius first so placement enforces center distance >= r_existing + r_new + gap
-      double radius = 150 + (300 * random.nextDouble());
+      // Større dekning på kartet (ca. 0,8–2,5 km radius) — tydelig synlige «vanlige» hendelser
+      double radius = 800 + (1700 * random.nextDouble());
 
       Double latitude = null;
       Double longitude = null;
@@ -471,7 +473,7 @@ public class DataSeeder implements CommandLineRunner {
           startTime = now;
       }
 
-      int titleIndex = Math.min(placed, eventTitles.length - 1);
+      int titleIndex = random.nextInt(eventTitles.length);
       Event event = Event.builder()
           .title(eventTitles[titleIndex])
           .description(eventDescriptions[titleIndex])
