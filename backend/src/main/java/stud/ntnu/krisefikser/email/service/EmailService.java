@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import stud.ntnu.krisefikser.e2e.E2eMailOutbox;
 import stud.ntnu.krisefikser.email.config.MailProperties;
@@ -97,6 +98,18 @@ public class EmailService {
       }
 
       return response;
+    } catch (EmailSendingException e) {
+      throw e;
+    } catch (RestClientResponseException e) {
+      String body = e.getResponseBodyAsString();
+      String preview = body == null || body.isEmpty()
+          ? "(empty body)"
+          : body.length() > 500
+              ? body.substring(0, 500) + "..."
+              : body;
+      log.error("Mail API HTTP {} sending to {}: {}", e.getStatusCode().value(), toEmail, preview,
+          e);
+      throw new EmailSendingException("Failed to send email due to an unexpected error");
     } catch (Exception e) {
       log.error("Unexpected error sending email to {}: {}", toEmail, e.getMessage(), e);
       throw new EmailSendingException("Failed to send email due to an unexpected error");

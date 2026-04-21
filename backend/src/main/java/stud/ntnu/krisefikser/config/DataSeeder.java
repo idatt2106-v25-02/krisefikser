@@ -378,14 +378,15 @@ public class DataSeeder implements CommandLineRunner {
   private void seedEvents() {
     List<Event> events = new ArrayList<>();
 
-    // Wider Trondheim / Trøndelag core (fewer overlaps than a tight downtown box)
+    // Wider Trondheim / Trøndelag core — few events, radius-aware spacing so circles never overlap
     double minLat = 63.32;
     double maxLat = 63.50;
-    double minLong = 10.20;
-    double maxLong = 10.65;
-    double minSeparationMeters = 1600;
-    int maxAttemptsPerEvent = 250;
-    int targetEventCount = 7;
+    double minLong = 10.18;
+    double maxLong = 10.68;
+    /** Minimum clear gap (meters) between circle edges, in addition to r1 + r2. */
+    double gapBetweenCircleEdgesMeters = 500;
+    int maxAttemptsPerEvent = 400;
+    int targetEventCount = 4;
 
     String[] eventTitles = {
         "Flood Warning", "Winter Storm Alert", "Power Outage", "Traffic Accident",
@@ -421,20 +422,15 @@ public class DataSeeder implements CommandLineRunner {
     ZonedDateTime now = ZonedDateTime.now();
 
     for (int placed = 0; placed < targetEventCount; placed++) {
+      // Radius first so placement enforces center distance >= r_existing + r_new + gap
+      double radius = 150 + (300 * random.nextDouble());
+
       Double latitude = null;
       Double longitude = null;
       for (int attempt = 0; attempt < maxAttemptsPerEvent; attempt++) {
         double lat = minLat + (maxLat - minLat) * random.nextDouble();
         double lon = minLong + (maxLong - minLong) * random.nextDouble();
-        boolean farEnough = true;
-        for (Event existing : events) {
-          if (haversineMeters(lat, lon, existing.getLatitude(), existing.getLongitude())
-              < minSeparationMeters) {
-            farEnough = false;
-            break;
-          }
-        }
-        if (farEnough) {
+        if (isFarEnoughFromExistingEvents(lat, lon, radius, events, gapBetweenCircleEdgesMeters)) {
           latitude = lat;
           longitude = lon;
           break;
@@ -443,8 +439,6 @@ public class DataSeeder implements CommandLineRunner {
       if (latitude == null || longitude == null) {
         break;
       }
-
-      double radius = 80 + (520 * random.nextDouble());
 
       EventLevel level = getRandomWeightedChoice(levels, levelWeights);
       EventStatus status = getRandomWeightedChoice(statuses, statusWeights);
@@ -543,6 +537,21 @@ public class DataSeeder implements CommandLineRunner {
         + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) * Math.sin(dLambda / 2);
     double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return earthRadiusM * c;
+  }
+
+  /**
+   * True if a new circle (lat, lon, newRadius) does not intersect any existing seeded event circle,
+   * using great-circle distance between centers and a minimum gap between perimeters.
+   */
+  private static boolean isFarEnoughFromExistingEvents(
+      double lat, double lon, double newRadius, List<Event> existing, double gapMeters) {
+    for (Event e : existing) {
+      double requiredMeters = e.getRadius() + newRadius + gapMeters;
+      if (haversineMeters(lat, lon, e.getLatitude(), e.getLongitude()) < requiredMeters) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private void seedRoles() {

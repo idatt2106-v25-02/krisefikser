@@ -8,27 +8,7 @@ import { useAuthStore } from '@/stores/auth/useAuthStore'
 import { toast } from 'vue-sonner'
 import { useRoute, useRouter } from 'vue-router'
 import { verifyAdminInviteToken } from '@/api/generated/authentication/authentication'
-
-// Declare the global turnstile object
-declare const turnstile: {
-  render: (
-    container: string | HTMLElement,
-    options: {
-      sitekey: string
-      callback?: (token: string) => void
-      'error-callback'?: () => void
-      'expired-callback'?: () => void
-      theme?: 'light' | 'dark' | 'auto'
-      size?: 'normal' | 'compact'
-      tabindex?: number
-      'response-field'?: boolean
-      'response-field-name'?: string
-    },
-  ) => string
-  reset: (widgetId?: string) => void
-  getResponse: (widgetId?: string) => string
-  remove: (widgetId?: string) => void
-}
+import { waitForTurnstile } from '@/utils/turnstile/waitForTurnstile'
 
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -44,7 +24,7 @@ const token = ref(route.query.token as string)
 const userEmail = ref('')
 const isLoading = ref(false)
 
-// Verify token and get email on component mount
+// Verify invite, then load Turnstile after api.js is ready (same race as public register page).
 onMounted(async () => {
   if (!token.value) {
     toast('Feil', {
@@ -63,8 +43,37 @@ onMounted(async () => {
       description: 'Ugyldig eller utløpt invitasjonstoken',
     })
     router.push('/')
+    return
   } finally {
     isLoading.value = false
+  }
+
+  try {
+    const api = await waitForTurnstile()
+    turnstileWidgetId.value = api.render('#turnstile', {
+      sitekey:
+        import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAABSTiPNZwrBLQkgr',
+      callback: (t: string) => {
+        captchaToken.value = t
+      },
+      'error-callback': () => {
+        toast('Error', {
+          description: 'Captcha token feil',
+        })
+        captchaToken.value = ''
+      },
+      'expired-callback': () => {
+        toast('Warning', {
+          description: 'Captcha token har utløpt',
+        })
+        captchaToken.value = ''
+      },
+    })
+  } catch {
+    toast('Feil', {
+      description:
+        'Kunne ikke laste sikkerhetsbekreftelse (Cloudflare). Oppdater siden, eller sjekk nettverk/adblock.',
+    })
   }
 })
 
@@ -125,8 +134,9 @@ const getErrorMessage = (error: {
 // Reset Turnstile function
 function resetTurnstile() {
   captchaToken.value = ''
-  if (turnstileWidgetId.value) {
-    turnstile.reset(turnstileWidgetId.value)
+  const api = window.turnstile
+  if (turnstileWidgetId.value && api) {
+    api.reset(turnstileWidgetId.value)
   }
 }
 
@@ -161,32 +171,11 @@ const onSubmit = handleSubmit(async (values) => {
 const captchaToken = ref('')
 const turnstileWidgetId = ref<string>('')
 
-// Initialize Cloudflare Turnstile
-onMounted(() => {
-  turnstileWidgetId.value = turnstile.render('#turnstile', {
-    sitekey: '0x4AAAAAABSTiPNZwrBLQkgr',
-    callback: (token: string) => {
-      captchaToken.value = token
-    },
-    'error-callback': () => {
-      toast('Error', {
-        description: 'Captcha token feil',
-      })
-      captchaToken.value = ''
-    },
-    'expired-callback': () => {
-      toast('Warning', {
-        description: 'Captcha token har utløpt',
-      })
-      captchaToken.value = ''
-    },
-  })
-})
-
 // Clean up Turnstile on component unmount
 onUnmounted(() => {
-  if (turnstileWidgetId.value) {
-    turnstile.remove(turnstileWidgetId.value)
+  const api = window.turnstile
+  if (turnstileWidgetId.value && api) {
+    api.remove(turnstileWidgetId.value)
   }
 })
 </script>
