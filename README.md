@@ -4,6 +4,8 @@ Crisis preparedness and response in one place: maps, shelters, news, households,
 
 Student project in **IDATT2106** (NTNU): **three weeks**, two implementation sprints and one documentation sprint. Lower-priority user stories may be partial or omitted.
 
+> **Disclaimer:** The core of this project was developed during the three-week project period in spring 2025. Since then, additional improvements have been made in the form of debugging, testing, and general polish.
+
 - **Vision (PDF):** [Visjonsdokument 2025 (final)](frontend/public/docs/visjonsdokument-2025-final.pdf)
 - **Traceability in the app:** open **Emne, krav og teknologi** at `/emne-og-teknologi` when the frontend is running (e.g. `http://localhost:5173/emne-og-teknologi`).
 
