@@ -1,10 +1,13 @@
 package stud.ntnu.krisefikser.auth.service;
 
-import java.util.HashMap;
-import java.util.Map;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import stud.ntnu.krisefikser.auth.config.TurnstileProperties;
 import stud.ntnu.krisefikser.auth.dto.TurnstileResponse;
@@ -62,14 +65,18 @@ public class TurnstileService {
       return false;
     }
 
-    Map<String, String> body = new HashMap<>();
-    body.put("secret", turnstileProperties.getSecret());
-    body.put("response", token);
+    MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+    form.add("secret", turnstileProperties.getSecret());
+    form.add("response", token);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(form, headers);
 
     try {
       ResponseEntity<TurnstileResponse> response = restTemplate.postForEntity(
           VERIFY_URL,
-          body,
+          request,
           TurnstileResponse.class
       );
 

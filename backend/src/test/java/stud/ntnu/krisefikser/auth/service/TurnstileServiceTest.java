@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,7 +57,7 @@ public class TurnstileServiceTest {
         HttpStatus.OK);
     when(restTemplate.postForEntity(
         eq(TurnstileService.VERIFY_URL),
-        any(Map.class),
+        any(),
         eq(TurnstileResponse.class)
     )).thenReturn(responseEntity);
 
@@ -76,7 +75,7 @@ public class TurnstileServiceTest {
         HttpStatus.OK);
     when(restTemplate.postForEntity(
         eq(TurnstileService.VERIFY_URL),
-        any(Map.class),
+        any(),
         eq(TurnstileResponse.class)
     )).thenReturn(responseEntity);
 
@@ -93,7 +92,7 @@ public class TurnstileServiceTest {
     ResponseEntity<TurnstileResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
     when(restTemplate.postForEntity(
         eq(TurnstileService.VERIFY_URL),
-        any(Map.class),
+        any(),
         eq(TurnstileResponse.class)
     )).thenReturn(responseEntity);
 
@@ -109,7 +108,7 @@ public class TurnstileServiceTest {
     // Arrange
     when(restTemplate.postForEntity(
         eq(TurnstileService.VERIFY_URL),
-        any(Map.class),
+        any(),
         eq(TurnstileResponse.class)
     )).thenThrow(new RestClientException("Server error"));
 
@@ -127,7 +126,7 @@ public class TurnstileServiceTest {
         HttpStatus.BAD_REQUEST);
     when(restTemplate.postForEntity(
         eq(TurnstileService.VERIFY_URL),
-        any(Map.class),
+        any(),
         eq(TurnstileResponse.class)
     )).thenReturn(responseEntity);
 
