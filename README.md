@@ -106,7 +106,7 @@ Registration calls `POST /api/auth/register`, which verifies **Cloudflare Turnst
 | HTTP **200** and redirect to `/bekreft-e-post` but no email | Check spam; confirm Mailtrap inbox; ensure `FRONTEND_URL` matches the URL users open (verification links are built from this value) |
 | Never reaches `/bekreft-e-post` | Inspect browser Network tab for the register response status and JSON body (`detail` field on errors) |
 
-Full-stack Cypress coverage (mail captured in-memory instead of Mailtrap): [`frontend/cypress/e2e/auth-registration-email.fullstack.cy.ts`](frontend/cypress/e2e/auth-registration-email.fullstack.cy.ts) — requires backend profile `dev,e2e` and `E2E_MAIL_HOOK_SECRET` / `CYPRESS_e2eMailHookSecret` as described in that file and in `backend/.env.example`.
+Full-stack Cypress coverage (mail captured in-memory instead of Mailtrap): [`frontend/cypress/e2e/auth-registration-email.fullstack.cy.ts`](frontend/cypress/e2e/auth-registration-email.fullstack.cy.ts) — requires backend profile `dev,e2e` and `E2E_MAIL_HOOK_SECRET` / `CYPRESS_e2eMailHookSecret` (see kommentar nederst i `backend/.env.example`).
 
 ## Development Workflow
 

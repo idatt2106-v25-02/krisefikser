@@ -194,17 +194,22 @@ jobs:
 
       - name: Write backend/.env for Docker Compose
         run: |
-          cat > backend/.env <<EOF
-          JWT_SECRET=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-          TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
-          FRONTEND_URL=http://127.0.0.1:5173
-          MAILTRAP_API_TOKEN=unused-e2e-mail-captured-in-memory
-          E2E_MAIL_HOOK_SECRET=${E2E_MAIL_HOOK_SECRET}
-          EOF
+          {
+            echo "SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/krisefikser"
+            echo "SPRING_DATASOURCE_USERNAME=root"
+            echo "SPRING_DATASOURCE_PASSWORD=root"
+            echo "JWT_SECRET=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            echo "TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA"
+            echo "FRONTEND_URL=http://127.0.0.1:5173"
+            echo "MAILTRAP_API_TOKEN=unused-e2e-mail-captured-in-memory"
+            echo "E2E_MAIL_HOOK_SECRET=${E2E_MAIL_HOOK_SECRET}"
+          } > backend/.env
 
       - name: Build frontend
         env:
           VITE_API_URL: http://127.0.0.1:8080
+          VITE_WS_URL: ws://127.0.0.1:8080/ws
+          VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
         run: |
           cd frontend
           pnpm run build
@@ -262,18 +267,23 @@ jobs:
 
       - name: Write backend/.env for Docker Compose
         run: |
-          cat > backend/.env <<EOF
-          JWT_SECRET=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-          TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
-          FRONTEND_URL=http://127.0.0.1:5173
-          MAILTRAP_API_TOKEN=unused-e2e-mail-captured-in-memory
-          E2E_MAIL_HOOK_SECRET=${E2E_MAIL_HOOK_SECRET}
-          EOF
+          {
+            echo "SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/krisefikser"
+            echo "SPRING_DATASOURCE_USERNAME=root"
+            echo "SPRING_DATASOURCE_PASSWORD=root"
+            echo "JWT_SECRET=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            echo "TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA"
+            echo "FRONTEND_URL=http://127.0.0.1:5173"
+            echo "MAILTRAP_API_TOKEN=unused-e2e-mail-captured-in-memory"
+            echo "E2E_MAIL_HOOK_SECRET=${E2E_MAIL_HOOK_SECRET}"
+          } > backend/.env
 
       - name: Build frontend with E2E coverage instrumentation
         env:
           CYPRESS_COVERAGE: "true"
           VITE_API_URL: http://127.0.0.1:8080
+          VITE_WS_URL: ws://127.0.0.1:8080/ws
+          VITE_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
         run: |
           cd frontend
           pnpm run build:coverage
