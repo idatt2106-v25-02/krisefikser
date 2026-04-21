@@ -175,12 +175,33 @@ const stackBack = [
             </div>
             <div class="space-y-3 text-slate-700">
               <p class="text-base leading-relaxed lg:text-lg">
+                Løsningen ble utviklet over
+                <strong class="text-slate-900">tre uker</strong> som del av emnet, fordelt på
+                <strong class="text-slate-900">to sprinter med koding</strong> og
+                <strong class="text-slate-900">én sprint med dokumentasjon</strong>.
                 Utviklet i
                 <strong class="text-slate-900">IDATT2106 – Systemutvikling med smidig prosjekt</strong>
                 ved NTNU. Krav og visjon følger produkteiernes
-                <strong class="text-slate-900">Visjonsdokument 2025 (final)</strong>
+                <a
+                  href="/docs/visjonsdokument-2025-final.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-semibold text-blue-800 underline decoration-blue-600/50 underline-offset-2 hover:text-blue-950"
+                >
+                  Visjonsdokument 2025 (final)
+                </a>
                 for Krisefikser.no: øke egenberedskap og samle spredte tjenester i én løsning —
                 strukturert etter <strong class="text-slate-900">før, under og etter</strong> krise.
+              </p>
+              <p>
+                <a
+                  href="/docs/visjonsdokument-2025-final.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm font-medium text-blue-700 underline underline-offset-2 hover:text-blue-900"
+                >
+                  Åpne visjonsdokument (PDF) for videre innspill
+                </a>
               </p>
               <p class="text-sm text-slate-500">
                 Lavere prioriterte brukerhistorier kan være delvis eller ikke med — studentprosjekt

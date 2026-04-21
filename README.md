@@ -7,7 +7,10 @@ Krisefikser is a comprehensive crisis management platform designed to help users
 
 NB: Known Issues
 
-This project was developed during two intensive sprints (2 weeks total) as part of a university assignment. As such, some known bugs may still exist.
+This project was developed over **three weeks** as part of the IDATT2106 course at NTNU: **two sprints focused on implementation** and **one sprint focused on documentation**. Requirements and product vision follow the product owners' *Visjonsdokument 2025 (final)* for Krisefikser.no — increasing household preparedness and bringing dispersed services together in one solution, structured around **before, during, and after** a crisis. You can open the vision document here: [frontend/public/docs/visjonsdokument-2025-final.pdf](frontend/public/docs/visjonsdokument-2025-final.pdf).
+
+Lower-priority user stories may be partially implemented or omitted, given limited sprint capacity in a student project. Some known bugs may still exist.
+
 We welcome any feedback, bug reports, or suggestions for improvement — please feel free to reach out at kontakt@krisefikser.app.
 
 We are continuously working to improve the website and greatly appreciate your input.
