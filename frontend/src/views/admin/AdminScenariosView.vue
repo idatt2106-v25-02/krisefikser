@@ -111,7 +111,7 @@ const getContentPreview = (content: string) => {
 
 <template>
   <AdminLayout>
-    <div class="p-6">
+    <div class="p-6" data-cy="admin-scenarios">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Krisescenarioer</h2>
         <Button

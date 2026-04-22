@@ -37,7 +37,7 @@ const onMapCoordinatesEmitted = () => {
 
 <template>
   <AdminLayout>
-    <div class="flex h-screen">
+    <div class="flex h-screen" data-cy="admin-map">
       <div class="w-128 bg-white border-r border-gray-200 p-4 overflow-y-auto">
         <h2 class="text-2xl font-bold mb-6">Kartstyring</h2>
 

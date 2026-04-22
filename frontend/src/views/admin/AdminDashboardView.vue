@@ -21,7 +21,7 @@ const authStore = useAuthStore()
 
 <template>
   <AdminLayout>
-    <div class="p-6">
+    <div class="p-6" data-cy="admin-dashboard">
       <h2 class="text-2xl font-bold text-gray-800 mb-6">Dashboard oversikt</h2>
 
       <StatsCard

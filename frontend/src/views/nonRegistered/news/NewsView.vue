@@ -144,6 +144,7 @@ onMounted(() => {
         <div
           v-for="article in paginatedArticles"
           :key="article.id"
+          data-cy="news-card"
           class="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition relative min-h-[180px] flex flex-col"
           @click="navigateToArticle(article.id)"
         >
@@ -162,7 +163,10 @@ onMounted(() => {
             <p class="text-gray-500 text-s mb-4 flex-grow overflow-hidden">
               <span class="line-clamp-4">{{ getExcerpt(article.text) }}</span>
             </p>
-            <div class="flex items-center text-blue-600 font-medium hover:underline group mt-auto">
+            <div
+              data-cy="read-more"
+              class="flex items-center text-blue-600 font-medium hover:underline group mt-auto"
+            >
               Les mer
               <ArrowRight class="h-5 w-5 ml-1 transform transition group-hover:translate-x-1" />
             </div>
