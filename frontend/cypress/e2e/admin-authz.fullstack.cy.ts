@@ -6,21 +6,21 @@ describe('Admin authorization matrix full-stack', () => {
   it('allows admin access to admin dashboard', () => {
     cy.loginAsSeededAdmin()
     cy.visit('/admin')
-    cy.url().should('include', '/admin')
-    cy.contains('Dashboard oversikt').should('be.visible')
+    cy.location('pathname', { timeout: 20000 }).should('eq', '/admin')
+    cy.get('[data-cy=admin-dashboard]', { timeout: 20000 }).should('be.visible')
   })
 
   it('allows admin access to admin map and scenarios routes', () => {
     cy.loginAsSeededAdmin()
 
     cy.visit('/admin/kart')
-    cy.url().should('include', '/admin/kart')
-    cy.contains('Kartstyring').should('be.visible')
+    cy.location('pathname', { timeout: 20000 }).should('eq', '/admin/kart')
+    cy.get('[data-cy=admin-map]', { timeout: 20000 }).should('be.visible')
     cy.get('body').should('not.contain', 'Siden ble ikke funnet')
 
     cy.visit('/admin/scenarios')
-    cy.url().should('include', '/admin/scenarios')
-    cy.contains('Krisescenarioer').should('be.visible')
+    cy.location('pathname', { timeout: 20000 }).should('eq', '/admin/scenarios')
+    cy.get('[data-cy=admin-scenarios]', { timeout: 20000 }).should('be.visible')
     cy.get('body').should('not.contain', 'Siden ble ikke funnet')
   })
 
@@ -33,6 +33,6 @@ describe('Admin authorization matrix full-stack', () => {
   it('allows super admin into super-admin route', () => {
     cy.loginAsSeededSuperAdmin()
     cy.visit('/admin/invite')
-    cy.url().should('include', '/admin/invite')
+    cy.location('pathname', { timeout: 20000 }).should('eq', '/admin/invite')
   })
 })

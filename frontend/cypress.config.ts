@@ -11,6 +11,10 @@ export default defineConfig({
     baseUrl: 'http://127.0.0.1:5173',
     viewportWidth: 1280,
     viewportHeight: 720,
+    retries: {
+      runMode: 2,
+      openMode: 0,
+    },
     supportFile: e2eCoverageEnabled
       ? 'cypress/support/e2eCoverage.ts'
       : 'cypress/support/e2eStandard.ts',

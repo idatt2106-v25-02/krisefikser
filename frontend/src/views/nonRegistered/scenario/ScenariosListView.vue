@@ -105,6 +105,7 @@ onMounted(() => {
         <div
           v-for="(scenario) in scenarios"
           :key="scenario.id"
+          data-cy="scenario-card"
           class="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition relative min-h-[180px] flex flex-col"
           @click="goToScenario(scenario.id)"
         >
@@ -126,7 +127,10 @@ onMounted(() => {
             <p class="text-gray-500 text-s mb-4 flex-grow overflow-hidden">
               <span class="line-clamp-4" v-html="getContentPreview(scenario.content)"></span>
             </p>
-            <div class="flex items-center text-blue-600 font-medium hover:underline group mt-auto">
+            <div
+              data-cy="read-more"
+              class="flex items-center text-blue-600 font-medium hover:underline group mt-auto"
+            >
               Les mer
               <ArrowRight class="h-5 w-5 ml-1 transform transition group-hover:translate-x-1" />
             </div>

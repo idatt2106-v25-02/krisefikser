@@ -175,7 +175,7 @@ const openImageInNewTab = (url: string) => {
 <template>
   <AdminLayout>
     <div class="p-6">
-      <PageHeader title="Administrer artikler">
+      <PageHeader data-cy="admin-articles-title" title="Administrer artikler">
         <template #actions>
           <Button
             class="flex items-center bg-blue-600 hover:bg-blue-700 text-white"

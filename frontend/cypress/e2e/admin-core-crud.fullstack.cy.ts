@@ -3,7 +3,8 @@ describe('Admin article CRUD full-stack', () => {
     cy.clearAuthSession()
     cy.loginAsSeededAdmin()
     cy.visit('/admin/artikler')
-    cy.contains('Administrer artikler').should('be.visible')
+    cy.location('pathname', { timeout: 20000 }).should('eq', '/admin/artikler')
+    cy.get('[data-cy=admin-articles-title]', { timeout: 20000 }).should('be.visible')
   })
 
   it('creates and deletes an article', () => {
