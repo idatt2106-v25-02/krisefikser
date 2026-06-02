@@ -112,6 +112,11 @@ declare global {
       mockCoreHouseholdData(household?: Partial<MockHousehold>): Chainable<void>
       mockInventoryData(): Chainable<void>
       loginByApi(email: string, password: string): Chainable<void>
+      waitForAuthMe(expectedRoles: string[]): Chainable<void>
+      visitWhenAuthenticated(
+        path: string,
+        options?: Partial<Cypress.VisitOptions>,
+      ): Chainable<void>
       loginAsSeededUser(): Chainable<void>
       loginAsSeededAdmin(): Chainable<void>
       loginAsSeededSuperAdmin(): Chainable<void>
@@ -226,12 +231,19 @@ interface LoginResponse {
 
 const apiBaseUrl = () => Cypress.env('apiUrl') || 'http://localhost:8080'
 
-function persistTokens(tokens: LoginResponse): void {
-  window.localStorage.setItem('accessToken', tokens.accessToken)
-  window.localStorage.setItem('refreshToken', tokens.refreshToken)
+function persistTokens(win: Window, tokens: LoginResponse): void {
+  win.localStorage.setItem('accessToken', tokens.accessToken)
+  win.localStorage.setItem('refreshToken', tokens.refreshToken)
+}
+
+function primeAuthSession(): void {
+  cy.intercept('GET', '**/api/auth/me').as('authMePrime')
+  cy.visit('/')
+  cy.wait('@authMePrime', { timeout: 20000 }).its('response.statusCode').should('eq', 200)
 }
 
 Cypress.Commands.add('clearAuthSession', () => {
+  cy.visit('/')
   cy.window().then((win) => {
     win.localStorage.removeItem('accessToken')
     win.localStorage.removeItem('refreshToken')
@@ -246,26 +258,63 @@ Cypress.Commands.add('loginByApi', (email: string, password: string) => {
       email,
       password,
     },
+    failOnStatusCode: true,
   }).then((response) => {
     expect(response.status).to.eq(200)
-    persistTokens(response.body)
+    cy.visit('/')
+    cy.window().then((win) => {
+      persistTokens(win, response.body)
+    })
   })
+})
+
+Cypress.Commands.add('waitForAuthMe', (expectedRoles: string[]) => {
+  cy.window().then((win) => {
+    const token = win.localStorage.getItem('accessToken')
+    expect(token, 'access token in localStorage').to.be.a('string')
+    expect(token).to.not.equal('')
+
+    cy.request({
+      method: 'GET',
+      url: `${apiBaseUrl()}/api/auth/me`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      failOnStatusCode: true,
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+      const roles = response.body.roles as string[] | undefined
+      expectedRoles.forEach((role) => {
+        expect(roles, `user roles from /api/auth/me`).to.include(role)
+      })
+    })
+  })
+})
+
+Cypress.Commands.add('visitWhenAuthenticated', (path: string, options?: Partial<Cypress.VisitOptions>) => {
+  cy.visit(path, options)
 })
 
 Cypress.Commands.add('loginAsSeededUser', () => {
   const userEmail = Cypress.env('e2eUserEmail') || 'brotherman@testern.no'
   const userPassword = Cypress.env('e2eUserPassword') || 'password'
   cy.loginByApi(userEmail, userPassword)
+  cy.waitForAuthMe(['USER'])
+  primeAuthSession()
 })
 
 Cypress.Commands.add('loginAsSeededAdmin', () => {
   const adminEmail = Cypress.env('e2eAdminEmail') || 'admin@example.com'
   const adminPassword = Cypress.env('e2eAdminPassword') || 'admin123'
   cy.loginByApi(adminEmail, adminPassword)
+  cy.waitForAuthMe(['ADMIN'])
+  primeAuthSession()
 })
 
 Cypress.Commands.add('loginAsSeededSuperAdmin', () => {
   const superAdminEmail = Cypress.env('e2eSuperAdminEmail') || 'admin@krisefikser.app'
   const superAdminPassword = Cypress.env('e2eSuperAdminPassword') || 'admin123'
   cy.loginByApi(superAdminEmail, superAdminPassword)
+  cy.waitForAuthMe(['SUPER_ADMIN'])
+  primeAuthSession()
 })

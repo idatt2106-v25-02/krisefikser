@@ -13,17 +13,17 @@ interface GuardTarget {
 }
 
 interface GuardAuth {
-  isAuthenticated: boolean
-  isAdmin: boolean
-  isSuperAdmin: boolean
-  currentUser: unknown
+  isAuthenticated: () => boolean
+  isAdmin: () => boolean
+  isSuperAdmin: () => boolean
+  currentUser: () => unknown
   refetchUser: () => Promise<unknown>
 }
 
 type NextFn = (target?: unknown) => void
 
 export function applyAuthGuards(to: GuardTarget, auth: GuardAuth, next: NextFn): boolean {
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+  if (to.meta.requiresAuth && !auth.isAuthenticated()) {
     next({
       name: 'login',
       query: { redirect: to.fullPath },
@@ -32,9 +32,9 @@ export function applyAuthGuards(to: GuardTarget, auth: GuardAuth, next: NextFn):
   }
 
   if (to.meta.requiresAdmin) {
-    if (!auth.currentUser) {
+    if (!auth.currentUser()) {
       auth.refetchUser().then(() => {
-        if (!auth.isAdmin) {
+        if (!auth.isAdmin()) {
           next({ name: 'not-found' })
         } else {
           next()
@@ -43,16 +43,16 @@ export function applyAuthGuards(to: GuardTarget, auth: GuardAuth, next: NextFn):
       return true
     }
 
-    if (!auth.isAdmin) {
+    if (!auth.isAdmin()) {
       next({ name: 'not-found' })
       return true
     }
   }
 
   if (to.meta.requiresSuperAdmin) {
-    if (!auth.currentUser) {
+    if (!auth.currentUser()) {
       auth.refetchUser().then(() => {
-        if (!auth.isSuperAdmin) {
+        if (!auth.isSuperAdmin()) {
           next({ name: 'not-found' })
         } else {
           next()
@@ -61,13 +61,13 @@ export function applyAuthGuards(to: GuardTarget, auth: GuardAuth, next: NextFn):
       return true
     }
 
-    if (!auth.isSuperAdmin) {
+    if (!auth.isSuperAdmin()) {
       next({ name: 'not-found' })
       return true
     }
   }
 
-  if (to.meta.requiresGuest && auth.isAuthenticated) {
+  if (to.meta.requiresGuest && auth.isAuthenticated()) {
     next({ name: 'dashboard' })
     return true
   }
