@@ -271,7 +271,8 @@ Cypress.Commands.add('loginByApi', (email: string, password: string) => {
 Cypress.Commands.add('waitForAuthMe', (expectedRoles: string[]) => {
   cy.window().then((win) => {
     const token = win.localStorage.getItem('accessToken')
-    expect(token, 'access token in localStorage').to.be.a('string').and.not.be.empty
+    expect(token, 'access token in localStorage').to.be.a('string')
+    expect(token).to.not.equal('')
 
     cy.request({
       method: 'GET',

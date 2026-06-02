@@ -31,7 +31,8 @@ describe('Admin article CRUD full-stack', () => {
     cy.get('#text').type('Automatisk opprettet av full-stack Cypress-test.')
     cy.contains('button', 'Opprett').click()
 
-    cy.contains('tr', title).scrollIntoView().should('be.visible')
+    cy.contains('tr', title).scrollIntoView()
+    cy.contains('tr', title).should('be.visible')
 
     cy.contains('tr', title).within(() => {
       cy.get('button').last().click()
