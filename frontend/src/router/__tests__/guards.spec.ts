@@ -8,20 +8,37 @@ const createBaseRoute = () => ({
   matched: [{}],
 })
 
-const createBaseAuth = () => ({
-  isAuthenticated: true,
-  isAdmin: false,
-  isSuperAdmin: false,
-  currentUser: { id: 'u-1' },
-  refetchUser: vi.fn().mockResolvedValue(undefined),
-})
+const createBaseAuth = (overrides: Partial<{
+  isAuthenticated: boolean
+  isAdmin: boolean
+  isSuperAdmin: boolean
+  currentUser: unknown
+}> = {}) => {
+  const state = {
+    isAuthenticated: true,
+    isAdmin: false,
+    isSuperAdmin: false,
+    currentUser: { id: 'u-1' } as unknown,
+    ...overrides,
+  }
+  return {
+    isAuthenticated: () => state.isAuthenticated,
+    isAdmin: () => state.isAdmin,
+    isSuperAdmin: () => state.isSuperAdmin,
+    currentUser: () => state.currentUser,
+    refetchUser: vi.fn().mockImplementation(async () => {
+      state.isAdmin = true
+      state.isSuperAdmin = true
+    }),
+  }
+}
 
 describe('applyAuthGuards', () => {
   it('redirects unauthenticated users when auth is required', () => {
     const next = vi.fn()
     const handled = applyAuthGuards(
       { ...createBaseRoute(), meta: { requiresAuth: true }, fullPath: '/dashboard' },
-      { ...createBaseAuth(), isAuthenticated: false },
+      createBaseAuth({ isAuthenticated: false }),
       next,
     )
 
@@ -60,7 +77,7 @@ describe('applyAuthGuards', () => {
     const next = vi.fn()
     const handled = applyAuthGuards(
       { ...createBaseRoute(), path: '/admin/unknown', matched: [] },
-      { ...createBaseAuth(), isAdmin: true },
+      createBaseAuth({ isAdmin: true }),
       next,
     )
 
@@ -68,11 +85,27 @@ describe('applyAuthGuards', () => {
     expect(next).toHaveBeenCalledWith({ name: 'admin-dashboard' })
   })
 
+  it('allows admin navigation after refetch resolves roles', async () => {
+    const next = vi.fn()
+    const auth = createBaseAuth({ currentUser: null, isAdmin: false })
+
+    const handled = applyAuthGuards(
+      { ...createBaseRoute(), meta: { requiresAdmin: true } },
+      auth,
+      next,
+    )
+
+    expect(handled).toBe(true)
+    expect(next).not.toHaveBeenCalled()
+    await auth.refetchUser()
+    expect(next).toHaveBeenCalledWith()
+  })
+
   it('allows navigation when no guard handles route', () => {
     const next = vi.fn()
     const handled = applyAuthGuards(
       { ...createBaseRoute(), path: '/scenarioer', fullPath: '/scenarioer' },
-      { ...createBaseAuth(), isAdmin: true },
+      createBaseAuth({ isAdmin: true }),
       next,
     )
 

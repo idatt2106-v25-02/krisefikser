@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Get current user query - only enabled when we have a token
   const { data: currentUser, refetch: refetchUser } = useMe({
     query: {
-      enabled: isAuthenticated.value,
+      enabled: computed(() => isAuthenticated.value),
       refetchOnMount: true,
       refetchOnWindowFocus: true,
     },
